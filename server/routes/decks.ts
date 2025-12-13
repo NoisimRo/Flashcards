@@ -1,0 +1,583 @@
+import { Router, Request, Response } from 'express';
+import { query, withTransaction } from '../db';
+import { authenticateToken, optionalAuth, requireRole } from '../middleware/auth';
+import { config } from '../config';
+
+const router = Router();
+
+// ============================================
+// GET /api/decks - List decks
+// ============================================
+router.get('/', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const {
+      page = '1',
+      limit = '20',
+      subject,
+      difficulty,
+      search,
+      ownedOnly = 'false',
+      publicOnly = 'false',
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = req.query;
+
+    const pageNum = Math.max(1, parseInt(page as string));
+    const limitNum = Math.min(config.pagination.maxLimit, Math.max(1, parseInt(limit as string)));
+    const offset = (pageNum - 1) * limitNum;
+
+    // Build query
+    let whereClause = 'd.deleted_at IS NULL';
+    const params: any[] = [];
+    let paramIndex = 1;
+
+    // Filter by ownership
+    if (ownedOnly === 'true') {
+      whereClause += ` AND d.owner_id = $${paramIndex++}`;
+      params.push(req.user!.id);
+    } else if (publicOnly === 'true') {
+      whereClause += ' AND d.is_public = true';
+    } else {
+      // Show owned + shared + public
+      whereClause += ` AND (d.owner_id = $${paramIndex++} OR d.is_public = true OR EXISTS (
+        SELECT 1 FROM deck_shares ds WHERE ds.deck_id = d.id AND ds.user_id = $${paramIndex++}
+      ))`;
+      params.push(req.user!.id, req.user!.id);
+    }
+
+    if (subject) {
+      whereClause += ` AND d.subject_id = $${paramIndex++}`;
+      params.push(subject);
+    }
+
+    if (difficulty) {
+      whereClause += ` AND d.difficulty = $${paramIndex++}`;
+      params.push(difficulty);
+    }
+
+    if (search) {
+      whereClause += ` AND (d.title ILIKE $${paramIndex++} OR d.topic ILIKE $${paramIndex++})`;
+      params.push(`%${search}%`, `%${search}%`);
+    }
+
+    // Sort mapping
+    const sortMap: Record<string, string> = {
+      title: 'd.title',
+      createdAt: 'd.created_at',
+      lastStudied: 'd.last_studied',
+      totalCards: 'd.total_cards',
+    };
+    const sortColumn = sortMap[sortBy as string] || 'd.created_at';
+    const order = sortOrder === 'asc' ? 'ASC' : 'DESC';
+
+    // Get total count
+    const countResult = await query(
+      `SELECT COUNT(*) FROM decks d WHERE ${whereClause}`,
+      params
+    );
+    const total = parseInt(countResult.rows[0].count);
+
+    // Get decks
+    const decksResult = await query(
+      `SELECT d.*, s.name as subject_name, s.color as subject_color,
+              u.name as owner_name,
+              (d.owner_id = $${paramIndex++}) as is_owner
+       FROM decks d
+       LEFT JOIN subjects s ON d.subject_id = s.id
+       LEFT JOIN users u ON d.owner_id = u.id
+       WHERE ${whereClause}
+       ORDER BY ${sortColumn} ${order} NULLS LAST
+       LIMIT $${paramIndex++} OFFSET $${paramIndex++}`,
+      [...params, req.user!.id, limitNum, offset]
+    );
+
+    const decks = decksResult.rows.map(formatDeck);
+
+    res.json({
+      success: true,
+      data: decks,
+      meta: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages: Math.ceil(total / limitNum),
+      },
+    });
+  } catch (error) {
+    console.error('List decks error:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'SERVER_ERROR',
+        message: 'Eroare la obținerea deck-urilor',
+      },
+    });
+  }
+});
+
+// ============================================
+// GET /api/decks/:id - Get single deck with cards
+// ============================================
+router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    // Get deck
+    const deckResult = await query(
+      `SELECT d.*, s.name as subject_name, s.color as subject_color,
+              u.name as owner_name,
+              (d.owner_id = $1) as is_owner
+       FROM decks d
+       LEFT JOIN subjects s ON d.subject_id = s.id
+       LEFT JOIN users u ON d.owner_id = u.id
+       WHERE d.id = $2 AND d.deleted_at IS NULL`,
+      [req.user!.id, id]
+    );
+
+    if (deckResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'NOT_FOUND',
+          message: 'Deck-ul nu a fost găsit',
+        },
+      });
+    }
+
+    const deck = deckResult.rows[0];
+
+    // Check access
+    const hasAccess =
+      deck.owner_id === req.user!.id ||
+      deck.is_public ||
+      req.user!.role === 'admin';
+
+    if (!hasAccess) {
+      // Check if shared
+      const shareResult = await query(
+        'SELECT 1 FROM deck_shares WHERE deck_id = $1 AND user_id = $2',
+        [id, req.user!.id]
+      );
+      if (shareResult.rows.length === 0) {
+        return res.status(403).json({
+          success: false,
+          error: {
+            code: 'FORBIDDEN',
+            message: 'Nu ai acces la acest deck',
+          },
+        });
+      }
+    }
+
+    // Get cards
+    const cardsResult = await query(
+      `SELECT * FROM cards
+       WHERE deck_id = $1 AND deleted_at IS NULL
+       ORDER BY position ASC, created_at ASC`,
+      [id]
+    );
+
+    res.json({
+      success: true,
+      data: {
+        ...formatDeck(deck),
+        cards: cardsResult.rows.map(formatCard),
+      },
+    });
+  } catch (error) {
+    console.error('Get deck error:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'SERVER_ERROR',
+        message: 'Eroare la obținerea deck-ului',
+      },
+    });
+  }
+});
+
+// ============================================
+// POST /api/decks - Create deck
+// ============================================
+router.post('/', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const {
+      title,
+      description,
+      subject,
+      topic,
+      difficulty = 'A2',
+      isPublic = false,
+      tags = [],
+      cards = [],
+    } = req.body;
+
+    if (!title) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Titlul este obligatoriu',
+        },
+      });
+    }
+
+    const result = await withTransaction(async (client) => {
+      // Create deck
+      const deckResult = await client.query(
+        `INSERT INTO decks (title, description, subject_id, topic, difficulty, is_public, tags, owner_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         RETURNING *`,
+        [title, description, subject, topic, difficulty, isPublic, tags, req.user!.id]
+      );
+
+      const deck = deckResult.rows[0];
+
+      // Create cards if provided
+      if (cards.length > 0) {
+        for (let i = 0; i < cards.length; i++) {
+          const card = cards[i];
+          await client.query(
+            `INSERT INTO cards (deck_id, front, back, context, hint, type, options, correct_option_index, created_by, position)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+            [
+              deck.id,
+              card.front,
+              card.back,
+              card.context,
+              card.hint,
+              card.type || 'standard',
+              card.options || [],
+              card.correctOptionIndex,
+              req.user!.id,
+              i,
+            ]
+          );
+        }
+      }
+
+      return deck;
+    });
+
+    // Fetch complete deck with cards
+    const completeResult = await query(
+      `SELECT d.*, s.name as subject_name, s.color as subject_color
+       FROM decks d
+       LEFT JOIN subjects s ON d.subject_id = s.id
+       WHERE d.id = $1`,
+      [result.id]
+    );
+
+    const cardsResult = await query(
+      'SELECT * FROM cards WHERE deck_id = $1 ORDER BY position ASC',
+      [result.id]
+    );
+
+    res.status(201).json({
+      success: true,
+      data: {
+        ...formatDeck({ ...completeResult.rows[0], is_owner: true }),
+        cards: cardsResult.rows.map(formatCard),
+      },
+    });
+  } catch (error) {
+    console.error('Create deck error:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'SERVER_ERROR',
+        message: 'Eroare la crearea deck-ului',
+      },
+    });
+  }
+});
+
+// ============================================
+// PUT /api/decks/:id - Update deck
+// ============================================
+router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { title, description, subject, topic, difficulty, isPublic, tags } = req.body;
+
+    // Check ownership
+    const deckResult = await query(
+      'SELECT owner_id FROM decks WHERE id = $1 AND deleted_at IS NULL',
+      [id]
+    );
+
+    if (deckResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'NOT_FOUND',
+          message: 'Deck-ul nu a fost găsit',
+        },
+      });
+    }
+
+    if (deckResult.rows[0].owner_id !== req.user!.id && req.user!.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        error: {
+          code: 'FORBIDDEN',
+          message: 'Nu ai permisiunea să editezi acest deck',
+        },
+      });
+    }
+
+    // Build update query dynamically
+    const updates: string[] = [];
+    const values: any[] = [];
+    let paramIndex = 1;
+
+    if (title !== undefined) {
+      updates.push(`title = $${paramIndex++}`);
+      values.push(title);
+    }
+    if (description !== undefined) {
+      updates.push(`description = $${paramIndex++}`);
+      values.push(description);
+    }
+    if (subject !== undefined) {
+      updates.push(`subject_id = $${paramIndex++}`);
+      values.push(subject);
+    }
+    if (topic !== undefined) {
+      updates.push(`topic = $${paramIndex++}`);
+      values.push(topic);
+    }
+    if (difficulty !== undefined) {
+      updates.push(`difficulty = $${paramIndex++}`);
+      values.push(difficulty);
+    }
+    if (isPublic !== undefined) {
+      updates.push(`is_public = $${paramIndex++}`);
+      values.push(isPublic);
+    }
+    if (tags !== undefined) {
+      updates.push(`tags = $${paramIndex++}`);
+      values.push(tags);
+    }
+
+    updates.push(`version = version + 1`);
+
+    if (updates.length === 1) {
+      // Only version update, nothing to change
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Nicio modificare furnizată',
+        },
+      });
+    }
+
+    values.push(id);
+
+    const updateResult = await query(
+      `UPDATE decks SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
+      values
+    );
+
+    // Get complete deck
+    const completeResult = await query(
+      `SELECT d.*, s.name as subject_name, s.color as subject_color
+       FROM decks d
+       LEFT JOIN subjects s ON d.subject_id = s.id
+       WHERE d.id = $1`,
+      [id]
+    );
+
+    res.json({
+      success: true,
+      data: formatDeck({ ...completeResult.rows[0], is_owner: true }),
+    });
+  } catch (error) {
+    console.error('Update deck error:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'SERVER_ERROR',
+        message: 'Eroare la actualizarea deck-ului',
+      },
+    });
+  }
+});
+
+// ============================================
+// DELETE /api/decks/:id - Delete deck
+// ============================================
+router.delete('/:id', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    // Check ownership
+    const deckResult = await query(
+      'SELECT owner_id FROM decks WHERE id = $1 AND deleted_at IS NULL',
+      [id]
+    );
+
+    if (deckResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'NOT_FOUND',
+          message: 'Deck-ul nu a fost găsit',
+        },
+      });
+    }
+
+    if (deckResult.rows[0].owner_id !== req.user!.id && req.user!.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        error: {
+          code: 'FORBIDDEN',
+          message: 'Nu ai permisiunea să ștergi acest deck',
+        },
+      });
+    }
+
+    // Soft delete
+    await query('UPDATE decks SET deleted_at = NOW() WHERE id = $1', [id]);
+    await query('UPDATE cards SET deleted_at = NOW() WHERE deck_id = $1', [id]);
+
+    res.json({
+      success: true,
+      data: { message: 'Deck-ul a fost șters' },
+    });
+  } catch (error) {
+    console.error('Delete deck error:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'SERVER_ERROR',
+        message: 'Eroare la ștergerea deck-ului',
+      },
+    });
+  }
+});
+
+// ============================================
+// POST /api/decks/:id/cards - Add card to deck
+// ============================================
+router.post('/:id/cards', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { front, back, context, hint, type = 'standard', options, correctOptionIndex } = req.body;
+
+    if (!front || !back) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Front și back sunt obligatorii',
+        },
+      });
+    }
+
+    // Check deck ownership
+    const deckResult = await query(
+      'SELECT owner_id FROM decks WHERE id = $1 AND deleted_at IS NULL',
+      [id]
+    );
+
+    if (deckResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'NOT_FOUND',
+          message: 'Deck-ul nu a fost găsit',
+        },
+      });
+    }
+
+    if (deckResult.rows[0].owner_id !== req.user!.id && req.user!.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        error: {
+          code: 'FORBIDDEN',
+          message: 'Nu ai permisiunea să adaugi carduri în acest deck',
+        },
+      });
+    }
+
+    // Get max position
+    const posResult = await query(
+      'SELECT COALESCE(MAX(position), -1) + 1 as next_pos FROM cards WHERE deck_id = $1',
+      [id]
+    );
+
+    const cardResult = await query(
+      `INSERT INTO cards (deck_id, front, back, context, hint, type, options, correct_option_index, created_by, position)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       RETURNING *`,
+      [id, front, back, context, hint, type, options || [], correctOptionIndex, req.user!.id, posResult.rows[0].next_pos]
+    );
+
+    res.status(201).json({
+      success: true,
+      data: formatCard(cardResult.rows[0]),
+    });
+  } catch (error) {
+    console.error('Add card error:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'SERVER_ERROR',
+        message: 'Eroare la adăugarea cardului',
+      },
+    });
+  }
+});
+
+// Helper functions
+function formatDeck(deck: any) {
+  return {
+    id: deck.id,
+    title: deck.title,
+    description: deck.description,
+    subject: deck.subject_id,
+    subjectName: deck.subject_name,
+    subjectColor: deck.subject_color,
+    topic: deck.topic,
+    difficulty: deck.difficulty,
+    coverImage: deck.cover_image,
+    isPublic: deck.is_public,
+    tags: deck.tags || [],
+    totalCards: deck.total_cards,
+    masteredCards: deck.mastered_cards,
+    ownerId: deck.owner_id,
+    ownerName: deck.owner_name,
+    isOwner: deck.is_owner,
+    createdAt: deck.created_at,
+    updatedAt: deck.updated_at,
+    lastStudied: deck.last_studied,
+    syncStatus: deck.sync_status,
+    version: deck.version,
+  };
+}
+
+function formatCard(card: any) {
+  return {
+    id: card.id,
+    deckId: card.deck_id,
+    front: card.front,
+    back: card.back,
+    context: card.context,
+    hint: card.hint,
+    type: card.type,
+    options: card.options,
+    correctOptionIndex: card.correct_option_index,
+    status: card.status,
+    easeFactor: parseFloat(card.ease_factor),
+    interval: card.interval,
+    repetitions: card.repetitions,
+    nextReviewDate: card.next_review_date,
+    createdAt: card.created_at,
+    updatedAt: card.updated_at,
+    position: card.position,
+  };
+}
+
+export default router;

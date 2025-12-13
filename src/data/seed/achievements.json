@@ -1,0 +1,98 @@
+[
+  {
+    "id": "a1",
+    "title": "Primul Pas",
+    "description": "Completat primul deck",
+    "icon": "target",
+    "xpReward": 50,
+    "condition": {
+      "type": "decks_completed",
+      "value": 1
+    },
+    "color": "bg-yellow-100 text-yellow-600"
+  },
+  {
+    "id": "a2",
+    "title": "Stea Strălucitoare",
+    "description": "5 zile consecutive",
+    "icon": "star",
+    "xpReward": 100,
+    "condition": {
+      "type": "streak_days",
+      "value": 5
+    },
+    "color": "bg-blue-100 text-blue-600"
+  },
+  {
+    "id": "a3",
+    "title": "Rapid ca Fulgerul",
+    "description": "10 carduri în 1 minut",
+    "icon": "zap",
+    "xpReward": 75,
+    "condition": {
+      "type": "cards_per_minute",
+      "value": 10
+    },
+    "color": "bg-purple-100 text-purple-600"
+  },
+  {
+    "id": "a4",
+    "title": "Bibliotecar",
+    "description": "Creat 3 deck-uri",
+    "icon": "library",
+    "xpReward": 60,
+    "condition": {
+      "type": "decks_created",
+      "value": 3
+    },
+    "color": "bg-green-100 text-green-600"
+  },
+  {
+    "id": "a5",
+    "title": "Flacără Vie",
+    "description": "Streak de 7 zile",
+    "icon": "flame",
+    "xpReward": 150,
+    "condition": {
+      "type": "streak_days",
+      "value": 7
+    },
+    "color": "bg-orange-100 text-orange-600"
+  },
+  {
+    "id": "a6",
+    "title": "Diamant",
+    "description": "100 carduri memorate",
+    "icon": "diamond",
+    "xpReward": 200,
+    "condition": {
+      "type": "cards_mastered",
+      "value": 100
+    },
+    "color": "bg-indigo-100 text-indigo-600"
+  },
+  {
+    "id": "a7",
+    "title": "Maestru",
+    "description": "Nivel 10 atins",
+    "icon": "crown",
+    "xpReward": 500,
+    "condition": {
+      "type": "level_reached",
+      "value": 10
+    },
+    "color": "bg-amber-100 text-amber-600"
+  },
+  {
+    "id": "a8",
+    "title": "Dedicat",
+    "description": "30 zile consecutive",
+    "icon": "calendar",
+    "xpReward": 1000,
+    "condition": {
+      "type": "streak_days",
+      "value": 30
+    },
+    "color": "bg-red-100 text-red-600"
+  }
+]

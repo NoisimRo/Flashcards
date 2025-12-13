@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run dev:*)",
+      "Bash(npm install:*)",
+      "Bash(psql:*)",
+      "Bash(where:*)",
+      "Bash(dir \"C:\\Program Files\\PostgreSQL\")",
+      "Bash(\"C:\\Program Files\\PostgreSQL\\18\\bin\\psql.exe\" --version)",
+      "Bash(set:*)",
+      "Bash(\"C:\\Program Files\\PostgreSQL\\18\\bin\\createdb.exe\" -U postgres flashcards)",
+      "Bash(createdb:*)",
+      "Bash(\"C:\\Program Files\\PostgreSQL\\18\\bin\\psql.exe\" -U postgres -c \"CREATE DATABASE flashcards;\")",
+      "Bash(\"C:\\Program Files\\PostgreSQL\\18\\bin\\psql.exe\" \"postgresql://postgres:@Simion2025@localhost:5432/postgres\" -c \"CREATE DATABASE flashcards;\")",
+      "Bash(\"C:\\Program Files\\PostgreSQL\\18\\bin\\psql.exe\" \"postgresql://postgres:%40Simion2025@localhost:5432/postgres\" -c \"CREATE DATABASE flashcards;\")",
+      "Bash(\"C:\\Program Files\\PostgreSQL\\18\\bin\\psql.exe\" \"postgresql://postgres:%40Simion2025@localhost:5432/flashcards\" -f server/db/schema.sql)",
+      "Bash(\"C:\\Program Files\\PostgreSQL\\18\\bin\\psql.exe\" \"postgresql://postgres:%40Simion2025@localhost:5432/flashcards\" -c \"\\dt\")",
+      "Bash(curl:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill //F //PID 9776)",
+      "Bash(taskkill //F //PID 18796)",
+      "Bash(taskkill //F //PID 14764)",
+      "Bash(taskkill //F //PID 12304)",
+      "Bash(dir:*)",
+      "Bash(git init:*)",
+      "Bash(git remote add:*)",
+      "Bash(git add:*)",
+      "Bash(del:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
