@@ -1,6 +1,8 @@
 import type { ApiResponse, ApiError } from '../types';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+// În producție, folosim URL relativ; în development, localhost
+const API_BASE_URL = import.meta.env.VITE_API_URL ||
+  (import.meta.env.PROD ? '/api' : 'http://localhost:3001/api');
 
 // Token storage
 let accessToken: string | null = null;

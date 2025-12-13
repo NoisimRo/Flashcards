@@ -4,17 +4,17 @@ import helmet from 'helmet';
 import compression from 'compression';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { config } from './config';
-import { checkConnection } from './db';
+import { config } from './config/index.js';
+import { checkConnection } from './db/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Import routes
-import authRoutes from './routes/auth';
-import usersRoutes from './routes/users';
-import decksRoutes from './routes/decks';
-import importExportRoutes from './routes/import-export';
+import authRoutes from './routes/auth.js';
+import usersRoutes from './routes/users.js';
+import decksRoutes from './routes/decks.js';
+import importExportRoutes from './routes/import-export.js';
 
 const app = express();
 
@@ -22,8 +22,11 @@ const app = express();
 // MIDDLEWARE
 // ============================================
 
-// Security headers
-app.use(helmet());
+// Security headers - configured for SPA
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+}));
 
 // CORS
 app.use(cors({
@@ -79,7 +82,8 @@ if (config.nodeEnv === 'production') {
   app.use(express.static(clientBuildPath));
 
   // Handle React routing - send all non-API requests to index.html
-  app.get('*', (req, res, next) => {
+  // Note: Express 5 requires {*path} syntax instead of *
+  app.get('/{*path}', (req, res, next) => {
     // Skip API routes
     if (req.path.startsWith('/api')) {
       return next();

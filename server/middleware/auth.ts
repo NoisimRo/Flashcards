@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { config } from '../config';
-import { query } from '../db';
+import { config } from '../config/index.js';
+import { query } from '../db/index.js';
 
 // Extend Express Request type
 declare global {
@@ -195,7 +195,7 @@ export function generateAccessToken(user: { id: string; email: string; name: str
       type: 'access',
     },
     config.jwt.accessSecret,
-    { expiresIn: config.jwt.accessExpiresIn }
+    { expiresIn: config.jwt.accessExpiresIn as any }
   );
 }
 
@@ -209,7 +209,7 @@ export function generateRefreshToken(user: { id: string; email: string; name: st
       type: 'refresh',
     },
     config.jwt.refreshSecret,
-    { expiresIn: config.jwt.refreshExpiresIn }
+    { expiresIn: config.jwt.refreshExpiresIn as any }
   );
 }
 

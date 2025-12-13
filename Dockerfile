@@ -1,8 +1,7 @@
 # ============================================
 # FLASHCARDS - Multi-stage Dockerfile
 # ============================================
-# Etapa 1: Build Frontend + Backend
-# Etapa 2: Production image
+# Optimizat pentru Google Cloud Run
 # ============================================
 
 # ============================================
@@ -16,7 +15,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Instalăm toate dependențele (inclusiv devDependencies pentru build)
-RUN npm ci
+RUN npm install
 
 # Copiem restul codului sursă
 COPY . .
@@ -42,7 +41,7 @@ ENV PORT=8080
 COPY package*.json ./
 
 # Instalăm DOAR dependențele de producție
-RUN npm ci --only=production && npm cache clean --force
+RUN npm install --omit=dev && npm cache clean --force
 
 # Copiem build-urile din stage-ul anterior
 COPY --from=builder /app/dist ./dist

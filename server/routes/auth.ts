@@ -1,9 +1,9 @@
 import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
-import { query, withTransaction } from '../db';
-import { authenticateToken, generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../middleware/auth';
-import { config } from '../config';
+import { query, withTransaction } from '../db/index.js';
+import { authenticateToken, generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../middleware/auth.js';
+import { config } from '../config/index.js';
 
 const router = Router();
 

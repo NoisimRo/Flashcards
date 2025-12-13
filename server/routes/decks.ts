@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
-import { query, withTransaction } from '../db';
-import { authenticateToken, optionalAuth, requireRole } from '../middleware/auth';
-import { config } from '../config';
+import { query, withTransaction } from '../db/index.js';
+import { authenticateToken, optionalAuth, requireRole } from '../middleware/auth.js';
+import { config } from '../config/index.js';
 
 const router = Router();
 

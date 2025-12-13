@@ -411,3 +411,16 @@ SELECT
     (SELECT COUNT(*) FROM user_achievements ua WHERE ua.user_id = u.id) as achievements_unlocked
 FROM users u
 WHERE u.deleted_at IS NULL;
+
+-- ============================================
+-- PERMISSIONS (pentru Cloud SQL user)
+-- ============================================
+-- Rulează aceste comenzi după ce ai creat userul flashcards_user
+
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO flashcards_user;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO flashcards_user;
+GRANT USAGE ON SCHEMA public TO flashcards_user;
+
+-- Pentru tabele create în viitor
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO flashcards_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO flashcards_user;
