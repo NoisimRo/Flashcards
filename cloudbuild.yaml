@@ -1,7 +1,7 @@
 # ============================================
 # FLASHCARDS - Cloud Build CI/CD
 # ============================================
-# Deployment automat pe Google Cloud Run
+# Deploy automat la fiecare push pe GitHub
 # ============================================
 
 steps:
@@ -55,15 +55,17 @@ steps:
       - '0'
       - '--max-instances'
       - '10'
+      - '--add-cloudsql-instances'
+      - '${PROJECT_ID}:${_REGION}:flashcards-db'
       - '--set-env-vars'
-      - 'NODE_ENV=production'
+      - 'NODE_ENV=production,CORS_ORIGIN=*,DB_HOST=/cloudsql/${PROJECT_ID}:${_REGION}:flashcards-db,DB_PORT=5432,DB_NAME=flashcards,DB_USER=flashcards_user'
       - '--set-secrets'
-      - 'DB_HOST=flashcards-db-host:latest,DB_PORT=flashcards-db-port:latest,DB_NAME=flashcards-db-name:latest,DB_USER=flashcards-db-user:latest,DB_PASSWORD=flashcards-db-password:latest,JWT_ACCESS_SECRET=flashcards-jwt-access:latest,JWT_REFRESH_SECRET=flashcards-jwt-refresh:latest,API_KEY=flashcards-gemini-key:latest'
+      - 'DB_PASSWORD=flashcards-db-password:latest,JWT_ACCESS_SECRET=flashcards-jwt-access:latest,JWT_REFRESH_SECRET=flashcards-jwt-refresh:latest'
     id: 'deploy'
     waitFor: ['push']
 
 # ==========================================
-# Substitution variables (can be overridden)
+# Substitution variables
 # ==========================================
 substitutions:
   _REGION: 'europe-west1'
@@ -76,7 +78,6 @@ substitutions:
 # ==========================================
 options:
   logging: CLOUD_LOGGING_ONLY
-  machineType: 'E2_HIGHCPU_8'
 
 # ==========================================
 # Images to push
@@ -86,6 +87,6 @@ images:
   - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/${_IMAGE}:latest'
 
 # ==========================================
-# Timeout
+# Timeout (20 minutes)
 # ==========================================
 timeout: '1200s'
