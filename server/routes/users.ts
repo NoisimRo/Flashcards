@@ -454,4 +454,89 @@ router.get('/:id/stats', authenticateToken, async (req: Request, res: Response) 
   }
 });
 
+// ============================================
+// GET /api/users/leaderboard - Get global leaderboard
+// ============================================
+router.get('/leaderboard/global', async (req: Request, res: Response) => {
+  try {
+    const { limit = '50' } = req.query;
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit as string)));
+
+    // Get current user ID if authenticated
+    const currentUserId = req.user?.id;
+
+    // Get top users by total XP
+    const topUsersResult = await query(
+      `SELECT id, name, avatar, level, total_xp, streak
+       FROM users
+       WHERE deleted_at IS NULL
+       ORDER BY total_xp DESC
+       LIMIT $1`,
+      [limitNum]
+    );
+
+    // Build leaderboard with positions
+    const leaderboard = topUsersResult.rows.map((user, index) => ({
+      id: user.id,
+      position: index + 1,
+      name: user.name,
+      avatar: user.avatar,
+      level: user.level,
+      xpTotal: user.total_xp,
+      streak: user.streak,
+      isCurrentUser: user.id === currentUserId,
+    }));
+
+    // If authenticated user is not in top results, get their position
+    let currentUserEntry = null;
+    if (currentUserId && !leaderboard.some(u => u.isCurrentUser)) {
+      const userPositionResult = await query(
+        `SELECT u.id, u.name, u.avatar, u.level, u.total_xp, u.streak,
+                (SELECT COUNT(*) + 1 FROM users WHERE total_xp > u.total_xp AND deleted_at IS NULL) as position
+         FROM users u
+         WHERE u.id = $1 AND u.deleted_at IS NULL`,
+        [currentUserId]
+      );
+
+      if (userPositionResult.rows.length > 0) {
+        const user = userPositionResult.rows[0];
+        currentUserEntry = {
+          id: user.id,
+          position: parseInt(user.position),
+          name: user.name,
+          avatar: user.avatar,
+          level: user.level,
+          xpTotal: user.total_xp,
+          streak: user.streak,
+          isCurrentUser: true,
+        };
+      }
+    }
+
+    // Get total user count
+    const countResult = await query(
+      'SELECT COUNT(*) FROM users WHERE deleted_at IS NULL'
+    );
+    const totalUsers = parseInt(countResult.rows[0].count);
+
+    res.json({
+      success: true,
+      data: {
+        leaderboard,
+        currentUser: currentUserEntry,
+        totalUsers,
+      },
+    });
+  } catch (error) {
+    console.error('Get leaderboard error:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'SERVER_ERROR',
+        message: 'Eroare la obținerea clasamentului',
+      },
+    });
+  }
+});
+
 export default router;

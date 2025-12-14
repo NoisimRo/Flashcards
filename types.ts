@@ -36,12 +36,28 @@ export interface Deck {
 export interface User {
   id: string;
   name: string;
+  email?: string;
+  role?: 'admin' | 'teacher' | 'student';
+  avatar?: string;
+  // Gamification
   level: number;
   currentXP: number;
   nextLevelXP: number;
+  totalXP: number;
+  // Stats
   streak: number;
+  longestStreak: number;
   totalTimeSpent: number; // in minutes
-  cardsLearnedThisWeek: number;
+  totalCardsLearned: number;
+  totalDecksCompleted: number;
+  // Preferences
+  preferences?: {
+    dailyGoal?: number;
+    soundEnabled?: boolean;
+    animationsEnabled?: boolean;
+    theme?: 'light' | 'dark';
+    language?: string;
+  };
 }
 
 export interface Achievement {

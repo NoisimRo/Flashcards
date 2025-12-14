@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Deck, Card, User, SessionData } from '../types';
-import { 
-  CheckCircle, 
-  XCircle, 
-  ChevronLeft, 
-  RotateCw, 
-  Shuffle, 
-  SkipForward, 
+import { useToast } from '../src/components/ui/Toast';
+import {
+  CheckCircle,
+  XCircle,
+  ChevronLeft,
+  RotateCw,
+  Shuffle,
+  SkipForward,
   Undo2,
   Edit2,
   Trash2,
@@ -35,16 +36,19 @@ interface StudySessionProps {
 
 type AnswerStatus = 'correct' | 'incorrect' | 'skipped' | null;
 
-const StudySession: React.FC<StudySessionProps> = ({ 
-  deck, 
-  user, 
-  onFinish, 
+const StudySession: React.FC<StudySessionProps> = ({
+  deck,
+  user,
+  onFinish,
   onSaveProgress,
   onUpdateUserXP,
-  onBack, 
-  onEditCard, 
-  onDeleteCard 
+  onBack,
+  onEditCard,
+  onDeleteCard
 }) => {
+  // Toast for notifications
+  const toast = useToast();
+
   // --- STATE ---
   
   // Initialization: check for sessionData in deck
@@ -180,21 +184,25 @@ const StudySession: React.FC<StudySessionProps> = ({
 
   const handleUseHint = () => {
       if (hintRevealed) return;
-      
+
       const COST = 20;
-      
+
       // Strict check on current available XP
       if (user.currentXP < COST) {
-          alert(`Nu ai suficient XP! Ai nevoie de ${COST} XP, dar ai doar ${user.currentXP}.`);
+          toast.warning(
+            'XP Insuficient',
+            `Ai nevoie de ${COST} XP pentru indiciu, dar ai doar ${user.currentXP} XP.`
+          );
           return;
       }
-      
+
       // Deduct XP
       const newXP = Math.max(0, user.currentXP - COST);
       onUpdateUserXP(newXP);
-      
+
       // Reveal Hint
       setHintRevealed(true);
+      toast.info('Indiciu folosit', `-${COST} XP`);
   };
 
   // Helper to render context with bold word

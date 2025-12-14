@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { AuthProvider, useAuth } from './src/store/AuthContext';
+import { ToastProvider } from './src/components/ui/Toast';
 import AuthPage from './src/components/auth/AuthPage';
 import LoginPromptModal from './src/components/auth/LoginPromptModal';
 import Sidebar from './components/Sidebar';
@@ -9,7 +10,7 @@ import StudySession from './components/StudySession';
 import Achievements from './components/Achievements';
 import Leaderboard from './components/Leaderboard';
 import Settings from './components/Settings';
-import { MOCK_USER, MOCK_DECKS, MOCK_ACHIEVEMENTS, LEADERBOARD_DATA } from './constants';
+import { MOCK_DECKS, MOCK_ACHIEVEMENTS, LEADERBOARD_DATA } from './constants';
 import { Deck, Card, SessionData } from './types';
 import { Menu, X, Loader2 } from 'lucide-react';
 import * as decksApi from './src/api/decks';
@@ -21,9 +22,12 @@ const GUEST_USER = {
   level: 1,
   currentXP: 0,
   nextLevelXP: 100,
+  totalXP: 0,
   streak: 0,
+  longestStreak: 0,
   totalTimeSpent: 0,
-  cardsLearnedThisWeek: 0,
+  totalCardsLearned: 0,
+  totalDecksCompleted: 0,
   email: undefined,
   role: 'student' as const,
   avatar: undefined,
@@ -35,15 +39,21 @@ function adaptUserFromAPI(apiUser: any) {
   return {
     id: apiUser.id,
     name: apiUser.name,
-    level: apiUser.level || 1,
-    currentXP: apiUser.currentXP || 0,
-    nextLevelXP: apiUser.nextLevelXP || 100,
-    streak: apiUser.streak || 0,
-    totalTimeSpent: apiUser.totalTimeSpent || 0,
-    cardsLearnedThisWeek: apiUser.totalCardsLearned || 0,
     email: apiUser.email,
     role: apiUser.role,
     avatar: apiUser.avatar,
+    // Gamification
+    level: apiUser.level ?? 1,
+    currentXP: apiUser.currentXP ?? 0,
+    nextLevelXP: apiUser.nextLevelXP ?? 100,
+    totalXP: apiUser.totalXP ?? 0,
+    // Stats
+    streak: apiUser.streak ?? 0,
+    longestStreak: apiUser.longestStreak ?? 0,
+    totalTimeSpent: apiUser.totalTimeSpent ?? 0,
+    totalCardsLearned: apiUser.totalCardsLearned ?? 0,
+    totalDecksCompleted: apiUser.totalDecksCompleted ?? 0,
+    // Preferences
     preferences: apiUser.preferences,
   };
 }
@@ -404,7 +414,7 @@ function AppContent() {
       case 'achievements':
         return <Achievements achievements={MOCK_ACHIEVEMENTS} user={user} />;
       case 'leaderboard':
-        return <Leaderboard entries={LEADERBOARD_DATA} />;
+        return <Leaderboard entries={LEADERBOARD_DATA} currentUser={user} />;
       case 'settings':
         return (
           <Settings
@@ -480,11 +490,13 @@ function AppContent() {
   );
 }
 
-// Main App with AuthProvider
+// Main App with AuthProvider and ToastProvider
 function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <ToastProvider>
+        <AppContent />
+      </ToastProvider>
     </AuthProvider>
   );
 }
