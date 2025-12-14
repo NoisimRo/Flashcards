@@ -143,6 +143,117 @@ API_KEY=your_gemini_api_key
 
 ---
 
+## Development Workflow
+
+Acest proiect foloseste un workflow automatizat pentru a asigura calitatea codului.
+
+### Comenzi Disponibile
+
+```bash
+# Development
+npm run dev          # Porneste frontend + backend
+npm run dev:client   # Doar frontend (Vite)
+npm run dev:server   # Doar backend (Express)
+
+# Quality Checks
+npm run typecheck    # Verificare TypeScript
+npm run lint         # ESLint
+npm run lint:fix     # ESLint cu auto-fix
+npm run format       # Prettier format
+npm run format:check # Verificare format
+
+# Testing
+npm run test         # Ruleaza toate testele
+npm run test:watch   # Teste in mod watch
+npm run test:coverage # Teste cu coverage report
+npm run test:ui      # Vitest UI
+
+# Build
+npm run build        # Build frontend
+npm run build:server # Build backend
+
+# All-in-one validation
+npm run validate     # typecheck + lint + test
+```
+
+### Pre-commit Hooks (Husky)
+
+Proiectul foloseste Husky pentru automatizarea verificarilor:
+
+| Hook | Actiune |
+|------|---------|
+| **pre-commit** | Ruleaza lint-staged (ESLint + Prettier pe fisierele modificate) |
+| **pre-push** | Ruleaza typecheck + teste |
+| **commit-msg** | Valideaza formatul commit-ului (Conventional Commits) |
+
+### Conventional Commits
+
+Toate commit-urile trebuie sa urmeze formatul:
+
+```
+<type>(<scope>): <description>
+```
+
+**Types valide:** `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
+
+**Exemple:**
+- `feat(cards): add shuffle algorithm`
+- `fix(auth): resolve token expiration bug`
+- `docs: update API documentation`
+- `test(decks): add unit tests for deck operations`
+
+### CI/CD Pipeline
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    GitHub Actions                            │
+├─────────────────────────────────────────────────────────────┤
+│  Push/PR → TypeCheck → Lint → Test → Build → Docker Build  │
+│                                                              │
+│  Main Branch → All CI + Deploy to Cloud Run                 │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Pull Request:**
+1. Type check (TypeScript)
+2. Lint (ESLint)
+3. Format check (Prettier)
+4. Tests (Vitest)
+5. Build verification
+
+**Deploy (main branch):**
+1. Toate verificarile PR
+2. Build Docker image
+3. Push to Artifact Registry
+4. Deploy to Cloud Run
+
+### Structura Teste
+
+```
+tests/
+├── setup.ts              # Configurare globala teste
+├── components/           # Teste componente React
+├── server/              # Teste backend
+│   ├── auth.test.ts     # Autentificare
+│   └── decks.test.ts    # Operatii deck-uri
+└── utils/               # Teste utilitati
+    └── helpers.test.ts  # Functii helper
+```
+
+---
+
+## Contributing
+
+1. **Fork** repository-ul
+2. **Creeaza** un branch nou: `git checkout -b feat/amazing-feature`
+3. **Commit** modificarile: `git commit -m "feat: add amazing feature"`
+4. **Push** branch-ul: `git push origin feat/amazing-feature`
+5. **Deschide** un Pull Request
+
+> **Nota:** Asigura-te ca toate verificarile CI trec inainte de a solicita review.
+
+---
+
 ## Feedback
 
 Daca ai intrebari sau sugestii, deschide un [Issue](https://github.com/NoisimRo/Flashcards/issues) pe GitHub.
