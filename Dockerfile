@@ -15,7 +15,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Instalăm toate dependențele (inclusiv devDependencies pentru build)
-RUN npm install
+RUN npm ci
 
 # Copiem restul codului sursă
 COPY . .
@@ -41,7 +41,7 @@ ENV PORT=8080
 COPY package*.json ./
 
 # Instalăm DOAR dependențele de producție
-RUN npm install --omit=dev && npm cache clean --force
+RUN npm ci --omit=dev && npm cache clean --force
 
 # Copiem build-urile din stage-ul anterior
 COPY --from=builder /app/dist ./dist
