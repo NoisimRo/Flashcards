@@ -33,20 +33,26 @@ FROM node:20-alpine AS production
 
 WORKDIR /app
 
-# Variabile de mediu default
-ENV NODE_ENV=production
-ENV PORT=8080
+# --- MODIFICARE 1: Nu setam NODE_ENV aici ---
+# Il setam mai jos, pentru ca npm install sa nu fie afectat de el.
 
 # Copiem package files
 COPY package*.json ./
 
-# Instalăm DOAR dependențele de producție
-RUN npm ci --omit=dev && npm cache clean --force
+# --- MODIFICARE 2: Instalarea ---
+# Adaugam --ignore-scripts pentru a nu rula scripturi care cer 'bash' sau 'python'
+# npm ci --omit=dev face oricum treaba, indiferent de variabila NODE_ENV
+RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
+
+# --- MODIFICARE 3: Setam variabilele ACUM ---
+# Acum e sigur sa trecem in modul productie
+ENV NODE_ENV=production
+ENV PORT=8080
 
 # Copiem build-urile din stage-ul anterior
 COPY --from=builder /app/dist ./dist
 
-# Copiem schema bazei de date (pentru inițializare)
+# Copiem schema bazei de date
 COPY --from=builder /app/server/db ./server/db
 
 # Security: rulăm ca user non-root
@@ -55,12 +61,9 @@ RUN addgroup -g 1001 -S nodejs && \
 
 USER flashcards
 
-# Expunem portul
 EXPOSE 8080
 
-# Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:8080/api/health || exit 1
 
-# Pornim serverul
 CMD ["node", "dist/server/index.js"]
