@@ -57,12 +57,18 @@ router.post('/deck', authenticateToken, async (req: Request, res: Response) => {
     }
 
     // Create deck with cards
-    const result = await withTransaction(async (client) => {
+    const result = await withTransaction(async client => {
       const deckResult = await client.query(
         `INSERT INTO decks (title, subject_id, topic, difficulty, owner_id)
          VALUES ($1, $2, $3, $4, $5)
          RETURNING *`,
-        [title || `Import ${new Date().toLocaleDateString('ro-RO')}`, subject || 'romana', title, difficulty, req.user!.id]
+        [
+          title || `Import ${new Date().toLocaleDateString('ro-RO')}`,
+          subject || 'romana',
+          title,
+          difficulty,
+          req.user!.id,
+        ]
       );
 
       const deck = deckResult.rows[0];
@@ -326,11 +332,7 @@ function exportToCSV(cards: any[], includeProgress: boolean): string {
     : ['Front', 'Back', 'Context'];
 
   const rows = cards.map(c => {
-    const row = [
-      escapeCSV(c.front),
-      escapeCSV(c.back),
-      escapeCSV(c.context || ''),
-    ];
+    const row = [escapeCSV(c.front), escapeCSV(c.back), escapeCSV(c.context || '')];
     if (includeProgress) {
       row.push(c.status, c.ease_factor, c.interval);
     }

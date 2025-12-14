@@ -7,76 +7,78 @@ const router = Router();
 // ============================================
 // GET /api/users - List users (admin/teacher only)
 // ============================================
-router.get('/', authenticateToken, requireRole('admin', 'teacher'), async (req: Request, res: Response) => {
-  try {
-    const { page = '1', limit = '20', role, search } = req.query;
+router.get(
+  '/',
+  authenticateToken,
+  requireRole('admin', 'teacher'),
+  async (req: Request, res: Response) => {
+    try {
+      const { page = '1', limit = '20', role, search } = req.query;
 
-    const pageNum = Math.max(1, parseInt(page as string));
-    const limitNum = Math.min(100, Math.max(1, parseInt(limit as string)));
-    const offset = (pageNum - 1) * limitNum;
+      const pageNum = Math.max(1, parseInt(page as string));
+      const limitNum = Math.min(100, Math.max(1, parseInt(limit as string)));
+      const offset = (pageNum - 1) * limitNum;
 
-    let whereClause = 'deleted_at IS NULL';
-    const params: any[] = [];
-    let paramIndex = 1;
+      let whereClause = 'deleted_at IS NULL';
+      const params: any[] = [];
+      let paramIndex = 1;
 
-    // Teachers can only see students
-    if (req.user!.role === 'teacher') {
-      whereClause += ` AND role = 'student'`;
-    } else if (role) {
-      whereClause += ` AND role = $${paramIndex++}`;
-      params.push(role);
-    }
+      // Teachers can only see students
+      if (req.user!.role === 'teacher') {
+        whereClause += ` AND role = 'student'`;
+      } else if (role) {
+        whereClause += ` AND role = $${paramIndex++}`;
+        params.push(role);
+      }
 
-    if (search) {
-      whereClause += ` AND (name ILIKE $${paramIndex++} OR email ILIKE $${paramIndex++})`;
-      params.push(`%${search}%`, `%${search}%`);
-    }
+      if (search) {
+        whereClause += ` AND (name ILIKE $${paramIndex++} OR email ILIKE $${paramIndex++})`;
+        params.push(`%${search}%`, `%${search}%`);
+      }
 
-    const countResult = await query(
-      `SELECT COUNT(*) FROM users WHERE ${whereClause}`,
-      params
-    );
-    const total = parseInt(countResult.rows[0].count);
+      const countResult = await query(`SELECT COUNT(*) FROM users WHERE ${whereClause}`, params);
+      const total = parseInt(countResult.rows[0].count);
 
-    const usersResult = await query(
-      `SELECT id, email, name, avatar, role, level, total_xp, streak, created_at
+      const usersResult = await query(
+        `SELECT id, email, name, avatar, role, level, total_xp, streak, created_at
        FROM users WHERE ${whereClause}
        ORDER BY created_at DESC
        LIMIT $${paramIndex++} OFFSET $${paramIndex++}`,
-      [...params, limitNum, offset]
-    );
+        [...params, limitNum, offset]
+      );
 
-    res.json({
-      success: true,
-      data: usersResult.rows.map(u => ({
-        id: u.id,
-        email: u.email,
-        name: u.name,
-        avatar: u.avatar,
-        role: u.role,
-        level: u.level,
-        totalXP: u.total_xp,
-        streak: u.streak,
-        createdAt: u.created_at,
-      })),
-      meta: {
-        page: pageNum,
-        limit: limitNum,
-        total,
-        totalPages: Math.ceil(total / limitNum),
-      },
-    });
-  } catch (error) {
-    console.error('List users error:', error);
-    res.status(500).json({
-      success: false,
-      error: {
-        code: 'SERVER_ERROR',
-        message: 'Eroare la obținerea utilizatorilor',
-      },
-    });
+      res.json({
+        success: true,
+        data: usersResult.rows.map(u => ({
+          id: u.id,
+          email: u.email,
+          name: u.name,
+          avatar: u.avatar,
+          role: u.role,
+          level: u.level,
+          totalXP: u.total_xp,
+          streak: u.streak,
+          createdAt: u.created_at,
+        })),
+        meta: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          totalPages: Math.ceil(total / limitNum),
+        },
+      });
+    } catch (error) {
+      console.error('List users error:', error);
+      res.status(500).json({
+        success: false,
+        error: {
+          code: 'SERVER_ERROR',
+          message: 'Eroare la obținerea utilizatorilor',
+        },
+      });
+    }
   }
-});
+);
 
 // ============================================
 // GET /api/users/:id - Get user profile
@@ -253,114 +255,124 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
 // ============================================
 // PUT /api/users/:id/role - Change user role (admin only)
 // ============================================
-router.put('/:id/role', authenticateToken, requireRole('admin'), async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const { role } = req.body;
+router.put(
+  '/:id/role',
+  authenticateToken,
+  requireRole('admin'),
+  async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { role } = req.body;
 
-    if (!role || !['admin', 'teacher', 'student'].includes(role)) {
-      return res.status(400).json({
+      if (!role || !['admin', 'teacher', 'student'].includes(role)) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Rol invalid',
+          },
+        });
+      }
+
+      // Prevent admin from changing their own role
+      if (id === req.user!.id) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'INVALID_OPERATION',
+            message: 'Nu îți poți schimba propriul rol',
+          },
+        });
+      }
+
+      const result = await query(
+        `UPDATE users SET role = $1 WHERE id = $2 AND deleted_at IS NULL RETURNING id, role`,
+        [role, id]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Utilizatorul nu a fost găsit',
+          },
+        });
+      }
+
+      res.json({
+        success: true,
+        data: {
+          id: result.rows[0].id,
+          role: result.rows[0].role,
+        },
+      });
+    } catch (error) {
+      console.error('Change role error:', error);
+      res.status(500).json({
         success: false,
         error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Rol invalid',
+          code: 'SERVER_ERROR',
+          message: 'Eroare la schimbarea rolului',
         },
       });
     }
-
-    // Prevent admin from changing their own role
-    if (id === req.user!.id) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: 'INVALID_OPERATION',
-          message: 'Nu îți poți schimba propriul rol',
-        },
-      });
-    }
-
-    const result = await query(
-      `UPDATE users SET role = $1 WHERE id = $2 AND deleted_at IS NULL RETURNING id, role`,
-      [role, id]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        error: {
-          code: 'NOT_FOUND',
-          message: 'Utilizatorul nu a fost găsit',
-        },
-      });
-    }
-
-    res.json({
-      success: true,
-      data: {
-        id: result.rows[0].id,
-        role: result.rows[0].role,
-      },
-    });
-  } catch (error) {
-    console.error('Change role error:', error);
-    res.status(500).json({
-      success: false,
-      error: {
-        code: 'SERVER_ERROR',
-        message: 'Eroare la schimbarea rolului',
-      },
-    });
   }
-});
+);
 
 // ============================================
 // DELETE /api/users/:id - Delete user (admin only)
 // ============================================
-router.delete('/:id', authenticateToken, requireRole('admin'), async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
+router.delete(
+  '/:id',
+  authenticateToken,
+  requireRole('admin'),
+  async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
 
-    // Prevent admin from deleting themselves
-    if (id === req.user!.id) {
-      return res.status(400).json({
+      // Prevent admin from deleting themselves
+      if (id === req.user!.id) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'INVALID_OPERATION',
+            message: 'Nu te poți șterge pe tine însuți',
+          },
+        });
+      }
+
+      const result = await query(
+        `UPDATE users SET deleted_at = NOW() WHERE id = $1 AND deleted_at IS NULL RETURNING id`,
+        [id]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Utilizatorul nu a fost găsit',
+          },
+        });
+      }
+
+      res.json({
+        success: true,
+        data: { message: 'Utilizatorul a fost șters' },
+      });
+    } catch (error) {
+      console.error('Delete user error:', error);
+      res.status(500).json({
         success: false,
         error: {
-          code: 'INVALID_OPERATION',
-          message: 'Nu te poți șterge pe tine însuți',
+          code: 'SERVER_ERROR',
+          message: 'Eroare la ștergerea utilizatorului',
         },
       });
     }
-
-    const result = await query(
-      `UPDATE users SET deleted_at = NOW() WHERE id = $1 AND deleted_at IS NULL RETURNING id`,
-      [id]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        error: {
-          code: 'NOT_FOUND',
-          message: 'Utilizatorul nu a fost găsit',
-        },
-      });
-    }
-
-    res.json({
-      success: true,
-      data: { message: 'Utilizatorul a fost șters' },
-    });
-  } catch (error) {
-    console.error('Delete user error:', error);
-    res.status(500).json({
-      success: false,
-      error: {
-        code: 'SERVER_ERROR',
-        message: 'Eroare la ștergerea utilizatorului',
-      },
-    });
   }
-});
+);
 
 // ============================================
 // GET /api/users/:id/stats - Get user statistics
@@ -514,9 +526,7 @@ router.get('/leaderboard/global', async (req: Request, res: Response) => {
     }
 
     // Get total user count
-    const countResult = await query(
-      'SELECT COUNT(*) FROM users WHERE deleted_at IS NULL'
-    );
+    const countResult = await query('SELECT COUNT(*) FROM users WHERE deleted_at IS NULL');
     const totalUsers = parseInt(countResult.rows[0].count);
 
     res.json({

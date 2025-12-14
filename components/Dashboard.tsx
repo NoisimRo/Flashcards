@@ -1,7 +1,15 @@
 import React, { useMemo } from 'react';
 import { User, Deck } from '../types';
 import { Flame, Clock, Brain, TrendingUp, BookOpen, Trophy } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 
 interface DashboardProps {
   user: User;
@@ -128,7 +136,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
 
       {/* Main Content Split */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
         {/* Chart Section */}
         <div className="lg:col-span-2 bg-[#F8F6F1] p-6 rounded-2xl">
           <h2 className="text-lg font-bold text-gray-900 mb-6">Progres Săptămânal</h2>
@@ -138,22 +145,48 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
                 <AreaChart data={weeklyData}>
                   <defs>
                     <linearGradient id="colorCards" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#EA580C" stopOpacity={0.2}/>
-                      <stop offset="95%" stopColor="#EA580C" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#EA580C" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#EA580C" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="colorTime" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.2}/>
-                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E0D5" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#9CA3AF'}} />
-                  <YAxis axisLine={false} tickLine={false} tick={{fill: '#9CA3AF'}} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#FFF', borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                  <XAxis
+                    dataKey="name"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#9CA3AF' }}
                   />
-                  <Area type="monotone" dataKey="cards" name="Carduri" stroke="#EA580C" strokeWidth={3} fillOpacity={1} fill="url(#colorCards)" />
-                  <Area type="monotone" dataKey="time" name="Minute" stroke="#3B82F6" strokeWidth={3} fillOpacity={1} fill="url(#colorTime)" />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9CA3AF' }} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#FFF',
+                      borderRadius: '12px',
+                      border: 'none',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="cards"
+                    name="Carduri"
+                    stroke="#EA580C"
+                    strokeWidth={3}
+                    fillOpacity={1}
+                    fill="url(#colorCards)"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="time"
+                    name="Minute"
+                    stroke="#3B82F6"
+                    strokeWidth={3}
+                    fillOpacity={1}
+                    fill="url(#colorTime)"
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
@@ -172,9 +205,10 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
           <div className="space-y-4">
             {decks.length > 0 ? (
               decks.slice(0, 3).map(deck => {
-                const percentage = deck.totalCards > 0
-                  ? Math.round((deck.masteredCards / deck.totalCards) * 100)
-                  : 0;
+                const percentage =
+                  deck.totalCards > 0
+                    ? Math.round((deck.masteredCards / deck.totalCards) * 100)
+                    : 0;
                 return (
                   <div
                     key={deck.id}
@@ -188,21 +222,30 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
 
                     {/* Circular Progress */}
                     <div className="relative w-12 h-12">
-                       <svg className="w-full h-full transform -rotate-90">
-                         <circle cx="24" cy="24" r="20" stroke="#F3F4F6" strokeWidth="4" fill="transparent" />
-                         <circle
-                          cx="24" cy="24" r="20"
+                      <svg className="w-full h-full transform -rotate-90">
+                        <circle
+                          cx="24"
+                          cy="24"
+                          r="20"
+                          stroke="#F3F4F6"
+                          strokeWidth="4"
+                          fill="transparent"
+                        />
+                        <circle
+                          cx="24"
+                          cy="24"
+                          r="20"
                           stroke="#1F2937"
                           strokeWidth="4"
                           fill="transparent"
                           strokeDasharray={126}
                           strokeDashoffset={126 - (126 * percentage) / 100}
                           className="transition-all duration-1000 ease-out"
-                         />
-                       </svg>
-                       <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold">
-                         {percentage}%
-                       </span>
+                        />
+                      </svg>
+                      <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold">
+                        {percentage}%
+                      </span>
                     </div>
                   </div>
                 );
@@ -225,21 +268,22 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
             recentDecks.map(deck => {
               const timeAgo = getTimeAgo(deck.lastStudied!);
               return (
-                <div key={deck.id} className="flex items-center justify-between bg-white p-4 rounded-xl">
-                   <div className="flex items-center gap-4">
-                      <span className="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full">
-                        Studiat
-                      </span>
-                      <div>
-                        <p className="font-bold text-sm text-gray-900">{deck.title}</p>
-                        <p className="text-xs text-gray-500">
-                          {deck.masteredCards}/{deck.totalCards} carduri · {timeAgo}
-                        </p>
-                      </div>
-                   </div>
-                   <span className="font-bold text-green-600">
-                     +{deck.masteredCards * 10} XP
-                   </span>
+                <div
+                  key={deck.id}
+                  className="flex items-center justify-between bg-white p-4 rounded-xl"
+                >
+                  <div className="flex items-center gap-4">
+                    <span className="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full">
+                      Studiat
+                    </span>
+                    <div>
+                      <p className="font-bold text-sm text-gray-900">{deck.title}</p>
+                      <p className="text-xs text-gray-500">
+                        {deck.masteredCards}/{deck.totalCards} carduri · {timeAgo}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="font-bold text-green-600">+{deck.masteredCards * 10} XP</span>
                 </div>
               );
             })
@@ -254,17 +298,17 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
           {/* Show streak achievement if applicable */}
           {stats.streak >= 3 && (
             <div className="flex items-center justify-between bg-white p-4 rounded-xl">
-               <div className="flex items-center gap-4">
-                  <span className="bg-gray-900 text-white text-xs font-bold px-3 py-1 rounded-full">
-                    Realizare
-                  </span>
-                  <div>
-                    <p className="font-bold text-sm text-gray-900">
-                      🔥 Streak de {stats.streak} zile!
-                    </p>
-                    <p className="text-xs text-gray-500">Continuă tot așa!</p>
-                  </div>
-               </div>
+              <div className="flex items-center gap-4">
+                <span className="bg-gray-900 text-white text-xs font-bold px-3 py-1 rounded-full">
+                  Realizare
+                </span>
+                <div>
+                  <p className="font-bold text-sm text-gray-900">
+                    🔥 Streak de {stats.streak} zile!
+                  </p>
+                  <p className="text-xs text-gray-500">Continuă tot așa!</p>
+                </div>
+              </div>
             </div>
           )}
         </div>

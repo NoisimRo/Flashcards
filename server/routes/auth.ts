@@ -2,7 +2,12 @@ import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 import { query, withTransaction } from '../db/index.js';
-import { authenticateToken, generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../middleware/auth.js';
+import {
+  authenticateToken,
+  generateAccessToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+} from '../middleware/auth.js';
 import { config } from '../config/index.js';
 
 const router = Router();
@@ -57,7 +62,13 @@ router.post('/register', async (req: Request, res: Response) => {
        RETURNING id, email, name, role, level, current_xp, next_level_xp, total_xp,
                  streak, longest_streak, total_time_spent, total_cards_learned,
                  total_decks_completed, preferences, created_at`,
-      [email.toLowerCase(), passwordHash, name, role === 'teacher' ? 'teacher' : 'student', config.xp.baseXpForLevel]
+      [
+        email.toLowerCase(),
+        passwordHash,
+        name,
+        role === 'teacher' ? 'teacher' : 'student',
+        config.xp.baseXpForLevel,
+      ]
     );
 
     const user = result.rows[0];
@@ -153,7 +164,9 @@ router.post('/login', async (req: Request, res: Response) => {
 
     let newStreak = user.streak;
     if (lastActive) {
-      const daysDiff = Math.floor((new Date(today).getTime() - new Date(lastActive).getTime()) / (1000 * 60 * 60 * 24));
+      const daysDiff = Math.floor(
+        (new Date(today).getTime() - new Date(lastActive).getTime()) / (1000 * 60 * 60 * 24)
+      );
       if (daysDiff > 1) {
         newStreak = 1; // Reset streak if more than 1 day gap
       } else if (daysDiff === 1) {
@@ -445,7 +458,10 @@ router.post('/change-password', authenticateToken, async (req: Request, res: Res
 
     // Update password
     const newPasswordHash = await bcrypt.hash(newPassword, 12);
-    await query('UPDATE users SET password_hash = $1 WHERE id = $2', [newPasswordHash, req.user!.id]);
+    await query('UPDATE users SET password_hash = $1 WHERE id = $2', [
+      newPasswordHash,
+      req.user!.id,
+    ]);
 
     // Revoke all refresh tokens
     await query(

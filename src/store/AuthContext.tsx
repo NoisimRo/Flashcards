@@ -1,9 +1,23 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { login as apiLogin, register as apiRegister, logout as apiLogout, getMe } from '../api/auth';
+import {
+  login as apiLogin,
+  register as apiRegister,
+  logout as apiLogout,
+  getMe,
+} from '../api/auth';
 import { getAccessToken, clearTokens } from '../api/client';
-import { saveUser, getUser as getOfflineUser, clearUser as clearOfflineUser } from '../services/offlineStorage';
+import {
+  saveUser,
+  getUser as getOfflineUser,
+  clearUser as clearOfflineUser,
+} from '../services/offlineStorage';
 import type { User, UserRole, AuthContextType, Permission } from '../types';
-import { ROLE_PERMISSIONS, hasPermission, hasAnyPermission, hasAllPermissions } from '../types/auth';
+import {
+  ROLE_PERMISSIONS,
+  hasPermission,
+  hasAnyPermission,
+  hasAllPermissions,
+} from '../types/auth';
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -83,28 +97,31 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, []);
 
-  const register = useCallback(async (email: string, password: string, name: string, role?: 'teacher' | 'student') => {
-    setIsLoading(true);
-    setError(null);
+  const register = useCallback(
+    async (email: string, password: string, name: string, role?: 'teacher' | 'student') => {
+      setIsLoading(true);
+      setError(null);
 
-    try {
-      const response = await apiRegister({ email, password, name, role });
+      try {
+        const response = await apiRegister({ email, password, name, role });
 
-      if (response.success && response.data) {
-        setUser(response.data.user);
-        await saveUser(response.data.user);
-      } else {
-        setError(response.error?.message || 'Eroare la înregistrare');
-        throw new Error(response.error?.message);
+        if (response.success && response.data) {
+          setUser(response.data.user);
+          await saveUser(response.data.user);
+        } else {
+          setError(response.error?.message || 'Eroare la înregistrare');
+          throw new Error(response.error?.message);
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Eroare la înregistrare';
+        setError(message);
+        throw err;
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Eroare la înregistrare';
-      setError(message);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+    },
+    []
+  );
 
   const logout = useCallback(async () => {
     try {
@@ -129,29 +146,44 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, []);
 
-  const checkPermission = useCallback((permission: Permission): boolean => {
-    if (!user) return false;
-    return hasPermission(user.role, permission);
-  }, [user]);
+  const checkPermission = useCallback(
+    (permission: Permission): boolean => {
+      if (!user) return false;
+      return hasPermission(user.role, permission);
+    },
+    [user]
+  );
 
-  const checkAnyPermission = useCallback((permissions: Permission[]): boolean => {
-    if (!user) return false;
-    return hasAnyPermission(user.role, permissions);
-  }, [user]);
+  const checkAnyPermission = useCallback(
+    (permissions: Permission[]): boolean => {
+      if (!user) return false;
+      return hasAnyPermission(user.role, permissions);
+    },
+    [user]
+  );
 
-  const checkAllPermissions = useCallback((permissions: Permission[]): boolean => {
-    if (!user) return false;
-    return hasAllPermissions(user.role, permissions);
-  }, [user]);
+  const checkAllPermissions = useCallback(
+    (permissions: Permission[]): boolean => {
+      if (!user) return false;
+      return hasAllPermissions(user.role, permissions);
+    },
+    [user]
+  );
 
-  const isRole = useCallback((role: UserRole): boolean => {
-    return user?.role === role;
-  }, [user]);
+  const isRole = useCallback(
+    (role: UserRole): boolean => {
+      return user?.role === role;
+    },
+    [user]
+  );
 
-  const isAnyRole = useCallback((roles: UserRole[]): boolean => {
-    if (!user) return false;
-    return roles.includes(user.role);
-  }, [user]);
+  const isAnyRole = useCallback(
+    (roles: UserRole[]): boolean => {
+      if (!user) return false;
+      return roles.includes(user.role);
+    },
+    [user]
+  );
 
   const value: AuthContextType = {
     isAuthenticated: !!user,

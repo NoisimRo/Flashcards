@@ -71,10 +71,7 @@ router.get('/', authenticateToken, async (req: Request, res: Response) => {
     const order = sortOrder === 'asc' ? 'ASC' : 'DESC';
 
     // Get total count
-    const countResult = await query(
-      `SELECT COUNT(*) FROM decks d WHERE ${whereClause}`,
-      params
-    );
+    const countResult = await query(`SELECT COUNT(*) FROM decks d WHERE ${whereClause}`, params);
     const total = parseInt(countResult.rows[0].count);
 
     // Get decks
@@ -148,9 +145,7 @@ router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
 
     // Check access
     const hasAccess =
-      deck.owner_id === req.user!.id ||
-      deck.is_public ||
-      req.user!.role === 'admin';
+      deck.owner_id === req.user!.id || deck.is_public || req.user!.role === 'admin';
 
     if (!hasAccess) {
       // Check if shared
@@ -222,7 +217,7 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
       });
     }
 
-    const result = await withTransaction(async (client) => {
+    const result = await withTransaction(async client => {
       // Create deck
       const deckResult = await client.query(
         `INSERT INTO decks (title, description, subject_id, topic, difficulty, is_public, tags, owner_id)
@@ -512,7 +507,18 @@ router.post('/:id/cards', authenticateToken, async (req: Request, res: Response)
       `INSERT INTO cards (deck_id, front, back, context, hint, type, options, correct_option_index, created_by, position)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        RETURNING *`,
-      [id, front, back, context, hint, type, options || [], correctOptionIndex, req.user!.id, posResult.rows[0].next_pos]
+      [
+        id,
+        front,
+        back,
+        context,
+        hint,
+        type,
+        options || [],
+        correctOptionIndex,
+        req.user!.id,
+        posResult.rows[0].next_pos,
+      ]
     );
 
     res.status(201).json({

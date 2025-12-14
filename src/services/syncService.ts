@@ -278,15 +278,21 @@ export async function resolveConflict(
       break;
     case 'local':
       // Push local changes
-      await queueChange('update', conflict.entityType as any, conflict.entityId, conflict.localData);
+      await queueChange(
+        'update',
+        conflict.entityType as any,
+        conflict.entityId,
+        conflict.localData
+      );
       await syncAll();
       break;
-    case 'merge':
+    case 'merge': {
       // Simple merge - combine non-conflicting fields
       const merged = { ...conflict.serverData, ...conflict.localData };
       await queueChange('update', conflict.entityType as any, conflict.entityId, merged);
       await syncAll();
       break;
+    }
   }
 }
 

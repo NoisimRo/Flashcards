@@ -133,13 +133,13 @@ API_KEY=your_gemini_api_key
 
 ## API Endpoints
 
-| Endpoint | Metoda | Descriere |
-|----------|--------|-----------|
-| `/api/health` | GET | Health check |
-| `/api/auth/register` | POST | Inregistrare |
-| `/api/auth/login` | POST | Autentificare |
-| `/api/decks` | GET/POST | Gestionare deck-uri |
-| `/api/decks/:id/cards` | GET/POST | Gestionare carduri |
+| Endpoint               | Metoda   | Descriere           |
+| ---------------------- | -------- | ------------------- |
+| `/api/health`          | GET      | Health check        |
+| `/api/auth/register`   | POST     | Inregistrare        |
+| `/api/auth/login`      | POST     | Autentificare       |
+| `/api/decks`           | GET/POST | Gestionare deck-uri |
+| `/api/decks/:id/cards` | GET/POST | Gestionare carduri  |
 
 ---
 
@@ -180,11 +180,11 @@ npm run validate     # typecheck + lint + test
 
 Proiectul foloseste Husky pentru automatizarea verificarilor:
 
-| Hook | Actiune |
-|------|---------|
+| Hook           | Actiune                                                         |
+| -------------- | --------------------------------------------------------------- |
 | **pre-commit** | Ruleaza lint-staged (ESLint + Prettier pe fisierele modificate) |
-| **pre-push** | Ruleaza typecheck + teste |
-| **commit-msg** | Valideaza formatul commit-ului (Conventional Commits) |
+| **pre-push**   | Ruleaza typecheck + teste                                       |
+| **commit-msg** | Valideaza formatul commit-ului (Conventional Commits)           |
 
 ### Conventional Commits
 
@@ -197,6 +197,7 @@ Toate commit-urile trebuie sa urmeze formatul:
 **Types valide:** `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
 
 **Exemple:**
+
 - `feat(cards): add shuffle algorithm`
 - `fix(auth): resolve token expiration bug`
 - `docs: update API documentation`
@@ -215,6 +216,7 @@ Toate commit-urile trebuie sa urmeze formatul:
 ```
 
 **Pull Request:**
+
 1. Type check (TypeScript)
 2. Lint (ESLint)
 3. Format check (Prettier)
@@ -222,6 +224,7 @@ Toate commit-urile trebuie sa urmeze formatul:
 5. Build verification
 
 **Deploy (main branch):**
+
 1. Toate verificarile PR
 2. Build Docker image
 3. Push to Artifact Registry

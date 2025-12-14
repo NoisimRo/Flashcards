@@ -20,22 +20,23 @@ pool.on('connect', () => {
   console.log('📦 Connected to PostgreSQL database');
 });
 
-pool.on('error', (err) => {
+pool.on('error', err => {
   console.error('❌ Unexpected error on idle client', err);
   process.exit(-1);
 });
 
 // Query helper with logging
-export async function query<T = any>(
-  text: string,
-  params?: any[]
-): Promise<QueryResult<T>> {
+export async function query<T = any>(text: string, params?: any[]): Promise<QueryResult<T>> {
   const start = Date.now();
   try {
     const result = await pool.query<T>(text, params);
     const duration = Date.now() - start;
     if (process.env.NODE_ENV === 'development') {
-      console.log('📝 Query executed', { text: text.substring(0, 50), duration, rows: result.rowCount });
+      console.log('📝 Query executed', {
+        text: text.substring(0, 50),
+        duration,
+        rows: result.rowCount,
+      });
     }
     return result;
   } catch (error) {
@@ -51,9 +52,7 @@ export async function getClient(): Promise<PoolClient> {
 }
 
 // Transaction helper
-export async function withTransaction<T>(
-  callback: (client: PoolClient) => Promise<T>
-): Promise<T> {
+export async function withTransaction<T>(callback: (client: PoolClient) => Promise<T>): Promise<T> {
   const client = await getClient();
   try {
     await client.query('BEGIN');

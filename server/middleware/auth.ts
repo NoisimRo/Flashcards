@@ -5,6 +5,7 @@ import { query } from '../db/index.js';
 
 // Extend Express Request type
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       user?: {
@@ -185,7 +186,12 @@ export function requireOwnerOrAdmin(getOwnerId: (req: Request) => Promise<string
 }
 
 // Generate tokens
-export function generateAccessToken(user: { id: string; email: string; name: string; role: string }) {
+export function generateAccessToken(user: {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+}) {
   return jwt.sign(
     {
       sub: user.id,
@@ -199,7 +205,12 @@ export function generateAccessToken(user: { id: string; email: string; name: str
   );
 }
 
-export function generateRefreshToken(user: { id: string; email: string; name: string; role: string }) {
+export function generateRefreshToken(user: {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+}) {
   return jwt.sign(
     {
       sub: user.id,

@@ -1,8 +1,8 @@
 import type { ApiResponse, ApiError } from '../types';
 
 // În producție, folosim URL relativ; în development, localhost
-const API_BASE_URL = import.meta.env.VITE_API_URL ||
-  (import.meta.env.PROD ? '/api' : 'http://localhost:3001/api');
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:3001/api');
 
 // Token storage
 let accessToken: string | null = null;
@@ -116,7 +116,7 @@ export async function apiRequest<T>(
       } else {
         // Wait for token refresh
         return new Promise(resolve => {
-          subscribeTokenRefresh(async (token) => {
+          subscribeTokenRefresh(async token => {
             (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
             const retryResponse = await fetch(url, { ...options, headers });
             resolve(await retryResponse.json());

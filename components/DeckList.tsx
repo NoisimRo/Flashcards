@@ -1,6 +1,17 @@
 import React, { useState } from 'react';
 import { Deck, Difficulty } from '../types';
-import { Plus, MoreVertical, Upload, Sparkles, Loader2, Trash2, Play, Edit, RotateCcw, ArrowRight } from 'lucide-react';
+import {
+  Plus,
+  MoreVertical,
+  Upload,
+  Sparkles,
+  Loader2,
+  Trash2,
+  Play,
+  Edit,
+  RotateCcw,
+  ArrowRight,
+} from 'lucide-react';
 import { generateDeckWithAI } from '../services/geminiService';
 
 interface DeckListProps {
@@ -12,11 +23,18 @@ interface DeckListProps {
   onResetDeck?: (deckId: string) => void;
 }
 
-const DeckList: React.FC<DeckListProps> = ({ decks, onAddDeck, onEditDeck, onDeleteDeck, onStartSession, onResetDeck }) => {
+const DeckList: React.FC<DeckListProps> = ({
+  decks,
+  onAddDeck,
+  onEditDeck,
+  onDeleteDeck,
+  onStartSession,
+  onResetDeck,
+}) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
-  
+
   // Form State
   const [editingDeckId, setEditingDeckId] = useState<string | null>(null);
   const [title, setTitle] = useState('');
@@ -65,12 +83,12 @@ const DeckList: React.FC<DeckListProps> = ({ decks, onAddDeck, onEditDeck, onDel
         try {
           newCards = await generateDeckWithAI(subject, title, difficulty);
         } catch (err) {
-          alert("Eroare la generarea AI. Verifică consola.");
+          alert('Eroare la generarea AI. Verifică consola.');
           setIsGenerating(false);
           return;
         }
       }
-      
+
       const newDeck: Deck = {
         id: `d-${Date.now()}`,
         title,
@@ -79,7 +97,7 @@ const DeckList: React.FC<DeckListProps> = ({ decks, onAddDeck, onEditDeck, onDel
         difficulty,
         cards: newCards,
         totalCards: newCards.length,
-        masteredCards: 0
+        masteredCards: 0,
       };
       onAddDeck(newDeck);
     }
@@ -105,10 +123,12 @@ const DeckList: React.FC<DeckListProps> = ({ decks, onAddDeck, onEditDeck, onDel
     <div className="p-6 md:p-8 space-y-8 h-full overflow-y-auto">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-           <h1 className="text-3xl font-bold text-gray-900">Deck-urile Mele</h1>
-           <p className="text-gray-500">Gestionează și organizează colecțiile tale de flashcard-uri</p>
+          <h1 className="text-3xl font-bold text-gray-900">Deck-urile Mele</h1>
+          <p className="text-gray-500">
+            Gestionează și organizează colecțiile tale de flashcard-uri
+          </p>
         </div>
-        <button 
+        <button
           onClick={openCreateModal}
           className="bg-gray-900 hover:bg-gray-800 text-white px-5 py-3 rounded-xl flex items-center gap-2 font-bold shadow-lg transition-all hover:-translate-y-1"
         >
@@ -118,54 +138,68 @@ const DeckList: React.FC<DeckListProps> = ({ decks, onAddDeck, onEditDeck, onDel
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pb-10">
         {/* Create Card (Visual Placeholder) */}
-        <div 
+        <div
           onClick={openCreateModal}
           className="border-2 border-dashed border-gray-300 rounded-3xl flex flex-col items-center justify-center p-8 cursor-pointer hover:border-gray-900 hover:bg-gray-50 transition-all group min-h-[200px]"
         >
-           <div className="w-16 h-16 bg-[#F8F6F1] rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-             <Plus className="text-gray-400 group-hover:text-gray-900" size={32} />
-           </div>
-           <h3 className="font-bold text-gray-900 text-lg">Creează un deck nou</h3>
-           <p className="text-center text-gray-500 text-sm mt-2">Importă din CSV/TXT sau generează cu AI</p>
+          <div className="w-16 h-16 bg-[#F8F6F1] rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            <Plus className="text-gray-400 group-hover:text-gray-900" size={32} />
+          </div>
+          <h3 className="font-bold text-gray-900 text-lg">Creează un deck nou</h3>
+          <p className="text-center text-gray-500 text-sm mt-2">
+            Importă din CSV/TXT sau generează cu AI
+          </p>
         </div>
 
         {/* Deck Cards */}
-        {decks.map((deck) => {
-          const percentage = deck.totalCards > 0 ? Math.round((deck.masteredCards / deck.totalCards) * 100) : 0;
-          const hasProgress = percentage > 0 || (deck.sessionData && Object.keys(deck.sessionData.answers).length > 0);
+        {decks.map(deck => {
+          const percentage =
+            deck.totalCards > 0 ? Math.round((deck.masteredCards / deck.totalCards) * 100) : 0;
+          const hasProgress =
+            percentage > 0 ||
+            (deck.sessionData && Object.keys(deck.sessionData.answers).length > 0);
 
           return (
-            <div key={deck.id} className="bg-[#F8F6F1] p-6 rounded-3xl relative group hover:shadow-md transition-shadow">
+            <div
+              key={deck.id}
+              className="bg-[#F8F6F1] p-6 rounded-3xl relative group hover:shadow-md transition-shadow"
+            >
               <div className="flex justify-between items-start mb-4">
-                <span className={`px-3 py-1 rounded-full text-xs font-bold text-white shadow-sm
-                  ${deck.subject === 'Matematică' ? 'bg-blue-500' : 
-                    deck.subject === 'Istorie' ? 'bg-orange-500' : 'bg-gray-900'}`
-                }>
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-bold text-white shadow-sm
+                  ${
+                    deck.subject === 'Matematică'
+                      ? 'bg-blue-500'
+                      : deck.subject === 'Istorie'
+                        ? 'bg-orange-500'
+                        : 'bg-gray-900'
+                  }`}
+                >
                   {deck.subject}
                 </span>
-                
+
                 <div className="relative">
-                  <button 
-                    onClick={(e) => toggleMenu(e, deck.id)}
+                  <button
+                    onClick={e => toggleMenu(e, deck.id)}
                     className="p-1 text-gray-400 hover:text-gray-900 rounded-full hover:bg-gray-200 transition-colors"
                   >
                     <MoreVertical size={18} />
                   </button>
-                  
+
                   {activeMenuId === deck.id && (
                     <div className="absolute right-0 top-8 bg-white shadow-xl rounded-xl p-2 min-w-[140px] z-10 border border-gray-100 animate-fade-in">
-                       <button 
+                      <button
                         onClick={() => openEditModal(deck)}
                         className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg flex items-center gap-2 font-medium"
-                       >
-                         <Edit size={16} /> Editează
-                       </button>
-                       <button 
+                      >
+                        <Edit size={16} /> Editează
+                      </button>
+                      <button
                         onClick={() => onDeleteDeck(deck.id)}
                         className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2 font-medium"
-                       >
-                         <Trash2 size={16} /> Șterge
-                       </button>
+                      >
+                        <Trash2 size={16} /> Șterge
+                      </button>
                     </div>
                   )}
                 </div>
@@ -175,13 +209,20 @@ const DeckList: React.FC<DeckListProps> = ({ decks, onAddDeck, onEditDeck, onDel
               <p className="text-sm text-gray-500 mb-6 font-medium">Nivel {deck.difficulty}</p>
 
               <div className="flex gap-2 mb-4">
-                 <span className="bg-white border border-gray-200 px-3 py-1 rounded-full text-xs font-bold text-gray-600">{deck.totalCards} carduri</span>
-                 <span className="bg-white border border-gray-200 px-3 py-1 rounded-full text-xs font-bold text-gray-600">{deck.masteredCards} învățate</span>
+                <span className="bg-white border border-gray-200 px-3 py-1 rounded-full text-xs font-bold text-gray-600">
+                  {deck.totalCards} carduri
+                </span>
+                <span className="bg-white border border-gray-200 px-3 py-1 rounded-full text-xs font-bold text-gray-600">
+                  {deck.masteredCards} învățate
+                </span>
               </div>
 
               {/* Progress Bar */}
               <div className="w-full bg-gray-200 h-2 rounded-full mb-2 overflow-hidden">
-                <div className="bg-green-500 h-2 rounded-full" style={{ width: `${percentage}%` }}></div>
+                <div
+                  className="bg-green-500 h-2 rounded-full"
+                  style={{ width: `${percentage}%` }}
+                ></div>
               </div>
               <div className="flex justify-between text-xs text-gray-500 mb-6 font-medium">
                 <span>Progres: {percentage}%</span>
@@ -190,26 +231,33 @@ const DeckList: React.FC<DeckListProps> = ({ decks, onAddDeck, onEditDeck, onDel
 
               {/* Action Buttons */}
               <div className="flex gap-3">
-                  {hasProgress && onResetDeck && (
-                     <button 
-                        onClick={(e) => { e.stopPropagation(); onResetDeck(deck.id); }}
-                        className="px-4 py-3 border-2 border-gray-200 text-gray-600 rounded-xl hover:border-red-200 hover:text-red-600 hover:bg-red-50 transition-colors font-bold"
-                        title="Resetează progresul"
-                     >
-                        <RotateCcw size={18} />
-                     </button>
-                  )}
-                  
-                  <button 
-                    onClick={() => onStartSession(deck)}
-                    className="flex-1 bg-white hover:bg-gray-900 hover:text-white border border-gray-900 text-gray-900 font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2"
+                {hasProgress && onResetDeck && (
+                  <button
+                    onClick={e => {
+                      e.stopPropagation();
+                      onResetDeck(deck.id);
+                    }}
+                    className="px-4 py-3 border-2 border-gray-200 text-gray-600 rounded-xl hover:border-red-200 hover:text-red-600 hover:bg-red-50 transition-colors font-bold"
+                    title="Resetează progresul"
                   >
-                    {hasProgress ? (
-                        <>Continuă <ArrowRight size={18} /></>
-                    ) : (
-                        <>Studiază <Play size={18} fill="currentColor" /></>
-                    )}
+                    <RotateCcw size={18} />
                   </button>
+                )}
+
+                <button
+                  onClick={() => onStartSession(deck)}
+                  className="flex-1 bg-white hover:bg-gray-900 hover:text-white border border-gray-900 text-gray-900 font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2"
+                >
+                  {hasProgress ? (
+                    <>
+                      Continuă <ArrowRight size={18} />
+                    </>
+                  ) : (
+                    <>
+                      Studiază <Play size={18} fill="currentColor" />
+                    </>
+                  )}
+                </button>
               </div>
             </div>
           );
@@ -227,10 +275,10 @@ const DeckList: React.FC<DeckListProps> = ({ decks, onAddDeck, onEditDeck, onDel
               {/* Form fields same as previous */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">Subiect</label>
-                <select 
+                <select
                   className="w-full border-2 border-gray-100 bg-gray-50 rounded-xl p-3 font-medium outline-none focus:border-indigo-500 transition-colors"
                   value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
+                  onChange={e => setSubject(e.target.value)}
                 >
                   <option>Limba Română</option>
                   <option>Matematică</option>
@@ -240,22 +288,24 @@ const DeckList: React.FC<DeckListProps> = ({ decks, onAddDeck, onEditDeck, onDel
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Titlu / Tematică</label>
-                <input 
-                  type="text" 
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Titlu / Tematică
+                </label>
+                <input
+                  type="text"
                   className="w-full border-2 border-gray-100 bg-gray-50 rounded-xl p-3 font-medium outline-none focus:border-indigo-500 transition-colors"
                   placeholder="ex: Verbe Neregulate"
                   value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  onChange={e => setTitle(e.target.value)}
                   required
                 />
               </div>
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">Dificultate</label>
-                <select 
+                <select
                   className="w-full border-2 border-gray-100 bg-gray-50 rounded-xl p-3 font-medium outline-none focus:border-indigo-500 transition-colors"
                   value={difficulty}
-                  onChange={(e) => setDifficulty(e.target.value as Difficulty)}
+                  onChange={e => setDifficulty(e.target.value as Difficulty)}
                 >
                   <option value="A1">A1 - Începător</option>
                   <option value="A2">A2 - Elementar</option>
@@ -267,7 +317,9 @@ const DeckList: React.FC<DeckListProps> = ({ decks, onAddDeck, onEditDeck, onDel
 
               {!editingDeckId && (
                 <div className="pt-2">
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Metodă Creare</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    Metodă Creare
+                  </label>
                   <div className="grid grid-cols-3 gap-3">
                     <button
                       type="button"
@@ -297,24 +349,32 @@ const DeckList: React.FC<DeckListProps> = ({ decks, onAddDeck, onEditDeck, onDel
               {importMode === 'file' && !editingDeckId && (
                 <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center bg-gray-50">
                   <input type="file" accept=".txt,.csv" className="w-full text-sm text-gray-500" />
-                  <p className="text-xs text-gray-400 mt-2 font-medium">Format suportat: CSV, TXT (Front, Back)</p>
+                  <p className="text-xs text-gray-400 mt-2 font-medium">
+                    Format suportat: CSV, TXT (Front, Back)
+                  </p>
                 </div>
               )}
 
               <div className="flex gap-4 pt-4">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setIsModalOpen(false)}
                   className="flex-1 bg-white border-2 border-gray-200 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-50 transition-colors"
                 >
                   Anulează
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={isGenerating}
                   className="flex-1 bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800 transition-colors flex justify-center items-center gap-2 shadow-lg hover:-translate-y-1"
                 >
-                  {isGenerating ? <Loader2 className="animate-spin" /> : (editingDeckId ? 'Salvează' : 'Creează Deck')}
+                  {isGenerating ? (
+                    <Loader2 className="animate-spin" />
+                  ) : editingDeckId ? (
+                    'Salvează'
+                  ) : (
+                    'Creează Deck'
+                  )}
                 </button>
               </div>
             </form>

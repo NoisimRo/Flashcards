@@ -103,7 +103,12 @@ export interface AuthState {
 
 export interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string, role?: 'teacher' | 'student') => Promise<void>;
+  register: (
+    email: string,
+    password: string,
+    name: string,
+    role?: 'teacher' | 'student'
+  ) => Promise<void>;
   logout: () => void;
   refreshSession: () => Promise<void>;
   hasPermission: (permission: Permission) => boolean;
@@ -118,12 +123,12 @@ export interface AuthContextType extends AuthState {
 // ============================================
 
 export interface JwtPayload {
-  sub: string;        // User ID
+  sub: string; // User ID
   email: string;
   name: string;
   role: UserRole;
-  iat: number;        // Issued at
-  exp: number;        // Expires at
+  iat: number; // Issued at
+  exp: number; // Expires at
   type: 'access' | 'refresh';
 }
 
@@ -153,7 +158,7 @@ export function canAccessRoute(role: UserRole, route: string): boolean {
   };
 
   const required = routePermissions[route];
-  if (!required) return true;  // No restrictions
+  if (!required) return true; // No restrictions
 
   return hasAnyPermission(role, required);
 }

@@ -89,9 +89,7 @@ describe('Email Validation', () => {
 });
 
 describe('Username Validation', () => {
-  const validateUsername = (
-    username: string
-  ): { valid: boolean; error?: string } => {
+  const validateUsername = (username: string): { valid: boolean; error?: string } => {
     if (username.length < 3) {
       return { valid: false, error: 'Username must be at least 3 characters' };
     }
@@ -128,9 +126,7 @@ describe('Username Validation', () => {
   it('should reject usernames with special characters', () => {
     const result = validateUsername('user@name');
     expect(result.valid).toBe(false);
-    expect(result.error).toBe(
-      'Username can only contain letters, numbers, and underscores'
-    );
+    expect(result.error).toBe('Username can only contain letters, numbers, and underscores');
   });
 });
 

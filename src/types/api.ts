@@ -1,4 +1,13 @@
-import { User, Deck, Card, StudySession, LeaderboardEntry, Achievement, UserAchievement, DailyProgress } from './models';
+import {
+  User,
+  Deck,
+  Card,
+  StudySession,
+  LeaderboardEntry,
+  Achievement,
+  UserAchievement,
+  DailyProgress,
+} from './models';
 
 // ============================================
 // GENERIC API RESPONSE
@@ -37,14 +46,14 @@ export interface RegisterRequest {
   email: string;
   password: string;
   name: string;
-  role?: 'teacher' | 'student';  // Admin created manually
+  role?: 'teacher' | 'student'; // Admin created manually
 }
 
 export interface AuthResponse {
   user: User;
   accessToken: string;
   refreshToken: string;
-  expiresAt: number;  // Unix timestamp
+  expiresAt: number; // Unix timestamp
 }
 
 export interface RefreshTokenRequest {
@@ -148,7 +157,7 @@ export interface UpdateCardRequest {
 }
 
 export interface CardReviewRequest {
-  quality: 0 | 1 | 2 | 3 | 4 | 5;  // SM-2 quality rating
+  quality: 0 | 1 | 2 | 3 | 4 | 5; // SM-2 quality rating
   timeSpentSeconds: number;
 }
 
@@ -222,7 +231,7 @@ export interface AchievementProgress {
 
 export interface ImportDeckRequest {
   format: 'json' | 'csv' | 'anki' | 'quizlet';
-  data: string;  // Base64 or raw content
+  data: string; // Base64 or raw content
   fileName?: string;
 }
 
@@ -235,7 +244,7 @@ export interface ExportDeckRequest {
 export interface ExportDeckResponse {
   format: string;
   fileName: string;
-  content: string;  // Base64 encoded
+  content: string; // Base64 encoded
   mimeType: string;
 }
 

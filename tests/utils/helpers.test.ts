@@ -177,9 +177,12 @@ describe('User Type Validation', () => {
       level: 1,
       currentXP: 0,
       nextLevelXP: 500,
+      totalXP: 0,
       streak: 0,
+      longestStreak: 0,
       totalTimeSpent: 0,
-      cardsLearnedThisWeek: 0,
+      totalCardsLearned: 0,
+      totalDecksCompleted: 0,
     };
 
     expect(user.id).toBeDefined();

@@ -76,7 +76,7 @@ function adaptDeckFromAPI(apiDeck: any): Deck {
       correctOptionIndex: card.correctOptionIndex,
       status: card.status || 'new',
     })),
-    totalCards: apiDeck.totalCards || (apiDeck.cards?.length || 0),
+    totalCards: apiDeck.totalCards || apiDeck.cards?.length || 0,
     masteredCards: apiDeck.masteredCards || 0,
     lastStudied: apiDeck.lastStudied,
     sessionData: undefined,
@@ -156,25 +156,29 @@ function AppContent() {
       return;
     }
 
-    if (confirm("Ești sigur că vrei să resetezi progresul pentru acest deck?")) {
-      setDecks(prevDecks => prevDecks.map(d => {
-        if (d.id === deckId) {
-          return { ...d, masteredCards: 0, sessionData: undefined };
-        }
-        return d;
-      }));
+    if (confirm('Ești sigur că vrei să resetezi progresul pentru acest deck?')) {
+      setDecks(prevDecks =>
+        prevDecks.map(d => {
+          if (d.id === deckId) {
+            return { ...d, masteredCards: 0, sessionData: undefined };
+          }
+          return d;
+        })
+      );
     }
   };
 
   const handleSaveProgress = useCallback((deckId: string, data: SessionData) => {
     // For guests, we still update local state but it won't persist
-    setDecks(prevDecks => prevDecks.map(d => {
-      if (d.id === deckId) {
-        return { ...d, sessionData: data };
-      }
-      return d;
-    }));
-    setActiveDeck(prev => (prev && prev.id === deckId) ? { ...prev, sessionData: data } : prev);
+    setDecks(prevDecks =>
+      prevDecks.map(d => {
+        if (d.id === deckId) {
+          return { ...d, sessionData: data };
+        }
+        return d;
+      })
+    );
+    setActiveDeck(prev => (prev && prev.id === deckId ? { ...prev, sessionData: data } : prev));
   }, []);
 
   const handleFinishSession = (score: number, totalCards: number, clearSession: boolean = true) => {
@@ -185,7 +189,7 @@ function AppContent() {
             ...d,
             masteredCards: score,
             lastStudied: new Date().toISOString(),
-            sessionData: clearSession ? undefined : d.sessionData
+            sessionData: clearSession ? undefined : d.sessionData,
           };
         }
         return d;
@@ -251,7 +255,7 @@ function AppContent() {
 
   const handleEditDeck = async (updatedDeck: Deck) => {
     if (isGuest) {
-      setDecks(decks.map(d => d.id === updatedDeck.id ? updatedDeck : d));
+      setDecks(decks.map(d => (d.id === updatedDeck.id ? updatedDeck : d)));
       return;
     }
 
@@ -265,7 +269,7 @@ function AppContent() {
     } catch (error) {
       console.error('Error updating deck:', error);
     }
-    setDecks(decks.map(d => d.id === updatedDeck.id ? updatedDeck : d));
+    setDecks(decks.map(d => (d.id === updatedDeck.id ? updatedDeck : d)));
   };
 
   const handleDeleteDeck = async (deckId: string) => {
@@ -282,44 +286,56 @@ function AppContent() {
   };
 
   const handleEditCard = (deckId: string, updatedCard: Card) => {
-    setDecks(prevDecks => prevDecks.map(deck => {
-      if (deck.id === deckId) {
-        return {
-          ...deck,
-          cards: deck.cards.map(c => c.id === updatedCard.id ? updatedCard : c)
-        };
-      }
-      return deck;
-    }));
+    setDecks(prevDecks =>
+      prevDecks.map(deck => {
+        if (deck.id === deckId) {
+          return {
+            ...deck,
+            cards: deck.cards.map(c => (c.id === updatedCard.id ? updatedCard : c)),
+          };
+        }
+        return deck;
+      })
+    );
 
     if (activeDeck && activeDeck.id === deckId) {
-      setActiveDeck(prev => prev ? {
-        ...prev,
-        cards: prev.cards.map(c => c.id === updatedCard.id ? updatedCard : c)
-      } : null);
+      setActiveDeck(prev =>
+        prev
+          ? {
+              ...prev,
+              cards: prev.cards.map(c => (c.id === updatedCard.id ? updatedCard : c)),
+            }
+          : null
+      );
     }
   };
 
   const handleDeleteCard = (deckId: string, cardId: string) => {
     if (!confirm('Vrei să elimini acest card din deck definitiv?')) return;
 
-    setDecks(prevDecks => prevDecks.map(deck => {
-      if (deck.id === deckId) {
-        return {
-          ...deck,
-          cards: deck.cards.filter(c => c.id !== cardId),
-          totalCards: deck.totalCards - 1
-        };
-      }
-      return deck;
-    }));
+    setDecks(prevDecks =>
+      prevDecks.map(deck => {
+        if (deck.id === deckId) {
+          return {
+            ...deck,
+            cards: deck.cards.filter(c => c.id !== cardId),
+            totalCards: deck.totalCards - 1,
+          };
+        }
+        return deck;
+      })
+    );
 
     if (activeDeck && activeDeck.id === deckId) {
-      setActiveDeck(prev => prev ? {
-        ...prev,
-        cards: prev.cards.filter(c => c.id !== cardId),
-        totalCards: prev.totalCards - 1
-      } : null);
+      setActiveDeck(prev =>
+        prev
+          ? {
+              ...prev,
+              cards: prev.cards.filter(c => c.id !== cardId),
+              totalCards: prev.totalCards - 1,
+            }
+          : null
+      );
     }
   };
 
@@ -328,7 +344,7 @@ function AppContent() {
       promptLogin('Salvează setările', 'Creează un cont pentru a-ți salva preferințele.');
       return;
     }
-    alert("Setările au fost salvate cu succes!");
+    alert('Setările au fost salvate cu succes!');
   };
 
   const handleLogout = async () => {
@@ -386,7 +402,14 @@ function AppContent() {
 
     switch (currentView) {
       case 'dashboard':
-        return <Dashboard user={user} decks={decks} onStartSession={handleStartSession} onChangeView={setCurrentView} />;
+        return (
+          <Dashboard
+            user={user}
+            decks={decks}
+            onStartSession={handleStartSession}
+            onChangeView={setCurrentView}
+          />
+        );
       case 'decks':
         return (
           <DeckList
@@ -407,10 +430,17 @@ function AppContent() {
             onSaveProgress={handleSaveProgress}
             onUpdateUserXP={handleUpdateUserXP}
             onBack={() => setCurrentView('decks')}
-            onEditCard={(card) => handleEditCard(activeDeck.id, card)}
-            onDeleteCard={(cardId) => handleDeleteCard(activeDeck.id, cardId)}
+            onEditCard={card => handleEditCard(activeDeck.id, card)}
+            onDeleteCard={cardId => handleDeleteCard(activeDeck.id, cardId)}
           />
-        ) : <Dashboard user={user} decks={decks} onStartSession={handleStartSession} onChangeView={setCurrentView} />;
+        ) : (
+          <Dashboard
+            user={user}
+            decks={decks}
+            onStartSession={handleStartSession}
+            onChangeView={setCurrentView}
+          />
+        );
       case 'achievements':
         return <Achievements achievements={MOCK_ACHIEVEMENTS} user={user} />;
       case 'leaderboard':
@@ -426,7 +456,14 @@ function AppContent() {
           />
         );
       default:
-        return <Dashboard user={user} decks={decks} onStartSession={handleStartSession} onChangeView={setCurrentView} />;
+        return (
+          <Dashboard
+            user={user}
+            decks={decks}
+            onStartSession={handleStartSession}
+            onChangeView={setCurrentView}
+          />
+        );
     }
   };
 

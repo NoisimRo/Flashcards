@@ -60,7 +60,11 @@ export async function importDeck(data: {
   return api.post<{ deckId: string; cardsImported: number }>('/import/deck', data);
 }
 
-export async function exportDeck(id: string, format: string = 'json', includeProgress: boolean = false) {
+export async function exportDeck(
+  id: string,
+  format: string = 'json',
+  includeProgress: boolean = false
+) {
   return api.get<{
     format: string;
     fileName: string;

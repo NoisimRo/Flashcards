@@ -27,7 +27,7 @@ export async function initDatabase(): Promise<IDBDatabase> {
       resolve(db);
     };
 
-    request.onupgradeneeded = (event) => {
+    request.onupgradeneeded = event => {
       const database = (event.target as IDBOpenDBRequest).result;
 
       // User store
@@ -57,7 +57,10 @@ export async function initDatabase(): Promise<IDBDatabase> {
 
       // Sync queue store
       if (!database.objectStoreNames.contains('syncQueue')) {
-        const syncStore = database.createObjectStore('syncQueue', { keyPath: 'id', autoIncrement: true });
+        const syncStore = database.createObjectStore('syncQueue', {
+          keyPath: 'id',
+          autoIncrement: true,
+        });
         syncStore.createIndex('entityType', 'entityType', { unique: false });
         syncStore.createIndex('timestamp', 'timestamp', { unique: false });
       }
@@ -74,7 +77,10 @@ export async function initDatabase(): Promise<IDBDatabase> {
 // GENERIC CRUD OPERATIONS
 // ============================================
 
-async function getStore(storeName: string, mode: IDBTransactionMode = 'readonly'): Promise<IDBObjectStore> {
+async function getStore(
+  storeName: string,
+  mode: IDBTransactionMode = 'readonly'
+): Promise<IDBObjectStore> {
   const database = await initDatabase();
   const transaction = database.transaction(storeName, mode);
   return transaction.objectStore(storeName);

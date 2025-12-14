@@ -30,14 +30,14 @@ export interface Card {
   correctOptionIndex?: number;
   status: CardStatus;
   // Spaced repetition data
-  easeFactor: number;      // Default 2.5
-  interval: number;        // Days until next review
-  repetitions: number;     // Number of successful reviews
+  easeFactor: number; // Default 2.5
+  interval: number; // Days until next review
+  repetitions: number; // Number of successful reviews
   nextReviewDate?: string; // ISO date
   // Metadata
   createdAt: string;
   updatedAt: string;
-  createdBy: string;       // User ID
+  createdBy: string; // User ID
 }
 
 export interface Deck {
@@ -55,7 +55,7 @@ export interface Deck {
   masteredCards: number;
   // Ownership
   ownerId: string;
-  sharedWith: string[];    // User IDs
+  sharedWith: string[]; // User IDs
   // Metadata
   createdAt: string;
   updatedAt: string;
@@ -81,7 +81,7 @@ export interface User {
   streak: number;
   longestStreak: number;
   lastActiveDate?: string;
-  totalTimeSpent: number;     // Minutes
+  totalTimeSpent: number; // Minutes
   totalCardsLearned: number;
   totalDecksCompleted: number;
   // Preferences
@@ -93,8 +93,8 @@ export interface User {
 }
 
 export interface UserPreferences {
-  dailyGoal: number;          // Cards per day
-  reminderTime?: string;      // HH:mm format
+  dailyGoal: number; // Cards per day
+  reminderTime?: string; // HH:mm format
   soundEnabled: boolean;
   animationsEnabled: boolean;
   theme: 'light' | 'dark' | 'system';
@@ -111,7 +111,7 @@ export interface StudySession {
   userId: string;
   // Progress
   currentIndex: number;
-  shuffledOrder: string[];    // Card IDs
+  shuffledOrder: string[]; // Card IDs
   answers: Record<string, AnswerStatus>;
   // Stats
   correctCount: number;
@@ -132,7 +132,7 @@ export interface StudySession {
 export interface DailyProgress {
   id: string;
   userId: string;
-  date: string;              // YYYY-MM-DD
+  date: string; // YYYY-MM-DD
   cardsStudied: number;
   cardsLearned: number;
   timeSpentMinutes: number;

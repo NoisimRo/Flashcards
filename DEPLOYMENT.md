@@ -187,13 +187,13 @@ gcloud run deploy flashcards \
 
 ## Costuri Estimate
 
-| Serviciu | Tier | Cost estimat/lună |
-|----------|------|-------------------|
-| Cloud Run | Free tier | $0 (până la 2M requests) |
-| Cloud SQL | db-f1-micro | ~$7-10 |
-| Artifact Registry | Standard | ~$0.10/GB |
-| Cloud Build | Free tier | $0 (până la 120 min/zi) |
-| **TOTAL** | | **~$10-15/lună** |
+| Serviciu          | Tier        | Cost estimat/lună        |
+| ----------------- | ----------- | ------------------------ |
+| Cloud Run         | Free tier   | $0 (până la 2M requests) |
+| Cloud SQL         | db-f1-micro | ~$7-10                   |
+| Artifact Registry | Standard    | ~$0.10/GB                |
+| Cloud Build       | Free tier   | $0 (până la 120 min/zi)  |
+| **TOTAL**         |             | **~$10-15/lună**         |
 
 > **Notă:** Poți reduce costurile folosind Cloud SQL cu connection pooling sau trecând la o bază de date externă (Supabase, Neon, etc.)
 
@@ -235,12 +235,14 @@ gcloud run services describe flashcards --region=europe-west1 --format="value(st
 ## Troubleshooting
 
 ### Eroare: "Permission denied"
+
 ```bash
 # Verifică permisiunile service account
 gcloud projects get-iam-policy flashcards-app
 ```
 
 ### Eroare: "Database connection failed"
+
 ```bash
 # Verifică că Cloud SQL Admin API e activat
 gcloud services enable sqladmin.googleapis.com
@@ -250,6 +252,7 @@ gcloud sql instances describe flashcards-db --format="value(connectionName)"
 ```
 
 ### Eroare: "Secret not found"
+
 ```bash
 # Listează secretele
 gcloud secrets list

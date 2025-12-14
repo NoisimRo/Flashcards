@@ -26,7 +26,11 @@ export const config = {
 
   // CORS
   cors: {
-    origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:3000', 'http://localhost:3002', 'http://localhost:5173'],
+    origin: process.env.CORS_ORIGIN?.split(',') || [
+      'http://localhost:3000',
+      'http://localhost:3002',
+      'http://localhost:5173',
+    ],
     credentials: true,
   },
 
@@ -47,7 +51,7 @@ export const config = {
     perCorrectCard: 10,
     sessionBonus: 50,
     streakMultiplier: 0.1, // 10% bonus per streak day (max 100%)
-    levelMultiplier: 1.2,  // XP needed increases by 20% each level
+    levelMultiplier: 1.2, // XP needed increases by 20% each level
     baseXpForLevel: 100,
   },
 };

@@ -10,7 +10,13 @@ interface SettingsProps {
   onLogin?: () => void;
 }
 
-const Settings: React.FC<SettingsProps> = ({ user, onSave, onLogout, isGuest = false, onLogin }) => {
+const Settings: React.FC<SettingsProps> = ({
+  user,
+  onSave,
+  onLogout,
+  isGuest = false,
+  onLogin,
+}) => {
   const [formData, setFormData] = useState({
     name: user.name,
     email: user.email || 'email@exemplu.ro',
@@ -34,8 +40,8 @@ const Settings: React.FC<SettingsProps> = ({ user, onSave, onLogout, isGuest = f
         <div className="bg-gradient-to-r from-gray-900 to-gray-800 p-6 rounded-3xl mb-6 text-white">
           <h3 className="text-xl font-bold mb-2">Creează un cont gratuit</h3>
           <p className="text-white/80 text-sm mb-4">
-            Pentru a salva setările și progresul tău, trebuie să îți creezi un cont.
-            Este gratuit și durează doar câteva secunde!
+            Pentru a salva setările și progresul tău, trebuie să îți creezi un cont. Este gratuit și
+            durează doar câteva secunde!
           </p>
           <div className="flex gap-3">
             <button
@@ -57,7 +63,9 @@ const Settings: React.FC<SettingsProps> = ({ user, onSave, onLogout, isGuest = f
       )}
 
       {/* Profile Section */}
-      <div className={`bg-[#F8F6F1] p-8 rounded-3xl mb-6 shadow-sm ${isGuest ? 'opacity-60 pointer-events-none' : ''}`}>
+      <div
+        className={`bg-[#F8F6F1] p-8 rounded-3xl mb-6 shadow-sm ${isGuest ? 'opacity-60 pointer-events-none' : ''}`}
+      >
         <h3 className="flex items-center gap-2 text-xl font-bold text-gray-900 mb-6">
           <UserIcon className="text-indigo-600" /> Profil
           {isGuest && <span className="text-sm font-normal text-orange-600">(necesită cont)</span>}
@@ -95,61 +103,62 @@ const Settings: React.FC<SettingsProps> = ({ user, onSave, onLogout, isGuest = f
       </div>
 
       {/* Preferences */}
-      <div className={`bg-[#F8F6F1] p-8 rounded-3xl mb-6 shadow-sm ${isGuest ? 'opacity-60 pointer-events-none' : ''}`}>
+      <div
+        className={`bg-[#F8F6F1] p-8 rounded-3xl mb-6 shadow-sm ${isGuest ? 'opacity-60 pointer-events-none' : ''}`}
+      >
         <h3 className="flex items-center gap-2 text-xl font-bold text-gray-900 mb-6">
           <Moon className="text-indigo-600" /> Preferințe de învățare
           {isGuest && <span className="text-sm font-normal text-orange-600">(necesită cont)</span>}
         </h3>
 
         <div className="space-y-6">
-           <div className="flex items-start gap-4 cursor-pointer group">
-             <div className="mt-1 w-6 h-6 bg-gray-900 rounded-full flex items-center justify-center text-white shadow-sm group-hover:bg-indigo-600 transition-colors">
-                <Check size={14} />
-             </div>
-             <div>
-               <h4 className="font-bold text-gray-900">Mod concentrare</h4>
-               <p className="text-gray-500 text-sm">Ascunde notificările în timpul studiului</p>
-             </div>
-           </div>
+          <div className="flex items-start gap-4 cursor-pointer group">
+            <div className="mt-1 w-6 h-6 bg-gray-900 rounded-full flex items-center justify-center text-white shadow-sm group-hover:bg-indigo-600 transition-colors">
+              <Check size={14} />
+            </div>
+            <div>
+              <h4 className="font-bold text-gray-900">Mod concentrare</h4>
+              <p className="text-gray-500 text-sm">Ascunde notificările în timpul studiului</p>
+            </div>
+          </div>
 
-           <div className="flex items-start gap-4 cursor-pointer group">
-             <div className="mt-1 w-6 h-6 border-2 border-gray-300 rounded-full flex items-center justify-center text-transparent hover:border-gray-900 transition-colors">
-             </div>
-             <div>
-               <h4 className="font-bold text-gray-900">Amestecă cardurile</h4>
-               <p className="text-gray-500 text-sm">Prezintă cardurile în ordine aleatorie</p>
-             </div>
-           </div>
+          <div className="flex items-start gap-4 cursor-pointer group">
+            <div className="mt-1 w-6 h-6 border-2 border-gray-300 rounded-full flex items-center justify-center text-transparent hover:border-gray-900 transition-colors"></div>
+            <div>
+              <h4 className="font-bold text-gray-900">Amestecă cardurile</h4>
+              <p className="text-gray-500 text-sm">Prezintă cardurile în ordine aleatorie</p>
+            </div>
+          </div>
 
-           <div>
-              <div className="flex justify-between mb-2">
-                 <span className="font-bold text-gray-700">Carduri noi pe zi</span>
-                 <span className="text-gray-500 text-sm">20 carduri</span>
-              </div>
-              <input
-                type="range"
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-900"
-                min="5"
-                max="50"
-                defaultValue="20"
-                disabled={isGuest}
-              />
-           </div>
+          <div>
+            <div className="flex justify-between mb-2">
+              <span className="font-bold text-gray-700">Carduri noi pe zi</span>
+              <span className="text-gray-500 text-sm">20 carduri</span>
+            </div>
+            <input
+              type="range"
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-900"
+              min="5"
+              max="50"
+              defaultValue="20"
+              disabled={isGuest}
+            />
+          </div>
         </div>
       </div>
 
       {/* Save Button */}
       {!isGuest && (
         <div className="flex gap-4 pb-10">
-           <button
+          <button
             onClick={handleSave}
             className="bg-gray-900 text-white px-8 py-3 rounded-xl font-bold hover:bg-gray-800 transition-colors flex items-center gap-2 shadow-lg hover:-translate-y-1 transform"
-           >
-              <Save size={18} /> Salvează modificările
-           </button>
-           <button className="text-gray-500 px-6 py-3 font-bold hover:text-gray-900 transition-colors">
-              Anulează
-           </button>
+          >
+            <Save size={18} /> Salvează modificările
+          </button>
+          <button className="text-gray-500 px-6 py-3 font-bold hover:text-gray-900 transition-colors">
+            Anulează
+          </button>
         </div>
       )}
 

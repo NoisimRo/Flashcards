@@ -61,15 +61,16 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Name */}
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                Nume complet
-              </label>
+              <label className="block text-sm font-bold text-gray-700 mb-2">Nume complet</label>
               <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <User
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                  size={20}
+                />
                 <input
                   type="text"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={e => setName(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 border-2 border-gray-100 bg-gray-50 rounded-xl font-medium outline-none focus:border-gray-900 transition-colors"
                   placeholder="Ion Popescu"
                 />
@@ -78,15 +79,16 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
 
             {/* Email */}
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                Email
-              </label>
+              <label className="block text-sm font-bold text-gray-700 mb-2">Email</label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <Mail
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                  size={20}
+                />
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={e => setEmail(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 border-2 border-gray-100 bg-gray-50 rounded-xl font-medium outline-none focus:border-gray-900 transition-colors"
                   placeholder="email@exemplu.ro"
                 />
@@ -95,9 +97,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
 
             {/* Role Selection */}
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                Sunt
-              </label>
+              <label className="block text-sm font-bold text-gray-700 mb-2">Sunt</label>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
@@ -128,15 +128,16 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                Parolă
-              </label>
+              <label className="block text-sm font-bold text-gray-700 mb-2">Parolă</label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <Lock
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                  size={20}
+                />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={e => setPassword(e.target.value)}
                   className="w-full pl-12 pr-12 py-3 border-2 border-gray-100 bg-gray-50 rounded-xl font-medium outline-none focus:border-gray-900 transition-colors"
                   placeholder="Minim 6 caractere"
                 />
@@ -152,15 +153,16 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
 
             {/* Confirm Password */}
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                Confirmă parola
-              </label>
+              <label className="block text-sm font-bold text-gray-700 mb-2">Confirmă parola</label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <Lock
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                  size={20}
+                />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  onChange={e => setConfirmPassword(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 border-2 border-gray-100 bg-gray-50 rounded-xl font-medium outline-none focus:border-gray-900 transition-colors"
                   placeholder="Repetă parola"
                 />
@@ -201,10 +203,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
           {/* Switch to Login */}
           <p className="text-center text-gray-600">
             Ai deja cont?{' '}
-            <button
-              onClick={onSwitchToLogin}
-              className="text-gray-900 font-bold hover:underline"
-            >
+            <button onClick={onSwitchToLogin} className="text-gray-900 font-bold hover:underline">
               Autentifică-te
             </button>
           </p>

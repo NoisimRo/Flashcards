@@ -1,13 +1,31 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI, Type } from '@google/genai';
 import { Card } from '../types';
 
-export const generateDeckWithAI = async (subject: string, topic: string, difficulty: string): Promise<Card[]> => {
+export const generateDeckWithAI = async (
+  subject: string,
+  topic: string,
+  difficulty: string
+): Promise<Card[]> => {
   if (!process.env.API_KEY) {
-    console.warn("API Key missing, returning mock data");
+    console.warn('API Key missing, returning mock data');
     // Fallback for demo purposes if no key is present
     return [
-      { id: 'ai1', front: `Exemplu Card 1 (${topic})`, back: 'Definiție 1', context: `Acesta este un context pentru Exemplu Card 1.`, type: 'standard', status: 'new' },
-      { id: 'ai2', front: `Exemplu Card 2 (${topic})`, back: 'Definiție 2', context: `Acesta este un context pentru Exemplu Card 2.`, type: 'standard', status: 'new' },
+      {
+        id: 'ai1',
+        front: `Exemplu Card 1 (${topic})`,
+        back: 'Definiție 1',
+        context: `Acesta este un context pentru Exemplu Card 1.`,
+        type: 'standard',
+        status: 'new',
+      },
+      {
+        id: 'ai2',
+        front: `Exemplu Card 2 (${topic})`,
+        back: 'Definiție 2',
+        context: `Acesta este un context pentru Exemplu Card 2.`,
+        type: 'standard',
+        status: 'new',
+      },
     ];
   }
 
@@ -40,27 +58,26 @@ export const generateDeckWithAI = async (subject: string, topic: string, difficu
               front: { type: Type.STRING },
               back: { type: Type.STRING },
               context: { type: Type.STRING },
-              type: { type: Type.STRING }
-            }
-          }
-        }
-      }
+              type: { type: Type.STRING },
+            },
+          },
+        },
+      },
     });
 
     const text = response.text;
     if (!text) return [];
-    
+
     const rawCards = JSON.parse(text);
     return rawCards.map((c: any, index: number) => ({
       ...c,
       id: `ai-${Date.now()}-${index}`,
       status: 'new',
       options: [],
-      correctOptionIndex: 0
+      correctOptionIndex: 0,
     }));
-
   } catch (error) {
-    console.error("Error generating deck:", error);
+    console.error('Error generating deck:', error);
     throw error;
   }
 };

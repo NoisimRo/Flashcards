@@ -29,10 +29,7 @@ const LoginPromptModal: React.FC<LoginPromptModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
       <div className="relative bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl animate-fade-in">
@@ -52,12 +49,8 @@ const LoginPromptModal: React.FC<LoginPromptModalProps> = ({
         </div>
 
         {/* Title & Message */}
-        <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">
-          {title}
-        </h2>
-        <p className="text-gray-500 text-center mb-6">
-          {message}
-        </p>
+        <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">{title}</h2>
+        <p className="text-gray-500 text-center mb-6">{message}</p>
 
         {/* Benefits */}
         <div className="space-y-3 mb-8">

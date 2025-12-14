@@ -38,8 +38,7 @@ describe('Spaced Repetition Algorithm', () => {
     }
 
     // Update ease factor
-    newEaseFactor =
-      easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+    newEaseFactor = easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
     if (newEaseFactor < 1.3) newEaseFactor = 1.3;
 
     return {
@@ -95,10 +94,7 @@ describe('Deck Operations', () => {
     return shuffled;
   };
 
-  const filterCardsByStatus = (
-    cards: Card[],
-    status: Card['status']
-  ): Card[] => {
+  const filterCardsByStatus = (cards: Card[], status: Card['status']): Card[] => {
     return cards.filter(card => card.status === status);
   };
 
@@ -183,8 +179,7 @@ describe('Deck Statistics', () => {
     const newCards = deck.cards.filter(c => c.status === 'new').length;
 
     // Estimate: 30 seconds for mastered, 1 minute for learning, 2 minutes for new
-    const estimatedTime =
-      (mastered * 0.5 + learning * 1 + newCards * 2) / 60;
+    const estimatedTime = (mastered * 0.5 + learning * 1 + newCards * 2) / 60;
 
     return {
       totalCards: total,

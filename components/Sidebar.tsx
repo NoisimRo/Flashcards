@@ -1,5 +1,14 @@
 import React from 'react';
-import { LayoutDashboard, BookOpen, Layers, Trophy, Users, Settings, LogIn, UserPlus } from 'lucide-react';
+import {
+  LayoutDashboard,
+  BookOpen,
+  Layers,
+  Trophy,
+  Users,
+  Settings,
+  LogIn,
+  UserPlus,
+} from 'lucide-react';
 import { User } from '../types';
 
 interface SidebarProps {
@@ -19,7 +28,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   isMobileOpen,
   onCloseMobile,
   isGuest = false,
-  onLoginClick
+  onLoginClick,
 }) => {
   const xpPercentage = Math.min((user.currentXP / user.nextLevelXP) * 100, 100);
 
@@ -43,12 +52,15 @@ const Sidebar: React.FC<SidebarProps> = ({
       <div className="p-6 flex flex-col h-full">
         {/* User Profile Summary */}
         <div className="flex items-center gap-3 mb-8">
-          <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${
-            isGuest
-              ? 'bg-gray-300 text-gray-600'
-              : 'bg-gray-900 text-white'
-          }`}>
-            {user.name.split(' ').map(n => n[0]).join('')}
+          <div
+            className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${
+              isGuest ? 'bg-gray-300 text-gray-600' : 'bg-gray-900 text-white'
+            }`}
+          >
+            {user.name
+              .split(' ')
+              .map(n => n[0])
+              .join('')}
           </div>
           <div>
             <h3 className="font-bold text-gray-900 leading-tight">{user.name}</h3>
@@ -65,7 +77,9 @@ const Sidebar: React.FC<SidebarProps> = ({
           <div className="mb-8">
             <div className="flex justify-between text-xs font-semibold text-gray-600 mb-1">
               <span>XP</span>
-              <span>{user.currentXP.toLocaleString()} / {user.nextLevelXP.toLocaleString()}</span>
+              <span>
+                {user.currentXP.toLocaleString()} / {user.nextLevelXP.toLocaleString()}
+              </span>
             </div>
             <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
               <div
@@ -94,7 +108,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Navigation */}
         <nav className="flex-1 space-y-2">
-          {menuItems.map((item) => (
+          {menuItems.map(item => (
             <button
               key={item.id}
               onClick={() => {
