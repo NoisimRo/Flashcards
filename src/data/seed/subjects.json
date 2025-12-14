@@ -1,0 +1,50 @@
+[
+  {
+    "id": "romana",
+    "name": "Limba Română",
+    "color": "#1f2937",
+    "icon": "book-open"
+  },
+  {
+    "id": "matematica",
+    "name": "Matematică",
+    "color": "#3b82f6",
+    "icon": "calculator"
+  },
+  {
+    "id": "istorie",
+    "name": "Istorie",
+    "color": "#f97316",
+    "icon": "landmark"
+  },
+  {
+    "id": "geografie",
+    "name": "Geografie",
+    "color": "#22c55e",
+    "icon": "globe"
+  },
+  {
+    "id": "engleza",
+    "name": "Engleză",
+    "color": "#8b5cf6",
+    "icon": "languages"
+  },
+  {
+    "id": "biologie",
+    "name": "Biologie",
+    "color": "#10b981",
+    "icon": "leaf"
+  },
+  {
+    "id": "fizica",
+    "name": "Fizică",
+    "color": "#6366f1",
+    "icon": "atom"
+  },
+  {
+    "id": "chimie",
+    "name": "Chimie",
+    "color": "#ec4899",
+    "icon": "flask-conical"
+  }
+]

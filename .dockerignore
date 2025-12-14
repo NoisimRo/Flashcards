@@ -1,0 +1,46 @@
+# Dependencies
+node_modules
+npm-debug.log
+
+# Build outputs (we build inside Docker)
+dist
+
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Environment files (sensitive data)
+.env
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Documentation
+*.md
+!README.md
+
+# Test files
+coverage
+*.test.ts
+*.spec.ts
+__tests__
+
+# Docker files (no need to copy into image)
+docker-compose*.yml
+Dockerfile*
+
+# Cloud Build
+cloudbuild.yaml
+
+# Misc
+.claude
+*.log
