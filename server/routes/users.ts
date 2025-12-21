@@ -375,6 +375,111 @@ router.delete(
 );
 
 // ============================================
+// POST /api/users/:id/xp - Update user XP
+// ============================================
+router.post('/:id/xp', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { deltaXP } = req.body;
+
+    // Users can only update their own XP
+    if (id !== req.user!.id) {
+      return res.status(403).json({
+        success: false,
+        error: {
+          code: 'FORBIDDEN',
+          message: 'Nu ai permisiunea să modifici XP-ul altui utilizator',
+        },
+      });
+    }
+
+    if (typeof deltaXP !== 'number') {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'deltaXP trebuie să fie un număr',
+        },
+      });
+    }
+
+    // Get current user data
+    const userResult = await query(
+      'SELECT level, current_xp, next_level_xp, total_xp FROM users WHERE id = $1 AND deleted_at IS NULL',
+      [id]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'NOT_FOUND',
+          message: 'Utilizatorul nu a fost găsit',
+        },
+      });
+    }
+
+    const user = userResult.rows[0];
+    let newCurrentXP = Math.max(0, user.current_xp + deltaXP);
+    const newTotalXP = deltaXP > 0 ? user.total_xp + deltaXP : user.total_xp;
+    let newLevel = user.level;
+    let newNextLevelXP = user.next_level_xp;
+
+    // Check for level up
+    while (newCurrentXP >= newNextLevelXP) {
+      newCurrentXP -= newNextLevelXP;
+      newLevel += 1;
+      // XP needed for next level increases by 20% each level
+      newNextLevelXP = Math.floor(newNextLevelXP * 1.2);
+    }
+
+    // Update user
+    const updateResult = await query(
+      `UPDATE users
+       SET level = $1, current_xp = $2, next_level_xp = $3, total_xp = $4, updated_at = NOW()
+       WHERE id = $5 AND deleted_at IS NULL
+       RETURNING id, email, name, avatar, role, level, current_xp, next_level_xp, total_xp,
+                 streak, longest_streak, total_time_spent, total_cards_learned,
+                 total_decks_completed, preferences, created_at`,
+      [newLevel, newCurrentXP, newNextLevelXP, newTotalXP, id]
+    );
+
+    const updatedUser = updateResult.rows[0];
+
+    res.json({
+      success: true,
+      data: {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        name: updatedUser.name,
+        avatar: updatedUser.avatar,
+        role: updatedUser.role,
+        level: updatedUser.level,
+        currentXP: updatedUser.current_xp,
+        nextLevelXP: updatedUser.next_level_xp,
+        totalXP: updatedUser.total_xp,
+        streak: updatedUser.streak,
+        longestStreak: updatedUser.longest_streak,
+        totalTimeSpent: updatedUser.total_time_spent,
+        totalCardsLearned: updatedUser.total_cards_learned,
+        totalDecksCompleted: updatedUser.total_decks_completed,
+        preferences: updatedUser.preferences,
+        createdAt: updatedUser.created_at,
+      },
+    });
+  } catch (error) {
+    console.error('Update XP error:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'SERVER_ERROR',
+        message: 'Eroare la actualizarea XP-ului',
+      },
+    });
+  }
+});
+
+// ============================================
 // GET /api/users/:id/stats - Get user statistics
 // ============================================
 router.get('/:id/stats', authenticateToken, async (req: Request, res: Response) => {

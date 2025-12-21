@@ -14,6 +14,7 @@ import { MOCK_DECKS, MOCK_ACHIEVEMENTS, LEADERBOARD_DATA } from './constants';
 import { Deck, Card, SessionData } from './types';
 import { Menu, X, Loader2 } from 'lucide-react';
 import * as decksApi from './src/api/decks';
+import * as usersApi from './src/api/users';
 
 // Guest user for freemium mode
 const GUEST_USER = {
@@ -85,7 +86,13 @@ function adaptDeckFromAPI(apiDeck: any): Deck {
 
 // Main app content
 function AppContent() {
-  const { isAuthenticated, isLoading: authLoading, user: authUser, logout } = useAuth();
+  const {
+    isAuthenticated,
+    isLoading: authLoading,
+    user: authUser,
+    logout,
+    refreshSession,
+  } = useAuth();
 
   const [currentView, setCurrentView] = useState('dashboard');
   const [activeDeck, setActiveDeck] = useState<Deck | null>(null);
@@ -211,9 +218,19 @@ function AppContent() {
     }
   };
 
-  const handleUpdateUserXP = (newXP: number) => {
+  const handleUpdateUserXP = async (deltaXP: number) => {
     if (isGuest) return; // Don't update XP for guests
-    console.log('Update XP:', newXP);
+    if (!authUser) return;
+
+    try {
+      const response = await usersApi.updateUserXP(authUser.id, deltaXP);
+      if (response.success && response.data) {
+        // Refresh the user session to get updated XP
+        await refreshSession();
+      }
+    } catch (error) {
+      console.error('Error updating XP:', error);
+    }
   };
 
   const handleAddDeck = async (newDeck: Deck) => {

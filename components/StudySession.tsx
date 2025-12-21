@@ -213,18 +213,25 @@ const StudySession: React.FC<StudySessionProps> = ({
 
     const COST = 20;
 
-    // Strict check on current available XP
-    if (user.currentXP < COST) {
+    // Check available XP including session XP
+    const availableXP = user.currentXP + sessionXP;
+    if (availableXP < COST) {
       toast.warning(
         'XP Insuficient',
-        `Ai nevoie de ${COST} XP pentru indiciu, dar ai doar ${user.currentXP} XP.`
+        `Ai nevoie de ${COST} XP pentru indiciu, dar ai doar ${availableXP} XP.`
       );
       return;
     }
 
-    // Deduct XP
-    const newXP = Math.max(0, user.currentXP - COST);
-    onUpdateUserXP(newXP);
+    // Deduct XP from session first, then from user if needed
+    if (sessionXP >= COST) {
+      setSessionXP(prev => prev - COST);
+    } else {
+      const remainingCost = COST - sessionXP;
+      setSessionXP(0);
+      // Send negative delta to deduct XP
+      onUpdateUserXP(-remainingCost);
+    }
 
     // Reveal Hint
     setHintRevealed(true);
@@ -327,16 +334,26 @@ const StudySession: React.FC<StudySessionProps> = ({
         if (!awardedCards.has(cardId)) {
           const newStreak = streak + 1;
           setStreak(newStreak);
-          setSessionXP(prev => prev + 10);
+
+          // Award 10 XP for correct answer
+          let xpGained = 10;
+
+          // Award bonus 50 XP for every 5 streak
+          if (newStreak > 0 && newStreak % 5 === 0) {
+            xpGained += 50;
+            setShowCelebration(true);
+            setTimeout(() => setShowCelebration(false), 4000);
+            toast.success(
+              'Streak Bonus!',
+              `+50 XP pentru ${newStreak} răspunsuri consecutive corecte!`
+            );
+          }
+
+          setSessionXP(prev => prev + xpGained);
           setAwardedCards(prev => new Set(prev).add(cardId));
 
           setFloatingXP({ show: true, id: Date.now() });
           setTimeout(() => setFloatingXP(prev => ({ ...prev, show: false })), 1500);
-
-          if (newStreak > 0 && newStreak % 5 === 0) {
-            setShowCelebration(true);
-            setTimeout(() => setShowCelebration(false), 4000);
-          }
         }
       } else {
         setStreak(0);
@@ -344,7 +361,7 @@ const StudySession: React.FC<StudySessionProps> = ({
 
       goToNext();
     },
-    [activeCards, currentIndex, goToNext, streak, awardedCards, answers]
+    [activeCards, currentIndex, goToNext, streak, awardedCards, answers, toast]
   );
 
   const handleSkip = useCallback(() => {
@@ -463,6 +480,16 @@ const StudySession: React.FC<StudySessionProps> = ({
     a => a === 'incorrect' || a === 'skipped'
   ).length;
 
+  // Sync session XP to backend and finish
+  const handleFinishWithXPSync = async (score: number, clearSession: boolean) => {
+    // Sync accumulated session XP to backend
+    if (sessionXP > 0) {
+      await onUpdateUserXP(sessionXP);
+    }
+    // Call original finish handler
+    onFinish(score, deck.totalCards, clearSession);
+  };
+
   // --- RENDER ---
 
   if (activeCards.length === 0) {
@@ -519,7 +546,7 @@ const StudySession: React.FC<StudySessionProps> = ({
 
           {isPerfect ? (
             <button
-              onClick={() => onFinish(score, deck.totalCards, true)}
+              onClick={() => handleFinishWithXPSync(score, true)}
               className="w-full bg-gray-900 text-white font-bold py-4 rounded-xl hover:bg-gray-800 transition-colors shadow-lg"
             >
               Finalizează & Ieși
@@ -535,7 +562,7 @@ const StudySession: React.FC<StudySessionProps> = ({
 
           <div className="mt-4">
             <button
-              onClick={() => onFinish(score, deck.totalCards, false)}
+              onClick={() => handleFinishWithXPSync(score, false)}
               className="text-gray-500 font-bold py-2 hover:text-gray-900 text-sm"
             >
               Salvează și ieși
