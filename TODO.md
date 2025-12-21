@@ -24,21 +24,6 @@ _None - all critical blockers resolved!_
 
 ### Features
 
-- [ ] **AI Deck Generation** - Fix and complete AI-powered deck creation
-  - **CURRENT ISSUE**: Frontend calls `generateDeckWithAI()` directly, but `process.env.API_KEY` is not available in browser
-  - **SOLUTION NEEDED**:
-    - Create backend endpoint: `POST /api/decks/generate` that accepts subject, topic, difficulty
-    - Move `services/geminiService.ts` logic to backend route handler
-    - Use `GEMINI_API_KEY` from server environment variables
-    - Create API client function in `src/api/decks.ts`
-    - Update `DeckList.tsx` to call backend API instead of direct service
-  - Files to modify:
-    - `server/routes/decks.ts` - Add generate endpoint
-    - `src/api/decks.ts` - Add `generateDeckWithAI()` API client
-    - `components/DeckList.tsx` - Update to use API client
-    - `services/geminiService.ts` - Move to server-side only or delete
-  - Ensure `GEMINI_API_KEY` is set in `.env` and Cloud Run secrets
-
 - [ ] **Complete offline sync** - Conflict resolution UI
   - Show sync status indicator
   - Allow user to choose "keep local" vs "keep server"
@@ -180,6 +165,12 @@ _None - all critical blockers resolved!_
 
 ## Completed (Recent)
 
+- [x] **AI Deck Generation** - Fixed backend API integration (Dec 21, 2024)
+  - Moved AI generation from frontend to backend
+  - Created POST /api/decks/generate endpoint
+  - Moved geminiService.ts to server/services/
+  - Updated API client and DeckList component
+  - All tests passing (38/38)
 - [x] **Fix Docker build in Cloud Build** - Resolved in previous session
 - [x] **XP display consistency** - Complete XP system overhaul (Dec 21, 2024)
   - Fixed hint XP verification (checks session + user XP)
@@ -199,6 +190,40 @@ _None - all critical blockers resolved!_
 ---
 
 ## Session Notes
+
+### December 21, 2024 - AI Deck Generation Backend Migration
+
+**Session Focus**: Fix AI deck generation by moving it from frontend to backend
+
+**Problem**: Frontend was calling `generateDeckWithAI()` directly, but `process.env.API_KEY` (GEMINI_API_KEY) is not available in the browser, causing AI generation to fail.
+
+**Completed**:
+
+- ✅ Created POST /api/decks/generate backend endpoint in `server/routes/decks.ts`
+- ✅ Moved `geminiService.ts` from `services/` to `server/services/`
+- ✅ Updated gemini service to use `GEMINI_API_KEY` from server environment config
+- ✅ Added `geminiApiKey` to server config (`server/config/index.ts`)
+- ✅ Created API client function `generateDeckWithAI()` in `src/api/decks.ts`
+- ✅ Updated `DeckList.tsx` to call backend API instead of direct service
+- ✅ Updated `.env.example` to document `GEMINI_API_KEY` requirement
+- ✅ All tests passing (38/38)
+- ✅ TypeScript check passing
+- ✅ Build successful
+
+**Files Modified**:
+
+- `server/routes/decks.ts` - Added POST /api/decks/generate endpoint
+- `server/services/geminiService.ts` - Moved from root services/ directory
+- `server/config/index.ts` - Added geminiApiKey configuration
+- `src/api/decks.ts` - Added generateDeckWithAI() API client function
+- `components/DeckList.tsx` - Updated to use API client with proper response handling
+- `.env.example` - Updated API_KEY to GEMINI_API_KEY
+
+**Commit**: `feat(ai): move AI deck generation to backend API` (bfa367b)
+
+**Next Session**: Test AI deck generation with actual GEMINI_API_KEY in production
+
+---
 
 ### December 21, 2024 - XP System Fix
 
