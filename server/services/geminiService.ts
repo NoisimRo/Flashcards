@@ -1,42 +1,47 @@
 import { GoogleGenAI, Type } from '@google/genai';
-import { Card } from '../types';
+import { config } from '../config/index.js';
+
+interface GeneratedCard {
+  front: string;
+  back: string;
+  context: string;
+  type: string;
+}
 
 export const generateDeckWithAI = async (
   subject: string,
   topic: string,
   difficulty: string
-): Promise<Card[]> => {
-  if (!process.env.API_KEY) {
-    console.warn('API Key missing, returning mock data');
+): Promise<GeneratedCard[]> => {
+  const apiKey = config.geminiApiKey;
+
+  if (!apiKey) {
+    console.warn('GEMINI_API_KEY not configured, returning mock data');
     // Fallback for demo purposes if no key is present
     return [
       {
-        id: 'ai1',
         front: `Exemplu Card 1 (${topic})`,
         back: 'Definiție 1',
         context: `Acesta este un context pentru Exemplu Card 1.`,
         type: 'standard',
-        status: 'new',
       },
       {
-        id: 'ai2',
         front: `Exemplu Card 2 (${topic})`,
         back: 'Definiție 2',
         context: `Acesta este un context pentru Exemplu Card 2.`,
         type: 'standard',
-        status: 'new',
       },
     ];
   }
 
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey });
 
   const prompt = `
     Create 5 flashcards for 8th grade students preparing for the National Evaluation.
     Subject: ${subject}
     Topic: ${topic}
     Difficulty: ${difficulty}
-    
+
     Return a JSON array where each object has:
     - front: The question or word
     - back: The definition, answer, or synonym
@@ -69,15 +74,14 @@ export const generateDeckWithAI = async (
     if (!text) return [];
 
     const rawCards = JSON.parse(text);
-    return rawCards.map((c: any, index: number) => ({
-      ...c,
-      id: `ai-${Date.now()}-${index}`,
-      status: 'new',
-      options: [],
-      correctOptionIndex: 0,
+    return rawCards.map((c: any) => ({
+      front: c.front,
+      back: c.back,
+      context: c.context,
+      type: c.type || 'standard',
     }));
   } catch (error) {
-    console.error('Error generating deck:', error);
+    console.error('Error generating deck with AI:', error);
     throw error;
   }
 };

@@ -54,6 +54,9 @@ export const config = {
     levelMultiplier: 1.2, // XP needed increases by 20% each level
     baseXpForLevel: 100,
   },
+
+  // AI Integration
+  geminiApiKey: process.env.GEMINI_API_KEY,
 };
 
 export default config;
