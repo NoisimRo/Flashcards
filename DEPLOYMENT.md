@@ -119,20 +119,24 @@ echo -n "YOUR_USER_PASSWORD" | gcloud secrets create flashcards-db-password --da
 openssl rand -base64 32 | gcloud secrets create flashcards-jwt-access --data-file=-
 openssl rand -base64 32 | gcloud secrets create flashcards-jwt-refresh --data-file=-
 
-# Gemini API Key (opțional)
+# Gemini API Key (pentru AI deck generation)
+# Obține API key de la: https://aistudio.google.com/app/apikey
 echo -n "YOUR_GEMINI_API_KEY" | gcloud secrets create flashcards-gemini-key --data-file=-
 
 # Dă permisiuni Cloud Build și Cloud Run să acceseze secretele
 PROJECT_NUMBER=$(gcloud projects describe flashcards-app --format="value(projectNumber)")
 
-gcloud secrets add-iam-policy-binding flashcards-db-host \
-  --member="serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com" \
-  --role="roles/secretmanager.secretAccessor"
-
-# Repetă pentru toate secretele...
+# Grant access to Compute Engine service account (used by Cloud Run)
 for secret in flashcards-db-host flashcards-db-port flashcards-db-name flashcards-db-user flashcards-db-password flashcards-jwt-access flashcards-jwt-refresh flashcards-gemini-key; do
   gcloud secrets add-iam-policy-binding $secret \
     --member="serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com" \
+    --role="roles/secretmanager.secretAccessor"
+done
+
+# Grant access to Cloud Build service account
+for secret in flashcards-db-host flashcards-db-port flashcards-db-name flashcards-db-user flashcards-db-password flashcards-jwt-access flashcards-jwt-refresh flashcards-gemini-key; do
+  gcloud secrets add-iam-policy-binding $secret \
+    --member="serviceAccount:${PROJECT_NUMBER}@cloudbuild.gserviceaccount.com" \
     --role="roles/secretmanager.secretAccessor"
 done
 ```
