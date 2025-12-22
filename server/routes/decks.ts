@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { query, withTransaction } from '../db/index.js';
 import { authenticateToken, optionalAuth, requireRole } from '../middleware/auth.js';
 import { config } from '../config/index.js';
+import { generateDeckWithAI } from '../services/geminiService.js';
 
 const router = Router();
 
@@ -282,6 +283,42 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
       error: {
         code: 'SERVER_ERROR',
         message: 'Eroare la crearea deck-ului',
+      },
+    });
+  }
+});
+
+// ============================================
+// POST /api/decks/generate - Generate deck with AI
+// ============================================
+router.post('/generate', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { subject, topic, difficulty = 'A2' } = req.body;
+
+    if (!topic) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Topicul este obligatoriu',
+        },
+      });
+    }
+
+    // Generate cards with AI
+    const generatedCards = await generateDeckWithAI(subject || 'Limba Română', topic, difficulty);
+
+    res.json({
+      success: true,
+      data: generatedCards,
+    });
+  } catch (error) {
+    console.error('Generate deck error:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'SERVER_ERROR',
+        message: 'Eroare la generarea deck-ului cu AI',
       },
     });
   }

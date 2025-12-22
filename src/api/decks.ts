@@ -73,6 +73,18 @@ export async function exportDeck(
   }>(`/export/deck/${id}?format=${format}&includeProgress=${includeProgress}`);
 }
 
+// AI Generation
+export async function generateDeckWithAI(subject: string, topic: string, difficulty: string) {
+  return api.post<
+    Array<{
+      front: string;
+      back: string;
+      context: string;
+      type: string;
+    }>
+  >('/decks/generate', { subject, topic, difficulty });
+}
+
 // Helper to download exported file
 export function downloadExportedDeck(fileName: string, content: string, mimeType: string) {
   const blob = new Blob([atob(content)], { type: mimeType });

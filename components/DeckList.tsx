@@ -12,7 +12,7 @@ import {
   RotateCcw,
   ArrowRight,
 } from 'lucide-react';
-import { generateDeckWithAI } from '../services/geminiService';
+import { generateDeckWithAI } from '../src/api/decks';
 
 interface DeckListProps {
   decks: Deck[];
@@ -81,7 +81,20 @@ const DeckList: React.FC<DeckListProps> = ({
       let newCards: any[] = [];
       if (importMode === 'ai') {
         try {
-          newCards = await generateDeckWithAI(subject, title, difficulty);
+          const response = await generateDeckWithAI(subject, title, difficulty);
+          if (response.success && response.data) {
+            newCards = response.data.map((card, index) => ({
+              ...card,
+              id: `ai-${Date.now()}-${index}`,
+              status: 'new',
+              options: [],
+              correctOptionIndex: 0,
+            }));
+          } else {
+            alert(response.error?.message || 'Eroare la generarea AI. Verifică consola.');
+            setIsGenerating(false);
+            return;
+          }
         } catch (err) {
           alert('Eroare la generarea AI. Verifică consola.');
           setIsGenerating(false);
