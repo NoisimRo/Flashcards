@@ -3,10 +3,13 @@ import {
   Deck,
   Card,
   StudySession,
+  StudySessionWithData,
+  UserCardProgress,
   LeaderboardEntry,
   Achievement,
   UserAchievement,
   DailyProgress,
+  SessionSelectionMethod,
 } from './models';
 
 // ============================================
@@ -161,36 +164,97 @@ export interface CardReviewRequest {
   timeSpentSeconds: number;
 }
 
+export interface GetCardsParams {
+  deckId?: string;
+  includeProgress?: boolean; // Include user's progress for each card
+}
+
 // ============================================
-// STUDY SESSIONS
+// USER CARD PROGRESS
 // ============================================
 
-export interface StartSessionRequest {
+export interface UpdateCardProgressRequest {
+  cardId: string;
+  quality: 0 | 1 | 2 | 3 | 4 | 5; // SM-2 quality rating
+  timeSpentSeconds: number;
+}
+
+export interface CardProgressBatchUpdate {
+  cardId: string;
+  wasCorrect: boolean;
+  timeSpentSeconds: number;
+}
+
+// ============================================
+// STUDY SESSIONS - REFACTORED
+// ============================================
+
+/**
+ * Create a new study session
+ */
+export interface CreateStudySessionRequest {
   deckId: string;
-  mode?: 'learn' | 'review' | 'cram';
-  cardLimit?: number;
+  selectionMethod: SessionSelectionMethod;
+  cardCount?: number; // For 'random' and 'smart' methods
+  selectedCardIds?: string[]; // For 'manual' method
+  excludeMasteredCards?: boolean; // Default: true
+  title?: string; // Optional custom title
 }
 
-export interface UpdateSessionRequest {
-  currentIndex?: number;
+/**
+ * Response when creating a session - includes selected cards
+ */
+export interface CreateStudySessionResponse {
+  session: StudySessionWithData; // Session with cards and progress
+  availableCards: number; // How many cards were available for selection
+  masteredCards: number; // How many cards were excluded (mastered)
+}
+
+/**
+ * Get list of study sessions
+ */
+export interface GetStudySessionsParams {
+  status?: 'active' | 'completed' | 'abandoned' | 'all';
+  deckId?: string;
+  limit?: number;
+  offset?: number;
+}
+
+/**
+ * Update session progress (during study)
+ */
+export interface UpdateStudySessionRequest {
+  currentCardIndex?: number;
   answers?: Record<string, 'correct' | 'incorrect' | 'skipped'>;
-  isPaused?: boolean;
+  streak?: number;
+  sessionXP?: number;
 }
 
-export interface FinishSessionRequest {
+/**
+ * Complete a study session
+ */
+export interface CompleteStudySessionRequest {
+  score: number; // Percentage 0-100
   correctCount: number;
   incorrectCount: number;
   skippedCount: number;
-  totalTimeSeconds: number;
+  durationSeconds: number;
+  // Array of card progress updates to apply
+  cardProgressUpdates: CardProgressBatchUpdate[];
 }
 
-export interface SessionResultResponse {
+/**
+ * Response when completing a session
+ */
+export interface CompleteStudySessionResponse {
   session: StudySession;
   xpEarned: number;
   newLevel?: number;
+  leveledUp: boolean;
   newAchievements: Achievement[];
   streakUpdated: boolean;
   newStreak: number;
+  cardsLearned: number; // Cards that changed status to 'mastered'
 }
 
 // ============================================

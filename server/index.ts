@@ -14,6 +14,7 @@ const __dirname = path.dirname(__filename);
 import authRoutes from './routes/auth.js';
 import usersRoutes from './routes/users.js';
 import decksRoutes from './routes/decks.js';
+import studySessionsRoutes from './routes/studySessions.js';
 import importExportRoutes from './routes/import-export.js';
 
 const app = express();
@@ -73,6 +74,7 @@ app.get('/api/health', async (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/decks', decksRoutes);
+app.use('/api/study-sessions', studySessionsRoutes);
 app.use('/api/import', importExportRoutes);
 app.use('/api/export', importExportRoutes);
 
