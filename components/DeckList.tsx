@@ -100,8 +100,8 @@ const DeckList: React.FC<DeckListProps> = ({
         front: string;
         back: string;
         context?: string;
-        type: string;
-        status: string;
+        type: 'standard' | 'quiz';
+        status: 'new' | 'learning' | 'mastered';
         options?: string[];
         correctOptionIndex?: number;
       }> = [];
@@ -113,9 +113,11 @@ const DeckList: React.FC<DeckListProps> = ({
               ...response.data.map((card, index) => ({
                 ...card,
                 id: `ai-${Date.now()}-${index}`,
-                status: 'new',
-                options: [],
-                correctOptionIndex: 0,
+                status: 'new' as const,
+                // Preserve quiz fields if they exist, otherwise use empty defaults
+                type: card.type || 'standard',
+                options: card.options || undefined,
+                correctOptionIndex: card.correctOptionIndex ?? undefined,
               }))
             );
           } else {
@@ -148,8 +150,8 @@ const DeckList: React.FC<DeckListProps> = ({
         front: string;
         back: string;
         context?: string;
-        type: string;
-        status: string;
+        type: 'standard' | 'quiz';
+        status: 'new' | 'learning' | 'mastered';
         options?: string[];
         correctOptionIndex?: number;
       }> = [];
@@ -161,9 +163,11 @@ const DeckList: React.FC<DeckListProps> = ({
               ...response.data.map((card, index) => ({
                 ...card,
                 id: `ai-${Date.now()}-${index}`,
-                status: 'new',
-                options: [],
-                correctOptionIndex: 0,
+                status: 'new' as const,
+                // Preserve quiz fields if they exist, otherwise use empty defaults
+                type: card.type || 'standard',
+                options: card.options || undefined,
+                correctOptionIndex: card.correctOptionIndex ?? undefined,
               }))
             );
           } else {

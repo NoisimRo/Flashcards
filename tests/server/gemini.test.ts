@@ -72,7 +72,15 @@ describe('Gemini AI Deck Generation', () => {
         expect(typeof card.front).toBe('string');
         expect(typeof card.back).toBe('string');
         expect(typeof card.context).toBe('string');
-        expect(card.type).toBe('standard');
+        expect(['standard', 'quiz']).toContain(card.type);
+
+        // If quiz type, should have options and correctOptionIndex
+        if (card.type === 'quiz') {
+          expect(card).toHaveProperty('options');
+          expect(card).toHaveProperty('correctOptionIndex');
+          expect(Array.isArray(card.options)).toBe(true);
+          expect(typeof card.correctOptionIndex).toBe('number');
+        }
       });
     });
 

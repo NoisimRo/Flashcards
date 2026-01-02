@@ -11,7 +11,7 @@ import Achievements from './components/Achievements';
 import Leaderboard from './components/Leaderboard';
 import Settings from './components/Settings';
 import { MOCK_DECKS, MOCK_ACHIEVEMENTS, LEADERBOARD_DATA } from './constants';
-import { Deck, Card, SessionData } from './types';
+import { Deck, Card, SessionData, User } from './types';
 import { Menu, X, Loader2 } from 'lucide-react';
 import * as decksApi from './src/api/decks';
 import * as usersApi from './src/api/users';
@@ -52,13 +52,31 @@ function adaptUserFromAPI(apiUser: {
   totalTimeSpent?: number;
   totalCardsLearned?: number;
   totalDecksCompleted?: number;
-  preferences?: Record<string, unknown>;
-}) {
+  preferences?: {
+    dailyGoal?: number;
+    soundEnabled?: boolean;
+    animationsEnabled?: boolean;
+    theme?: 'light' | 'dark' | 'system';
+    language?: string;
+  };
+}): User {
+  // Ensure role is a valid type
+  const validRole =
+    apiUser.role === 'admin' || apiUser.role === 'teacher' || apiUser.role === 'student'
+      ? apiUser.role
+      : ('student' as const);
+
+  // Ensure theme is a valid type
+  const validTheme =
+    apiUser.preferences?.theme === 'light' || apiUser.preferences?.theme === 'dark'
+      ? apiUser.preferences.theme
+      : undefined;
+
   return {
     id: apiUser.id,
     name: apiUser.name,
     email: apiUser.email,
-    role: apiUser.role,
+    role: validRole,
     avatar: apiUser.avatar,
     // Gamification
     level: apiUser.level ?? 1,
@@ -72,7 +90,12 @@ function adaptUserFromAPI(apiUser: {
     totalCardsLearned: apiUser.totalCardsLearned ?? 0,
     totalDecksCompleted: apiUser.totalDecksCompleted ?? 0,
     // Preferences
-    preferences: apiUser.preferences,
+    preferences: apiUser.preferences
+      ? {
+          ...apiUser.preferences,
+          theme: validTheme,
+        }
+      : undefined,
   };
 }
 

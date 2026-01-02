@@ -107,6 +107,10 @@ const StudySession: React.FC<StudySessionProps> = ({
   const [editingCard, setEditingCard] = useState<Card | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Quiz State
+  const [selectedQuizOption, setSelectedQuizOption] = useState<number | null>(null);
+  const [quizAnswered, setQuizAnswered] = useState(false);
+
   // Touch/Swipe State
   const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
   const [touchCurrent, setTouchCurrent] = useState<{ x: number; y: number } | null>(null);
@@ -382,8 +386,19 @@ const StudySession: React.FC<StudySessionProps> = ({
   }, [activeCards, currentIndex, answers, goToNext]);
 
   const handleQuizAnswer = (idx: number) => {
+    if (quizAnswered) return; // Prevent multiple answers
+
+    setSelectedQuizOption(idx);
+    setQuizAnswered(true);
+
     const isCorrect = idx === currentCard.correctOptionIndex;
-    handleAnswer(isCorrect ? 'correct' : 'incorrect');
+
+    // Show feedback for 1.5 seconds before moving to next card
+    setTimeout(() => {
+      handleAnswer(isCorrect ? 'correct' : 'incorrect');
+      setSelectedQuizOption(null);
+      setQuizAnswered(false);
+    }, 1500);
   };
 
   // --- Type-in Logic ---
@@ -1011,15 +1026,30 @@ const StudySession: React.FC<StudySessionProps> = ({
               {currentCard.front}
             </h3>
             <div className="space-y-3">
-              {currentCard.options?.map((opt, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleQuizAnswer(idx)}
-                  className="w-full p-4 text-left border-2 border-transparent bg-gray-50 rounded-xl hover:bg-indigo-50 hover:border-indigo-500 transition-all font-medium text-gray-700 active:scale-98 flex justify-between group"
-                >
-                  <span>{opt}</span>
-                </button>
-              ))}
+              {currentCard.options?.map((opt, idx) => {
+                const isSelected = selectedQuizOption === idx;
+                const isCorrect = idx === currentCard.correctOptionIndex;
+                const showCorrect = quizAnswered && isCorrect;
+                const showIncorrect = quizAnswered && isSelected && !isCorrect;
+
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => handleQuizAnswer(idx)}
+                    disabled={quizAnswered}
+                    className={`w-full p-4 text-left border-2 rounded-xl transition-all font-medium active:scale-98 flex justify-between items-center
+                      ${showCorrect ? 'bg-green-50 border-green-500 text-green-700' : ''}
+                      ${showIncorrect ? 'bg-red-50 border-red-500 text-red-700' : ''}
+                      ${!quizAnswered ? 'border-transparent bg-gray-50 hover:bg-indigo-50 hover:border-indigo-500 text-gray-700' : ''}
+                      ${quizAnswered && !isSelected && !isCorrect ? 'opacity-50' : ''}
+                    `}
+                  >
+                    <span>{opt}</span>
+                    {showCorrect && <CheckCircle size={20} className="text-green-600" />}
+                    {showIncorrect && <XCircle size={20} className="text-red-600" />}
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}

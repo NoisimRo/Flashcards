@@ -85,7 +85,9 @@ export async function generateDeckWithAI(
       front: string;
       back: string;
       context: string;
-      type: string;
+      type: 'standard' | 'quiz';
+      options?: string[];
+      correctOptionIndex?: number;
     }>
   >('/decks/generate', { subject, topic, difficulty, numberOfCards });
 }
