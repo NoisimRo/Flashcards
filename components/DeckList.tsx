@@ -347,7 +347,11 @@ const DeckList: React.FC<DeckListProps> = ({
         <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
           <div className="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl animate-scale-up">
             <h2 className="text-2xl font-bold mb-6 text-gray-900">
-              {editingDeckId ? 'Editează Deck' : generatingForDeckId ? 'Generează Carduri' : 'Deck Nou'}
+              {editingDeckId
+                ? 'Editează Deck'
+                : generatingForDeckId
+                  ? 'Generează Carduri'
+                  : 'Deck Nou'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Form fields same as previous */}
@@ -419,30 +423,30 @@ const DeckList: React.FC<DeckListProps> = ({
                     <label className="block text-sm font-bold text-gray-700 mb-2">
                       Metodă Creare
                     </label>
-                  <div className="grid grid-cols-3 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setImportMode('ai')}
-                      className={`p-3 rounded-xl border-2 text-sm flex flex-col items-center gap-1 font-bold transition-all ${importMode === 'ai' ? 'bg-indigo-50 border-indigo-500 text-indigo-700' : 'border-gray-100 text-gray-500 hover:bg-gray-50'}`}
-                    >
-                      <Sparkles size={20} /> AI Auto
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setImportMode('file')}
-                      className={`p-3 rounded-xl border-2 text-sm flex flex-col items-center gap-1 font-bold transition-all ${importMode === 'file' ? 'bg-indigo-50 border-indigo-500 text-indigo-700' : 'border-gray-100 text-gray-500 hover:bg-gray-50'}`}
-                    >
-                      <Upload size={20} /> Import
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setImportMode('manual')}
-                      className={`p-3 rounded-xl border-2 text-sm flex flex-col items-center gap-1 font-bold transition-all ${importMode === 'manual' ? 'bg-indigo-50 border-indigo-500 text-indigo-700' : 'border-gray-100 text-gray-500 hover:bg-gray-50'}`}
-                    >
-                      <Plus size={20} /> Manual
-                    </button>
+                    <div className="grid grid-cols-3 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setImportMode('ai')}
+                        className={`p-3 rounded-xl border-2 text-sm flex flex-col items-center gap-1 font-bold transition-all ${importMode === 'ai' ? 'bg-indigo-50 border-indigo-500 text-indigo-700' : 'border-gray-100 text-gray-500 hover:bg-gray-50'}`}
+                      >
+                        <Sparkles size={20} /> AI Auto
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setImportMode('file')}
+                        className={`p-3 rounded-xl border-2 text-sm flex flex-col items-center gap-1 font-bold transition-all ${importMode === 'file' ? 'bg-indigo-50 border-indigo-500 text-indigo-700' : 'border-gray-100 text-gray-500 hover:bg-gray-50'}`}
+                      >
+                        <Upload size={20} /> Import
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setImportMode('manual')}
+                        className={`p-3 rounded-xl border-2 text-sm flex flex-col items-center gap-1 font-bold transition-all ${importMode === 'manual' ? 'bg-indigo-50 border-indigo-500 text-indigo-700' : 'border-gray-100 text-gray-500 hover:bg-gray-50'}`}
+                      >
+                        <Plus size={20} /> Manual
+                      </button>
+                    </div>
                   </div>
-                </div>
                 </>
               )}
 

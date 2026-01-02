@@ -22,13 +22,13 @@ export const SUBJECTS: Subject[] = [
 // Map display name to database ID
 export const SUBJECT_NAME_TO_ID: Record<string, string> = {
   'Limba Română': 'romana',
-  'Matematică': 'matematica',
-  'Istorie': 'istorie',
-  'Geografie': 'geografie',
-  'Engleză': 'engleza',
-  'Biologie': 'biologie',
-  'Fizică': 'fizica',
-  'Chimie': 'chimie',
+  Matematică: 'matematica',
+  Istorie: 'istorie',
+  Geografie: 'geografie',
+  Engleză: 'engleza',
+  Biologie: 'biologie',
+  Fizică: 'fizica',
+  Chimie: 'chimie',
 };
 
 // Map database ID to display name
