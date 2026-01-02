@@ -425,7 +425,7 @@ const DeckList: React.FC<DeckListProps> = ({
                 </select>
               </div>
 
-              {!editingDeckId && (
+              {!editingDeckId && !generatingForDeckId && (
                 <>
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">
