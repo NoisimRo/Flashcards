@@ -37,25 +37,42 @@ const DeckList: React.FC<DeckListProps> = ({
 
   // Form State
   const [editingDeckId, setEditingDeckId] = useState<string | null>(null);
+  const [generatingForDeckId, setGeneratingForDeckId] = useState<string | null>(null);
   const [title, setTitle] = useState('');
   const [subject, setSubject] = useState('Limba Română');
   const [difficulty, setDifficulty] = useState<Difficulty>('A2');
   const [importMode, setImportMode] = useState<'manual' | 'ai' | 'file'>('ai');
+  const [numberOfCards, setNumberOfCards] = useState(10);
 
   const openCreateModal = () => {
     setEditingDeckId(null);
+    setGeneratingForDeckId(null);
     setTitle('');
     setSubject('Limba Română');
     setDifficulty('A2');
     setImportMode('ai');
+    setNumberOfCards(10);
     setIsModalOpen(true);
   };
 
   const openEditModal = (deck: Deck) => {
     setEditingDeckId(deck.id);
+    setGeneratingForDeckId(null);
     setTitle(deck.title);
     setSubject(deck.subject);
     setDifficulty(deck.difficulty);
+    setIsModalOpen(true);
+    setActiveMenuId(null);
+  };
+
+  const openGenerateCardsModal = (deck: Deck) => {
+    setEditingDeckId(null);
+    setGeneratingForDeckId(deck.id);
+    setTitle(deck.title || '');
+    setSubject(deck.subject);
+    setDifficulty(deck.difficulty);
+    setImportMode('ai');
+    setNumberOfCards(10);
     setIsModalOpen(true);
     setActiveMenuId(null);
   };
@@ -76,12 +93,48 @@ const DeckList: React.FC<DeckListProps> = ({
         };
         onEditDeck(updatedDeck);
       }
+    } else if (generatingForDeckId) {
+      // GENERATE CARDS FOR EXISTING EMPTY DECK
+      let newCards: any[] = [];
+      if (importMode === 'ai') {
+        try {
+          const response = await generateDeckWithAI(subject, title, difficulty, numberOfCards);
+          if (response.success && response.data) {
+            newCards = response.data.map((card, index) => ({
+              ...card,
+              id: `ai-${Date.now()}-${index}`,
+              status: 'new',
+              options: [],
+              correctOptionIndex: 0,
+            }));
+          } else {
+            alert(response.error?.message || 'Eroare la generarea AI. Verifică consola.');
+            setIsGenerating(false);
+            return;
+          }
+        } catch (err) {
+          alert('Eroare la generarea AI. Verifică consola.');
+          setIsGenerating(false);
+          return;
+        }
+      }
+
+      const existingDeck = decks.find(d => d.id === generatingForDeckId);
+      if (existingDeck) {
+        const updatedDeck: Deck = {
+          ...existingDeck,
+          cards: newCards,
+          totalCards: newCards.length,
+          masteredCards: 0,
+        };
+        onEditDeck(updatedDeck);
+      }
     } else {
       // CREATE MODE
       let newCards: any[] = [];
       if (importMode === 'ai') {
         try {
-          const response = await generateDeckWithAI(subject, title, difficulty);
+          const response = await generateDeckWithAI(subject, title, difficulty, numberOfCards);
           if (response.success && response.data) {
             newCards = response.data.map((card, index) => ({
               ...card,
@@ -244,7 +297,7 @@ const DeckList: React.FC<DeckListProps> = ({
 
               {/* Action Buttons */}
               <div className="flex gap-3">
-                {hasProgress && onResetDeck && (
+                {hasProgress && onResetDeck && deck.totalCards > 0 && (
                   <button
                     onClick={e => {
                       e.stopPropagation();
@@ -257,20 +310,32 @@ const DeckList: React.FC<DeckListProps> = ({
                   </button>
                 )}
 
-                <button
-                  onClick={() => onStartSession(deck)}
-                  className="flex-1 bg-white hover:bg-gray-900 hover:text-white border border-gray-900 text-gray-900 font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2"
-                >
-                  {hasProgress ? (
-                    <>
-                      Continuă <ArrowRight size={18} />
-                    </>
-                  ) : (
-                    <>
-                      Studiază <Play size={18} fill="currentColor" />
-                    </>
-                  )}
-                </button>
+                {deck.totalCards === 0 || !deck.cards || deck.cards.length === 0 ? (
+                  <button
+                    onClick={e => {
+                      e.stopPropagation();
+                      openGenerateCardsModal(deck);
+                    }}
+                    className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg"
+                  >
+                    <Sparkles size={18} /> Generează Carduri
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => onStartSession(deck)}
+                    className="flex-1 bg-white hover:bg-gray-900 hover:text-white border border-gray-900 text-gray-900 font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2"
+                  >
+                    {hasProgress ? (
+                      <>
+                        Continuă <ArrowRight size={18} />
+                      </>
+                    ) : (
+                      <>
+                        Studiază <Play size={18} fill="currentColor" />
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
           );
@@ -282,7 +347,7 @@ const DeckList: React.FC<DeckListProps> = ({
         <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
           <div className="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl animate-scale-up">
             <h2 className="text-2xl font-bold mb-6 text-gray-900">
-              {editingDeckId ? 'Editează Deck' : 'Deck Nou'}
+              {editingDeckId ? 'Editează Deck' : generatingForDeckId ? 'Generează Carduri' : 'Deck Nou'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Form fields same as previous */}
@@ -329,10 +394,31 @@ const DeckList: React.FC<DeckListProps> = ({
               </div>
 
               {!editingDeckId && (
-                <div className="pt-2">
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Metodă Creare
-                  </label>
+                <>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      Număr de Carduri {importMode === 'ai' && '(pentru AI)'}
+                    </label>
+                    <input
+                      type="number"
+                      min="5"
+                      max="50"
+                      value={numberOfCards}
+                      onChange={e => setNumberOfCards(parseInt(e.target.value) || 10)}
+                      className="w-full border-2 border-gray-100 bg-gray-50 rounded-xl p-3 font-medium outline-none focus:border-indigo-500 transition-colors disabled:opacity-50"
+                      disabled={importMode !== 'ai'}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      {importMode === 'ai'
+                        ? 'Recomandare: 10-20 carduri pentru sesiuni eficiente'
+                        : 'Numărul de carduri va depinde de fișierul importat'}
+                    </p>
+                  </div>
+
+                  <div className="pt-2">
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      Metodă Creare
+                    </label>
                   <div className="grid grid-cols-3 gap-3">
                     <button
                       type="button"
@@ -357,9 +443,29 @@ const DeckList: React.FC<DeckListProps> = ({
                     </button>
                   </div>
                 </div>
+                </>
               )}
 
-              {importMode === 'file' && !editingDeckId && (
+              {generatingForDeckId && (
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    Număr de Carduri (pentru AI)
+                  </label>
+                  <input
+                    type="number"
+                    min="5"
+                    max="50"
+                    value={numberOfCards}
+                    onChange={e => setNumberOfCards(parseInt(e.target.value) || 10)}
+                    className="w-full border-2 border-gray-100 bg-gray-50 rounded-xl p-3 font-medium outline-none focus:border-indigo-500 transition-colors"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Recomandare: 10-20 carduri pentru sesiuni eficiente
+                  </p>
+                </div>
+              )}
+
+              {importMode === 'file' && !editingDeckId && !generatingForDeckId && (
                 <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center bg-gray-50">
                   <input type="file" accept=".txt,.csv" className="w-full text-sm text-gray-500" />
                   <p className="text-xs text-gray-400 mt-2 font-medium">
@@ -379,12 +485,14 @@ const DeckList: React.FC<DeckListProps> = ({
                 <button
                   type="submit"
                   disabled={isGenerating}
-                  className="flex-1 bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800 transition-colors flex justify-center items-center gap-2 shadow-lg hover:-translate-y-1"
+                  className="flex-1 bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800 transition-colors flex justify-center items-center gap-2 shadow-lg hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isGenerating ? (
                     <Loader2 className="animate-spin" />
                   ) : editingDeckId ? (
                     'Salvează'
+                  ) : generatingForDeckId ? (
+                    'Generează Carduri'
                   ) : (
                     'Creează Deck'
                   )}

@@ -11,33 +11,30 @@ interface GeneratedCard {
 export const generateDeckWithAI = async (
   subject: string,
   topic: string,
-  difficulty: string
+  difficulty: string,
+  numberOfCards: number = 10
 ): Promise<GeneratedCard[]> => {
   const apiKey = config.geminiApiKey;
 
   if (!apiKey) {
     console.warn('GEMINI_API_KEY not configured, returning mock data');
     // Fallback for demo purposes if no key is present
-    return [
-      {
-        front: `Exemplu Card 1 (${topic})`,
-        back: 'Definiție 1',
-        context: `Acesta este un context pentru Exemplu Card 1.`,
+    const mockCards: GeneratedCard[] = [];
+    for (let i = 1; i <= Math.min(numberOfCards, 3); i++) {
+      mockCards.push({
+        front: `Exemplu Card ${i} (${topic})`,
+        back: `Definiție ${i}`,
+        context: `Acesta este un context pentru Exemplu Card ${i}.`,
         type: 'standard',
-      },
-      {
-        front: `Exemplu Card 2 (${topic})`,
-        back: 'Definiție 2',
-        context: `Acesta este un context pentru Exemplu Card 2.`,
-        type: 'standard',
-      },
-    ];
+      });
+    }
+    return mockCards;
   }
 
   const ai = new GoogleGenAI({ apiKey });
 
   const prompt = `
-    Create 5 flashcards for 8th grade students preparing for the National Evaluation.
+    Create ${numberOfCards} flashcards for 8th grade students preparing for the National Evaluation.
     Subject: ${subject}
     Topic: ${topic}
     Difficulty: ${difficulty}

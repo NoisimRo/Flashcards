@@ -74,7 +74,12 @@ export async function exportDeck(
 }
 
 // AI Generation
-export async function generateDeckWithAI(subject: string, topic: string, difficulty: string) {
+export async function generateDeckWithAI(
+  subject: string,
+  topic: string,
+  difficulty: string,
+  numberOfCards: number = 10
+) {
   return api.post<
     Array<{
       front: string;
@@ -82,7 +87,7 @@ export async function generateDeckWithAI(subject: string, topic: string, difficu
       context: string;
       type: string;
     }>
-  >('/decks/generate', { subject, topic, difficulty });
+  >('/decks/generate', { subject, topic, difficulty, numberOfCards });
 }
 
 // Helper to download exported file

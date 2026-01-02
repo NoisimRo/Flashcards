@@ -15,6 +15,7 @@ import { Deck, Card, SessionData } from './types';
 import { Menu, X, Loader2 } from 'lucide-react';
 import * as decksApi from './src/api/decks';
 import * as usersApi from './src/api/users';
+import { getSubjectId, getSubjectDisplayName } from './src/constants/subjects';
 
 // Guest user for freemium mode
 const GUEST_USER = {
@@ -64,7 +65,7 @@ function adaptDeckFromAPI(apiDeck: any): Deck {
   return {
     id: apiDeck.id,
     title: apiDeck.title,
-    subject: apiDeck.subject || apiDeck.subjectId || 'general',
+    subject: apiDeck.subjectName || getSubjectDisplayName(apiDeck.subject) || 'Limba Română',
     topic: apiDeck.topic || '',
     difficulty: apiDeck.difficulty || 'A2',
     cards: (apiDeck.cards || []).map((card: any) => ({
@@ -247,7 +248,7 @@ function AppContent() {
     try {
       const response = await decksApi.createDeck({
         title: newDeck.title,
-        subject: newDeck.subject,
+        subject: getSubjectId(newDeck.subject), // Convert display name to ID
         topic: newDeck.topic,
         difficulty: newDeck.difficulty,
         cards: newDeck.cards.map(c => ({
@@ -279,7 +280,7 @@ function AppContent() {
     try {
       await decksApi.updateDeck(updatedDeck.id, {
         title: updatedDeck.title,
-        subject: updatedDeck.subject,
+        subject: getSubjectId(updatedDeck.subject), // Convert display name to ID
         topic: updatedDeck.topic,
         difficulty: updatedDeck.difficulty,
       });
