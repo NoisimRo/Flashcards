@@ -32,14 +32,12 @@ describe('Gemini AI Deck Generation', () => {
   describe('numberOfCards parameter', () => {
     it('should generate default 10 cards when numberOfCards not specified', async () => {
       const generateDeckWithAI = await getGenerateDeckWithAI();
-      const generateDeckWithAI = await getGenerateDeckWithAI();
       const cards = await generateDeckWithAI('Limba Română', 'Sinonime', 'A2');
       // Mock returns Math.min(numberOfCards, 3) so with default 10, we get 3
       expect(cards).toHaveLength(3);
     });
 
     it('should generate specified number of cards (within mock limit)', async () => {
-      const generateDeckWithAI = await getGenerateDeckWithAI();
       const generateDeckWithAI = await getGenerateDeckWithAI();
       const cards = await generateDeckWithAI('Limba Română', 'Antonime', 'B1', 5);
       // Mock returns Math.min(5, 3) = 3
@@ -48,13 +46,11 @@ describe('Gemini AI Deck Generation', () => {
 
     it('should generate minimum 1 card', async () => {
       const generateDeckWithAI = await getGenerateDeckWithAI();
-      const generateDeckWithAI = await getGenerateDeckWithAI();
       const cards = await generateDeckWithAI('Matematică', 'Ecuații', 'C1', 1);
       expect(cards).toHaveLength(1);
     });
 
     it('should respect numberOfCards parameter', async () => {
-      const generateDeckWithAI = await getGenerateDeckWithAI();
       const generateDeckWithAI = await getGenerateDeckWithAI();
       const cards = await generateDeckWithAI('Istorie', 'Revoluția 1848', 'B2', 2);
       expect(cards).toHaveLength(2);
@@ -137,6 +133,7 @@ describe('Gemini AI Deck Generation', () => {
 
   describe('consistency', () => {
     it('should generate unique cards each time', async () => {
+      const generateDeckWithAI = await getGenerateDeckWithAI();
       const cards1 = await generateDeckWithAI('Limba Română', 'Sinonime', 'A2', 3);
       const cards2 = await generateDeckWithAI('Limba Română', 'Sinonime', 'A2', 3);
 
@@ -148,10 +145,10 @@ describe('Gemini AI Deck Generation', () => {
     });
 
     it('should maintain card count across multiple calls', async () => {
+      const generateDeckWithAI = await getGenerateDeckWithAI();
       const numberOfCards = 2;
 
       for (let i = 0; i < 5; i++) {
-        const generateDeckWithAI = await getGenerateDeckWithAI();
         const cards = await generateDeckWithAI('Limba Română', `Topic ${i}`, 'A2', numberOfCards);
         expect(cards).toHaveLength(numberOfCards);
       }
