@@ -37,7 +37,23 @@ const GUEST_USER = {
 };
 
 // Adapter to convert API User to local User format
-function adaptUserFromAPI(apiUser: any) {
+function adaptUserFromAPI(apiUser: {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  avatar?: string;
+  level?: number;
+  currentXP?: number;
+  nextLevelXP?: number;
+  totalXP?: number;
+  streak?: number;
+  longestStreak?: number;
+  totalTimeSpent?: number;
+  totalCardsLearned?: number;
+  totalDecksCompleted?: number;
+  preferences?: Record<string, unknown>;
+}) {
   return {
     id: apiUser.id,
     name: apiUser.name,
@@ -61,22 +77,42 @@ function adaptUserFromAPI(apiUser: any) {
 }
 
 // Adapter to convert API Deck to local Deck format
-function adaptDeckFromAPI(apiDeck: any): Deck {
+function adaptDeckFromAPI(apiDeck: {
+  id: string;
+  title: string;
+  subject?: string;
+  subjectName?: string;
+  topic?: string;
+  difficulty?: string;
+  totalCards?: number;
+  masteredCards?: number;
+  lastStudied?: string;
+  cards?: Array<{
+    id: string;
+    front: string;
+    back: string;
+    context?: string;
+    type?: string;
+    options?: string[];
+    correctOptionIndex?: number;
+    status?: string;
+  }>;
+}): Deck {
   return {
     id: apiDeck.id,
     title: apiDeck.title,
-    subject: apiDeck.subjectName || getSubjectDisplayName(apiDeck.subject) || 'Limba Română',
+    subject: apiDeck.subjectName || getSubjectDisplayName(apiDeck.subject || '') || 'Limba Română',
     topic: apiDeck.topic || '',
-    difficulty: apiDeck.difficulty || 'A2',
-    cards: (apiDeck.cards || []).map((card: any) => ({
+    difficulty: (apiDeck.difficulty as Deck['difficulty']) || 'A2',
+    cards: (apiDeck.cards || []).map(card => ({
       id: card.id,
       front: card.front,
       back: card.back,
       context: card.context,
-      type: card.type || 'standard',
+      type: (card.type as Card['type']) || 'standard',
       options: card.options,
       correctOptionIndex: card.correctOptionIndex,
-      status: card.status || 'new',
+      status: (card.status as Card['status']) || 'new',
     })),
     totalCards: apiDeck.totalCards || apiDeck.cards?.length || 0,
     masteredCards: apiDeck.masteredCards || 0,
@@ -357,7 +393,7 @@ function AppContent() {
     }
   };
 
-  const handleUpdateUser = (updatedUser: any) => {
+  const handleUpdateUser = () => {
     if (isGuest) {
       promptLogin('Salvează setările', 'Creează un cont pentru a-ți salva preferințele.');
       return;

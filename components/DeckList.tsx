@@ -95,24 +95,36 @@ const DeckList: React.FC<DeckListProps> = ({
       }
     } else if (generatingForDeckId) {
       // GENERATE CARDS FOR EXISTING EMPTY DECK
-      let newCards: any[] = [];
+      const newCards: Array<{
+        id: string;
+        front: string;
+        back: string;
+        context?: string;
+        type: string;
+        status: string;
+        options?: string[];
+        correctOptionIndex?: number;
+      }> = [];
       if (importMode === 'ai') {
         try {
           const response = await generateDeckWithAI(subject, title, difficulty, numberOfCards);
           if (response.success && response.data) {
-            newCards = response.data.map((card, index) => ({
-              ...card,
-              id: `ai-${Date.now()}-${index}`,
-              status: 'new',
-              options: [],
-              correctOptionIndex: 0,
-            }));
+            newCards.push(
+              ...response.data.map((card, index) => ({
+                ...card,
+                id: `ai-${Date.now()}-${index}`,
+                status: 'new',
+                options: [],
+                correctOptionIndex: 0,
+              }))
+            );
           } else {
             alert(response.error?.message || 'Eroare la generarea AI. Verifică consola.');
             setIsGenerating(false);
             return;
           }
-        } catch (err) {
+        } catch (error) {
+          console.error('Error generating cards:', error);
           alert('Eroare la generarea AI. Verifică consola.');
           setIsGenerating(false);
           return;
@@ -131,24 +143,36 @@ const DeckList: React.FC<DeckListProps> = ({
       }
     } else {
       // CREATE MODE
-      let newCards: any[] = [];
+      const newCards: Array<{
+        id: string;
+        front: string;
+        back: string;
+        context?: string;
+        type: string;
+        status: string;
+        options?: string[];
+        correctOptionIndex?: number;
+      }> = [];
       if (importMode === 'ai') {
         try {
           const response = await generateDeckWithAI(subject, title, difficulty, numberOfCards);
           if (response.success && response.data) {
-            newCards = response.data.map((card, index) => ({
-              ...card,
-              id: `ai-${Date.now()}-${index}`,
-              status: 'new',
-              options: [],
-              correctOptionIndex: 0,
-            }));
+            newCards.push(
+              ...response.data.map((card, index) => ({
+                ...card,
+                id: `ai-${Date.now()}-${index}`,
+                status: 'new',
+                options: [],
+                correctOptionIndex: 0,
+              }))
+            );
           } else {
             alert(response.error?.message || 'Eroare la generarea AI. Verifică consola.');
             setIsGenerating(false);
             return;
           }
-        } catch (err) {
+        } catch (error) {
+          console.error('Error generating cards:', error);
           alert('Eroare la generarea AI. Verifică consola.');
           setIsGenerating(false);
           return;
