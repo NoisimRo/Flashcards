@@ -425,7 +425,6 @@ const StudySession: React.FC<StudySessionProps> = ({
 
   // --- Swipe Logic ---
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (!isFlipped) return; // Swipe only works after flip
     const touch = e.targetTouches[0];
     setTouchStart({ x: touch.clientX, y: touch.clientY });
     setSwipeActive(true);
@@ -452,15 +451,15 @@ const StudySession: React.FC<StudySessionProps> = ({
       return;
     }
 
-    // Swipe LEFT → Incorrect
+    // Swipe LEFT → Previous Card (Back)
     if (deltaX < -SWIPE_THRESHOLD) {
       triggerHaptic();
-      handleAnswer('incorrect');
+      goToPrevious();
     }
-    // Swipe RIGHT → Correct
+    // Swipe RIGHT → Next Card
     else if (deltaX > SWIPE_THRESHOLD) {
       triggerHaptic();
-      handleAnswer('correct');
+      goToNext();
     }
 
     resetSwipe();
@@ -821,40 +820,43 @@ const StudySession: React.FC<StudySessionProps> = ({
 
         {currentCard.type === 'standard' ? (
           <div className="w-full max-w-lg aspect-[4/3] relative group">
-            {/* Swipe Indicator LEFT (Red) - Nu știu */}
-            {isFlipped && (
-              <div
-                className="absolute inset-0 bg-gradient-to-r from-red-500/90 to-transparent rounded-[2rem] flex items-center justify-start px-8 pointer-events-none z-10"
-                style={{ opacity: getIndicatorOpacity('left') }}
-              >
-                <XCircle size={48} className="text-white" />
-                <span className="text-white font-bold text-2xl ml-4">Nu știu</span>
-              </div>
-            )}
+            {/* Swipe Indicator LEFT - Înapoi */}
+            <div
+              className="absolute inset-0 bg-gradient-to-r from-blue-500/90 to-transparent rounded-[2rem] flex items-center justify-start px-8 pointer-events-none z-10"
+              style={{ opacity: getIndicatorOpacity('left') }}
+            >
+              <ChevronLeft size={48} className="text-white" />
+              <span className="text-white font-bold text-2xl ml-4">Înapoi</span>
+            </div>
 
-            {/* Swipe Indicator RIGHT (Green) - Știu */}
-            {isFlipped && (
-              <div
-                className="absolute inset-0 bg-gradient-to-l from-green-500/90 to-transparent rounded-[2rem] flex items-center justify-end px-8 pointer-events-none z-10"
-                style={{ opacity: getIndicatorOpacity('right') }}
-              >
-                <span className="text-white font-bold text-2xl mr-4">Știu</span>
-                <CheckCircle size={48} className="text-white" />
-              </div>
-            )}
+            {/* Swipe Indicator RIGHT - Înainte */}
+            <div
+              className="absolute inset-0 bg-gradient-to-l from-blue-500/90 to-transparent rounded-[2rem] flex items-center justify-end px-8 pointer-events-none z-10"
+              style={{ opacity: getIndicatorOpacity('right') }}
+            >
+              <span className="text-white font-bold text-2xl mr-4">Înainte</span>
+              <ChevronLeft size={48} className="text-white rotate-180" />
+            </div>
 
             <div
               className={`
                   w-full h-full transition-all duration-500 transform-style-3d relative
                   ${isFlipped ? 'rotate-y-180' : ''}
                 `}
-              style={isFlipped ? getSwipeStyles() : {}}
+              style={getSwipeStyles()}
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
             >
               {/* FRONT */}
-              <div className="absolute inset-0 backface-hidden bg-white border-2 border-[#E5E7EB] rounded-[2rem] shadow-xl flex flex-col items-center justify-center p-6 md:p-10 text-center z-20 overflow-hidden">
+              <div
+                className="absolute inset-0 backface-hidden bg-white border-2 border-[#E5E7EB] rounded-[2rem] shadow-xl flex flex-col items-center justify-center p-6 md:p-10 text-center z-20 overflow-hidden cursor-pointer"
+                onClick={e => {
+                  // Don't flip if clicking on buttons or input
+                  if ((e.target as HTMLElement).closest('button, input')) return;
+                  handleFlip();
+                }}
+              >
                 {/* Card Edit Controls (Top Right) */}
                 <div
                   className="absolute top-4 right-4 flex gap-2 z-50 group-hover:opacity-100 transition-opacity"
@@ -965,16 +967,32 @@ const StudySession: React.FC<StudySessionProps> = ({
                   </div>
                 )}
 
-                <div className="absolute bottom-4 flex items-center gap-2 text-indigo-500 text-xs font-bold opacity-60 pointer-events-none">
-                  <RotateCw size={14} /> Flip (Space)
-                </div>
+                {/* Flip button at bottom of card */}
+                {!isFlipped && (
+                  <div className="absolute bottom-4 left-0 right-0 px-6 pointer-events-none">
+                    <button
+                      onClick={e => {
+                        e.stopPropagation();
+                        handleFlip();
+                      }}
+                      className="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-md hover:bg-indigo-700 active:bg-indigo-800 transition-all active:scale-98 pointer-events-auto"
+                    >
+                      Arată Răspunsul
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* BACK */}
               <div
-                className={`absolute inset-0 backface-hidden rotate-y-180 border-2 rounded-[2rem] shadow-xl flex flex-col items-center justify-center p-6 md:p-10 text-center z-20 group
+                className={`absolute inset-0 backface-hidden rotate-y-180 border-2 rounded-[2rem] shadow-xl flex flex-col items-center justify-center p-6 md:p-10 text-center z-20 group cursor-pointer
                  ${inputFeedback === 'error' ? 'bg-red-50 border-red-200' : 'bg-[#F0FDF4] border-green-200'}
               `}
+                onClick={e => {
+                  // Don't flip if clicking on buttons
+                  if ((e.target as HTMLElement).closest('button')) return;
+                  handleFlip();
+                }}
               >
                 {/* Back Controls */}
                 <div
@@ -1003,15 +1021,55 @@ const StudySession: React.FC<StudySessionProps> = ({
                 <p className="text-xs text-gray-400 uppercase tracking-widest font-bold mb-4">
                   Răspuns Corect
                 </p>
-                <h3 className="text-xl md:text-3xl font-medium text-gray-800 leading-relaxed select-none">
+                <h3 className="text-xl md:text-3xl font-medium text-gray-800 leading-relaxed select-none mb-6">
                   {currentCard.back}
                 </h3>
+
+                {/* Answer buttons at bottom of back side */}
+                <div className="absolute bottom-4 left-0 right-0 px-6 flex gap-3 pointer-events-none">
+                  <button
+                    onClick={e => {
+                      e.stopPropagation();
+                      handleAnswer('incorrect');
+                    }}
+                    className="flex-1 bg-red-100 text-red-700 border border-red-200 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-red-200 transition-all active:scale-95 shadow-sm pointer-events-auto"
+                  >
+                    <XCircle size={20} /> <span className="hidden sm:inline">Nu știu</span>
+                  </button>
+
+                  {currentAnswer === 'incorrect' ? (
+                    <button
+                      onClick={e => {
+                        e.stopPropagation();
+                        goToNext();
+                      }}
+                      className="flex-1 bg-gray-900 text-white border border-gray-900 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-800 transition-all active:scale-95 shadow-sm pointer-events-auto"
+                    >
+                      <span>Continuă</span> <ArrowRight size={20} />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={e => {
+                        e.stopPropagation();
+                        handleAnswer('correct');
+                      }}
+                      className="flex-1 bg-green-100 text-green-700 border border-green-200 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-green-200 transition-all active:scale-95 shadow-sm animate-pulse-green pointer-events-auto"
+                    >
+                      <CheckCircle size={20} /> <span className="hidden sm:inline">Știu</span>
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
         ) : (
           /* Quiz Card */
-          <div className="w-full max-w-lg bg-white rounded-[2rem] shadow-xl p-8 border border-gray-100 animate-slide-up relative group">
+          <div
+            className="w-full max-w-lg bg-white rounded-[2rem] shadow-xl p-8 border border-gray-100 animate-slide-up relative group"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
             {/* Quiz Controls */}
             <div className="absolute top-4 right-4 flex gap-2 z-50 group-hover:opacity-100 transition-opacity">
               <button
@@ -1055,57 +1113,25 @@ const StudySession: React.FC<StudySessionProps> = ({
         )}
       </div>
 
-      {/* ACTION BAR */}
+      {/* NAVIGATION BAR - Only Previous and Skip buttons */}
       <div className="mt-8 flex items-center justify-between gap-4 max-w-lg mx-auto w-full z-10 relative">
         <button
           onClick={goToPrevious}
           disabled={currentIndex === 0}
           className="w-12 h-12 flex items-center justify-center rounded-full bg-white border border-gray-200 text-gray-600 shadow-sm hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95"
+          title="Card anterior"
         >
           <Undo2 size={20} />
         </button>
 
-        <div className="flex-1 flex justify-center gap-4 relative">
-          {currentCard.type === 'standard' &&
-            (!isFlipped ? (
-              <button
-                onClick={handleFlip}
-                className="w-full max-w-[200px] bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-md hover:bg-indigo-700 active:bg-indigo-800 transition-all active:scale-98"
-              >
-                Arată Răspunsul
-              </button>
-            ) : (
-              <>
-                <button
-                  onClick={() => handleAnswer('incorrect')}
-                  className="flex-1 bg-red-100 text-red-700 border border-red-200 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-red-200 transition-all active:scale-95 shadow-sm"
-                >
-                  <XCircle size={20} /> <span className="hidden sm:inline">Nu știu</span>
-                </button>
-
-                {/* Adaptive Button for "Known" vs "Continue" */}
-                {currentAnswer === 'incorrect' ? (
-                  <button
-                    onClick={goToNext}
-                    className="flex-1 bg-gray-900 text-white border border-gray-900 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-800 transition-all active:scale-95 shadow-sm"
-                  >
-                    <span>Continuă</span> <ArrowRight size={20} />
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => handleAnswer('correct')}
-                    className="flex-1 bg-green-100 text-green-700 border border-green-200 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-green-200 transition-all active:scale-95 shadow-sm animate-pulse-green"
-                  >
-                    <CheckCircle size={20} /> <span className="hidden sm:inline">Știu</span>
-                  </button>
-                )}
-              </>
-            ))}
+        <div className="flex-1 text-center text-sm text-gray-500 font-medium">
+          {currentIndex + 1} / {activeCards.length}
         </div>
 
         <button
           onClick={handleSkip}
           className="w-12 h-12 flex items-center justify-center rounded-full bg-white border border-gray-200 text-gray-600 shadow-sm hover:bg-gray-50 transition-all active:scale-95"
+          title="Sari peste card"
         >
           {currentIndex === activeCards.length - 1 ? (
             <CheckCircle className="text-indigo-600" size={20} />
