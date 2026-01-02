@@ -4,6 +4,40 @@ Guidelines for maintaining consistency across development sessions, whether huma
 
 ---
 
+## ⚠️ CRITICAL: Formatting Before Every Commit
+
+**THIS IS MANDATORY** - Always run before committing:
+
+```bash
+npm run format  # Format all files with Prettier
+```
+
+**Why this matters:**
+
+- CI pipeline will FAIL if files are not properly formatted
+- Husky pre-commit hooks should auto-format, but may not catch all cases
+- **For AI sessions**: ALWAYS run `npm run format` before EVERY commit
+
+**Quick Validation:**
+
+```bash
+npm run format              # Fix formatting
+npm run validate            # Run all checks (typecheck + lint + test)
+git add .
+git commit -m "your message"
+```
+
+**If CI fails with Prettier errors:**
+
+```bash
+npm run format              # Fix formatting issues
+git add .
+git commit -m "fix: format files with Prettier"
+git push
+```
+
+---
+
 ## Development Workflow
 
 ### 1. Before Starting Work
@@ -219,12 +253,15 @@ For AI-assisted development sessions, ensure continuity:
 
 ### At Session End
 
-1. **Commit all changes** with clear messages
-2. **Push to remote** branch
-3. **Update TODO.md** with:
+1. **Format all files**: `npm run format` ← **MANDATORY**
+2. **Commit all changes** with clear messages
+3. **Push to remote** branch
+4. **Update TODO.md** with:
    - What was completed
    - What's in progress
    - Blockers or decisions needed
+
+**Critical**: Always run `npm run format` before committing to avoid CI failures!
 
 ### At Session Start
 
