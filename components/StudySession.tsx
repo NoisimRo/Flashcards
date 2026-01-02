@@ -451,8 +451,15 @@ const StudySession: React.FC<StudySessionProps> = ({
       return;
     }
 
+    // Check total movement
+    const totalMovement = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+    // TAP (minimal movement) → Flip card
+    if (totalMovement < 20) {
+      handleFlip();
+    }
     // Swipe LEFT → Previous Card (Back)
-    if (deltaX < -SWIPE_THRESHOLD) {
+    else if (deltaX < -SWIPE_THRESHOLD) {
       triggerHaptic();
       goToPrevious();
     }
@@ -819,7 +826,7 @@ const StudySession: React.FC<StudySessionProps> = ({
         )}
 
         {currentCard.type === 'standard' ? (
-          <div className="w-full max-w-lg aspect-[4/3] relative group">
+          <div className="w-full max-w-lg aspect-[4/3.9] relative group">
             {/* Swipe Indicator LEFT - Înapoi */}
             <div
               className="absolute inset-0 bg-gradient-to-r from-blue-500/90 to-transparent rounded-[2rem] flex items-center justify-start px-8 pointer-events-none z-10"
@@ -969,13 +976,13 @@ const StudySession: React.FC<StudySessionProps> = ({
 
                 {/* Flip button at bottom of card */}
                 {!isFlipped && (
-                  <div className="absolute bottom-4 left-0 right-0 px-6 pointer-events-none">
+                  <div className="absolute bottom-4 left-0 right-0 px-6">
                     <button
                       onClick={e => {
                         e.stopPropagation();
                         handleFlip();
                       }}
-                      className="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-md hover:bg-indigo-700 active:bg-indigo-800 transition-all active:scale-98 pointer-events-auto"
+                      className="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-md hover:bg-indigo-700 active:bg-indigo-800 transition-all active:scale-98 z-50"
                     >
                       Arată Răspunsul
                     </button>
@@ -1026,15 +1033,15 @@ const StudySession: React.FC<StudySessionProps> = ({
                 </h3>
 
                 {/* Answer buttons at bottom of back side */}
-                <div className="absolute bottom-4 left-0 right-0 px-6 flex gap-3 pointer-events-none">
+                <div className="absolute bottom-4 left-0 right-0 px-6 flex gap-3">
                   <button
                     onClick={e => {
                       e.stopPropagation();
                       handleAnswer('incorrect');
                     }}
-                    className="flex-1 bg-red-100 text-red-700 border border-red-200 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-red-200 transition-all active:scale-95 shadow-sm pointer-events-auto"
+                    className="flex-1 bg-red-100 text-red-700 border border-red-200 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-red-200 transition-all active:scale-95 shadow-sm z-50"
                   >
-                    <XCircle size={20} /> <span className="hidden sm:inline">Nu știu</span>
+                    <XCircle size={20} /> <span>Nu știu</span>
                   </button>
 
                   {currentAnswer === 'incorrect' ? (
@@ -1043,7 +1050,7 @@ const StudySession: React.FC<StudySessionProps> = ({
                         e.stopPropagation();
                         goToNext();
                       }}
-                      className="flex-1 bg-gray-900 text-white border border-gray-900 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-800 transition-all active:scale-95 shadow-sm pointer-events-auto"
+                      className="flex-1 bg-gray-900 text-white border border-gray-900 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-800 transition-all active:scale-95 shadow-sm z-50"
                     >
                       <span>Continuă</span> <ArrowRight size={20} />
                     </button>
@@ -1053,9 +1060,9 @@ const StudySession: React.FC<StudySessionProps> = ({
                         e.stopPropagation();
                         handleAnswer('correct');
                       }}
-                      className="flex-1 bg-green-100 text-green-700 border border-green-200 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-green-200 transition-all active:scale-95 shadow-sm animate-pulse-green pointer-events-auto"
+                      className="flex-1 bg-green-100 text-green-700 border border-green-200 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-green-200 transition-all active:scale-95 shadow-sm animate-pulse-green z-50"
                     >
-                      <CheckCircle size={20} /> <span className="hidden sm:inline">Știu</span>
+                      <CheckCircle size={20} /> <span>Știu</span>
                     </button>
                   )}
                 </div>
@@ -1065,7 +1072,7 @@ const StudySession: React.FC<StudySessionProps> = ({
         ) : (
           /* Quiz Card */
           <div
-            className="w-full max-w-lg bg-white rounded-[2rem] shadow-xl p-8 border border-gray-100 animate-slide-up relative group"
+            className="w-full max-w-lg min-h-[500px] bg-white rounded-[2rem] shadow-xl p-8 border border-gray-100 animate-slide-up relative group"
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
