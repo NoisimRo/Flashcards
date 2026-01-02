@@ -165,6 +165,21 @@ _None - all critical blockers resolved!_
 
 ## Completed (Recent)
 
+- [x] **Quiz Mode Flashcards** - Full quiz functionality (Jan 2, 2025)
+  - Implemented quiz card type (60% standard, 40% quiz mix)
+  - Multiple choice questions with 4 options
+  - Visual feedback (green/red) for correct/incorrect answers
+  - All 64 tests passing
+- [x] **Critical Deck Persistence Fix** - Cards now save to database (Jan 2, 2025)
+  - Fixed handleEditDeck to detect AI-generated cards by ID prefix
+  - All flashcards properly persisted to backend
+  - Deck refresh after save to get correct IDs
+- [x] **Mobile UX Overhaul** - Complete gesture and UI redesign (Jan 2, 2025)
+  - Swipe left = previous card, swipe right = next card
+  - Tap anywhere on card = flip
+  - All buttons moved inside card for mobile visibility
+  - Card height increased by 30% for better readability
+  - Removed duplicate UI fields
 - [x] **AI Deck Generation** - Fixed backend API integration (Dec 21, 2024)
   - Moved AI generation from frontend to backend
   - Created POST /api/decks/generate endpoint
@@ -190,6 +205,48 @@ _None - all critical blockers resolved!_
 ---
 
 ## Session Notes
+
+### January 2, 2025 - Critical Fixes & Mobile UX Enhancement
+
+**Session Focus**: Resolve deck persistence issues and complete mobile touch experience
+
+**Problems Identified**:
+1. AI-generated flashcards not saving to database
+2. Deck dimensions too small on mobile
+3. Tap-to-flip not working
+4. Buttons not fully visible on mobile screens
+
+**Root Cause Analysis**:
+
+**Deck Persistence Issue:**
+- Original logic compared `oldDeck.cards.length` vs `updatedDeck.cards.length`
+- Problem: State could be stale or updated asynchronously
+- Cards with temporary IDs (`ai-${timestamp}-${index}`) weren't being detected
+- Solution: Check for ID prefixes (`ai-*`, `temp-*`) instead of length comparison
+
+**Completed**:
+
+- ✅ Fixed deck persistence by detecting temporary ID prefixes
+- ✅ Increased card height by 30% (aspect-[4/3] → aspect-[4/3.9])
+- ✅ Implemented tap-to-flip (movement < 20px triggers flip)
+- ✅ Moved all buttons inside card container with z-50
+- ✅ Removed pointer-events complexity
+- ✅ Made all button text visible on mobile (removed `hidden sm:inline`)
+- ✅ All 64 tests passing
+- ✅ TypeScript compilation successful
+
+**Files Modified**:
+- `App.tsx` - Fixed handleEditDeck with ID prefix detection
+- `components/StudySession.tsx` - Card sizing, tap-to-flip, button visibility
+
+**Commit**: `e5c457e` - "fix: resolve remaining deck and UX issues"
+
+**Next Session Recommendations**:
+- Test deck creation and persistence in production environment
+- Verify mobile touch gestures on actual devices
+- Consider adding analytics for gesture usage
+
+---
 
 ### December 21, 2024 - AI Deck Generation Backend Migration
 
