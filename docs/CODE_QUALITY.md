@@ -5,6 +5,7 @@
 ### 1. **NU folosi tipul `any`**
 
 ❌ **Greșit:**
+
 ```typescript
 function processData(data: any) {
   return data.map((item: any) => item.name);
@@ -12,6 +13,7 @@ function processData(data: any) {
 ```
 
 ✅ **Corect:**
+
 ```typescript
 interface DataItem {
   name: string;
@@ -26,6 +28,7 @@ function processData(data: DataItem[]) {
 ### 2. **Numele variabilelor nefolosite**
 
 ❌ **Greșit:**
+
 ```typescript
 function handleError(error: Error, context: string) {
   console.error(error);
@@ -34,6 +37,7 @@ function handleError(error: Error, context: string) {
 ```
 
 ✅ **Corect - Opțiunea 1 (folosește variabila):**
+
 ```typescript
 function handleError(error: Error, context: string) {
   console.error(`Error in ${context}:`, error);
@@ -41,6 +45,7 @@ function handleError(error: Error, context: string) {
 ```
 
 ✅ **Corect - Opțiunea 2 (prefix cu underscore):**
+
 ```typescript
 function handleError(error: Error, _context: string) {
   console.error(error);
@@ -50,6 +55,7 @@ function handleError(error: Error, _context: string) {
 ### 3. **console.log în producție**
 
 ❌ **Greșit:**
+
 ```typescript
 try {
   await saveData();
@@ -60,6 +66,7 @@ try {
 ```
 
 ✅ **Corect:**
+
 ```typescript
 try {
   await saveData();
@@ -72,6 +79,7 @@ try {
 ### 4. **React Hook dependencies**
 
 ❌ **Greșit:**
+
 ```typescript
 useEffect(() => {
   fetchData(userId);
@@ -79,6 +87,7 @@ useEffect(() => {
 ```
 
 ✅ **Corect:**
+
 ```typescript
 useEffect(() => {
   fetchData(userId);
@@ -88,6 +97,7 @@ useEffect(() => {
 ### 5. **Error handling - nume variabile**
 
 ❌ **Greșit:**
+
 ```typescript
 try {
   await operation();
@@ -97,6 +107,7 @@ try {
 ```
 
 ✅ **Corect:**
+
 ```typescript
 try {
   await operation();
@@ -206,6 +217,7 @@ describe('calculateDiscount', () => {
 ### Configurare locală recomandată:
 
 **VS Code settings.json:**
+
 ```json
 {
   "editor.formatOnSave": true,
@@ -213,12 +225,7 @@ describe('calculateDiscount', () => {
     "source.fixAll.eslint": true
   },
   "typescript.tsdk": "node_modules/typescript/lib",
-  "eslint.validate": [
-    "javascript",
-    "javascriptreact",
-    "typescript",
-    "typescriptreact"
-  ]
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"]
 }
 ```
 

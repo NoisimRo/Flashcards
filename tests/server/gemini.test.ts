@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 
 // Mock the Gemini API
 vi.mock('@google/genai', () => ({
@@ -22,40 +22,40 @@ vi.mock('../../server/config/index.js', () => ({
 }));
 
 describe('Gemini AI Deck Generation', () => {
-  // Import after mocks are set up
-  let generateDeckWithAI: (
-    subject: string,
-    topic: string,
-    difficulty: string,
-    numberOfCards?: number
-  ) => Promise<Array<{ front: string; back: string; context: string; type: string }>>;
-
-  beforeEach(async () => {
-    // Clear module cache and re-import
+  // Import generateDeckWithAI dynamically to ensure mocks are applied
+  async function getGenerateDeckWithAI() {
     vi.resetModules();
     const module = await import('../../server/services/geminiService.js');
-    generateDeckWithAI = module.generateDeckWithAI;
-  });
+    return module.generateDeckWithAI;
+  }
 
   describe('numberOfCards parameter', () => {
     it('should generate default 10 cards when numberOfCards not specified', async () => {
+      const generateDeckWithAI = await getGenerateDeckWithAI();
+      const generateDeckWithAI = await getGenerateDeckWithAI();
       const cards = await generateDeckWithAI('Limba Română', 'Sinonime', 'A2');
       // Mock returns Math.min(numberOfCards, 3) so with default 10, we get 3
       expect(cards).toHaveLength(3);
     });
 
     it('should generate specified number of cards (within mock limit)', async () => {
+      const generateDeckWithAI = await getGenerateDeckWithAI();
+      const generateDeckWithAI = await getGenerateDeckWithAI();
       const cards = await generateDeckWithAI('Limba Română', 'Antonime', 'B1', 5);
       // Mock returns Math.min(5, 3) = 3
       expect(cards).toHaveLength(3);
     });
 
     it('should generate minimum 1 card', async () => {
+      const generateDeckWithAI = await getGenerateDeckWithAI();
+      const generateDeckWithAI = await getGenerateDeckWithAI();
       const cards = await generateDeckWithAI('Matematică', 'Ecuații', 'C1', 1);
       expect(cards).toHaveLength(1);
     });
 
     it('should respect numberOfCards parameter', async () => {
+      const generateDeckWithAI = await getGenerateDeckWithAI();
+      const generateDeckWithAI = await getGenerateDeckWithAI();
       const cards = await generateDeckWithAI('Istorie', 'Revoluția 1848', 'B2', 2);
       expect(cards).toHaveLength(2);
     });
@@ -63,6 +63,7 @@ describe('Gemini AI Deck Generation', () => {
 
   describe('card structure', () => {
     it('should return cards with required fields', async () => {
+      const generateDeckWithAI = await getGenerateDeckWithAI();
       const cards = await generateDeckWithAI('Limba Română', 'Vocabular', 'A2', 3);
 
       expect(cards.length).toBeGreaterThan(0);
@@ -81,6 +82,7 @@ describe('Gemini AI Deck Generation', () => {
 
     it('should include topic in card front text', async () => {
       const topic = 'Figuri de stil';
+      const generateDeckWithAI = await getGenerateDeckWithAI();
       const cards = await generateDeckWithAI('Limba Română', topic, 'C1', 2);
 
       cards.forEach(card => {
@@ -94,6 +96,7 @@ describe('Gemini AI Deck Generation', () => {
       const subjects = ['Limba Română', 'Matematică', 'Istorie', 'Geografie'];
 
       for (const subject of subjects) {
+        const generateDeckWithAI = await getGenerateDeckWithAI();
         const cards = await generateDeckWithAI(subject, 'Test Topic', 'A2', 2);
         expect(cards).toHaveLength(2);
         expect(cards[0]).toHaveProperty('front');
@@ -104,6 +107,7 @@ describe('Gemini AI Deck Generation', () => {
       const difficulties = ['A1', 'A2', 'B1', 'B2', 'C1'];
 
       for (const difficulty of difficulties) {
+        const generateDeckWithAI = await getGenerateDeckWithAI();
         const cards = await generateDeckWithAI('Limba Română', 'Test', difficulty, 1);
         expect(cards).toHaveLength(1);
       }
@@ -112,17 +116,20 @@ describe('Gemini AI Deck Generation', () => {
 
   describe('edge cases', () => {
     it('should handle empty topic gracefully', async () => {
+      const generateDeckWithAI = await getGenerateDeckWithAI();
       const cards = await generateDeckWithAI('Limba Română', '', 'A2', 2);
       expect(cards).toHaveLength(2);
     });
 
     it('should handle very long topic names', async () => {
       const longTopic = 'A'.repeat(200);
+      const generateDeckWithAI = await getGenerateDeckWithAI();
       const cards = await generateDeckWithAI('Limba Română', longTopic, 'A2', 1);
       expect(cards).toHaveLength(1);
     });
 
     it('should handle special characters in topic', async () => {
+      const generateDeckWithAI = await getGenerateDeckWithAI();
       const cards = await generateDeckWithAI('Limba Română', 'Țări & Orașe', 'A2', 1);
       expect(cards).toHaveLength(1);
     });
@@ -144,6 +151,7 @@ describe('Gemini AI Deck Generation', () => {
       const numberOfCards = 2;
 
       for (let i = 0; i < 5; i++) {
+        const generateDeckWithAI = await getGenerateDeckWithAI();
         const cards = await generateDeckWithAI('Limba Română', `Topic ${i}`, 'A2', numberOfCards);
         expect(cards).toHaveLength(numberOfCards);
       }
