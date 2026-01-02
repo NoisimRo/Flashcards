@@ -11,10 +11,11 @@ import Achievements from './components/Achievements';
 import Leaderboard from './components/Leaderboard';
 import Settings from './components/Settings';
 import { MOCK_DECKS, MOCK_ACHIEVEMENTS, LEADERBOARD_DATA } from './constants';
-import { Deck, Card, SessionData } from './types';
+import { Deck, Card, SessionData, User } from './types';
 import { Menu, X, Loader2 } from 'lucide-react';
 import * as decksApi from './src/api/decks';
 import * as usersApi from './src/api/users';
+import { getSubjectId, getSubjectDisplayName } from './src/constants/subjects';
 
 // Guest user for freemium mode
 const GUEST_USER = {
@@ -36,12 +37,46 @@ const GUEST_USER = {
 };
 
 // Adapter to convert API User to local User format
-function adaptUserFromAPI(apiUser: any) {
+function adaptUserFromAPI(apiUser: {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  avatar?: string;
+  level?: number;
+  currentXP?: number;
+  nextLevelXP?: number;
+  totalXP?: number;
+  streak?: number;
+  longestStreak?: number;
+  totalTimeSpent?: number;
+  totalCardsLearned?: number;
+  totalDecksCompleted?: number;
+  preferences?: {
+    dailyGoal?: number;
+    soundEnabled?: boolean;
+    animationsEnabled?: boolean;
+    theme?: 'light' | 'dark' | 'system';
+    language?: string;
+  };
+}): User {
+  // Ensure role is a valid type
+  const validRole =
+    apiUser.role === 'admin' || apiUser.role === 'teacher' || apiUser.role === 'student'
+      ? apiUser.role
+      : ('student' as const);
+
+  // Ensure theme is a valid type
+  const validTheme =
+    apiUser.preferences?.theme === 'light' || apiUser.preferences?.theme === 'dark'
+      ? apiUser.preferences.theme
+      : undefined;
+
   return {
     id: apiUser.id,
     name: apiUser.name,
     email: apiUser.email,
-    role: apiUser.role,
+    role: validRole,
     avatar: apiUser.avatar,
     // Gamification
     level: apiUser.level ?? 1,
@@ -55,27 +90,52 @@ function adaptUserFromAPI(apiUser: any) {
     totalCardsLearned: apiUser.totalCardsLearned ?? 0,
     totalDecksCompleted: apiUser.totalDecksCompleted ?? 0,
     // Preferences
-    preferences: apiUser.preferences,
+    preferences: apiUser.preferences
+      ? {
+          ...apiUser.preferences,
+          theme: validTheme,
+        }
+      : undefined,
   };
 }
 
 // Adapter to convert API Deck to local Deck format
-function adaptDeckFromAPI(apiDeck: any): Deck {
+function adaptDeckFromAPI(apiDeck: {
+  id: string;
+  title: string;
+  subject?: string;
+  subjectName?: string;
+  topic?: string;
+  difficulty?: string;
+  totalCards?: number;
+  masteredCards?: number;
+  lastStudied?: string;
+  cards?: Array<{
+    id: string;
+    front: string;
+    back: string;
+    context?: string;
+    type?: string;
+    options?: string[];
+    correctOptionIndex?: number;
+    status?: string;
+  }>;
+}): Deck {
   return {
     id: apiDeck.id,
     title: apiDeck.title,
-    subject: apiDeck.subject || apiDeck.subjectId || 'general',
+    subject: apiDeck.subjectName || getSubjectDisplayName(apiDeck.subject || '') || 'Limba Română',
     topic: apiDeck.topic || '',
-    difficulty: apiDeck.difficulty || 'A2',
-    cards: (apiDeck.cards || []).map((card: any) => ({
+    difficulty: (apiDeck.difficulty as Deck['difficulty']) || 'A2',
+    cards: (apiDeck.cards || []).map(card => ({
       id: card.id,
       front: card.front,
       back: card.back,
       context: card.context,
-      type: card.type || 'standard',
+      type: (card.type as Card['type']) || 'standard',
       options: card.options,
       correctOptionIndex: card.correctOptionIndex,
-      status: card.status || 'new',
+      status: (card.status as Card['status']) || 'new',
     })),
     totalCards: apiDeck.totalCards || apiDeck.cards?.length || 0,
     masteredCards: apiDeck.masteredCards || 0,
@@ -247,7 +307,7 @@ function AppContent() {
     try {
       const response = await decksApi.createDeck({
         title: newDeck.title,
-        subject: newDeck.subject,
+        subject: getSubjectId(newDeck.subject), // Convert display name to ID
         topic: newDeck.topic,
         difficulty: newDeck.difficulty,
         cards: newDeck.cards.map(c => ({
@@ -279,7 +339,7 @@ function AppContent() {
     try {
       await decksApi.updateDeck(updatedDeck.id, {
         title: updatedDeck.title,
-        subject: updatedDeck.subject,
+        subject: getSubjectId(updatedDeck.subject), // Convert display name to ID
         topic: updatedDeck.topic,
         difficulty: updatedDeck.difficulty,
       });
@@ -356,7 +416,7 @@ function AppContent() {
     }
   };
 
-  const handleUpdateUser = (updatedUser: any) => {
+  const handleUpdateUser = () => {
     if (isGuest) {
       promptLogin('Salvează setările', 'Creează un cont pentru a-ți salva preferințele.');
       return;

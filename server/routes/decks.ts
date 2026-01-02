@@ -293,7 +293,7 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
 // ============================================
 router.post('/generate', authenticateToken, async (req: Request, res: Response) => {
   try {
-    const { subject, topic, difficulty = 'A2' } = req.body;
+    const { subject, topic, difficulty = 'A2', numberOfCards = 10 } = req.body;
 
     if (!topic) {
       return res.status(400).json({
@@ -306,7 +306,12 @@ router.post('/generate', authenticateToken, async (req: Request, res: Response) 
     }
 
     // Generate cards with AI
-    const generatedCards = await generateDeckWithAI(subject || 'Limba Română', topic, difficulty);
+    const generatedCards = await generateDeckWithAI(
+      subject || 'Limba Română',
+      topic,
+      difficulty,
+      numberOfCards
+    );
 
     res.json({
       success: true,

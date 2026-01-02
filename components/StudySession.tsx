@@ -107,6 +107,17 @@ const StudySession: React.FC<StudySessionProps> = ({
   const [editingCard, setEditingCard] = useState<Card | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Quiz State
+  const [selectedQuizOption, setSelectedQuizOption] = useState<number | null>(null);
+  const [quizAnswered, setQuizAnswered] = useState(false);
+
+  // Touch/Swipe State
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
+  const [touchCurrent, setTouchCurrent] = useState<{ x: number; y: number } | null>(null);
+  const [swipeActive, setSwipeActive] = useState(false);
+
+  const SWIPE_THRESHOLD = 100; // Minimum distance for valid swipe
+
   // --- PERSISTENCE EFFECT ---
   useEffect(() => {
     if (!isFinished) {
@@ -375,8 +386,19 @@ const StudySession: React.FC<StudySessionProps> = ({
   }, [activeCards, currentIndex, answers, goToNext]);
 
   const handleQuizAnswer = (idx: number) => {
+    if (quizAnswered) return; // Prevent multiple answers
+
+    setSelectedQuizOption(idx);
+    setQuizAnswered(true);
+
     const isCorrect = idx === currentCard.correctOptionIndex;
-    handleAnswer(isCorrect ? 'correct' : 'incorrect');
+
+    // Show feedback for 1.5 seconds before moving to next card
+    setTimeout(() => {
+      handleAnswer(isCorrect ? 'correct' : 'incorrect');
+      setSelectedQuizOption(null);
+      setQuizAnswered(false);
+    }, 1500);
   };
 
   // --- Type-in Logic ---
@@ -399,6 +421,92 @@ const StudySession: React.FC<StudySessionProps> = ({
       setAnswers(prev => ({ ...prev, [currentCard.id]: 'incorrect' }));
       setStreak(0);
     }
+  };
+
+  // --- Swipe Logic ---
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!isFlipped) return; // Swipe only works after flip
+    const touch = e.targetTouches[0];
+    setTouchStart({ x: touch.clientX, y: touch.clientY });
+    setSwipeActive(true);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStart || !swipeActive) return;
+    const touch = e.targetTouches[0];
+    setTouchCurrent({ x: touch.clientX, y: touch.clientY });
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchCurrent) {
+      resetSwipe();
+      return;
+    }
+
+    const deltaX = touchCurrent.x - touchStart.x;
+    const deltaY = Math.abs(touchCurrent.y - touchStart.y);
+
+    // Check if horizontal swipe (not vertical scroll)
+    if (deltaY > 50) {
+      resetSwipe();
+      return;
+    }
+
+    // Swipe LEFT → Incorrect
+    if (deltaX < -SWIPE_THRESHOLD) {
+      triggerHaptic();
+      handleAnswer('incorrect');
+    }
+    // Swipe RIGHT → Correct
+    else if (deltaX > SWIPE_THRESHOLD) {
+      triggerHaptic();
+      handleAnswer('correct');
+    }
+
+    resetSwipe();
+  };
+
+  const resetSwipe = () => {
+    setSwipeActive(false);
+    setTouchStart(null);
+    setTouchCurrent(null);
+  };
+
+  const triggerHaptic = () => {
+    if (navigator.vibrate) {
+      navigator.vibrate(50); // Subtle vibration
+    }
+  };
+
+  // Calculate dynamic styles for swipe animation
+  const getSwipeStyles = () => {
+    if (!swipeActive || !touchStart || !touchCurrent) {
+      return { transform: 'translateX(0px) rotate(0deg)', opacity: 1 };
+    }
+
+    const deltaX = touchCurrent.x - touchStart.x;
+    const opacity = Math.max(0.6, 1 - Math.abs(deltaX) / 300);
+    const rotation = deltaX * 0.05; // Subtle rotation
+
+    return {
+      transform: `translateX(${deltaX}px) rotate(${rotation}deg)`,
+      opacity: opacity,
+      transition: 'none',
+    };
+  };
+
+  // Calculate indicator opacity
+  const getIndicatorOpacity = (direction: 'left' | 'right') => {
+    if (!swipeActive || !touchStart || !touchCurrent) return 0;
+
+    const deltaX = touchCurrent.x - touchStart.x;
+    if (direction === 'left' && deltaX < 0) {
+      return Math.min(Math.abs(deltaX) / SWIPE_THRESHOLD, 1);
+    }
+    if (direction === 'right' && deltaX > 0) {
+      return Math.min(deltaX / SWIPE_THRESHOLD, 1);
+    }
+    return 0;
   };
 
   // CRUD Handlers
@@ -713,11 +821,37 @@ const StudySession: React.FC<StudySessionProps> = ({
 
         {currentCard.type === 'standard' ? (
           <div className="w-full max-w-lg aspect-[4/3] relative group">
+            {/* Swipe Indicator LEFT (Red) - Nu știu */}
+            {isFlipped && (
+              <div
+                className="absolute inset-0 bg-gradient-to-r from-red-500/90 to-transparent rounded-[2rem] flex items-center justify-start px-8 pointer-events-none z-10"
+                style={{ opacity: getIndicatorOpacity('left') }}
+              >
+                <XCircle size={48} className="text-white" />
+                <span className="text-white font-bold text-2xl ml-4">Nu știu</span>
+              </div>
+            )}
+
+            {/* Swipe Indicator RIGHT (Green) - Știu */}
+            {isFlipped && (
+              <div
+                className="absolute inset-0 bg-gradient-to-l from-green-500/90 to-transparent rounded-[2rem] flex items-center justify-end px-8 pointer-events-none z-10"
+                style={{ opacity: getIndicatorOpacity('right') }}
+              >
+                <span className="text-white font-bold text-2xl mr-4">Știu</span>
+                <CheckCircle size={48} className="text-white" />
+              </div>
+            )}
+
             <div
               className={`
                   w-full h-full transition-all duration-500 transform-style-3d relative
                   ${isFlipped ? 'rotate-y-180' : ''}
                 `}
+              style={isFlipped ? getSwipeStyles() : {}}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
             >
               {/* FRONT */}
               <div className="absolute inset-0 backface-hidden bg-white border-2 border-[#E5E7EB] rounded-[2rem] shadow-xl flex flex-col items-center justify-center p-6 md:p-10 text-center z-20 overflow-hidden">
@@ -892,15 +1026,30 @@ const StudySession: React.FC<StudySessionProps> = ({
               {currentCard.front}
             </h3>
             <div className="space-y-3">
-              {currentCard.options?.map((opt, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleQuizAnswer(idx)}
-                  className="w-full p-4 text-left border-2 border-transparent bg-gray-50 rounded-xl hover:bg-indigo-50 hover:border-indigo-500 transition-all font-medium text-gray-700 active:scale-98 flex justify-between group"
-                >
-                  <span>{opt}</span>
-                </button>
-              ))}
+              {currentCard.options?.map((opt, idx) => {
+                const isSelected = selectedQuizOption === idx;
+                const isCorrect = idx === currentCard.correctOptionIndex;
+                const showCorrect = quizAnswered && isCorrect;
+                const showIncorrect = quizAnswered && isSelected && !isCorrect;
+
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => handleQuizAnswer(idx)}
+                    disabled={quizAnswered}
+                    className={`w-full p-4 text-left border-2 rounded-xl transition-all font-medium active:scale-98 flex justify-between items-center
+                      ${showCorrect ? 'bg-green-50 border-green-500 text-green-700' : ''}
+                      ${showIncorrect ? 'bg-red-50 border-red-500 text-red-700' : ''}
+                      ${!quizAnswered ? 'border-transparent bg-gray-50 hover:bg-indigo-50 hover:border-indigo-500 text-gray-700' : ''}
+                      ${quizAnswered && !isSelected && !isCorrect ? 'opacity-50' : ''}
+                    `}
+                  >
+                    <span>{opt}</span>
+                    {showCorrect && <CheckCircle size={20} className="text-green-600" />}
+                    {showIncorrect && <XCircle size={20} className="text-red-600" />}
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}

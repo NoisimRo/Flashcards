@@ -74,15 +74,22 @@ export async function exportDeck(
 }
 
 // AI Generation
-export async function generateDeckWithAI(subject: string, topic: string, difficulty: string) {
+export async function generateDeckWithAI(
+  subject: string,
+  topic: string,
+  difficulty: string,
+  numberOfCards: number = 10
+) {
   return api.post<
     Array<{
       front: string;
       back: string;
       context: string;
-      type: string;
+      type: 'standard' | 'quiz';
+      options?: string[];
+      correctOptionIndex?: number;
     }>
-  >('/decks/generate', { subject, topic, difficulty });
+  >('/decks/generate', { subject, topic, difficulty, numberOfCards });
 }
 
 // Helper to download exported file
