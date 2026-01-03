@@ -20,6 +20,7 @@ import { Menu, X, Loader2 } from 'lucide-react';
 import * as decksApi from './src/api/decks';
 import * as usersApi from './src/api/users';
 import { getSubjectId, getSubjectDisplayName } from './src/constants/subjects';
+import type { LeaderboardEntry } from './src/api/users';
 
 // Guest user for freemium mode
 const GUEST_USER = {
@@ -180,6 +181,9 @@ function AppContent() {
   const [decks, setDecks] = useState<Deck[]>(MOCK_DECKS); // Start with mock decks for guests
   const [isLoadingDecks, setIsLoadingDecks] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [leaderboardEntries, setLeaderboardEntries] =
+    useState<LeaderboardEntry[]>(LEADERBOARD_DATA);
+  const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState(false);
 
   // Session management states
   const [showCreateSessionModal, setShowCreateSessionModal] = useState(false);
@@ -195,14 +199,16 @@ function AppContent() {
   const user = isAuthenticated && authUser ? adaptUserFromAPI(authUser) : GUEST_USER;
   const isGuest = !isAuthenticated;
 
-  // Fetch decks when authenticated
+  // Fetch decks and leaderboard when authenticated
   useEffect(() => {
     if (isAuthenticated && authUser) {
       fetchDecks();
+      fetchLeaderboard();
       setShowAuthPage(false);
     } else {
-      // Reset to mock decks for guests
+      // Reset to mock data for guests
       setDecks(MOCK_DECKS);
+      setLeaderboardEntries(LEADERBOARD_DATA);
     }
   }, [isAuthenticated, authUser]);
 
@@ -224,6 +230,22 @@ function AppContent() {
       setDecks(MOCK_DECKS);
     } finally {
       setIsLoadingDecks(false);
+    }
+  };
+
+  const fetchLeaderboard = async () => {
+    setIsLoadingLeaderboard(true);
+    try {
+      const response = await usersApi.getGlobalLeaderboard(100);
+      if (response.success && response.data) {
+        setLeaderboardEntries(response.data.leaderboard);
+      }
+    } catch (error) {
+      console.error('Error fetching leaderboard:', error);
+      // Keep using mock data on error
+      setLeaderboardEntries(LEADERBOARD_DATA);
+    } finally {
+      setIsLoadingLeaderboard(false);
     }
   };
 
@@ -610,7 +632,7 @@ function AppContent() {
       case 'achievements':
         return <Achievements achievements={MOCK_ACHIEVEMENTS} user={user} />;
       case 'leaderboard':
-        return <Leaderboard entries={LEADERBOARD_DATA} currentUser={user} />;
+        return <Leaderboard entries={leaderboardEntries} currentUser={user} />;
       case 'settings':
         return (
           <Settings
