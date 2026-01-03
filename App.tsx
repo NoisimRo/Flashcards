@@ -213,6 +213,17 @@ function AppContent() {
     }
   }, [isAuthenticated, authUser]);
 
+  // Listen for token expiration events
+  useEffect(() => {
+    const handleAuthExpired = () => {
+      setShowAuthPage(true);
+      setCurrentView('dashboard');
+    };
+
+    window.addEventListener('auth:expired', handleAuthExpired);
+    return () => window.removeEventListener('auth:expired', handleAuthExpired);
+  }, []);
+
   const fetchDecks = async () => {
     setIsLoadingDecks(true);
     try {
@@ -543,9 +554,15 @@ function AppContent() {
     setCurrentView('session-player');
   };
 
-  const handleCloseSession = () => {
+  const handleCloseSession = async () => {
     setActiveSessionId(null);
     setCurrentView('sessions');
+    // Refresh user data to update Dashboard stats (XP, time spent, cards learned, etc.)
+    if (isAuthenticated) {
+      await refreshSession();
+      // Also refresh decks to get updated progress
+      await fetchDecks();
+    }
   };
 
   // --- LOADING STATE ---

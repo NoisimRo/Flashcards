@@ -106,11 +106,16 @@ export async function apiRequest<T>(
           (headers as Record<string, string>)['Authorization'] = `Bearer ${newToken}`;
           response = await fetch(url, { ...options, headers });
         } else {
-          // Redirect to login
-          window.location.href = '/login';
+          // Token refresh failed - clear tokens and notify user
+          clearTokens();
+          // Dispatch a custom event that App.tsx can listen to
+          window.dispatchEvent(new CustomEvent('auth:expired'));
           return {
             success: false,
-            error: { code: 'UNAUTHORIZED', message: 'Sesiune expirată' },
+            error: {
+              code: 'UNAUTHORIZED',
+              message: 'Sesiune expirată. Te rugăm să te autentifici din nou.',
+            },
           };
         }
       } else {
