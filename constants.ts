@@ -337,7 +337,13 @@ const sinonimeData = [
   },
 ];
 
-export const MOCK_DECKS: Deck[] = [
+export const MOCK_DECKS: (Deck & {
+  ownerId: string;
+  isPublic: boolean;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+})[] = [
   {
     id: 'd1',
     title: 'Sinonime Esențiale',
@@ -348,6 +354,11 @@ export const MOCK_DECKS: Deck[] = [
     masteredCards: 12,
     lastStudied: '2023-10-27T10:00:00Z',
     cards: createCards(sinonimeData),
+    ownerId: 'guest',
+    isPublic: false,
+    tags: [],
+    createdAt: '2023-10-01T10:00:00Z',
+    updatedAt: '2023-10-27T10:00:00Z',
   },
   {
     id: 'd2',
@@ -358,6 +369,11 @@ export const MOCK_DECKS: Deck[] = [
     totalCards: 0,
     masteredCards: 0,
     cards: [],
+    ownerId: 'guest',
+    isPublic: false,
+    tags: [],
+    createdAt: '2023-10-01T10:00:00Z',
+    updatedAt: '2023-10-01T10:00:00Z',
   },
   {
     id: 'd3',
@@ -368,6 +384,11 @@ export const MOCK_DECKS: Deck[] = [
     totalCards: 0,
     masteredCards: 0,
     cards: [],
+    ownerId: 'guest',
+    isPublic: false,
+    tags: [],
+    createdAt: '2023-10-01T10:00:00Z',
+    updatedAt: '2023-10-01T10:00:00Z',
   },
 ];
 

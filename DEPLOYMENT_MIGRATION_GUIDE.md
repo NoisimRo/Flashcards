@@ -5,6 +5,7 @@
 Acest ghid te ajută să migrezi aplicația în producție (Google Cloud) cu noua arhitectură pentru study sessions.
 
 **Ce s-a schimbat**:
+
 - ✅ Database schema (2 tabele noi, modificări la `cards` și `decks`)
 - ✅ Backend API (7 endpoint-uri noi pentru study sessions)
 - ✅ TypeScript types (interfețe noi pentru sesiuni)
@@ -16,6 +17,7 @@ Acest ghid te ajută să migrezi aplicația în producție (Google Cloud) cu nou
 ## 📋 Prerequisites
 
 Asigură-te că ai:
+
 - [x] Acces la Google Cloud Console
 - [x] `gcloud` CLI instalat și autentificat
 - [x] Acces la Cloud SQL instance
@@ -49,6 +51,7 @@ psql "postgresql://postgres:PASSWORD@localhost:5432/flashcards" \
 ```
 
 **Verificări**:
+
 - ✅ Tabelul `user_card_progress` există
 - ✅ Tabelul `study_sessions` are noile coloane
 - ✅ Tabelul `cards` NU mai are coloanele SM-2
@@ -75,6 +78,7 @@ gcloud sql connect flashcards-db --user=postgres --database=flashcards
 ### Step 2: Rulează Migrarea
 
 **Opțiunea A: Direct cu psql**
+
 ```bash
 # Conectează prin proxy
 PGPASSWORD="YOUR_PROD_PASSWORD" psql \
@@ -86,6 +90,7 @@ PGPASSWORD="YOUR_PROD_PASSWORD" psql \
 ```
 
 **Opțiunea B: Upload script în Cloud Storage apoi execute**
+
 ```bash
 # Upload migration script
 gsutil cp server/db/migrations/001_refactor_sessions.sql gs://flashcards-scripts/
@@ -245,18 +250,21 @@ gcloud sql import sql flashcards-db \
 ## 📝 Checklist Final
 
 ### Pre-Deployment
+
 - [ ] Backup database creat
 - [ ] Migrare testată local
 - [ ] Code formatat și verificat
 - [ ] PR reviewed și approved
 
 ### During Deployment
+
 - [ ] Migrare DB executată cu succes
 - [ ] PR merged în main
 - [ ] Cloud Build succeeded
 - [ ] Cloud Run deployment succeeded
 
 ### Post-Deployment
+
 - [ ] Health check passes
 - [ ] Database connections working
 - [ ] API endpoints responding
@@ -265,6 +273,7 @@ gcloud sql import sql flashcards-db \
 - [ ] Decks load correctly
 
 ### Cleanup
+
 - [ ] Cloud SQL Proxy stopped
 - [ ] Local branch șters (opțional)
 - [ ] Documentation updated
@@ -308,6 +317,7 @@ gcloud run services describe flashcards-service --region=europe-west1 --format="
 ## 📞 Support
 
 Dacă întâmpini probleme:
+
 1. Verifică logs: Cloud Build → Cloud Run → Cloud SQL
 2. Rulează health check
 3. Verifică database schema

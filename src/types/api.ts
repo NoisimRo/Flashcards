@@ -1,6 +1,7 @@
 import {
   User,
   Deck,
+  DeckWithCards,
   Card,
   StudySession,
   StudySessionWithData,
@@ -129,10 +130,6 @@ export interface DeckListParams {
   publicOnly?: boolean;
   sortBy?: 'title' | 'createdAt' | 'lastStudied' | 'totalCards';
   sortOrder?: 'asc' | 'desc';
-}
-
-export interface DeckWithCards extends Deck {
-  cards: Card[];
 }
 
 // ============================================
