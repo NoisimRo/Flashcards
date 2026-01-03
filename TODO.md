@@ -165,6 +165,18 @@ _None - all critical blockers resolved!_
 
 ## Completed (Recent)
 
+- [x] **XP Synchronization & Stats Fix** - Complete XP/stats system overhaul (Jan 3, 2026)
+  - Fixed XP not updating after session completion (backend now updates total_xp, current_xp)
+  - Implemented full level-up logic with exponential XP growth (20% per level)
+  - Fixed total_time_spent tracking (converts seconds to minutes)
+  - Dashboard stats now refresh after session completion (refreshSession + fetchDecks)
+  - Fixed 401 Unauthorized errors (proper token expiration handling with auth:expired event)
+  - Fixed "Salvează și ieși" button (now saves progress without completing session)
+  - Fixed StudyNow page showing 0 decks (filter by totalCards instead of cards array)
+  - Fixed mastered_cards calculation (now per-user from user_card_progress table)
+  - Level-up toast notifications: "🎉 LEVEL UP! Nivel X → Y! +Z XP"
+  - Session progress preserved for resuming later
+
 - [x] **Session Architecture Refactoring** - Complete separation of library vs sessions (Jan 3, 2026)
   - Implemented new study sessions architecture with 4 selection methods
   - Created 3 new UI components (CreateSessionModal, ActiveSessionsList, StudySessionPlayer)
@@ -216,6 +228,104 @@ _None - all critical blockers resolved!_
 ---
 
 ## Session Notes
+
+### January 3, 2026 - XP Sync, Session Save & Dashboard Stats Fix
+
+**Session Focus**: Resolve critical backend XP synchronization and session management issues
+
+**Problems Identified**:
+
+1. XP not updating after completing study sessions (static 1180 XP)
+2. Dashboard showing 0 for all stats (cards learned, time spent, success rate)
+3. "Salvează și ieși" completing sessions instead of saving progress
+4. StudyNow page showing 0 decks despite having decks with cards
+5. 401 Unauthorized errors on session completion due to token expiration
+
+**Root Cause Analysis**:
+
+**XP Synchronization Issue:**
+
+- Backend POST /api/study-sessions/:id/complete was NOT updating user's total_xp, current_xp, or level
+- Only updated total_cards_learned and total_decks_completed
+- Level-up logic was marked as TODO
+- Solution: Implemented full XP update with level-up calculation (20% exponential growth)
+
+**Dashboard Stats Issue:**
+
+- User object not refreshed after session completion
+- handleCloseSession only changed view, didn't refresh user data
+- Solution: Added refreshSession() and fetchDecks() calls
+
+**Session Save Issue:**
+
+- StudySessionPlayer.handleFinish ignored clearSession parameter
+- Always called completeSession even when clearSession=false
+- Solution: Check clearSession flag and call updateSessionProgress instead when false
+
+**StudyNow Page Issue:**
+
+- Component filtered decks by d.cards.length > 0
+- But GET /api/decks doesn't return cards array (only totalCards metadata)
+- Also mastered_cards was global (cards.status) not per-user (user_card_progress.status)
+- Solution: Filter by totalCards, calculate mastered_cards per-user in query
+
+**401 Errors Issue:**
+
+- Token expiration during long sessions (>15min)
+- client.ts tried to redirect to '/login' which doesn't exist in SPA
+- Solution: Dispatch 'auth:expired' event, App.tsx shows AuthPage
+
+**Completed**:
+
+- ✅ Implemented XP synchronization in backend (total_xp, current_xp, level)
+- ✅ Implemented level-up logic with exponential growth (newNextLevelXP = Math.floor(oldNextLevelXP \* 1.2))
+- ✅ Added total_time_spent tracking (duration converted to minutes)
+- ✅ Modified completeSession in store to return full response data (leveledUp, xpEarned, etc.)
+- ✅ Added level-up toast notifications in StudySessionPlayer
+- ✅ Fixed handleCloseSession to refresh user data (refreshSession + fetchDecks)
+- ✅ Added auth:expired event handling for token expiration
+- ✅ Fixed "Salvează și ieși" to only save progress (not complete session)
+- ✅ Fixed StudyNow filter to use totalCards instead of cards.length
+- ✅ Fixed mastered_cards calculation to be per-user (from user_card_progress)
+- ✅ All code formatted and tests passing
+
+**Files Modified**:
+
+Backend:
+
+- `server/routes/studySessions.ts` - XP sync, level-up logic, time tracking (lines 593-650)
+- `server/routes/decks.ts` - Per-user mastered_cards subquery (lines 78-98)
+
+Frontend:
+
+- `src/store/studySessionsStore.ts` - Return full response data from completeSession
+- `src/components/sessions/StudySessionPlayer.tsx` - Session save logic, level-up notifications
+- `src/api/client.ts` - auth:expired event dispatch
+- `App.tsx` - handleCloseSession refresh, auth:expired listener
+- `components/StudyNow.tsx` - Filter by totalCards
+
+**Commits**:
+
+- `a0a3f8b` - Backend XP sync + level-up logic
+- `27a9138` - Session save + 401 fix + Dashboard refresh
+- `16a7111` - StudyNow page fixes
+
+**Testing**:
+
+1. Complete a study session → XP should increase, level may increase
+2. Click "Salvează și ieși" → Session preserved in Active Sessions
+3. Navigate to Dashboard → Stats show correct values
+4. Navigate to StudyNow → All decks with cards appear
+5. Wait 15+ min in session → Token expires → Auth page appears
+
+**Next Session Recommendations**:
+
+- Test XP and level-up in production environment
+- Verify session save/resume flow
+- Test token expiration handling
+- Monitor user_card_progress table population
+
+---
 
 ### January 2, 2025 - Critical Fixes & Mobile UX Enhancement
 

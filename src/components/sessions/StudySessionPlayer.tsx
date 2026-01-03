@@ -126,7 +126,21 @@ const StudySessionPlayer: React.FC<StudySessionPlayerProps> = ({
 
       const sessionData = localDeck.sessionData!;
 
-      // Calculate results
+      // If clearSession is false, just save progress and exit (don't complete)
+      if (!clearSession) {
+        // Save current progress
+        await updateSessionProgress(sessionId, {
+          currentCardIndex: sessionData.currentIndex,
+          answers: sessionData.answers,
+          streak: sessionData.streak,
+          sessionXP: sessionData.sessionXP,
+        });
+        toast.success('Progres salvat! Poți relua sesiunea mai târziu.');
+        onFinish();
+        return;
+      }
+
+      // Calculate results for completion
       const answersArray = Object.values(sessionData.answers);
       const correctCount = answersArray.filter(a => a === 'correct').length;
       const incorrectCount = answersArray.filter(a => a === 'incorrect').length;
@@ -180,7 +194,7 @@ const StudySessionPlayer: React.FC<StudySessionPlayerProps> = ({
         toast.error('Eroare la finalizarea sesiunii');
       }
     },
-    [sessionId, localDeck, currentSession, completeSession, toast, onFinish]
+    [sessionId, localDeck, currentSession, completeSession, updateSessionProgress, toast, onFinish]
   );
 
   if (!isInitialized || !localDeck || !currentSession) {

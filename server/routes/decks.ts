@@ -75,17 +75,25 @@ router.get('/', authenticateToken, async (req: Request, res: Response) => {
     const countResult = await query(`SELECT COUNT(*) FROM decks d WHERE ${whereClause}`, params);
     const total = parseInt(countResult.rows[0].count);
 
-    // Get decks
+    // Get decks with user-specific mastered cards count
     const decksResult = await query(
       `SELECT d.*, s.name as subject_name, s.color as subject_color,
               u.name as owner_name,
-              (d.owner_id = $${paramIndex++}) as is_owner
+              (d.owner_id = $${paramIndex}) as is_owner,
+              COALESCE((
+                SELECT COUNT(*)
+                FROM cards c
+                LEFT JOIN user_card_progress ucp ON ucp.card_id = c.id AND ucp.user_id = $${paramIndex}
+                WHERE c.deck_id = d.id
+                  AND c.deleted_at IS NULL
+                  AND ucp.status = 'mastered'
+              ), 0) as mastered_cards
        FROM decks d
        LEFT JOIN subjects s ON d.subject_id = s.id
        LEFT JOIN users u ON d.owner_id = u.id
        WHERE ${whereClause}
        ORDER BY ${sortColumn} ${order} NULLS LAST
-       LIMIT $${paramIndex++} OFFSET $${paramIndex++}`,
+       LIMIT $${paramIndex + 1} OFFSET $${paramIndex + 2}`,
       [...params, req.user!.id, limitNum, offset]
     );
 

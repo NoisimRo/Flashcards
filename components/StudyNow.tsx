@@ -8,8 +8,8 @@ interface StudyNowProps {
 }
 
 const StudyNow: React.FC<StudyNowProps> = ({ decks, onStartSession }) => {
-  // Filter decks that have cards
-  const studyableDecks = decks.filter(d => d.cards && d.cards.length > 0);
+  // Filter decks that have cards (using totalCards from API)
+  const studyableDecks = decks.filter(d => (d.totalCards || 0) > 0);
 
   return (
     <div className="p-6 md:p-8 space-y-8 h-full overflow-y-auto">
