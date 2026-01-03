@@ -592,19 +592,60 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
 
       // Update user stats
       const sessionXP = session.session_xp || 0;
+      const durationMinutes = Math.floor((durationSeconds || 0) / 60);
+
+      // Get current user stats for level-up calculation
+      const userResult = await client.query(
+        'SELECT level, current_xp, next_level_xp FROM users WHERE id = $1',
+        [req.user!.id]
+      );
+      const currentUser = userResult.rows[0];
+
+      // Calculate new XP and check for level up
+      let newCurrentXP = (currentUser.current_xp || 0) + sessionXP;
+      let newLevel = currentUser.level || 1;
+      let newNextLevelXP = currentUser.next_level_xp || 100;
+      let leveledUp = false;
+
+      // Level up logic - keep leveling up until current_xp < next_level_xp
+      while (newCurrentXP >= newNextLevelXP) {
+        newCurrentXP -= newNextLevelXP;
+        newLevel += 1;
+        leveledUp = true;
+        // Each level requires 20% more XP than previous (exponential growth)
+        newNextLevelXP = Math.floor(newNextLevelXP * 1.2);
+      }
+
+      // Update user stats
       await client.query(
         `UPDATE users
          SET total_cards_learned = total_cards_learned + $1,
              total_decks_completed = total_decks_completed + 1,
+             total_xp = total_xp + $2,
+             current_xp = $3,
+             level = $4,
+             next_level_xp = $5,
+             total_time_spent = total_time_spent + $6,
              updated_at = NOW()
-         WHERE id = $2`,
-        [cardsLearned, req.user!.id]
+         WHERE id = $7`,
+        [
+          cardsLearned,
+          sessionXP,
+          newCurrentXP,
+          newLevel,
+          newNextLevelXP,
+          durationMinutes,
+          req.user!.id,
+        ]
       );
 
       return {
         session: updatedSession.rows[0],
         cardsLearned,
         sessionXP,
+        leveledUp,
+        oldLevel: currentUser.level,
+        newLevel,
       };
     });
 
@@ -613,7 +654,9 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
       data: {
         session: formatSession(result.session),
         xpEarned: result.sessionXP,
-        leveledUp: false, // TODO: Implement level-up logic
+        leveledUp: result.leveledUp,
+        oldLevel: result.oldLevel,
+        newLevel: result.newLevel,
         newAchievements: [],
         streakUpdated: false,
         newStreak: 0,

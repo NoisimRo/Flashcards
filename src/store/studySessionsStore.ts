@@ -20,7 +20,7 @@ interface StudySessionsStore {
   createSession: (request: CreateStudySessionRequest) => Promise<StudySessionWithData | null>;
   loadSession: (id: string) => Promise<void>;
   updateSessionProgress: (id: string, progress: UpdateStudySessionRequest) => Promise<void>;
-  completeSession: (id: string, results: CompleteStudySessionRequest) => Promise<boolean>;
+  completeSession: (id: string, results: CompleteStudySessionRequest) => Promise<any>;
   abandonSession: (id: string) => Promise<void>;
   clearCurrentSession: () => void;
   clearError: () => void;
@@ -125,17 +125,18 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
           currentSession: null,
           isLoading: false,
         }));
-        return true;
+        // Return the complete response data (includes leveledUp, xpEarned, etc.)
+        return response.data;
       } else {
         set({
           error: response.error?.message || 'Failed to complete session',
           isLoading: false,
         });
-        return false;
+        return null;
       }
     } catch (error) {
       set({ error: 'Network error', isLoading: false });
-      return false;
+      return null;
     }
   },
 
