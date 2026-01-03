@@ -1,7 +1,7 @@
 # Project Context - Flashcards Evaluare Nationala
 
 > This document provides context for AI assistants and developers working on this project.
-> Last updated: December 2024
+> Last updated: January 3, 2026
 
 ## Project Purpose & Scope
 
@@ -84,10 +84,21 @@
 │
 ├── src/                    # Source modules (newer organization)
 │   ├── api/                # API client functions
-│   ├── components/         # Shared UI components (Toast, Auth)
+│   │   ├── client.ts       # Base API client with auth token handling
+│   │   ├── auth.ts         # Authentication endpoints
+│   │   ├── decks.ts        # Deck CRUD endpoints
+│   │   ├── studySessions.ts # Study session endpoints
+│   │   └── users.ts        # User/leaderboard endpoints
+│   ├── components/         # Shared UI components (Toast, Auth, Sessions)
+│   │   ├── ui/             # Reusable UI (Toast)
+│   │   ├── auth/           # Auth pages (Login, Register)
+│   │   └── sessions/       # Session components (CreateSessionModal, ActiveSessionsList, StudySessionPlayer)
 │   ├── data/seed/          # Seed data JSON files
 │   ├── services/           # Offline storage, sync
-│   ├── store/              # AuthContext (React Context)
+│   ├── store/              # State management
+│   │   ├── AuthContext.tsx # React Context for auth
+│   │   ├── studySessionsStore.ts # Zustand store for sessions
+│   │   └── decksStore.ts   # Zustand store for decks (minimal usage)
 │   └── types/              # Additional type definitions
 │
 ├── server/                 # Express backend
@@ -114,10 +125,17 @@
 
 1. **Monorepo-ish**: Frontend and backend in same repo, built together
 2. **Express + React SPA**: Backend serves API + static React build in production
-3. **React Context**: Auth state managed via `AuthContext`
+3. **Hybrid State Management**:
+   - **React Context**: Auth state managed via `AuthContext`
+   - **Zustand**: Study sessions state managed via `useStudySessionsStore`
+   - **Local State**: Component-level state for UI concerns
 4. **API Adapter Pattern**: `adaptUserFromAPI()` / `adaptDeckFromAPI()` convert API responses
 5. **Freemium Model**: Guest users get mock data, authenticated users get real data
-6. **JWT Auth**: Access + refresh token pattern with secure httpOnly considerations
+6. **JWT Auth**: Access + refresh token pattern with automatic refresh on 401
+   - Access tokens expire after ~15 minutes
+   - Refresh tokens used to get new access tokens
+   - Custom `auth:expired` event triggers re-authentication UI
+7. **Per-User Progress**: All card progress tracked individually per user in `user_card_progress` table
 
 ### Observed Code Conventions
 
@@ -136,7 +154,20 @@
 - [x] User authentication (register, login, logout, refresh tokens)
 - [x] Deck CRUD operations
 - [x] Card study session with SM-2 algorithm
-- [x] XP and leveling system
+- [x] **Study Sessions Architecture** (Zustand-based)
+  - Create sessions with 4 selection methods (random, smart, manual, all)
+  - Auto-save progress every 30 seconds
+  - Resume paused sessions
+  - Multiple concurrent sessions support
+- [x] **XP and leveling system** (fully synchronized)
+  - Dynamic XP tracking per session
+  - Automatic level-up with exponential growth (20% per level)
+  - Level-up notifications
+  - Time tracking (total_time_spent)
+- [x] **Per-user card progress tracking** (user_card_progress table)
+  - Individual progress for each card
+  - SM-2 algorithm per user
+  - Mastered cards calculated dynamically
 - [x] Achievements system
 - [x] Leaderboard (global and by subject)
 - [x] Import/Export decks (JSON, CSV)
