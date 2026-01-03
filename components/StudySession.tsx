@@ -1198,6 +1198,38 @@ const StudySession: React.FC<StudySessionProps> = ({
                 );
               })}
             </div>
+
+            {/* Navigation buttons for Quiz cards */}
+            <div className="absolute bottom-6 left-0 right-0 px-8">
+              <div className="flex items-center justify-between gap-3">
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    goToPrevious();
+                  }}
+                  disabled={currentIndex === 0}
+                  className="w-12 h-12 flex items-center justify-center rounded-xl bg-white border-2 border-gray-200 text-gray-600 shadow-sm hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95"
+                  title="Card anterior"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    handleSkip();
+                  }}
+                  className="w-12 h-12 flex items-center justify-center rounded-xl bg-white border-2 border-gray-200 text-gray-600 shadow-sm hover:bg-gray-50 transition-all active:scale-95"
+                  title="Card următor"
+                >
+                  {currentIndex === activeCards.length - 1 ? (
+                    <CheckCircle size={20} className="text-indigo-600" />
+                  ) : (
+                    <ArrowRight size={20} />
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

@@ -119,7 +119,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
           </p>
         </div>
         <button
-          onClick={() => onChangeView('decks')}
+          onClick={() => onChangeView('sessions')}
           className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-colors shadow-lg"
         >
           <Brain size={20} />

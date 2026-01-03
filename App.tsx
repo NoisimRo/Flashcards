@@ -7,6 +7,7 @@ import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import DeckList from './components/DeckList';
 import StudySession from './components/StudySession';
+import StudyNow from './components/StudyNow';
 import Achievements from './components/Achievements';
 import Leaderboard from './components/Leaderboard';
 import Settings from './components/Settings';
@@ -617,17 +618,12 @@ function AppContent() {
             onFinish={handleFinishSession}
             onSaveProgress={handleSaveProgress}
             onUpdateUserXP={handleUpdateUserXP}
-            onBack={() => setCurrentView('decks')}
+            onBack={() => setCurrentView('study')}
             onEditCard={card => handleEditCard(activeDeck.id, card)}
             onDeleteCard={cardId => handleDeleteCard(activeDeck.id, cardId)}
           />
         ) : (
-          <Dashboard
-            user={user}
-            decks={decks}
-            onStartSession={handleStartSession}
-            onChangeView={setCurrentView}
-          />
+          <StudyNow decks={decks} onStartSession={handleStartSession} />
         );
       case 'achievements':
         return <Achievements achievements={MOCK_ACHIEVEMENTS} user={user} />;
