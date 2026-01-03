@@ -920,7 +920,10 @@ const StudySession: React.FC<StudySessionProps> = ({
 
                 {/* Hint Reveal Area - Showing Context + Hint */}
                 {hintRevealed && (
-                  <div className="absolute top-20 left-0 right-0 px-8 animate-fade-in pointer-events-none z-30">
+                  <div
+                    key={`hint-${currentCard.id}`}
+                    className="absolute top-20 left-0 right-0 px-8 animate-fade-in pointer-events-none z-30"
+                  >
                     <div className="bg-yellow-50 border border-yellow-100 text-yellow-800 text-sm p-4 rounded-xl shadow-sm text-center">
                       {/* Context Sentence Section */}
                       {currentCard.context && (
