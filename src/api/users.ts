@@ -5,6 +5,22 @@ export interface UpdateXPRequest {
   deltaXP: number;
 }
 
+export interface LeaderboardEntry {
+  id: string;
+  position: number;
+  name: string;
+  level: number;
+  xpTotal: number;
+  streak: number;
+  isCurrentUser: boolean;
+}
+
+export interface LeaderboardResponse {
+  leaderboard: LeaderboardEntry[];
+  total: number;
+  currentUserEntry?: LeaderboardEntry;
+}
+
 export async function updateUserXP(userId: string, deltaXP: number) {
   return api.post<User>(`/users/${userId}/xp`, { deltaXP });
 }
@@ -18,4 +34,8 @@ export async function updateUserProfile(
   data: { name?: string; avatar?: string; preferences?: any }
 ) {
   return api.put<User>(`/users/${userId}`, data);
+}
+
+export async function getGlobalLeaderboard(limit = 100) {
+  return api.get<LeaderboardResponse>(`/users/leaderboard/global?limit=${limit}`);
 }

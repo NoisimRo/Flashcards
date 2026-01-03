@@ -714,6 +714,16 @@ const StudySession: React.FC<StudySessionProps> = ({
         </div>
       )}
 
+      {/* Dynamic Header - Deck Name & Category */}
+      <div className="mb-4 z-10 relative">
+        <div className="text-center">
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900">{deck.title}</h2>
+          <p className="text-sm text-gray-500 font-medium mt-1">
+            {deck.subject} {deck.topic && `• ${deck.topic}`}
+          </p>
+        </div>
+      </div>
+
       {/* Top Bar */}
       <div className="flex items-center justify-between mb-6 z-10 relative">
         <button
@@ -799,9 +809,13 @@ const StudySession: React.FC<StudySessionProps> = ({
         <div className="flex gap-2 flex-shrink-0">
           <button
             onClick={handleRestartSession}
-            className="flex items-center gap-1 px-3 py-2 bg-white border border-gray-200 text-gray-600 rounded-lg text-xs font-bold hover:bg-red-50 hover:text-red-600 hover:border-red-100 transition-colors shadow-sm"
+            title="Restart"
+            className="group relative p-2 bg-white border border-gray-200 text-gray-600 rounded-full hover:bg-red-50 hover:text-red-600 hover:border-red-100 transition-colors shadow-sm"
           >
-            <RotateCcw size={14} /> <span>Restart</span>
+            <RotateCcw size={18} />
+            <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+              Restart
+            </span>
           </button>
 
           <button
@@ -953,7 +967,7 @@ const StudySession: React.FC<StudySessionProps> = ({
                 {/* Input Field on Front */}
                 {!isFlipped && (
                   <div
-                    className="w-full max-w-xs relative mt-auto mb-8 z-50"
+                    className="w-full max-w-xs relative mt-auto mb-20 z-50"
                     onClick={e => e.stopPropagation()}
                   >
                     <form onSubmit={checkInputAnswer} className="relative">
@@ -977,18 +991,50 @@ const StudySession: React.FC<StudySessionProps> = ({
                   </div>
                 )}
 
-                {/* Flip button at bottom of card */}
+                {/* Navigation and Flip buttons at bottom of card */}
                 {!isFlipped && (
-                  <div className="absolute bottom-4 left-0 right-0 px-6">
-                    <button
-                      onClick={e => {
-                        e.stopPropagation();
-                        handleFlip();
-                      }}
-                      className="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-md hover:bg-indigo-700 active:bg-indigo-800 transition-all active:scale-98 z-50"
-                    >
-                      Arată Răspunsul
-                    </button>
+                  <div className="absolute bottom-6 left-0 right-0 px-6 z-50">
+                    <div className="flex items-center gap-3">
+                      {/* Back Button */}
+                      <button
+                        onClick={e => {
+                          e.stopPropagation();
+                          goToPrevious();
+                        }}
+                        disabled={currentIndex === 0}
+                        className="w-12 h-12 flex items-center justify-center rounded-xl bg-white border-2 border-gray-200 text-gray-600 shadow-sm hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95"
+                        title="Card anterior"
+                      >
+                        <ChevronLeft size={20} />
+                      </button>
+
+                      {/* Show Answer Button */}
+                      <button
+                        onClick={e => {
+                          e.stopPropagation();
+                          handleFlip();
+                        }}
+                        className="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-md hover:bg-indigo-700 active:bg-indigo-800 transition-all active:scale-98"
+                      >
+                        Arată Răspunsul
+                      </button>
+
+                      {/* Next Button */}
+                      <button
+                        onClick={e => {
+                          e.stopPropagation();
+                          handleSkip();
+                        }}
+                        className="w-12 h-12 flex items-center justify-center rounded-xl bg-white border-2 border-gray-200 text-gray-600 shadow-sm hover:bg-gray-50 transition-all active:scale-95"
+                        title="Card următor"
+                      >
+                        {currentIndex === activeCards.length - 1 ? (
+                          <CheckCircle size={20} className="text-indigo-600" />
+                        ) : (
+                          <ArrowRight size={20} />
+                        )}
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -1035,39 +1081,72 @@ const StudySession: React.FC<StudySessionProps> = ({
                   {currentCard.back}
                 </h3>
 
-                {/* Answer buttons at bottom of back side */}
-                <div className="absolute bottom-4 left-0 right-0 px-6 flex gap-3">
-                  <button
-                    onClick={e => {
-                      e.stopPropagation();
-                      handleAnswer('incorrect');
-                    }}
-                    className="flex-1 bg-red-100 text-red-700 border border-red-200 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-red-200 transition-all active:scale-95 shadow-sm z-50"
-                  >
-                    <XCircle size={20} /> <span>Nu știu</span>
-                  </button>
+                {/* Navigation and Answer buttons at bottom of back side */}
+                <div className="absolute bottom-6 left-0 right-0 px-6 z-50">
+                  {/* Navigation row */}
+                  <div className="flex items-center justify-between mb-3 gap-3">
+                    <button
+                      onClick={e => {
+                        e.stopPropagation();
+                        goToPrevious();
+                      }}
+                      disabled={currentIndex === 0}
+                      className="w-10 h-10 flex items-center justify-center rounded-lg bg-white/80 border border-gray-200 text-gray-600 shadow-sm hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95"
+                      title="Card anterior"
+                    >
+                      <ChevronLeft size={18} />
+                    </button>
 
-                  {currentAnswer === 'incorrect' ? (
                     <button
                       onClick={e => {
                         e.stopPropagation();
-                        goToNext();
+                        handleSkip();
                       }}
-                      className="flex-1 bg-gray-900 text-white border border-gray-900 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-800 transition-all active:scale-95 shadow-sm z-50"
+                      className="w-10 h-10 flex items-center justify-center rounded-lg bg-white/80 border border-gray-200 text-gray-600 shadow-sm hover:bg-white transition-all active:scale-95"
+                      title="Card următor"
                     >
-                      <span>Continuă</span> <ArrowRight size={20} />
+                      {currentIndex === activeCards.length - 1 ? (
+                        <CheckCircle size={18} className="text-indigo-600" />
+                      ) : (
+                        <ArrowRight size={18} />
+                      )}
                     </button>
-                  ) : (
+                  </div>
+
+                  {/* Answer buttons row */}
+                  <div className="flex gap-3">
                     <button
                       onClick={e => {
                         e.stopPropagation();
-                        handleAnswer('correct');
+                        handleAnswer('incorrect');
                       }}
-                      className="flex-1 bg-green-100 text-green-700 border border-green-200 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-green-200 transition-all active:scale-95 shadow-sm animate-pulse-green z-50"
+                      className="flex-1 bg-red-100 text-red-700 border border-red-200 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-red-200 transition-all active:scale-95 shadow-sm"
                     >
-                      <CheckCircle size={20} /> <span>Știu</span>
+                      <XCircle size={20} /> <span>Nu știu</span>
                     </button>
-                  )}
+
+                    {currentAnswer === 'incorrect' ? (
+                      <button
+                        onClick={e => {
+                          e.stopPropagation();
+                          goToNext();
+                        }}
+                        className="flex-1 bg-gray-900 text-white border border-gray-900 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-800 transition-all active:scale-95 shadow-sm"
+                      >
+                        <span>Continuă</span> <ArrowRight size={20} />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={e => {
+                          e.stopPropagation();
+                          handleAnswer('correct');
+                        }}
+                        className="flex-1 bg-green-100 text-green-700 border border-green-200 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-green-200 transition-all active:scale-95 shadow-sm animate-pulse-green"
+                      >
+                        <CheckCircle size={20} /> <span>Știu</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -1121,34 +1200,6 @@ const StudySession: React.FC<StudySessionProps> = ({
             </div>
           </div>
         )}
-      </div>
-
-      {/* NAVIGATION BAR - Only Previous and Skip buttons */}
-      <div className="mt-8 flex items-center justify-between gap-4 max-w-lg mx-auto w-full z-10 relative">
-        <button
-          onClick={goToPrevious}
-          disabled={currentIndex === 0}
-          className="w-12 h-12 flex items-center justify-center rounded-full bg-white border border-gray-200 text-gray-600 shadow-sm hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95"
-          title="Card anterior"
-        >
-          <Undo2 size={20} />
-        </button>
-
-        <div className="flex-1 text-center text-sm text-gray-500 font-medium">
-          {currentIndex + 1} / {activeCards.length}
-        </div>
-
-        <button
-          onClick={handleSkip}
-          className="w-12 h-12 flex items-center justify-center rounded-full bg-white border border-gray-200 text-gray-600 shadow-sm hover:bg-gray-50 transition-all active:scale-95"
-          title="Sari peste card"
-        >
-          {currentIndex === activeCards.length - 1 ? (
-            <CheckCircle className="text-indigo-600" size={20} />
-          ) : (
-            <SkipForward size={20} />
-          )}
-        </button>
       </div>
 
       {/* Keyboard Hint */}

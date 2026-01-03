@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Deck, Difficulty } from '../types';
+import { Deck, Difficulty, Card } from '../types';
 import {
   Plus,
   MoreVertical,
@@ -11,6 +11,9 @@ import {
   Edit,
   RotateCcw,
   ArrowRight,
+  List,
+  X,
+  Save,
 } from 'lucide-react';
 import { generateDeckWithAI } from '../src/api/decks';
 
@@ -44,6 +47,14 @@ const DeckList: React.FC<DeckListProps> = ({
   const [importMode, setImportMode] = useState<'manual' | 'ai' | 'file'>('ai');
   const [numberOfCards, setNumberOfCards] = useState(10);
 
+  // Edit Cards Modal State
+  const [editCardsModalOpen, setEditCardsModalOpen] = useState(false);
+  const [editCardsModalDeck, setEditCardsModalDeck] = useState<Deck | null>(null);
+  const [editingCardId, setEditingCardId] = useState<string | null>(null);
+  const [editCardFront, setEditCardFront] = useState('');
+  const [editCardBack, setEditCardBack] = useState('');
+  const [editCardContext, setEditCardContext] = useState('');
+
   const openCreateModal = () => {
     setEditingDeckId(null);
     setGeneratingForDeckId(null);
@@ -75,6 +86,88 @@ const DeckList: React.FC<DeckListProps> = ({
     setNumberOfCards(10);
     setIsModalOpen(true);
     setActiveMenuId(null);
+  };
+
+  // Edit Cards Modal Functions
+  const openEditCardsModal = (deck: Deck) => {
+    setEditCardsModalDeck(deck);
+    setEditCardsModalOpen(true);
+    setActiveMenuId(null);
+  };
+
+  const closeEditCardsModal = () => {
+    setEditCardsModalOpen(false);
+    setEditCardsModalDeck(null);
+    setEditingCardId(null);
+    setEditCardFront('');
+    setEditCardBack('');
+    setEditCardContext('');
+  };
+
+  const startEditCard = (card: Card) => {
+    setEditingCardId(card.id);
+    setEditCardFront(card.front);
+    setEditCardBack(card.back);
+    setEditCardContext(card.context || '');
+  };
+
+  const cancelEditCard = () => {
+    setEditingCardId(null);
+    setEditCardFront('');
+    setEditCardBack('');
+    setEditCardContext('');
+  };
+
+  const saveEditCard = () => {
+    if (!editCardsModalDeck || !editingCardId) return;
+
+    const updatedCards = editCardsModalDeck.cards.map(card =>
+      card.id === editingCardId
+        ? { ...card, front: editCardFront, back: editCardBack, context: editCardContext }
+        : card
+    );
+
+    const updatedDeck = { ...editCardsModalDeck, cards: updatedCards };
+    onEditDeck(updatedDeck);
+    setEditCardsModalDeck(updatedDeck);
+    cancelEditCard();
+  };
+
+  const deleteCard = (cardId: string) => {
+    if (!editCardsModalDeck) return;
+    if (!confirm('Sigur vrei să ștergi acest card?')) return;
+
+    const updatedCards = editCardsModalDeck.cards.filter(card => card.id !== cardId);
+    const updatedDeck = {
+      ...editCardsModalDeck,
+      cards: updatedCards,
+      totalCards: updatedCards.length,
+    };
+    onEditDeck(updatedDeck);
+    setEditCardsModalDeck(updatedDeck);
+  };
+
+  const addNewCard = () => {
+    if (!editCardsModalDeck) return;
+
+    const newCard: Card = {
+      id: `card-${Date.now()}`,
+      front: 'Întrebare nouă',
+      back: 'Răspuns nou',
+      context: '',
+      type: 'standard',
+      status: 'new',
+    };
+
+    const updatedCards = [...editCardsModalDeck.cards, newCard];
+    const updatedDeck = {
+      ...editCardsModalDeck,
+      cards: updatedCards,
+      totalCards: updatedCards.length,
+    };
+    onEditDeck(updatedDeck);
+    setEditCardsModalDeck(updatedDeck);
+    startEditCard(newCard);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -349,20 +442,33 @@ const DeckList: React.FC<DeckListProps> = ({
                     <Sparkles size={18} /> Generează Carduri
                   </button>
                 ) : (
-                  <button
-                    onClick={() => onStartSession(deck)}
-                    className="flex-1 bg-white hover:bg-gray-900 hover:text-white border border-gray-900 text-gray-900 font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2"
-                  >
-                    {hasProgress ? (
-                      <>
-                        Continuă <ArrowRight size={18} />
-                      </>
-                    ) : (
-                      <>
-                        Studiază <Play size={18} fill="currentColor" />
-                      </>
-                    )}
-                  </button>
+                  <>
+                    <button
+                      onClick={e => {
+                        e.stopPropagation();
+                        openEditCardsModal(deck);
+                      }}
+                      className="px-4 py-3 bg-white border-2 border-gray-200 text-gray-600 rounded-xl hover:border-indigo-200 hover:text-indigo-600 hover:bg-indigo-50 transition-colors font-bold flex items-center gap-2"
+                      title="Modifică Carduri"
+                    >
+                      <List size={18} />
+                      <span className="hidden sm:inline">Modifică</span>
+                    </button>
+                    <button
+                      onClick={() => onStartSession(deck)}
+                      className="flex-1 bg-white hover:bg-gray-900 hover:text-white border border-gray-900 text-gray-900 font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2"
+                    >
+                      {hasProgress ? (
+                        <>
+                          Continuă <ArrowRight size={18} />
+                        </>
+                      ) : (
+                        <>
+                          Studiază <Play size={18} fill="currentColor" />
+                        </>
+                      )}
+                    </button>
+                  </>
                 )}
               </div>
             </div>
@@ -531,6 +637,157 @@ const DeckList: React.FC<DeckListProps> = ({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Cards Modal */}
+      {editCardsModalOpen && editCardsModalDeck && (
+        <div
+          className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4 backdrop-blur-sm"
+          onClick={closeEditCardsModal}
+        >
+          <div
+            className="bg-white rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-hidden shadow-2xl animate-scale-up flex flex-col"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Modifică Carduri</h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  {editCardsModalDeck.title} • {editCardsModalDeck.cards.length} carduri
+                </p>
+              </div>
+              <button
+                onClick={closeEditCardsModal}
+                className="text-gray-400 hover:text-gray-900 p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Cards List */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              {editCardsModalDeck.cards.length === 0 ? (
+                <div className="text-center py-12 text-gray-400">
+                  <p className="font-medium">Niciun card în acest deck</p>
+                  <p className="text-sm mt-1">Adaugă primul card folosind butonul de mai jos</p>
+                </div>
+              ) : (
+                editCardsModalDeck.cards.map((card, index) => (
+                  <div
+                    key={card.id}
+                    className="bg-gray-50 rounded-xl p-4 border border-gray-200 hover:border-indigo-300 transition-colors"
+                  >
+                    {editingCardId === card.id ? (
+                      // Edit Mode
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
+                            Față (Întrebare)
+                          </label>
+                          <input
+                            type="text"
+                            className="w-full border-2 border-gray-200 bg-white rounded-lg p-2 font-medium focus:border-indigo-500 outline-none"
+                            value={editCardFront}
+                            onChange={e => setEditCardFront(e.target.value)}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
+                            Spate (Răspuns)
+                          </label>
+                          <input
+                            type="text"
+                            className="w-full border-2 border-gray-200 bg-white rounded-lg p-2 font-medium focus:border-indigo-500 outline-none"
+                            value={editCardBack}
+                            onChange={e => setEditCardBack(e.target.value)}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
+                            Context (Opțional)
+                          </label>
+                          <input
+                            type="text"
+                            className="w-full border-2 border-gray-200 bg-white rounded-lg p-2 font-medium focus:border-indigo-500 outline-none"
+                            value={editCardContext}
+                            onChange={e => setEditCardContext(e.target.value)}
+                            placeholder="Ex: propoziție exemplu"
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={saveEditCard}
+                            className="flex-1 bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+                          >
+                            <Save size={16} /> Salvează
+                          </button>
+                          <button
+                            onClick={cancelEditCard}
+                            className="flex-1 bg-white border-2 border-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
+                          >
+                            Anulează
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      // View Mode
+                      <div>
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="text-xs font-bold text-gray-400 uppercase">
+                            Card #{index + 1}
+                          </span>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => startEditCard(card)}
+                              className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                              title="Editează"
+                            >
+                              <Edit size={16} />
+                            </button>
+                            <button
+                              onClick={() => deleteCard(card.id)}
+                              className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Șterge"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <div>
+                            <p className="text-xs font-bold text-gray-500">Întrebare:</p>
+                            <p className="text-sm font-medium text-gray-900">{card.front}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-gray-500">Răspuns:</p>
+                            <p className="text-sm font-medium text-gray-900">{card.back}</p>
+                          </div>
+                          {card.context && (
+                            <div>
+                              <p className="text-xs font-bold text-gray-500">Context:</p>
+                              <p className="text-sm text-gray-600 italic">{card.context}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="p-6 border-t border-gray-100">
+              <button
+                onClick={addNewCard}
+                className="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
+              >
+                <Plus size={20} /> Adaugă Card Nou
+              </button>
+            </div>
           </div>
         </div>
       )}

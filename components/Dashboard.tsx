@@ -44,15 +44,21 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
     // Format time spent
     const hours = (user.totalTimeSpent / 60).toFixed(1);
 
+    // Calculate active vs completed decks
+    const activeDecks = decks.filter(d => d.masteredCards < d.totalCards && d.totalCards > 0);
+    const completedDecks = decks.filter(d => d.masteredCards === d.totalCards && d.totalCards > 0);
+
     return {
-      totalCardsLearned: user.totalCardsLearned,
+      totalCardsLearned: user.totalCardsLearned || totalMastered,
       totalTimeSpentFormatted: `${hours}h`,
       successRate: `${successRate}%`,
       streak: user.streak,
       longestStreak: user.longestStreak,
       totalXP: user.totalXP,
       level: user.level,
-      totalDecksCompleted: user.totalDecksCompleted,
+      totalDecksCompleted: user.totalDecksCompleted || completedDecks.length,
+      activeDecksCount: activeDecks.length,
+      completedDecksCount: completedDecks.length,
     };
   }, [user, decks]);
 
@@ -76,12 +82,31 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
     });
   }, [user.totalCardsLearned, user.totalTimeSpent]);
 
-  // Get recent decks studied
+  // Get recent decks studied (for Recent Activity section)
   const recentDecks = useMemo(() => {
     return decks
       .filter(d => d.lastStudied)
       .sort((a, b) => new Date(b.lastStudied!).getTime() - new Date(a.lastStudied!).getTime())
       .slice(0, 2);
+  }, [decks]);
+
+  // Get active decks for Active Decks section (sorted by recent activity or progress)
+  const activeDecksDisplay = useMemo(() => {
+    return decks
+      .filter(d => d.totalCards > 0 && d.masteredCards < d.totalCards) // Only active (not completed) decks
+      .sort((a, b) => {
+        // Sort by lastStudied if available, otherwise by progress
+        if (a.lastStudied && b.lastStudied) {
+          return new Date(b.lastStudied).getTime() - new Date(a.lastStudied).getTime();
+        }
+        if (a.lastStudied) return -1;
+        if (b.lastStudied) return 1;
+        // Fall back to progress percentage
+        const aProgress = (a.masteredCards / a.totalCards) * 100;
+        const bProgress = (b.masteredCards / b.totalCards) * 100;
+        return bProgress - aProgress;
+      })
+      .slice(0, 3);
   }, [decks]);
 
   return (
@@ -109,7 +134,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
           value={stats.totalCardsLearned}
           icon={BookOpen}
           iconColor="text-indigo-500"
-          subtext={`${stats.totalDecksCompleted} deck-uri completate`}
+          subtext={`${stats.activeDecksCount} active | ${stats.completedDecksCount} finalizate`}
         />
         <StatCard
           label="Timp Petrecut"
@@ -203,57 +228,69 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
         <div className="bg-[#F8F6F1] p-6 rounded-2xl">
           <h2 className="text-lg font-bold text-gray-900 mb-6">Deck-uri Active</h2>
           <div className="space-y-4">
-            {decks.length > 0 ? (
-              decks.slice(0, 3).map(deck => {
+            {activeDecksDisplay.length > 0 ? (
+              activeDecksDisplay.map(deck => {
                 const percentage =
                   deck.totalCards > 0
                     ? Math.round((deck.masteredCards / deck.totalCards) * 100)
                     : 0;
+                const remaining = deck.totalCards - deck.masteredCards;
                 return (
                   <div
                     key={deck.id}
-                    className="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow cursor-pointer flex justify-between items-center"
+                    className="bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                     onClick={() => onStartSession(deck)}
                   >
-                    <div>
-                      <h3 className="font-bold text-gray-900">{deck.title}</h3>
-                      <p className="text-xs text-gray-500 mt-1">{deck.totalCards} carduri</p>
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1">
+                        <h3 className="font-bold text-gray-900">{deck.title}</h3>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {deck.masteredCards}/{deck.totalCards} carduri • {remaining} rămase
+                        </p>
+                      </div>
+                      {/* Circular Progress */}
+                      <div className="relative w-12 h-12 flex-shrink-0 ml-3">
+                        <svg className="w-full h-full transform -rotate-90">
+                          <circle
+                            cx="24"
+                            cy="24"
+                            r="20"
+                            stroke="#F3F4F6"
+                            strokeWidth="4"
+                            fill="transparent"
+                          />
+                          <circle
+                            cx="24"
+                            cy="24"
+                            r="20"
+                            stroke={
+                              percentage > 66 ? '#22C55E' : percentage > 33 ? '#F59E0B' : '#3B82F6'
+                            }
+                            strokeWidth="4"
+                            fill="transparent"
+                            strokeDasharray={126}
+                            strokeDashoffset={126 - (126 * percentage) / 100}
+                            className="transition-all duration-1000 ease-out"
+                          />
+                        </svg>
+                        <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold">
+                          {percentage}%
+                        </span>
+                      </div>
                     </div>
-
-                    {/* Circular Progress */}
-                    <div className="relative w-12 h-12">
-                      <svg className="w-full h-full transform -rotate-90">
-                        <circle
-                          cx="24"
-                          cy="24"
-                          r="20"
-                          stroke="#F3F4F6"
-                          strokeWidth="4"
-                          fill="transparent"
-                        />
-                        <circle
-                          cx="24"
-                          cy="24"
-                          r="20"
-                          stroke="#1F2937"
-                          strokeWidth="4"
-                          fill="transparent"
-                          strokeDasharray={126}
-                          strokeDashoffset={126 - (126 * percentage) / 100}
-                          className="transition-all duration-1000 ease-out"
-                        />
-                      </svg>
-                      <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold">
-                        {percentage}%
-                      </span>
-                    </div>
+                    {deck.lastStudied && (
+                      <p className="text-xs text-green-600 font-medium">
+                        Studiat: {getTimeAgo(deck.lastStudied)}
+                      </p>
+                    )}
                   </div>
                 );
               })
             ) : (
               <div className="text-center py-8 text-gray-400">
                 <BookOpen size={32} className="mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Niciun deck disponibil</p>
+                <p className="text-sm">Niciun deck activ</p>
+                <p className="text-xs mt-1">Creează un deck nou pentru a începe</p>
               </div>
             )}
           </div>
