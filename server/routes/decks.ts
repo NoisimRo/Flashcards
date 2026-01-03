@@ -248,7 +248,7 @@ router.get('/:id/cards', authenticateToken, async (req: Request, res: Response) 
       [id]
     );
 
-    let responseData: any = {
+    const responseData: any = {
       cards: cardsResult.rows.map(formatCard),
     };
 

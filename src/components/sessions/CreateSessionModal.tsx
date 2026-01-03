@@ -170,7 +170,9 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
               />
               <div className="flex-1">
                 <span className="font-semibold text-gray-900">Exclude carduri învățate</span>
-                <p className="text-xs text-gray-600">Nu include carduri cu status "mastered"</p>
+                <p className="text-xs text-gray-600">
+                  Nu include carduri cu status &quot;mastered&quot;
+                </p>
               </div>
             </label>
           </div>
