@@ -431,7 +431,7 @@ const DeckList: React.FC<DeckListProps> = ({
                   </button>
                 )}
 
-                {deck.totalCards === 0 || !deck.cards || deck.cards.length === 0 ? (
+                {!deck.cards || deck.cards.length === 0 ? (
                   <button
                     onClick={e => {
                       e.stopPropagation();

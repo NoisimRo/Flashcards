@@ -151,7 +151,7 @@ const StudySessionPlayer: React.FC<StudySessionPlayerProps> = ({
       });
 
       // Complete session
-      const success = await completeSession(sessionId, {
+      const result = await completeSession(sessionId, {
         score,
         correctCount,
         incorrectCount,
@@ -160,10 +160,21 @@ const StudySessionPlayer: React.FC<StudySessionPlayerProps> = ({
         cardProgressUpdates,
       });
 
-      if (success) {
-        toast.success(
-          `Sesiune completată! Scor: ${score}% (${correctCount}/${totalCards} corecte)`
-        );
+      if (result) {
+        // Show level up notification if applicable
+        if (result.leveledUp) {
+          toast.success(
+            `🎉 LEVEL UP! Nivel ${result.oldLevel} → ${result.newLevel}! +${result.xpEarned} XP`
+          );
+        } else if (result.xpEarned > 0) {
+          toast.success(
+            `Sesiune completată! +${result.xpEarned} XP | Scor: ${score}% (${correctCount}/${totalCards} corecte)`
+          );
+        } else {
+          toast.success(
+            `Sesiune completată! Scor: ${score}% (${correctCount}/${totalCards} corecte)`
+          );
+        }
         onFinish();
       } else {
         toast.error('Eroare la finalizarea sesiunii');
