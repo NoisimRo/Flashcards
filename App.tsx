@@ -10,6 +10,10 @@ import StudySession from './components/StudySession';
 import Achievements from './components/Achievements';
 import Leaderboard from './components/Leaderboard';
 import Settings from './components/Settings';
+// New session components
+import CreateSessionModal from './src/components/sessions/CreateSessionModal';
+import ActiveSessionsList from './src/components/sessions/ActiveSessionsList';
+import StudySessionPlayer from './src/components/sessions/StudySessionPlayer';
 import { MOCK_DECKS, MOCK_ACHIEVEMENTS, LEADERBOARD_DATA } from './constants';
 import { Deck, Card, SessionData, User } from './types';
 import { Menu, X, Loader2 } from 'lucide-react';
@@ -110,6 +114,11 @@ function adaptDeckFromAPI(apiDeck: {
   totalCards?: number;
   masteredCards?: number;
   lastStudied?: string;
+  ownerId?: string;
+  isPublic?: boolean;
+  tags?: string[];
+  createdAt?: string;
+  updatedAt?: string;
   cards?: Array<{
     id: string;
     front: string;
@@ -120,7 +129,13 @@ function adaptDeckFromAPI(apiDeck: {
     correctOptionIndex?: number;
     status?: string;
   }>;
-}): Deck {
+}): Deck & {
+  ownerId: string;
+  isPublic: boolean;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+} {
   return {
     id: apiDeck.id,
     title: apiDeck.title,
@@ -141,6 +156,12 @@ function adaptDeckFromAPI(apiDeck: {
     masteredCards: apiDeck.masteredCards || 0,
     lastStudied: apiDeck.lastStudied,
     sessionData: undefined,
+    // New required fields for session components
+    ownerId: apiDeck.ownerId || 'unknown',
+    isPublic: apiDeck.isPublic ?? false,
+    tags: apiDeck.tags || [],
+    createdAt: apiDeck.createdAt || new Date().toISOString(),
+    updatedAt: apiDeck.updatedAt || new Date().toISOString(),
   };
 }
 
@@ -159,6 +180,11 @@ function AppContent() {
   const [decks, setDecks] = useState<Deck[]>(MOCK_DECKS); // Start with mock decks for guests
   const [isLoadingDecks, setIsLoadingDecks] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Session management states
+  const [showCreateSessionModal, setShowCreateSessionModal] = useState(false);
+  const [selectedDeckForSession, setSelectedDeckForSession] = useState<Deck | null>(null);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
 
   // Auth modal states
   const [showAuthPage, setShowAuthPage] = useState(false);
@@ -210,8 +236,8 @@ function AppContent() {
   // --- ACTIONS ---
 
   const handleStartSession = (deck: Deck) => {
-    setActiveDeck(deck);
-    setCurrentView('study');
+    // Use new session architecture
+    handleCreateSession(deck);
   };
 
   const handleResetDeck = (deckId: string) => {
@@ -472,6 +498,33 @@ function AppContent() {
     setShowLoginPrompt(false);
   };
 
+  // --- SESSION MANAGEMENT ---
+  const handleCreateSession = (deck: Deck) => {
+    if (isGuest) {
+      promptLogin('Sesiuni de Studiu', 'Creează un cont pentru a salva progresul sesiunilor tale.');
+      return;
+    }
+    setSelectedDeckForSession(deck);
+    setShowCreateSessionModal(true);
+  };
+
+  const handleSessionCreated = (sessionId: string) => {
+    setShowCreateSessionModal(false);
+    setSelectedDeckForSession(null);
+    setActiveSessionId(sessionId);
+    setCurrentView('session-player');
+  };
+
+  const handleResumeSession = (sessionId: string) => {
+    setActiveSessionId(sessionId);
+    setCurrentView('session-player');
+  };
+
+  const handleCloseSession = () => {
+    setActiveSessionId(null);
+    setCurrentView('sessions');
+  };
+
   // --- LOADING STATE ---
   if (authLoading) {
     return (
@@ -568,6 +621,19 @@ function AppContent() {
             onLogin={handleLoginClick}
           />
         );
+      case 'sessions':
+        return <ActiveSessionsList onResumeSession={handleResumeSession} />;
+      case 'session-player':
+        return activeSessionId ? (
+          <StudySessionPlayer
+            sessionId={activeSessionId}
+            user={user}
+            onFinish={handleCloseSession}
+            onBack={handleCloseSession}
+          />
+        ) : (
+          <ActiveSessionsList onResumeSession={handleResumeSession} />
+        );
       default:
         return (
           <Dashboard
@@ -626,6 +692,18 @@ function AppContent() {
 
         {renderContent()}
       </main>
+
+      {/* Create Session Modal */}
+      {showCreateSessionModal && selectedDeckForSession && (
+        <CreateSessionModal
+          deck={selectedDeckForSession}
+          onClose={() => {
+            setShowCreateSessionModal(false);
+            setSelectedDeckForSession(null);
+          }}
+          onSessionCreated={handleSessionCreated}
+        />
+      )}
 
       {/* Login Prompt Modal */}
       <LoginPromptModal

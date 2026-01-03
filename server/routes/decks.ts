@@ -193,6 +193,109 @@ router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
 });
 
 // ============================================
+// GET /api/decks/:id/cards - Get cards for a deck
+// ============================================
+router.get('/:id/cards', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { includeProgress = 'false' } = req.query;
+
+    // Verify deck access
+    const deckResult = await query(
+      `SELECT d.*, (d.owner_id = $1) as is_owner
+       FROM decks d
+       WHERE d.id = $2 AND d.deleted_at IS NULL`,
+      [req.user!.id, id]
+    );
+
+    if (deckResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'NOT_FOUND',
+          message: 'Deck-ul nu a fost găsit',
+        },
+      });
+    }
+
+    const deck = deckResult.rows[0];
+
+    // Check access
+    const hasAccess =
+      deck.owner_id === req.user!.id || deck.is_public || req.user!.role === 'admin';
+
+    if (!hasAccess) {
+      const shareResult = await query(
+        'SELECT 1 FROM deck_shares WHERE deck_id = $1 AND user_id = $2',
+        [id, req.user!.id]
+      );
+      if (shareResult.rows.length === 0) {
+        return res.status(403).json({
+          success: false,
+          error: {
+            code: 'FORBIDDEN',
+            message: 'Nu ai acces la acest deck',
+          },
+        });
+      }
+    }
+
+    // Get cards
+    const cardsResult = await query(
+      `SELECT * FROM cards
+       WHERE deck_id = $1 AND deleted_at IS NULL
+       ORDER BY position ASC, created_at ASC`,
+      [id]
+    );
+
+    const responseData: any = {
+      cards: cardsResult.rows.map(formatCard),
+    };
+
+    // Include user progress if requested
+    if (includeProgress === 'true') {
+      const progressResult = await query(
+        `SELECT * FROM user_card_progress
+         WHERE user_id = $1 AND card_id = ANY($2::uuid[])`,
+        [req.user!.id, cardsResult.rows.map((c: any) => c.id)]
+      );
+
+      const progressMap: Record<string, any> = {};
+      progressResult.rows.forEach((p: any) => {
+        progressMap[p.card_id] = {
+          id: p.id,
+          status: p.status,
+          easeFactor: parseFloat(p.ease_factor),
+          interval: p.interval,
+          repetitions: p.repetitions,
+          nextReviewDate: p.next_review_date,
+          timesSeen: p.times_seen,
+          timesCorrect: p.times_correct,
+          timesIncorrect: p.times_incorrect,
+          lastReviewedAt: p.last_reviewed_at,
+        };
+      });
+
+      responseData.cardProgress = progressMap;
+    }
+
+    res.json({
+      success: true,
+      data: responseData,
+    });
+  } catch (error) {
+    console.error('Get deck cards error:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'SERVER_ERROR',
+        message: 'Eroare la obținerea cardurilor',
+      },
+    });
+  }
+});
+
+// ============================================
 // POST /api/decks - Create deck
 // ============================================
 router.post('/', authenticateToken, async (req: Request, res: Response) => {

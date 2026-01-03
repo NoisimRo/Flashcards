@@ -52,7 +52,7 @@ export async function initDatabase(): Promise<IDBDatabase> {
       if (!database.objectStoreNames.contains('sessions')) {
         const sessionsStore = database.createObjectStore('sessions', { keyPath: 'id' });
         sessionsStore.createIndex('deckId', 'deckId', { unique: false });
-        sessionsStore.createIndex('isCompleted', 'isCompleted', { unique: false });
+        sessionsStore.createIndex('status', 'status', { unique: false });
       }
 
       // Sync queue store
@@ -221,7 +221,7 @@ export async function getActiveSession(deckId: string): Promise<StudySession | n
   return new Promise((resolve, reject) => {
     const request = index.getAll(deckId);
     request.onsuccess = () => {
-      const sessions = request.result.filter((s: StudySession) => !s.isCompleted);
+      const sessions = request.result.filter((s: StudySession) => s.status === 'active');
       resolve(sessions[0] || null);
     };
     request.onerror = () => reject(request.error);

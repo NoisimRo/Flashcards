@@ -8,6 +8,7 @@ import {
   Settings,
   LogIn,
   UserPlus,
+  PlayCircle,
 } from 'lucide-react';
 import { User } from '../types';
 
@@ -35,6 +36,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'decks', label: 'Deck-urile Mele', icon: Layers },
+    { id: 'sessions', label: 'Sesiuni Active', icon: PlayCircle },
     { id: 'study', label: 'Studiază Acum', icon: BookOpen },
     { id: 'achievements', label: 'Realizări', icon: Trophy },
     { id: 'leaderboard', label: 'Clasament', icon: Users },
