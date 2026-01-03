@@ -1,7 +1,7 @@
 # TODO - Flashcards Development Roadmap
 
 > Prioritized list of features, improvements, and technical debt items.
-> Updated: December 2024
+> Updated: January 2026
 
 ---
 
@@ -164,6 +164,17 @@ _None - all critical blockers resolved!_
 ---
 
 ## Completed (Recent)
+
+- [x] **Session Architecture Refactoring** - Complete separation of library vs sessions (Jan 3, 2026)
+  - Implemented new study sessions architecture with 4 selection methods
+  - Created 3 new UI components (CreateSessionModal, ActiveSessionsList, StudySessionPlayer)
+  - Database migration: new tables (user_card_progress, refactored study_sessions)
+  - Per-user card progress tracking with SM-2 algorithm
+  - Auto-save session progress every 30 seconds
+  - Multiple concurrent sessions support
+  - Fixed deck title/topic display in session player
+  - Fixed hint persistence issue with React keys
+  - All database migrations successfully applied in production
 
 - [x] **Quiz Mode Flashcards** - Full quiz functionality (Jan 2, 2025)
   - Implemented quiz card type (60% standard, 40% quiz mix)
