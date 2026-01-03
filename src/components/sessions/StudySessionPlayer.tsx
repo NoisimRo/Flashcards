@@ -42,9 +42,9 @@ const StudySessionPlayer: React.FC<StudySessionPlayerProps> = ({
       // Transform session data to Deck format
       const deck: Deck = {
         id: currentSession.deckId || '',
-        title: currentSession.title,
-        subject: currentSession.deck?.subject || 'Necunoscut',
-        topic: currentSession.deck?.subjectName || '',
+        title: currentSession.deck?.title || currentSession.title,
+        subject: currentSession.deck?.subjectName || currentSession.deck?.subject || 'Necunoscut',
+        topic: currentSession.deck?.topic || '',
         difficulty: (currentSession.deck?.difficulty as any) || 'A2',
         cards: currentSession.cards.map(card => {
           const progress = currentSession.cardProgress?.[card.id];

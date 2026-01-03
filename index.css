@@ -1,0 +1,6 @@
+/* Tailwind base styles - pentru a evita erori 404 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Additional custom styles if needed */

@@ -4,13 +4,15 @@ Aplicatie interactiva de flashcards pentru elevi si profesori, optimizata pentru
 
 ## Caracteristici
 
-- Creare si gestionare deck-uri de flashcards
-- Sistem de invatare cu repetitie spatiata (SM-2)
-- Gamificare: XP, nivele, achievements, streak-uri
-- Generare automata de flashcards cu AI (Gemini)
-- Statistici detaliate si progres
-- Import/Export deck-uri
-- Sistem de autentificare JWT
+- **Sesiuni de Studiu Inteligente**: 4 metode de selectare (Random, Smart, Manual, All)
+- **Separare Bibliotecă vs Sesiune**: Deck-uri permanente + sesiuni de studiu independente
+- **Sistem de învățare cu repetitie spațiată (SM-2)**: Progres per utilizator
+- **Gamificare**: XP, nivele, achievements, streak-uri
+- **Generare automată de flashcards cu AI** (Gemini)
+- **Auto-save progres**: Salvare automată la fiecare 30 secunde
+- **Statistici detaliate** și progres per card
+- **Import/Export** deck-uri (JSON, CSV, Anki)
+- **Sistem de autentificare JWT** cu refresh tokens
 
 ## Tehnologii
 
@@ -133,13 +135,30 @@ API_KEY=your_gemini_api_key
 
 ## API Endpoints
 
-| Endpoint               | Metoda   | Descriere           |
-| ---------------------- | -------- | ------------------- |
-| `/api/health`          | GET      | Health check        |
-| `/api/auth/register`   | POST     | Inregistrare        |
-| `/api/auth/login`      | POST     | Autentificare       |
-| `/api/decks`           | GET/POST | Gestionare deck-uri |
-| `/api/decks/:id/cards` | GET/POST | Gestionare carduri  |
+### Autentificare
+
+| Endpoint             | Metoda | Descriere               |
+| -------------------- | ------ | ----------------------- |
+| `/api/auth/register` | POST   | Înregistrare utilizator |
+| `/api/auth/login`    | POST   | Autentificare           |
+| `/api/auth/refresh`  | POST   | Refresh access token    |
+
+### Deck-uri
+
+| Endpoint               | Metoda         | Descriere           |
+| ---------------------- | -------------- | ------------------- |
+| `/api/decks`           | GET/POST       | Listă / Creare deck |
+| `/api/decks/:id`       | GET/PUT/DELETE | Operații deck       |
+| `/api/decks/:id/cards` | GET/POST       | Gestionare carduri  |
+
+### Sesiuni de Studiu (NOU!)
+
+| Endpoint                           | Metoda   | Descriere                |
+| ---------------------------------- | -------- | ------------------------ |
+| `/api/study-sessions`              | GET/POST | Listă / Creare sesiune   |
+| `/api/study-sessions/:id`          | GET/PUT  | Detalii / Update progres |
+| `/api/study-sessions/:id/complete` | POST     | Finalizare sesiune       |
+| `/api/study-sessions/:id`          | DELETE   | Abandon sesiune          |
 
 ---
 
