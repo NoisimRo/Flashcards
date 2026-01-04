@@ -501,10 +501,16 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
 
       // Update card progress for each card
       let cardsLearned = 0;
+      let cardsMastered = 0;
 
       if (cardProgressUpdates && Array.isArray(cardProgressUpdates)) {
         for (const update of cardProgressUpdates) {
           const { cardId, wasCorrect } = update;
+
+          // Count cards learned (answered correctly, regardless of mastery status)
+          if (wasCorrect) {
+            cardsLearned++;
+          }
 
           // Get existing progress or create default
           const existingProgress = await client.query(
@@ -562,7 +568,7 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
             );
 
             if (sm2Update.status === 'mastered' && currentProgress.status !== 'mastered') {
-              cardsLearned++;
+              cardsMastered++;
             }
           } else {
             await client.query(
@@ -584,7 +590,7 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
             );
 
             if (sm2Update.status === 'mastered') {
-              cardsLearned++;
+              cardsMastered++;
             }
           }
         }
