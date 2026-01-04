@@ -179,7 +179,10 @@ describe('Data Accuracy Analysis', () => {
       };
 
       expect(deckListDataSources).toBeDefined();
-      console.log('\n📚 DECK-URILE MELE DATA SOURCES:\n', JSON.stringify(deckListDataSources, null, 2));
+      console.log(
+        '\n📚 DECK-URILE MELE DATA SOURCES:\n',
+        JSON.stringify(deckListDataSources, null, 2)
+      );
     });
   });
 
@@ -223,7 +226,10 @@ describe('Data Accuracy Analysis', () => {
       };
 
       expect(activeSessionsDataSources).toBeDefined();
-      console.log('\n🎮 SESIUNI ACTIVE DATA SOURCES:\n', JSON.stringify(activeSessionsDataSources, null, 2));
+      console.log(
+        '\n🎮 SESIUNI ACTIVE DATA SOURCES:\n',
+        JSON.stringify(activeSessionsDataSources, null, 2)
+      );
     });
   });
 
@@ -262,7 +268,10 @@ describe('Data Accuracy Analysis', () => {
       };
 
       expect(studyNowDataSources).toBeDefined();
-      console.log('\n📖 STUDIAZĂ ACUM DATA SOURCES:\n', JSON.stringify(studyNowDataSources, null, 2));
+      console.log(
+        '\n📖 STUDIAZĂ ACUM DATA SOURCES:\n',
+        JSON.stringify(studyNowDataSources, null, 2)
+      );
     });
   });
 
@@ -328,7 +337,10 @@ describe('Data Accuracy Analysis', () => {
       };
 
       expect(backendProgressTracking).toBeDefined();
-      console.log('\n🔧 BACKEND PROGRESS TRACKING:\n', JSON.stringify(backendProgressTracking, null, 2));
+      console.log(
+        '\n🔧 BACKEND PROGRESS TRACKING:\n',
+        JSON.stringify(backendProgressTracking, null, 2)
+      );
     });
   });
 
