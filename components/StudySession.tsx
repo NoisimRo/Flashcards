@@ -686,7 +686,7 @@ const StudySession: React.FC<StudySessionProps> = ({
               onClick={() => handleFinishWithXPSync(score, false)}
               className="text-gray-500 font-bold py-2 hover:text-gray-900 text-sm"
             >
-              Salvează și ieși
+              Continuă mai târziu
             </button>
           </div>
         </div>

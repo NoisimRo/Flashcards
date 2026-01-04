@@ -507,11 +507,6 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
         for (const update of cardProgressUpdates) {
           const { cardId, wasCorrect } = update;
 
-          // Count cards learned (answered correctly, regardless of mastery status)
-          if (wasCorrect) {
-            cardsLearned++;
-          }
-
           // Get existing progress or create default
           const existingProgress = await client.query(
             'SELECT * FROM user_card_progress WHERE user_id = $1 AND card_id = $2',
@@ -526,7 +521,18 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
               ease_factor: 2.5,
               interval: 0,
               repetitions: 0,
+              times_correct: 0,
             };
+          }
+
+          // Count cards learned (FIRST TIME answering correctly)
+          // Only increment if:
+          // 1. Card is new (no existing progress), OR
+          // 2. Card exists but never answered correctly before (times_correct = 0)
+          if (wasCorrect) {
+            if (existingProgress.rows.length === 0 || currentProgress.times_correct === 0) {
+              cardsLearned++;
+            }
           }
 
           // Calculate new values using SM-2
