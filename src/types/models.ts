@@ -150,13 +150,7 @@ export interface StudySession {
   incorrectCount: number;
   skippedCount: number;
   // Deck info (populated in list endpoints)
-  deck?: {
-    id: string;
-    title: string;
-    subject: string;
-    subjectName?: string;
-    topic?: string;
-  };
+  deck?: Partial<Deck>;
   // Metadata
   createdAt: string;
   updatedAt: string;

@@ -86,12 +86,8 @@ const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({ onResumeSession
                     {session.deck.subjectName && (
                       <span className="font-medium">{session.deck.subjectName}</span>
                     )}
-                    {session.deck.subjectName && session.deck.topic && (
-                      <span>•</span>
-                    )}
-                    {session.deck.topic && (
-                      <span>{session.deck.topic}</span>
-                    )}
+                    {session.deck.subjectName && session.deck.topic && <span>•</span>}
+                    {session.deck.topic && <span>{session.deck.topic}</span>}
                   </div>
                 )}
               </div>

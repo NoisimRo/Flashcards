@@ -23,10 +23,7 @@ router.get('/today', authenticateToken, async (req, res) => {
     // If no challenges exist for today, create them
     if (challenges.rows.length === 0) {
       // Get user level to adjust targets
-      const userResult = await query(
-        'SELECT level FROM users WHERE id = $1',
-        [userId]
-      );
+      const userResult = await query('SELECT level FROM users WHERE id = $1', [userId]);
       const userLevel = userResult.rows[0]?.level || 1;
 
       // Adjust targets based on level (higher level = higher targets)
@@ -60,10 +57,7 @@ router.get('/today', authenticateToken, async (req, res) => {
     };
 
     // Get user's current streak
-    const userResult = await query(
-      'SELECT streak FROM users WHERE id = $1',
-      [userId]
-    );
+    const userResult = await query('SELECT streak FROM users WHERE id = $1', [userId]);
     const currentStreak = userResult.rows[0]?.streak || 0;
 
     // Build response
@@ -183,10 +177,7 @@ router.post('/claim-reward', authenticateToken, async (req, res) => {
       isCompleted = timeSpent >= challenge.time_target;
       rewardXP = 30;
     } else if (challengeId === 'streak') {
-      const userResult = await query(
-        'SELECT streak FROM users WHERE id = $1',
-        [userId]
-      );
+      const userResult = await query('SELECT streak FROM users WHERE id = $1', [userId]);
       const currentStreak = userResult.rows[0]?.streak || 0;
       isCompleted = currentStreak >= 1;
       rewardXP = 100;

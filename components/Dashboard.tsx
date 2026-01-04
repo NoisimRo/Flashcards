@@ -1,6 +1,11 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import { User, Deck } from '../types';
-import { getTodaysChallenges, DailyChallenge, getActivityCalendar, ActivityDay } from '../src/api/dailyChallenges';
+import {
+  getTodaysChallenges,
+  DailyChallenge,
+  getActivityCalendar,
+  ActivityDay,
+} from '../src/api/dailyChallenges';
 import { getAchievements, Achievement } from '../src/api/achievements';
 import {
   Flame,
@@ -426,7 +431,8 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
                           {deck.title}
                         </h3>
                         <p className="text-sm text-white/80 mt-1">
-                          {deck.totalCards} carduri | {deck.totalCards - deck.masteredCards} în studiu | {deck.masteredCards} învățate
+                          {deck.totalCards} carduri | {deck.totalCards - deck.masteredCards} în
+                          studiu | {deck.masteredCards} învățate
                         </p>
                       </div>
                       <ChevronRight className="text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all" />
@@ -508,7 +514,8 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
                         {deck.title}
                       </h3>
                       <p className="text-xs text-gray-500">
-                        {deck.totalCards} carduri | {deck.totalCards - deck.masteredCards} în studiu | {deck.masteredCards} învățate
+                        {deck.totalCards} carduri | {deck.totalCards - deck.masteredCards} în studiu
+                        | {deck.masteredCards} învățate
                       </p>
                     </div>
                     <div className="relative w-14 h-14">

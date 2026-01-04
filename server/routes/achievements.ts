@@ -60,10 +60,7 @@ router.get('/', authenticateToken, async (req, res) => {
  * Check and unlock achievements for a user
  * Called internally after session completion
  */
-export async function checkAndUnlockAchievements(
-  client: any,
-  userId: string
-): Promise<any[]> {
+export async function checkAndUnlockAchievements(client: any, userId: string): Promise<any[]> {
   try {
     // Get user stats
     const userResult = await client.query(
