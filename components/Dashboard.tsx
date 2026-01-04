@@ -183,7 +183,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+    <div className="min-h-screen h-screen overflow-y-auto bg-gradient-to-br from-indigo-50 via-white to-purple-50">
       <div className="p-6 md:p-8 space-y-6 max-w-7xl mx-auto">
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
@@ -268,7 +268,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
               </div>
               <div>
                 <div className="text-3xl font-bold text-gray-900">{stats.totalCardsLearned}</div>
-                <div className="text-sm text-gray-500 font-medium">Carduri Învățate</div>
+                <div className="text-sm text-gray-500 font-medium">Carduri în Studiu</div>
               </div>
             </div>
             <div className="text-xs text-gray-400 font-medium">
@@ -287,7 +287,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
                 <div className="text-sm text-gray-500 font-medium">Rată de Succes</div>
               </div>
             </div>
-            <div className="text-xs text-gray-400 font-medium">Carduri stăpânite</div>
+            <div className="text-xs text-gray-400 font-medium">Carduri învățate</div>
           </div>
 
           {/* Time Spent */}
@@ -378,7 +378,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
                   'bg-green-600',
                 ];
                 const tooltipText = day.studied
-                  ? `${day.date}\n${day.cardsLearned} carduri învățate\n${day.timeSpent} min studiate`
+                  ? `${day.date}\n${day.cardsLearned} carduri în studiu\n${day.timeSpent} min studiate`
                   : day.date;
                 return (
                   <div
@@ -426,8 +426,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
                           {deck.title}
                         </h3>
                         <p className="text-sm text-white/80 mt-1">
-                          {deck.masteredCards}/{deck.totalCards} carduri ·{' '}
-                          {Math.round(deck.progress)}% progres
+                          {deck.totalCards} carduri | {deck.totalCards - deck.masteredCards} în studiu | {deck.masteredCards} învățate
                         </p>
                       </div>
                       <ChevronRight className="text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all" />
@@ -509,7 +508,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
                         {deck.title}
                       </h3>
                       <p className="text-xs text-gray-500">
-                        {deck.masteredCards}/{deck.totalCards} carduri
+                        {deck.totalCards} carduri | {deck.totalCards - deck.masteredCards} în studiu | {deck.masteredCards} învățate
                       </p>
                     </div>
                     <div className="relative w-14 h-14">

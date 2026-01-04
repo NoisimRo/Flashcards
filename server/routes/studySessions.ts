@@ -248,6 +248,7 @@ router.get('/', authenticateToken, async (req: Request, res: Response) => {
       `SELECT s.*,
               d.title as deck_title,
               d.subject_id,
+              d.topic as deck_topic,
               sub.name as subject_name
        FROM study_sessions s
        LEFT JOIN decks d ON s.deck_id = d.id
@@ -266,6 +267,7 @@ router.get('/', authenticateToken, async (req: Request, res: Response) => {
             title: row.deck_title,
             subject: row.subject_id,
             subjectName: row.subject_name,
+            topic: row.deck_topic,
           }
         : null,
     }));
