@@ -97,8 +97,11 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
 
   // Update session progress
   updateSessionProgress: async (id: string, progress: UpdateStudySessionRequest) => {
+    console.log('🔄 [Store] updateSessionProgress called', { id, progress });
     try {
+      console.log('📡 [Store] Sending PUT request to API...');
       const response = await sessionsApi.updateStudySession(id, progress);
+      console.log('✅ [Store] API response received:', response);
       if (response.success && response.data) {
         set(state => ({
           currentSession: state.currentSession
@@ -108,9 +111,11 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
             s.id === id ? { ...s, ...response.data } : s
           ),
         }));
+      } else {
+        console.error('❌ [Store] API response not successful:', response.error);
       }
     } catch (error) {
-      console.error('Error updating session progress:', error);
+      console.error('❌ [Store] Error updating session progress:', error);
     }
   },
 

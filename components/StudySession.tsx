@@ -120,6 +120,12 @@ const StudySession: React.FC<StudySessionProps> = ({
 
   // --- PERSISTENCE EFFECT ---
   useEffect(() => {
+    console.log('🔍 [StudySession] Persistence effect triggered', {
+      isFinished,
+      answers,
+      currentIndex,
+      sessionXP,
+    });
     if (!isFinished) {
       const data: SessionData = {
         answers,
@@ -129,6 +135,7 @@ const StudySession: React.FC<StudySessionProps> = ({
         currentIndex,
         shuffledOrder: activeCards.map(c => c.id),
       };
+      console.log('💾 [StudySession] Calling onSaveProgress with data:', data);
       onSaveProgress(deck.id, data);
     }
   }, [

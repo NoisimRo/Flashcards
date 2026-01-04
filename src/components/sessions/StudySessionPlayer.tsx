@@ -99,6 +99,11 @@ const StudySessionPlayer: React.FC<StudySessionPlayerProps> = ({
 
   const handleSaveProgress = useCallback(
     (deckId: string, data: SessionData) => {
+      console.log('📥 [StudySessionPlayer] handleSaveProgress called', {
+        sessionId,
+        deckId,
+        data,
+      });
       // Update local state
       setLocalDeck(prev =>
         prev
@@ -110,6 +115,12 @@ const StudySessionPlayer: React.FC<StudySessionPlayerProps> = ({
       );
 
       // Debounced save to backend
+      console.log('🚀 [StudySessionPlayer] Calling updateSessionProgress with:', {
+        currentCardIndex: data.currentIndex,
+        answers: data.answers,
+        streak: data.streak,
+        sessionXP: data.sessionXP,
+      });
       updateSessionProgress(sessionId, {
         currentCardIndex: data.currentIndex,
         answers: data.answers,
