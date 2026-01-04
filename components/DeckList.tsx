@@ -413,7 +413,7 @@ const DeckList: React.FC<DeckListProps> = ({
               </div>
               <div className="flex justify-between text-xs text-gray-500 mb-6 font-medium">
                 <span>Progres: {percentage}%</span>
-                <span>{deck.totalCards - deck.masteredCards} rămase</span>
+                <span>{deck.totalCards - deck.masteredCards} în studiu</span>
               </div>
 
               {/* Action Buttons */}

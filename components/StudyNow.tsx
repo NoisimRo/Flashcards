@@ -99,7 +99,7 @@ const StudyNow: React.FC<StudyNowProps> = ({ decks, onStartSession }) => {
                   <div className="mb-4">
                     <div className="flex justify-between text-xs text-gray-600 mb-2">
                       <span>{deck.masteredCards} învățate</span>
-                      <span>{remaining} rămase</span>
+                      <span>{remaining} în studiu</span>
                     </div>
                     <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
                       <div

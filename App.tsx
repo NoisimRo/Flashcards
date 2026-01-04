@@ -703,7 +703,7 @@ function AppContent() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 h-full overflow-hidden relative">
+      <main className="flex-1 h-full overflow-y-auto relative">
         {/* Mobile Overlay */}
         {isMobileMenuOpen && (
           <div

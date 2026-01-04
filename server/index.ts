@@ -16,6 +16,8 @@ import usersRoutes from './routes/users.js';
 import decksRoutes from './routes/decks.js';
 import studySessionsRoutes from './routes/studySessions.js';
 import importExportRoutes from './routes/import-export.js';
+import dailyChallengesRoutes from './routes/dailyChallenges.js';
+import achievementsRoutes from './routes/achievements.js';
 
 const app = express();
 
@@ -75,6 +77,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/decks', decksRoutes);
 app.use('/api/study-sessions', studySessionsRoutes);
+app.use('/api/daily-challenges', dailyChallengesRoutes);
+app.use('/api/achievements', achievementsRoutes);
 app.use('/api/import', importExportRoutes);
 app.use('/api/export', importExportRoutes);
 

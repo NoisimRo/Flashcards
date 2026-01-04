@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { query, withTransaction } from '../db/index.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { selectCardsForSession, calculateSM2Update } from '../services/cardSelectionService.js';
+import { checkAndUnlockAchievements } from './achievements.js';
 
 const router = Router();
 
@@ -247,6 +248,7 @@ router.get('/', authenticateToken, async (req: Request, res: Response) => {
       `SELECT s.*,
               d.title as deck_title,
               d.subject_id,
+              d.topic as deck_topic,
               sub.name as subject_name
        FROM study_sessions s
        LEFT JOIN decks d ON s.deck_id = d.id
@@ -265,6 +267,7 @@ router.get('/', authenticateToken, async (req: Request, res: Response) => {
             title: row.deck_title,
             subject: row.subject_id,
             subjectName: row.subject_name,
+            topic: row.deck_topic,
           }
         : null,
     }));
@@ -501,6 +504,7 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
 
       // Update card progress for each card
       let cardsLearned = 0;
+      let cardsMastered = 0;
 
       if (cardProgressUpdates && Array.isArray(cardProgressUpdates)) {
         for (const update of cardProgressUpdates) {
@@ -520,7 +524,18 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
               ease_factor: 2.5,
               interval: 0,
               repetitions: 0,
+              times_correct: 0,
             };
+          }
+
+          // Count cards learned (FIRST TIME answering correctly)
+          // Only increment if:
+          // 1. Card is new (no existing progress), OR
+          // 2. Card exists but never answered correctly before (times_correct = 0)
+          if (wasCorrect) {
+            if (existingProgress.rows.length === 0 || currentProgress.times_correct === 0) {
+              cardsLearned++;
+            }
           }
 
           // Calculate new values using SM-2
@@ -562,7 +577,7 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
             );
 
             if (sm2Update.status === 'mastered' && currentProgress.status !== 'mastered') {
-              cardsLearned++;
+              cardsMastered++;
             }
           } else {
             await client.query(
@@ -584,7 +599,7 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
             );
 
             if (sm2Update.status === 'mastered') {
-              cardsLearned++;
+              cardsMastered++;
             }
           }
         }
@@ -639,6 +654,24 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
         ]
       );
 
+      // Update daily progress (for daily challenges and streak calendar)
+      const today = new Date().toISOString().split('T')[0];
+      await client.query(
+        `INSERT INTO daily_progress
+           (user_id, date, cards_learned, time_spent_minutes, xp_earned, sessions_completed)
+         VALUES ($1, $2, $3, $4, $5, 1)
+         ON CONFLICT (user_id, date)
+         DO UPDATE SET
+           cards_learned = daily_progress.cards_learned + $3,
+           time_spent_minutes = daily_progress.time_spent_minutes + $4,
+           xp_earned = daily_progress.xp_earned + $5,
+           sessions_completed = daily_progress.sessions_completed + 1`,
+        [req.user!.id, today, cardsLearned, durationMinutes, sessionXP]
+      );
+
+      // Check and unlock achievements
+      const newAchievements = await checkAndUnlockAchievements(client, req.user!.id);
+
       return {
         session: updatedSession.rows[0],
         cardsLearned,
@@ -646,6 +679,7 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
         leveledUp,
         oldLevel: currentUser.level,
         newLevel,
+        newAchievements,
       };
     });
 
@@ -657,7 +691,7 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
         leveledUp: result.leveledUp,
         oldLevel: result.oldLevel,
         newLevel: result.newLevel,
-        newAchievements: [],
+        newAchievements: result.newAchievements || [],
         streakUpdated: false,
         newStreak: 0,
         cardsLearned: result.cardsLearned,

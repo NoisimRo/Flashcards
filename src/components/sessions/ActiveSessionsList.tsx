@@ -81,6 +81,15 @@ const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({ onResumeSession
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1">
                 <h4 className="font-bold text-gray-900">{session.title}</h4>
+                {session.deck && (
+                  <div className="flex items-center gap-2 mt-1 text-sm text-gray-600">
+                    {session.deck.subjectName && (
+                      <span className="font-medium">{session.deck.subjectName}</span>
+                    )}
+                    {session.deck.subjectName && session.deck.topic && <span>•</span>}
+                    {session.deck.topic && <span>{session.deck.topic}</span>}
+                  </div>
+                )}
               </div>
               <div className="flex gap-2">
                 <button

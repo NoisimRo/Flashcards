@@ -1,5 +1,12 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { User, Deck } from '../types';
+import {
+  getTodaysChallenges,
+  DailyChallenge,
+  getActivityCalendar,
+  ActivityDay,
+} from '../src/api/dailyChallenges';
+import { getAchievements, Achievement } from '../src/api/achievements';
 import {
   Flame,
   Clock,
@@ -36,6 +43,54 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onChangeView }) => {
+  // State for daily challenges
+  const [dailyChallenges, setDailyChallenges] = useState<DailyChallenge[]>([]);
+  const [challengesLoading, setChallengesLoading] = useState(true);
+
+  // State for activity calendar
+  const [activityCalendar, setActivityCalendar] = useState<ActivityDay[]>([]);
+  const [calendarLoading, setCalendarLoading] = useState(true);
+
+  // State for achievements
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [achievementsLoading, setAchievementsLoading] = useState(true);
+
+  // Fetch daily challenges, activity calendar, and achievements on mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [challengesResponse, calendarResponse, achievementsResponse] = await Promise.all([
+          getTodaysChallenges(),
+          getActivityCalendar(),
+          getAchievements(),
+        ]);
+
+        if (challengesResponse.success) {
+          setDailyChallenges(challengesResponse.data.challenges);
+        }
+
+        if (calendarResponse.success) {
+          setActivityCalendar(calendarResponse.data.calendar);
+        }
+
+        if (achievementsResponse.success) {
+          setAchievements(achievementsResponse.data.achievements);
+        }
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+        setDailyChallenges([]);
+        setActivityCalendar([]);
+        setAchievements([]);
+      } finally {
+        setChallengesLoading(false);
+        setCalendarLoading(false);
+        setAchievementsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   // Calculate stats from real data
   const stats = useMemo(() => {
     const totalMastered = decks.reduce((sum, deck) => sum + deck.masteredCards, 0);
@@ -69,24 +124,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
     };
   }, [user, decks]);
 
-  // Generate study streak calendar (last 28 days)
-  const streakCalendar = useMemo(() => {
-    const calendar = [];
-    const today = new Date();
-    for (let i = 27; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
-      // Simplified: assume studied if within streak period
-      const isStudied = i < user.streak;
-      calendar.push({
-        date: date.toISOString().split('T')[0],
-        studied: isStudied,
-        intensity: isStudied ? Math.min(Math.floor(Math.random() * 3) + 1, 3) : 0,
-      });
-    }
-    return calendar;
-  }, [user.streak]);
-
   // Get decks needing review (low progress)
   const decksNeedingReview = useMemo(() => {
     return decks
@@ -99,55 +136,47 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
       .slice(0, 3);
   }, [decks]);
 
-  // Mock daily challenges
-  const dailyChallenges = useMemo(() => {
-    const cardsToday = Math.floor(Math.random() * 20) + 10;
-    const timeToday = Math.floor(Math.random() * 30) + 15;
-    return [
-      {
-        id: 1,
-        title: 'Învață 30 carduri noi',
-        progress: cardsToday,
-        target: 30,
-        icon: BookOpen,
-        color: 'from-blue-500 to-blue-600',
-        reward: 50,
-      },
-      {
-        id: 2,
-        title: 'Studiază 20 de minute',
-        progress: timeToday,
-        target: 20,
-        icon: Clock,
-        color: 'from-purple-500 to-purple-600',
-        reward: 30,
-      },
-      {
-        id: 3,
-        title: 'Menține streak-ul',
-        progress: user.streak >= 1 ? 1 : 0,
-        target: 1,
-        icon: Flame,
-        color: 'from-orange-500 to-red-600',
-        reward: 100,
-      },
-    ];
-  }, [user.streak]);
+  // Map icon names to icon components
+  const getIconComponent = (iconName: string) => {
+    const icons: Record<string, any> = {
+      BookOpen,
+      Clock,
+      Flame,
+    };
+    return icons[iconName] || BookOpen;
+  };
 
-  // Recent achievements (mock - could be from API)
+  // Map icon names to emojis for achievements
+  const getAchievementEmoji = (iconName: string) => {
+    const emojiMap: Record<string, string> = {
+      target: '🎯',
+      star: '⭐',
+      zap: '⚡',
+      library: '📚',
+      flame: '🔥',
+      diamond: '💎',
+      crown: '👑',
+      calendar: '📅',
+    };
+    return emojiMap[iconName] || '🏆';
+  };
+
+  // Recent achievements (unlocked, sorted by unlock date, limit 3)
   const recentAchievements = useMemo(() => {
-    const achievements = [];
-    if (user.streak >= 7) {
-      achievements.push({ icon: '🔥', title: 'Streak de 7 zile', color: 'bg-orange-100' });
-    }
-    if (stats.totalCardsLearned >= 100) {
-      achievements.push({ icon: '🎓', title: '100 carduri învățate', color: 'bg-blue-100' });
-    }
-    if (stats.level >= 5) {
-      achievements.push({ icon: '⭐', title: `Nivel ${stats.level}`, color: 'bg-yellow-100' });
-    }
-    return achievements.slice(0, 3);
-  }, [user.streak, stats.totalCardsLearned, stats.level]);
+    return achievements
+      .filter(a => a.unlocked)
+      .sort((a, b) => {
+        const dateA = a.unlockedAt ? new Date(a.unlockedAt).getTime() : 0;
+        const dateB = b.unlockedAt ? new Date(b.unlockedAt).getTime() : 0;
+        return dateB - dateA; // Most recent first
+      })
+      .slice(0, 3)
+      .map(a => ({
+        icon: getAchievementEmoji(a.icon),
+        title: a.title,
+        color: a.color || 'bg-gray-100',
+      }));
+  }, [achievements]);
 
   // Radial chart data for XP progress
   const radialData = [
@@ -159,7 +188,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+    <div className="min-h-screen h-screen overflow-y-auto bg-gradient-to-br from-indigo-50 via-white to-purple-50">
       <div className="p-6 md:p-8 space-y-6 max-w-7xl mx-auto">
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
@@ -244,7 +273,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
               </div>
               <div>
                 <div className="text-3xl font-bold text-gray-900">{stats.totalCardsLearned}</div>
-                <div className="text-sm text-gray-500 font-medium">Carduri Învățate</div>
+                <div className="text-sm text-gray-500 font-medium">Carduri în Studiu</div>
               </div>
             </div>
             <div className="text-xs text-gray-400 font-medium">
@@ -263,7 +292,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
                 <div className="text-sm text-gray-500 font-medium">Rată de Succes</div>
               </div>
             </div>
-            <div className="text-xs text-gray-400 font-medium">Carduri stăpânite</div>
+            <div className="text-xs text-gray-400 font-medium">Carduri învățate</div>
           </div>
 
           {/* Time Spent */}
@@ -296,7 +325,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
             </div>
             <div className="space-y-4">
               {dailyChallenges.map(challenge => {
-                const ChallengeIcon = challenge.icon;
+                const ChallengeIcon = getIconComponent(challenge.icon);
                 const progress = Math.min((challenge.progress / challenge.target) * 100, 100);
                 const completed = challenge.progress >= challenge.target;
                 return (
@@ -346,18 +375,21 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
               <h2 className="text-lg font-bold text-gray-900">Activitate (28 zile)</h2>
             </div>
             <div className="grid grid-cols-7 gap-1.5">
-              {streakCalendar.map((day, idx) => {
+              {activityCalendar.map((day, idx) => {
                 const intensityColors = [
                   'bg-gray-100',
                   'bg-green-200',
                   'bg-green-400',
                   'bg-green-600',
                 ];
+                const tooltipText = day.studied
+                  ? `${day.date}\n${day.cardsLearned} carduri în studiu\n${day.timeSpent} min studiate`
+                  : day.date;
                 return (
                   <div
                     key={idx}
                     className={`aspect-square rounded-md ${intensityColors[day.intensity]} transition-all hover:scale-110 cursor-pointer`}
-                    title={day.date}
+                    title={tooltipText}
                   />
                 );
               })}
@@ -399,8 +431,8 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
                           {deck.title}
                         </h3>
                         <p className="text-sm text-white/80 mt-1">
-                          {deck.masteredCards}/{deck.totalCards} carduri ·{' '}
-                          {Math.round(deck.progress)}% progres
+                          {deck.totalCards} carduri | {deck.totalCards - deck.masteredCards} în
+                          studiu | {deck.masteredCards} învățate
                         </p>
                       </div>
                       <ChevronRight className="text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all" />
@@ -482,7 +514,8 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
                         {deck.title}
                       </h3>
                       <p className="text-xs text-gray-500">
-                        {deck.masteredCards}/{deck.totalCards} carduri
+                        {deck.totalCards} carduri | {deck.totalCards - deck.masteredCards} în studiu
+                        | {deck.masteredCards} învățate
                       </p>
                     </div>
                     <div className="relative w-14 h-14">
