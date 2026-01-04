@@ -17,5 +17,13 @@
     },
     "allowImportingTsExtensions": true,
     "noEmit": true
-  }
+  },
+  "include": ["src/**/*", "components/**/*", "server/**/*", "tests/**/*", "*.ts", "*.tsx"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.timestamp-*.mjs",
+    "**/.vite",
+    "**/vite.config.ts.timestamp-*"
+  ]
 }
