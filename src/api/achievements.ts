@@ -1,21 +1,4 @@
-import axios from 'axios';
-import { API_BASE_URL } from '../config';
-
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Add auth token to requests
-api.interceptors.request.use(config => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+import { api } from './client';
 
 export interface Achievement {
   id: string;
@@ -43,7 +26,6 @@ export interface AchievementsResponse {
 /**
  * Get all achievements with user's unlock status
  */
-export async function getAchievements(): Promise<AchievementsResponse> {
-  const response = await api.get('/api/achievements');
-  return response.data;
+export async function getAchievements() {
+  return api.get<AchievementsResponse['data']>('/achievements');
 }

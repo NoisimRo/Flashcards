@@ -1,6 +1,6 @@
 import express from 'express';
-import { pool } from '../db';
-import { authMiddleware } from '../middleware/auth';
+import { query } from '../db/index.js';
+import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -8,13 +8,13 @@ const router = express.Router();
  * GET /api/daily-challenges/today
  * Get today's daily challenges for the authenticated user
  */
-router.get('/today', authMiddleware, async (req, res) => {
+router.get('/today', authenticateToken, async (req, res) => {
   try {
     const userId = req.user!.id;
     const today = new Date().toISOString().split('T')[0];
 
     // Get or create today's challenges
-    let challenges = await pool.query(
+    let challenges = await query(
       `SELECT * FROM daily_challenges
        WHERE user_id = $1 AND date = $2`,
       [userId, today]
@@ -23,7 +23,7 @@ router.get('/today', authMiddleware, async (req, res) => {
     // If no challenges exist for today, create them
     if (challenges.rows.length === 0) {
       // Get user level to adjust targets
-      const userResult = await pool.query(
+      const userResult = await query(
         'SELECT level FROM users WHERE id = $1',
         [userId]
       );
@@ -33,7 +33,7 @@ router.get('/today', authMiddleware, async (req, res) => {
       const cardsTarget = Math.min(30 + Math.floor(userLevel / 2) * 5, 50);
       const timeTarget = Math.min(20 + Math.floor(userLevel / 3) * 5, 45);
 
-      const newChallenges = await pool.query(
+      const newChallenges = await query(
         `INSERT INTO daily_challenges
          (user_id, date, cards_target, time_target)
          VALUES ($1, $2, $3, $4)
@@ -47,7 +47,7 @@ router.get('/today', authMiddleware, async (req, res) => {
     const challenge = challenges.rows[0];
 
     // Get today's actual progress from daily_progress table
-    const progressResult = await pool.query(
+    const progressResult = await query(
       `SELECT cards_learned, time_spent_minutes
        FROM daily_progress
        WHERE user_id = $1 AND date = $2`,
@@ -60,7 +60,7 @@ router.get('/today', authMiddleware, async (req, res) => {
     };
 
     // Get user's current streak
-    const userResult = await pool.query(
+    const userResult = await query(
       'SELECT streak FROM users WHERE id = $1',
       [userId]
     );
@@ -123,7 +123,7 @@ router.get('/today', authMiddleware, async (req, res) => {
  * POST /api/daily-challenges/claim-reward
  * Claim reward for a completed challenge
  */
-router.post('/claim-reward', authMiddleware, async (req, res) => {
+router.post('/claim-reward', authenticateToken, async (req, res) => {
   try {
     const userId = req.user!.id;
     const { challengeId } = req.body;
@@ -138,7 +138,7 @@ router.post('/claim-reward', authMiddleware, async (req, res) => {
     }
 
     // Get today's challenges
-    const challengesResult = await pool.query(
+    const challengesResult = await query(
       `SELECT * FROM daily_challenges
        WHERE user_id = $1 AND date = $2`,
       [userId, today]
@@ -167,7 +167,7 @@ router.post('/claim-reward', authMiddleware, async (req, res) => {
     let rewardXP = 0;
 
     if (challengeId === 'cards') {
-      const progressResult = await pool.query(
+      const progressResult = await query(
         'SELECT cards_learned FROM daily_progress WHERE user_id = $1 AND date = $2',
         [userId, today]
       );
@@ -175,7 +175,7 @@ router.post('/claim-reward', authMiddleware, async (req, res) => {
       isCompleted = cardsLearned >= challenge.cards_target;
       rewardXP = 50;
     } else if (challengeId === 'time') {
-      const progressResult = await pool.query(
+      const progressResult = await query(
         'SELECT time_spent_minutes FROM daily_progress WHERE user_id = $1 AND date = $2',
         [userId, today]
       );
@@ -183,7 +183,7 @@ router.post('/claim-reward', authMiddleware, async (req, res) => {
       isCompleted = timeSpent >= challenge.time_target;
       rewardXP = 30;
     } else if (challengeId === 'streak') {
-      const userResult = await pool.query(
+      const userResult = await query(
         'SELECT streak FROM users WHERE id = $1',
         [userId]
       );
@@ -200,7 +200,7 @@ router.post('/claim-reward', authMiddleware, async (req, res) => {
     }
 
     // Claim reward: Update challenge and award XP
-    await pool.query(
+    await query(
       `UPDATE daily_challenges
        SET ${rewardClaimedField} = true,
            updated_at = NOW()
@@ -209,7 +209,7 @@ router.post('/claim-reward', authMiddleware, async (req, res) => {
     );
 
     // Award XP to user (same level-up logic as session completion)
-    const userResult = await pool.query(
+    const userResult = await query(
       'SELECT level, current_xp, next_level_xp FROM users WHERE id = $1',
       [userId]
     );
@@ -227,7 +227,7 @@ router.post('/claim-reward', authMiddleware, async (req, res) => {
       newNextLevelXP = Math.floor(newNextLevelXP * 1.2);
     }
 
-    await pool.query(
+    await query(
       `UPDATE users
        SET total_xp = total_xp + $1,
            current_xp = $2,
@@ -260,12 +260,12 @@ router.post('/claim-reward', authMiddleware, async (req, res) => {
  * GET /api/daily-challenges/activity-calendar
  * Get last 28 days of activity for streak calendar
  */
-router.get('/activity-calendar', authMiddleware, async (req, res) => {
+router.get('/activity-calendar', authenticateToken, async (req, res) => {
   try {
     const userId = req.user!.id;
 
     // Get last 28 days of daily_progress
-    const activityResult = await pool.query(
+    const activityResult = await query(
       `SELECT date, cards_learned, time_spent_minutes, sessions_completed
        FROM daily_progress
        WHERE user_id = $1
@@ -278,8 +278,8 @@ router.get('/activity-calendar', authMiddleware, async (req, res) => {
     // Create calendar for last 28 days
     const calendar = [];
     const today = new Date();
-    const activityMap = new Map(
-      activityResult.rows.map(row => [row.date.toISOString().split('T')[0], row])
+    const activityMap = new Map<string, any>(
+      activityResult.rows.map((row: any) => [row.date.toISOString().split('T')[0], row])
     );
 
     for (let i = 27; i >= 0; i--) {
@@ -287,7 +287,7 @@ router.get('/activity-calendar', authMiddleware, async (req, res) => {
       date.setDate(date.getDate() - i);
       const dateStr = date.toISOString().split('T')[0];
 
-      const activity = activityMap.get(dateStr);
+      const activity: any = activityMap.get(dateStr);
       const studied = !!activity && (activity.cards_learned > 0 || activity.sessions_completed > 0);
 
       // Calculate intensity based on cards learned and time spent

@@ -229,6 +229,147 @@ _None - all critical blockers resolved!_
 
 ## Session Notes
 
+### January 4, 2026 - Data Accuracy & Real-Time Systems Implementation
+
+**Session Focus**: Resolve data accuracy issues and implement real-time gamification systems
+
+**Problems Identified**:
+
+1. "Carduri învățate" (total_cards_learned) always showing 0 despite correct answers
+2. Mock data displayed for Daily Challenges, Streak Calendar, and Achievements
+3. Dashboard and Active Sessions pages cutting off content (no scroll)
+4. Active Sessions tiles missing category and topic information
+5. Inconsistent terminology: "learned" vs "mastered" labels throughout app
+6. Multiple TypeScript and ESLint errors after implementation
+
+**Root Cause Analysis**:
+
+**Total Cards Learned Issue:**
+- Backend was incrementing total_cards_learned on every correct answer
+- Problem: Same card counted multiple times in one session
+- Solution: Changed to count only unique cards (first-time correct answers only)
+- Modified cardsLearned calculation to use Set for uniqueness
+
+**Real-Time Data Systems:**
+- Daily Challenges, Streak Calendar, and Achievements were all using MOCK_* data
+- No backend endpoints existed for these features
+- Solution: Implemented complete backend + frontend integration:
+  - Created database migration for daily_challenges table
+  - Created /api/daily-challenges and /api/achievements endpoints
+  - Integrated real user stats for achievement unlocking
+  - Activity calendar tracks last 28 days from daily_progress table
+
+**UI/UX Issues:**
+- Main containers had `overflow-hidden` preventing scroll
+- Active Sessions API response didn't include deck topic
+- Label inconsistency across 6+ components
+
+**TypeScript/ESLint Errors:**
+- Used wrong import names (pool instead of query, authMiddleware instead of authenticateToken)
+- Created new API files with axios instead of using existing api client
+- StudySession type missing optional deck property
+- Case block with const declaration needed curly braces for ESLint compliance
+
+**Completed**:
+
+**Data Accuracy Fixes:**
+- ✅ Fixed total_cards_learned calculation in session completion (server/routes/studySessions.ts:626-631)
+  - Changed from totalCorrect to counting unique first-time correct cards only
+  - Uses Set to track unique card IDs: `const cardsLearned = [...new Set(firstTimeCorrectCards)].length`
+- ✅ Renamed "Salvează și ieși" → "Continuă mai târziu" for clarity
+
+**Real-Time Systems Implementation:**
+- ✅ Created database migration: `server/db/migrations/002_daily_challenges.sql`
+  - daily_challenges table with challenge tracking
+  - Indexes for efficient querying
+- ✅ Implemented Daily Challenges backend (server/routes/dailyChallenges.ts):
+  - GET /api/daily-challenges/today - Fetch 3 daily challenges
+  - POST /api/daily-challenges/claim-reward - Claim XP rewards
+  - GET /api/daily-challenges/activity-calendar - Last 28 days activity
+- ✅ Implemented Achievements backend (server/routes/achievements.ts):
+  - GET /api/achievements - All achievements with user unlock status
+  - checkAndUnlockAchievements() function called after session completion
+  - Checks 5 condition types: decks_completed, streak_days, cards_mastered, level_reached, decks_created
+- ✅ Created frontend API clients:
+  - src/api/dailyChallenges.ts - getTodaysChallenges(), claimChallengeReward(), getActivityCalendar()
+  - src/api/achievements.ts - getAchievements()
+- ✅ Updated Dashboard component (components/Dashboard.tsx):
+  - Integrated real Daily Challenges data
+  - Integrated real Activity Calendar with streak tracking
+  - Integrated real Achievements data with unlock status
+  - Removed all MOCK_* data usage
+
+**UI/UX Improvements:**
+- ✅ Added scroll functionality to Dashboard (h-screen overflow-y-auto)
+- ✅ Added scroll to all pages via App.tsx main container (overflow-y-auto)
+- ✅ Added category and topic display to Active Sessions tiles
+  - Backend: Added d.topic to SQL query in server/routes/studySessions.ts
+  - Frontend: Conditional rendering with bullet separator in ActiveSessionsList.tsx
+- ✅ Updated labels throughout entire app (6 components):
+  - "Carduri învățate" → "Carduri în studiu"
+  - "Carduri stăpânite" → "Carduri învățate"
+  - "rămase" → "în studiu"
+  - New format: "10 carduri | 7 în studiu | 3 învățate"
+
+**Error Fixes:**
+- ✅ Fixed import errors in server/routes/achievements.ts and dailyChallenges.ts
+  - Changed `import { pool }` → `import { query } from '../db/index.js'`
+  - Changed `import { authMiddleware }` → `import { authenticateToken } from '../middleware/auth.js'`
+- ✅ Fixed TypeScript type errors in server/routes/dailyChallenges.ts
+  - Added explicit type annotations: `const activity: any` and `Map<string, any>`
+- ✅ Fixed missing axios/config in frontend API files
+  - Replaced axios setup with existing centralized `api` client from `./client`
+  - Updated function signatures to use api.get/post pattern
+- ✅ Fixed missing deck property error in src/types/models.ts
+  - Extended StudySession interface with optional deck property
+- ✅ Fixed ESLint no-case-declarations error
+  - Wrapped case block with const declaration in curly braces
+
+**Files Modified**:
+
+Backend:
+- `server/db/migrations/002_daily_challenges.sql` - NEW: Daily challenges table
+- `server/routes/dailyChallenges.ts` - NEW: Daily challenges endpoints
+- `server/routes/achievements.ts` - NEW: Achievements endpoints + unlock logic
+- `server/routes/studySessions.ts` - Fixed cardsLearned calculation, added topic to response, integrated achievement checking
+- `server/index.ts` - Added routes: /api/daily-challenges, /api/achievements
+
+Frontend:
+- `src/api/dailyChallenges.ts` - NEW: Daily challenges API client
+- `src/api/achievements.ts` - NEW: Achievements API client
+- `components/Dashboard.tsx` - Integrated all real-time systems, added scroll, updated labels
+- `App.tsx` - Added scroll to main container
+- `src/components/sessions/ActiveSessionsList.tsx` - Added category/topic display
+- `components/DeckList.tsx` - Updated label "rămase" → "în studiu"
+- `components/StudyNow.tsx` - Updated label "rămase" → "în studiu"
+- `src/types/models.ts` - Added optional deck property to StudySession
+
+**Commits**:
+- `873516f` - feat: implement real-time data systems for Dashboard (Daily Challenges, Streak Calendar, Achievements)
+- `a043731` - fix: correct total_cards_learned to count unique cards only
+- `0ada026` - fix(sessions): correct cardsLearned calculation in session completion
+- _(Previous debugging commits for data accuracy investigation)_
+
+**Testing**:
+
+1. Complete study session → total_cards_learned should increase by unique correct cards only
+2. Dashboard → Daily Challenges should show 3 real challenges with progress
+3. Dashboard → Streak Calendar should show last 28 days activity
+4. Dashboard → Achievements should show real unlock status
+5. Active Sessions page → Should scroll if content exceeds viewport
+6. Active Sessions tiles → Should display subject name and topic (e.g., "Matematică • Ecuații")
+7. All pages → Labels should use "în studiu" and "învățate" consistently
+
+**Next Session Recommendations**:
+
+- Test real-time systems in production environment
+- Verify daily challenges reset at midnight
+- Test achievement unlocking across all condition types
+- Monitor daily_progress table population
+- Consider adding more achievement tiers (bronze/silver/gold/platinum)
+
+---
+
 ### January 3, 2026 - XP Sync, Session Save & Dashboard Stats Fix
 
 **Session Focus**: Resolve critical backend XP synchronization and session management issues

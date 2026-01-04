@@ -1,6 +1,6 @@
 import express from 'express';
-import { pool } from '../db';
-import { authMiddleware } from '../middleware/auth';
+import { query } from '../db/index.js';
+import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -8,12 +8,12 @@ const router = express.Router();
  * GET /api/achievements
  * Get all achievements with user's unlock status
  */
-router.get('/', authMiddleware, async (req, res) => {
+router.get('/', authenticateToken, async (req, res) => {
   try {
     const userId = req.user!.id;
 
     // Get all achievements with user unlock status
-    const achievementsResult = await pool.query(
+    const achievementsResult = await query(
       `SELECT
          a.*,
          ua.unlocked_at,
@@ -117,7 +117,7 @@ export async function checkAndUnlockAchievements(
           unlockConditionMet = user.level >= achievement.condition_value;
           break;
 
-        case 'decks_created':
+        case 'decks_created': {
           const decksCreatedResult = await client.query(
             'SELECT COUNT(*) as count FROM decks WHERE owner_id = $1 AND deleted_at IS NULL',
             [userId]
@@ -125,6 +125,7 @@ export async function checkAndUnlockAchievements(
           unlockConditionMet =
             parseInt(decksCreatedResult.rows[0].count) >= achievement.condition_value;
           break;
+        }
 
         case 'cards_per_minute':
           // This would need to be checked during session - skip for now

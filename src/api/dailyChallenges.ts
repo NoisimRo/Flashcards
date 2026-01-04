@@ -1,21 +1,4 @@
-import axios from 'axios';
-import { API_BASE_URL } from '../config';
-
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Add auth token to requests
-api.interceptors.request.use(config => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+import { api } from './client';
 
 export interface DailyChallenge {
   id: string;
@@ -50,21 +33,17 @@ export interface ClaimRewardResponse {
 /**
  * Get today's daily challenges
  */
-export async function getTodaysChallenges(): Promise<DailyChallengesResponse> {
-  const response = await api.get('/api/daily-challenges/today');
-  return response.data;
+export async function getTodaysChallenges() {
+  return api.get<DailyChallengesResponse['data']>('/daily-challenges/today');
 }
 
 /**
  * Claim reward for a completed challenge
  */
-export async function claimChallengeReward(
-  challengeId: string
-): Promise<ClaimRewardResponse> {
-  const response = await api.post('/api/daily-challenges/claim-reward', {
+export async function claimChallengeReward(challengeId: string) {
+  return api.post<ClaimRewardResponse['data']>('/daily-challenges/claim-reward', {
     challengeId,
   });
-  return response.data;
 }
 
 export interface ActivityDay {
@@ -85,7 +64,6 @@ export interface ActivityCalendarResponse {
 /**
  * Get activity calendar for last 28 days
  */
-export async function getActivityCalendar(): Promise<ActivityCalendarResponse> {
-  const response = await api.get('/api/daily-challenges/activity-calendar');
-  return response.data;
+export async function getActivityCalendar() {
+  return api.get<ActivityCalendarResponse['data']>('/daily-challenges/activity-calendar');
 }
