@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { query, withTransaction } from '../db/index.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { selectCardsForSession, calculateSM2Update } from '../services/cardSelectionService.js';
+import { checkAndUnlockAchievements } from './achievements.js';
 
 const router = Router();
 
@@ -651,6 +652,24 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
         ]
       );
 
+      // Update daily progress (for daily challenges and streak calendar)
+      const today = new Date().toISOString().split('T')[0];
+      await client.query(
+        `INSERT INTO daily_progress
+           (user_id, date, cards_learned, time_spent_minutes, xp_earned, sessions_completed)
+         VALUES ($1, $2, $3, $4, $5, 1)
+         ON CONFLICT (user_id, date)
+         DO UPDATE SET
+           cards_learned = daily_progress.cards_learned + $3,
+           time_spent_minutes = daily_progress.time_spent_minutes + $4,
+           xp_earned = daily_progress.xp_earned + $5,
+           sessions_completed = daily_progress.sessions_completed + 1`,
+        [req.user!.id, today, cardsLearned, durationMinutes, sessionXP]
+      );
+
+      // Check and unlock achievements
+      const newAchievements = await checkAndUnlockAchievements(client, req.user!.id);
+
       return {
         session: updatedSession.rows[0],
         cardsLearned,
@@ -658,6 +677,7 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
         leveledUp,
         oldLevel: currentUser.level,
         newLevel,
+        newAchievements,
       };
     });
 
@@ -669,7 +689,7 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
         leveledUp: result.leveledUp,
         oldLevel: result.oldLevel,
         newLevel: result.newLevel,
-        newAchievements: [],
+        newAchievements: result.newAchievements || [],
         streakUpdated: false,
         newStreak: 0,
         cardsLearned: result.cardsLearned,
