@@ -161,7 +161,7 @@ export interface StudySession {
  * Used when playing a session
  */
 export interface StudySessionWithData extends StudySession {
-  deck?: Deck; // Populated on demand
+  // deck inherited from StudySession (Partial<Deck>)
   cards?: Card[]; // The selected cards for this session
   cardProgress?: Record<string, UserCardProgress>; // Progress for cards in session
 }
