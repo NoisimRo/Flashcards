@@ -12,6 +12,8 @@ export const MOCK_USER: User = {
   totalTimeSpent: 510, // 8.5 hours
   totalCardsLearned: 247,
   totalDecksCompleted: 3,
+  totalCorrectAnswers: 195,
+  totalAnswers: 247,
 };
 
 export const MOCK_ACHIEVEMENTS: Achievement[] = [
