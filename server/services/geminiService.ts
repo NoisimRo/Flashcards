@@ -83,9 +83,7 @@ export const generateDeckWithAI = async (
 
   // Calculate distribution percentage
   const percentagePerType = Math.floor(100 / cardTypes.length);
-  const typeDistribution = cardTypes
-    .map(type => `${percentagePerType}% "${type}"`)
-    .join(', ');
+  const typeDistribution = cardTypes.map(type => `${percentagePerType}% "${type}"`).join(', ');
 
   const prompt = `
     Create ${numberOfCards} flashcards for 8th grade students preparing for the National Evaluation.

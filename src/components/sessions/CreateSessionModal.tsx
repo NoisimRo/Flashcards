@@ -227,14 +227,14 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                     type="button"
                     onClick={() =>
                       setSelectedCardIds(
-                        selectedCardIds.length === deckCards.length
-                          ? []
-                          : deckCards.map(c => c.id)
+                        selectedCardIds.length === deckCards.length ? [] : deckCards.map(c => c.id)
                       )
                     }
                     className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
                   >
-                    {selectedCardIds.length === deckCards.length ? 'Deselectează tot' : 'Selectează tot'}
+                    {selectedCardIds.length === deckCards.length
+                      ? 'Deselectează tot'
+                      : 'Selectează tot'}
                   </button>
                 )}
               </div>
@@ -259,7 +259,9 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                         className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mt-0.5"
                       />
                       <div className="flex-1 min-w-0">
-                        <span className="text-xs font-semibold text-gray-500">Card #{index + 1}</span>
+                        <span className="text-xs font-semibold text-gray-500">
+                          Card #{index + 1}
+                        </span>
                         <p className="text-sm text-gray-900 truncate">{card.front}</p>
                       </div>
                     </label>

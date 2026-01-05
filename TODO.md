@@ -246,6 +246,7 @@ _None - all critical blockers resolved!_
 **Root Cause Analysis**:
 
 **Card Type Architecture Issue:**
+
 - The application needed 3 distinct card types with different behaviors:
   1. **Standard**: Flip card only, no input required
   2. **Type-answer**: Must type answer (includes cloze deletion), input required
@@ -256,6 +257,7 @@ _None - all critical blockers resolved!_
 - No logic to distinguish when input should be required vs optional vs hidden
 
 **Design System Inconsistency:**
+
 - Active Sessions page used thin horizontal list items
 - Dashboard and Decks used volumetric cards with watermark icons
 - No unified visual language across pages
@@ -263,6 +265,7 @@ _None - all critical blockers resolved!_
 **Completed**:
 
 **Deep Card Type Refactor:**
+
 - ✅ Updated `types.ts` Card interface to support all 3 types:
   - Added `CardType = 'standard' | 'type-answer' | 'quiz'`
   - Added documentation explaining each type's purpose
@@ -283,6 +286,7 @@ _None - all critical blockers resolved!_
 - ✅ Updated geminiService.ts to generate all 3 types with dynamic distribution
 
 **Active Sessions Page Redesign:**
+
 - ✅ Complete refactor to match Dashboard/Decks visual language
 - ✅ Changed from thin horizontal list to volumetric cards:
   - Background: `bg-[#F8F6F1]` (warm beige like deck tiles)
@@ -309,6 +313,7 @@ _None - all critical blockers resolved!_
 - ✅ Action buttons match deck tile styling
 
 **Dashboard & Decks Enhancements:**
+
 - ✅ Fixed Dashboard tile data issues (card-stats API error handling)
 - ✅ Fixed Active Sessions tile to show session count (not deck count)
 - ✅ Fixed Success Rate to include all sessions (not just completed)
@@ -323,9 +328,11 @@ _None - all critical blockers resolved!_
 **Files Modified**:
 
 Core Types:
+
 - `types.ts` - Updated Card interface with CardType union, added documentation
 
 Frontend Components:
+
 - `components/StudySession.tsx` - Complete card type rendering logic overhaul
 - `components/DeckList.tsx` - Updated card type arrays to include type-answer
 - `src/components/sessions/StudySessionPlayer.tsx` - Removed type conversion hack
@@ -334,15 +341,18 @@ Frontend Components:
 - `components/Dashboard.tsx` - Card stats integration, session resuming, success rate fixes
 
 Backend:
+
 - `server/services/geminiService.ts` - Updated to generate all 3 card types
 - `server/routes/decks.ts` - Added cardTypes parameter to /api/decks/generate
 - `server/routes/studySessions.ts` - Incremental time/answer tracking
 - `server/routes/users.ts` - Card stats endpoint with error handling
 
 API:
+
 - `src/api/decks.ts` - Updated generateDeckWithAI to accept cardTypes parameter
 
 **Commits**:
+
 - `fix: implement incremental tracking for success rate and fix time double-counting`
 - `fix: resolve Dashboard tile data issues and improve error handling`
 - `fix: implement manual card selection UI to prevent 500 error`
@@ -383,6 +393,7 @@ API:
 9. ✅ ESLint → Should pass with no errors
 
 **Next Session Recommendations**:
+
 - Test all 3 card types in production environment
 - Verify type-answer input validation with various answer formats
 - Consider adding cloze deletion syntax (e.g., "The capital of France is {{Paris}}")

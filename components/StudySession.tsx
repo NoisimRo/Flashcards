@@ -571,7 +571,10 @@ const StudySession: React.FC<StudySessionProps> = ({
           break;
         case 'ArrowRight':
           // Strict mode: If already incorrect, Right Arrow just moves next
-          if ((currentCard.type === 'standard' || currentCard.type === 'type-answer') && isFlipped) {
+          if (
+            (currentCard.type === 'standard' || currentCard.type === 'type-answer') &&
+            isFlipped
+          ) {
             if (currentAnswer === 'incorrect') goToNext();
             else handleAnswer('correct');
           } else handleSkip();

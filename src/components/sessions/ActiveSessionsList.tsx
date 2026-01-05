@@ -1,5 +1,13 @@
 import React, { useEffect } from 'react';
-import { Play, Trash2, Shuffle, Brain, CheckSquare, List as ListIcon, BookOpen } from 'lucide-react';
+import {
+  Play,
+  Trash2,
+  Shuffle,
+  Brain,
+  CheckSquare,
+  List as ListIcon,
+  BookOpen,
+} from 'lucide-react';
 import { useStudySessionsStore } from '../../store/studySessionsStore';
 import { useToast } from '../ui/Toast';
 

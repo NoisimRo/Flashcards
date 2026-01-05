@@ -46,7 +46,9 @@ const DeckList: React.FC<DeckListProps> = ({
   const [difficulty, setDifficulty] = useState<Difficulty>('A2');
   const [importMode, setImportMode] = useState<'manual' | 'ai' | 'file'>('ai');
   const [numberOfCards, setNumberOfCards] = useState(10);
-  const [selectedCardTypes, setSelectedCardTypes] = useState<Array<'standard' | 'quiz' | 'type-answer'>>(['standard', 'quiz']);
+  const [selectedCardTypes, setSelectedCardTypes] = useState<
+    Array<'standard' | 'quiz' | 'type-answer'>
+  >(['standard', 'quiz']);
 
   // Edit Cards Modal State
   const [editCardsModalOpen, setEditCardsModalOpen] = useState(false);
@@ -215,7 +217,13 @@ const DeckList: React.FC<DeckListProps> = ({
       }> = [];
       if (importMode === 'ai') {
         try {
-          const response = await generateDeckWithAI(subject, title, difficulty, numberOfCards, selectedCardTypes);
+          const response = await generateDeckWithAI(
+            subject,
+            title,
+            difficulty,
+            numberOfCards,
+            selectedCardTypes
+          );
           if (response.success && response.data) {
             newCards.push(
               ...response.data.map((card, index) => ({
@@ -265,7 +273,13 @@ const DeckList: React.FC<DeckListProps> = ({
       }> = [];
       if (importMode === 'ai') {
         try {
-          const response = await generateDeckWithAI(subject, title, difficulty, numberOfCards, selectedCardTypes);
+          const response = await generateDeckWithAI(
+            subject,
+            title,
+            difficulty,
+            numberOfCards,
+            selectedCardTypes
+          );
           if (response.success && response.data) {
             newCards.push(
               ...response.data.map((card, index) => ({
@@ -408,13 +422,18 @@ const DeckList: React.FC<DeckListProps> = ({
                   {deck.subject}
                 </span>
                 <span className="px-3 py-1 rounded-full text-xs font-medium text-gray-600 bg-gray-200">
-                  {deck.difficulty} - {
-                    deck.difficulty === 'A1' ? 'Începător' :
-                    deck.difficulty === 'A2' ? 'Elementar' :
-                    deck.difficulty === 'B1' ? 'Intermediar' :
-                    deck.difficulty === 'B2' ? 'Intermediar Avansat' :
-                    deck.difficulty === 'C1' ? 'Avansat' : 'Expert'
-                  }
+                  {deck.difficulty} -{' '}
+                  {deck.difficulty === 'A1'
+                    ? 'Începător'
+                    : deck.difficulty === 'A2'
+                      ? 'Elementar'
+                      : deck.difficulty === 'B1'
+                        ? 'Intermediar'
+                        : deck.difficulty === 'B2'
+                          ? 'Intermediar Avansat'
+                          : deck.difficulty === 'C1'
+                            ? 'Avansat'
+                            : 'Expert'}
                 </span>
               </div>
 
@@ -483,7 +502,11 @@ const DeckList: React.FC<DeckListProps> = ({
                   }}
                   className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 text-sm"
                   disabled={!deck.cards || deck.cards.length === 0}
-                  title={deck.cards && deck.cards.length > 0 ? "Creează sesiune" : "Adaugă carduri mai întâi"}
+                  title={
+                    deck.cards && deck.cards.length > 0
+                      ? 'Creează sesiune'
+                      : 'Adaugă carduri mai întâi'
+                  }
                 >
                   <Play size={18} fill="currentColor" /> Creează sesiune
                 </button>
