@@ -398,7 +398,8 @@ const StudySession: React.FC<StudySessionProps> = ({
   }, [activeCards, currentIndex, answers, goToNext]);
 
   const handleQuizAnswer = (idx: number) => {
-    if (quizAnswered) return; // Prevent multiple answers
+    // STRICT MODE: Prevent answering if already answered (even after going back)
+    if (quizAnswered || currentAnswer) return;
 
     setSelectedQuizOption(idx);
     setQuizAnswered(true);
@@ -860,7 +861,7 @@ const StudySession: React.FC<StudySessionProps> = ({
         )}
 
         {currentCard.type === 'standard' || currentCard.type === 'type-answer' ? (
-          <div className="w-full max-w-lg aspect-[4/3.9] relative group">
+          <div className="w-full max-w-lg aspect-[4/3.9] relative group transform-style-3d">
             {/* Swipe Indicator LEFT - Înapoi */}
             <div
               className="absolute inset-0 bg-gradient-to-r from-blue-500/90 to-transparent rounded-[2rem] flex items-center justify-start px-8 pointer-events-none z-10"
@@ -1204,19 +1205,22 @@ const StudySession: React.FC<StudySessionProps> = ({
               {currentCard.options?.map((opt, idx) => {
                 const isSelected = selectedQuizOption === idx;
                 const isCorrect = idx === currentCard.correctOptionIndex;
-                const showCorrect = quizAnswered && isCorrect;
-                const showIncorrect = quizAnswered && isSelected && !isCorrect;
+                // Show feedback when currently answering OR when previously answered (strict mode)
+                const hasAnswered = quizAnswered || currentAnswer;
+                const showCorrect = hasAnswered && isCorrect;
+                const showIncorrect = hasAnswered && isSelected && !isCorrect;
 
                 return (
                   <button
                     key={idx}
                     onClick={() => handleQuizAnswer(idx)}
-                    disabled={quizAnswered}
+                    disabled={hasAnswered}
                     className={`w-full p-4 text-left border-2 rounded-xl transition-all font-medium active:scale-98 flex justify-between items-center
                       ${showCorrect ? 'bg-green-50 border-green-500 text-green-700' : ''}
                       ${showIncorrect ? 'bg-red-50 border-red-500 text-red-700' : ''}
-                      ${!quizAnswered ? 'border-transparent bg-gray-50 hover:bg-indigo-50 hover:border-indigo-500 text-gray-700' : ''}
-                      ${quizAnswered && !isSelected && !isCorrect ? 'opacity-50' : ''}
+                      ${!hasAnswered ? 'border-transparent bg-gray-50 hover:bg-indigo-50 hover:border-indigo-500 text-gray-700' : ''}
+                      ${hasAnswered && !isSelected && !isCorrect ? 'opacity-50' : ''}
+                      ${hasAnswered ? 'cursor-not-allowed' : ''}
                     `}
                   >
                     <span>{opt}</span>

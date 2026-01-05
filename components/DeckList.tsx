@@ -416,8 +416,8 @@ const DeckList: React.FC<DeckListProps> = ({
                       >
                         <Edit size={16} /> Editează deck
                       </button>
-                      {/* Editează carduri - Only show if has cards */}
-                      {deck.cards && deck.cards.length > 0 && (
+                      {/* Editează carduri - Show if deck has at least 1 card */}
+                      {deck.totalCards > 0 && (
                         <button
                           onClick={e => {
                             e.stopPropagation();
@@ -513,12 +513,8 @@ const DeckList: React.FC<DeckListProps> = ({
                     onStartSession(deck);
                   }}
                   className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={!deck.cards || deck.cards.length === 0}
-                  title={
-                    deck.cards && deck.cards.length > 0
-                      ? 'Creează sesiune'
-                      : 'Adaugă carduri mai întâi'
-                  }
+                  disabled={deck.totalCards === 0}
+                  title={deck.totalCards > 0 ? 'Creează sesiune' : 'Adaugă carduri mai întâi'}
                 >
                   <Play size={18} fill="currentColor" /> Creează sesiune
                 </button>
