@@ -259,63 +259,56 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Streak Card */}
           <div className="bg-gradient-to-br from-orange-500 to-red-600 p-6 rounded-2xl shadow-xl text-white relative overflow-hidden">
-            <div className="absolute top-0 right-0 opacity-10">
+            <div className="absolute top-1/2 right-4 -translate-y-1/2 opacity-10">
               <Flame size={120} />
             </div>
-            <div className="relative z-10">
-              <Flame size={24} className="mb-2" />
-              <div className="text-4xl font-bold mb-1">{stats.streak}</div>
-              <div className="text-sm opacity-90 font-medium">Zile consecutive</div>
-              <div className="text-xs opacity-75 mt-2">Record: {stats.longestStreak} zile</div>
+            <div className="relative z-10 flex flex-col">
+              <div className="text-5xl font-bold mb-2">{stats.streak}</div>
+              <div className="text-base font-bold mb-1">Zile consecutive</div>
+              <div className="text-sm opacity-90">Record: {stats.longestStreak} zile</div>
             </div>
           </div>
 
-          {/* Cards Learned */}
-          <div className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow border border-gray-100">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-3 bg-blue-100 rounded-xl">
-                <BookOpen size={24} className="text-blue-600" />
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-gray-900">{stats.totalCardsLearned}</div>
-                <div className="text-sm text-gray-500 font-medium">Carduri în Studiu</div>
-              </div>
+          {/* Sesiuni învățare active */}
+          <div className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow border border-gray-100 relative overflow-hidden">
+            <div className="absolute top-1/2 right-4 -translate-y-1/2 opacity-5">
+              <BookOpen size={120} className="text-blue-600" />
             </div>
-            <div className="text-xs text-gray-400 font-medium">
-              {stats.activeDecksCount} active · {stats.completedDecksCount} finalizate
+            <div className="relative z-10 flex flex-col">
+              <div className="text-5xl font-bold text-gray-900 mb-2">{stats.totalCardsLearned}</div>
+              <div className="text-base font-bold text-gray-700 mb-1">Sesiuni învățare active</div>
+              <div className="text-sm text-gray-500">
+                {stats.activeDecksCount} deck-uri | {stats.totalCardsLearned} în studiu | 0 învățate
+              </div>
             </div>
           </div>
 
           {/* Success Rate */}
-          <div className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow border border-gray-100">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-3 bg-green-100 rounded-xl">
-                <TrendingUp size={24} className="text-green-600" />
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-gray-900">{stats.successRate}</div>
-                <div className="text-sm text-gray-500 font-medium">Rată de Succes</div>
-              </div>
+          <div className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow border border-gray-100 relative overflow-hidden">
+            <div className="absolute top-1/2 right-4 -translate-y-1/2 opacity-5">
+              <TrendingUp size={120} className="text-green-600" />
             </div>
-            <div className="text-xs text-gray-400 font-medium">
-              {stats.totalCorrectAnswers} răspunse corect | {stats.totalAnswers} parcurse
+            <div className="relative z-10 flex flex-col">
+              <div className="text-5xl font-bold text-gray-900 mb-2">{stats.successRate}</div>
+              <div className="text-base font-bold text-gray-700 mb-1">Rata de Succes</div>
+              <div className="text-sm text-gray-500">
+                {stats.totalCorrectAnswers} răspunse corect | {stats.totalAnswers} parcurse
+              </div>
             </div>
           </div>
 
           {/* Time Spent */}
-          <div className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow border border-gray-100">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-3 bg-purple-100 rounded-xl">
-                <Clock size={24} className="text-purple-600" />
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-gray-900">
-                  {stats.totalTimeSpentFormatted}
-                </div>
-                <div className="text-sm text-gray-500 font-medium">Timp Petrecut</div>
-              </div>
+          <div className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow border border-gray-100 relative overflow-hidden">
+            <div className="absolute top-1/2 right-4 -translate-y-1/2 opacity-5">
+              <Clock size={120} className="text-purple-600" />
             </div>
-            <div className="text-xs text-gray-400 font-medium">Timp total de studiu</div>
+            <div className="relative z-10 flex flex-col">
+              <div className="text-5xl font-bold text-gray-900 mb-2">
+                {stats.totalTimeSpentFormatted}
+              </div>
+              <div className="text-base font-bold text-gray-700 mb-1">Timp petrecut</div>
+              <div className="text-sm text-gray-500">Timp total de studiu</div>
+            </div>
           </div>
         </div>
 
