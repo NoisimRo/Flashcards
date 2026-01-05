@@ -101,7 +101,8 @@ router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
     const result = await query(
       `SELECT id, email, name, avatar, role, level, current_xp, next_level_xp, total_xp,
               streak, longest_streak, total_time_spent, total_cards_learned,
-              total_decks_completed, preferences, created_at
+              total_decks_completed, total_correct_answers, total_answers,
+              preferences, created_at
        FROM users WHERE id = $1 AND deleted_at IS NULL`,
       [id]
     );
@@ -135,6 +136,8 @@ router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
         totalTimeSpent: user.total_time_spent,
         totalCardsLearned: user.total_cards_learned,
         totalDecksCompleted: user.total_decks_completed,
+        totalCorrectAnswers: user.total_correct_answers || 0,
+        totalAnswers: user.total_answers || 0,
         preferences: user.preferences,
         createdAt: user.created_at,
       },
@@ -203,7 +206,8 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
       `UPDATE users SET ${updates.join(', ')} WHERE id = $${paramIndex} AND deleted_at IS NULL
        RETURNING id, email, name, avatar, role, level, current_xp, next_level_xp, total_xp,
                  streak, longest_streak, total_time_spent, total_cards_learned,
-                 total_decks_completed, preferences, created_at`,
+                 total_decks_completed, total_correct_answers, total_answers,
+                 preferences, created_at`,
       values
     );
 
@@ -236,6 +240,8 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
         totalTimeSpent: user.total_time_spent,
         totalCardsLearned: user.total_cards_learned,
         totalDecksCompleted: user.total_decks_completed,
+        totalCorrectAnswers: user.total_correct_answers || 0,
+        totalAnswers: user.total_answers || 0,
         preferences: user.preferences,
         createdAt: user.created_at,
       },
@@ -440,7 +446,8 @@ router.post('/:id/xp', authenticateToken, async (req: Request, res: Response) =>
        WHERE id = $5 AND deleted_at IS NULL
        RETURNING id, email, name, avatar, role, level, current_xp, next_level_xp, total_xp,
                  streak, longest_streak, total_time_spent, total_cards_learned,
-                 total_decks_completed, preferences, created_at`,
+                 total_decks_completed, total_correct_answers, total_answers,
+                 preferences, created_at`,
       [newLevel, newCurrentXP, newNextLevelXP, newTotalXP, id]
     );
 
@@ -463,6 +470,8 @@ router.post('/:id/xp', authenticateToken, async (req: Request, res: Response) =>
         totalTimeSpent: updatedUser.total_time_spent,
         totalCardsLearned: updatedUser.total_cards_learned,
         totalDecksCompleted: updatedUser.total_decks_completed,
+        totalCorrectAnswers: updatedUser.total_correct_answers || 0,
+        totalAnswers: updatedUser.total_answers || 0,
         preferences: updatedUser.preferences,
         createdAt: updatedUser.created_at,
       },
@@ -474,6 +483,82 @@ router.post('/:id/xp', authenticateToken, async (req: Request, res: Response) =>
       error: {
         code: 'SERVER_ERROR',
         message: 'Eroare la actualizarea XP-ului',
+      },
+    });
+  }
+});
+
+// ============================================
+// GET /api/users/:id/card-stats - Get user card statistics by status
+// ============================================
+router.get('/:id/card-stats', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    // Users can only view their own stats unless admin/teacher
+    if (id !== req.user!.id && req.user!.role === 'student') {
+      return res.status(403).json({
+        success: false,
+        error: {
+          code: 'FORBIDDEN',
+          message: 'Nu ai permisiunea să vezi aceste statistici',
+        },
+      });
+    }
+
+    // Get card counts by status from user_card_progress
+    const cardStatusResult = await query(
+      `SELECT
+         status,
+         COUNT(*) as count
+       FROM user_card_progress
+       WHERE user_id = $1
+       GROUP BY status`,
+      [id]
+    );
+
+    // Build status map
+    const statusCounts = {
+      new: 0,
+      learning: 0,
+      reviewing: 0,
+      mastered: 0,
+    };
+
+    cardStatusResult.rows.forEach((row: any) => {
+      statusCounts[row.status as keyof typeof statusCounts] = parseInt(row.count);
+    });
+
+    // Calculate derived stats
+    const inStudy = statusCounts.learning + statusCounts.reviewing;
+    const mastered = statusCounts.mastered;
+
+    // Get total decks count
+    const decksResult = await query(
+      `SELECT COUNT(*) as total_decks
+       FROM decks
+       WHERE user_id = $1 AND deleted_at IS NULL`,
+      [id]
+    );
+
+    const totalDecks = parseInt(decksResult.rows[0]?.total_decks || 0);
+
+    res.json({
+      success: true,
+      data: {
+        statusCounts,
+        inStudy,
+        mastered,
+        totalDecks,
+      },
+    });
+  } catch (error) {
+    console.error('Get card stats error:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'SERVER_ERROR',
+        message: 'Eroare la obținerea statisticilor',
       },
     });
   }

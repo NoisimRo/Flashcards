@@ -50,6 +50,8 @@ export interface User {
   totalTimeSpent: number; // in minutes
   totalCardsLearned: number;
   totalDecksCompleted: number;
+  totalCorrectAnswers: number;
+  totalAnswers: number;
   // Preferences
   preferences?: {
     dailyGoal?: number;

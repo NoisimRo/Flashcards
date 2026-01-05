@@ -4,6 +4,43 @@ Guidelines for maintaining consistency across development sessions, whether huma
 
 ---
 
+## 🎯 Plan-First Development Protocol
+
+**CRITICAL WORKFLOW REQUIREMENT:**
+
+For any significant change (logic modifications, data source changes, architectural decisions):
+
+1. **Propose a Plan First**: Write a plain-text plan with rationale explaining:
+   - What will be changed and why
+   - The approach/strategy you'll use
+   - Potential impacts and trade-offs
+   - Files that will be modified
+
+2. **Wait for Approval**: The plan must be reviewed and approved (or modified) before implementation
+
+3. **Then Implement**: After approval, proceed with code changes and commit
+
+4. **PR Creation**: Pull requests are created only when explicitly requested
+
+5. **Update TODO.md**: When creating a PR, update TODO.md to ensure proper session handoff (CRUCIAL!)
+
+**Examples of changes requiring a plan:**
+
+- Changing calculation logic (e.g., success rate formula)
+- Modifying data sources (e.g., switching from mock to real API data)
+- Refactoring component hierarchy
+- Database schema changes
+- Adding new API endpoints
+
+**Examples that don't require a plan:**
+
+- Fixing typos or formatting
+- Updating documentation
+- Simple bug fixes with obvious solutions
+- Adding comments
+
+---
+
 ## ⚠️ CRITICAL: Formatting Before Every Commit
 
 **THIS IS MANDATORY** - Always run before committing:

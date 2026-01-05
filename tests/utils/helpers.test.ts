@@ -183,6 +183,8 @@ describe('User Type Validation', () => {
       totalTimeSpent: 0,
       totalCardsLearned: 0,
       totalDecksCompleted: 0,
+      totalCorrectAnswers: 0,
+      totalAnswers: 0,
     };
 
     expect(user.id).toBeDefined();

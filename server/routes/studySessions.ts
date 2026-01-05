@@ -376,12 +376,15 @@ router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
 router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { currentCardIndex, answers, streak, sessionXP } = req.body;
+    const { currentCardIndex, answers, streak, sessionXP, durationSeconds } = req.body;
 
-    // Verify ownership
-    const checkResult = await query('SELECT user_id FROM study_sessions WHERE id = $1', [id]);
+    // Get current session to calculate incremental time
+    const sessionResult = await query(
+      'SELECT user_id, duration_seconds FROM study_sessions WHERE id = $1',
+      [id]
+    );
 
-    if (checkResult.rows.length === 0) {
+    if (sessionResult.rows.length === 0) {
       return res.status(404).json({
         success: false,
         error: {
@@ -391,7 +394,9 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
       });
     }
 
-    if (checkResult.rows[0].user_id !== req.user!.id) {
+    const session = sessionResult.rows[0];
+
+    if (session.user_id !== req.user!.id) {
       return res.status(403).json({
         success: false,
         error: {
@@ -424,6 +429,25 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
     if (sessionXP !== undefined) {
       updateFields.push(`session_xp = $${paramIndex++}`);
       params.push(sessionXP);
+    }
+
+    // Handle incremental time tracking
+    if (durationSeconds !== undefined) {
+      updateFields.push(`duration_seconds = $${paramIndex++}`);
+      params.push(durationSeconds);
+
+      // Calculate incremental time (new duration - old duration)
+      const oldDurationSeconds = session.duration_seconds || 0;
+      const incrementalSeconds = Math.max(0, durationSeconds - oldDurationSeconds);
+      const incrementalMinutes = Math.floor(incrementalSeconds / 60);
+
+      // Update user's total time spent if there's incremental time
+      if (incrementalMinutes > 0) {
+        await query(
+          'UPDATE users SET total_time_spent = total_time_spent + $1, updated_at = NOW() WHERE id = $2',
+          [incrementalMinutes, req.user!.id]
+        );
+      }
     }
 
     updateFields.push(`last_activity_at = NOW()`);
@@ -505,10 +529,18 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
       // Update card progress for each card
       let cardsLearned = 0;
       let cardsMastered = 0;
+      let totalAnswersInSession = 0;
+      let correctAnswersInSession = 0;
 
       if (cardProgressUpdates && Array.isArray(cardProgressUpdates)) {
         for (const update of cardProgressUpdates) {
           const { cardId, wasCorrect } = update;
+
+          // Track total answers and correct answers for success rate calculation
+          totalAnswersInSession++;
+          if (wasCorrect) {
+            correctAnswersInSession++;
+          }
 
           // Get existing progress or create default
           const existingProgress = await client.query(
@@ -641,8 +673,10 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
              level = $4,
              next_level_xp = $5,
              total_time_spent = total_time_spent + $6,
+             total_correct_answers = total_correct_answers + $7,
+             total_answers = total_answers + $8,
              updated_at = NOW()
-         WHERE id = $7`,
+         WHERE id = $9`,
         [
           cardsLearned,
           sessionXP,
@@ -650,6 +684,8 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
           newLevel,
           newNextLevelXP,
           durationMinutes,
+          correctAnswersInSession,
+          totalAnswersInSession,
           req.user!.id,
         ]
       );

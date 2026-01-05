@@ -7,6 +7,9 @@ import {
   ActivityDay,
 } from '../src/api/dailyChallenges';
 import { getAchievements, Achievement } from '../src/api/achievements';
+import { getUserCardStats, CardStats } from '../src/api/users';
+import { getStudySessions } from '../src/api/studySessions';
+import type { StudySession } from '../src/types/models';
 import {
   Flame,
   Clock,
@@ -55,14 +58,30 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [achievementsLoading, setAchievementsLoading] = useState(true);
 
-  // Fetch daily challenges, activity calendar, and achievements on mount
+  // State for card stats
+  const [cardStats, setCardStats] = useState<CardStats | null>(null);
+  const [cardStatsLoading, setCardStatsLoading] = useState(true);
+
+  // State for active sessions
+  const [activeSessions, setActiveSessions] = useState<StudySession[]>([]);
+  const [activeSessionsLoading, setActiveSessionsLoading] = useState(true);
+
+  // Fetch daily challenges, activity calendar, achievements, card stats, and active sessions on mount
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [challengesResponse, calendarResponse, achievementsResponse] = await Promise.all([
+        const [
+          challengesResponse,
+          calendarResponse,
+          achievementsResponse,
+          cardStatsResponse,
+          activeSessionsResponse,
+        ] = await Promise.all([
           getTodaysChallenges(),
           getActivityCalendar(),
           getAchievements(),
+          getUserCardStats(user.id),
+          getStudySessions({ status: 'active', limit: 3 }),
         ]);
 
         if (challengesResponse.success) {
@@ -76,26 +95,40 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
         if (achievementsResponse.success) {
           setAchievements(achievementsResponse.data.achievements);
         }
+
+        if (cardStatsResponse.success) {
+          setCardStats(cardStatsResponse.data);
+        }
+
+        if (activeSessionsResponse.success) {
+          setActiveSessions(activeSessionsResponse.data);
+        }
       } catch (error) {
         console.error('Failed to fetch data:', error);
         setDailyChallenges([]);
         setActivityCalendar([]);
         setAchievements([]);
+        setCardStats(null);
+        setActiveSessions([]);
       } finally {
         setChallengesLoading(false);
         setCalendarLoading(false);
         setAchievementsLoading(false);
+        setCardStatsLoading(false);
+        setActiveSessionsLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [user.id]);
 
   // Calculate stats from real data
   const stats = useMemo(() => {
     const totalMastered = decks.reduce((sum, deck) => sum + deck.masteredCards, 0);
     const totalCards = decks.reduce((sum, deck) => sum + deck.totalCards, 0);
-    const successRate = totalCards > 0 ? Math.round((totalMastered / totalCards) * 100) : 0;
+    // Success rate based on correct answers / total answers (not mastered/total cards)
+    const successRate =
+      user.totalAnswers > 0 ? Math.round((user.totalCorrectAnswers / user.totalAnswers) * 100) : 0;
     const hours = (user.totalTimeSpent / 60).toFixed(1);
     const activeDecks = decks.filter(d => d.masteredCards < d.totalCards && d.totalCards > 0);
     const completedDecks = decks.filter(d => d.masteredCards === d.totalCards && d.totalCards > 0);
@@ -110,6 +143,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
       totalCardsLearned: user.totalCardsLearned || totalMastered,
       totalTimeSpentFormatted: `${hours}h`,
       successRate: `${successRate}%`,
+      successRateValue: successRate,
+      totalCorrectAnswers: user.totalCorrectAnswers || 0,
+      totalAnswers: user.totalAnswers || 0,
       streak: user.streak,
       longestStreak: user.longestStreak,
       totalXP: user.totalXP,
@@ -254,61 +290,59 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Streak Card */}
           <div className="bg-gradient-to-br from-orange-500 to-red-600 p-6 rounded-2xl shadow-xl text-white relative overflow-hidden">
-            <div className="absolute top-0 right-0 opacity-10">
+            <div className="absolute top-1/2 right-4 -translate-y-1/2 opacity-10">
               <Flame size={120} />
             </div>
-            <div className="relative z-10">
-              <Flame size={24} className="mb-2" />
-              <div className="text-4xl font-bold mb-1">{stats.streak}</div>
-              <div className="text-sm opacity-90 font-medium">Zile consecutive</div>
-              <div className="text-xs opacity-75 mt-2">Record: {stats.longestStreak} zile</div>
+            <div className="relative z-10 flex flex-col">
+              <div className="text-5xl font-bold mb-2">{stats.streak}</div>
+              <div className="text-base font-bold mb-1">Zile consecutive</div>
+              <div className="text-sm opacity-90">Record: {stats.longestStreak} zile</div>
             </div>
           </div>
 
-          {/* Cards Learned */}
-          <div className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow border border-gray-100">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-3 bg-blue-100 rounded-xl">
-                <BookOpen size={24} className="text-blue-600" />
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-gray-900">{stats.totalCardsLearned}</div>
-                <div className="text-sm text-gray-500 font-medium">Carduri în Studiu</div>
-              </div>
+          {/* Sesiuni învățare active */}
+          <div className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow border border-gray-100 relative overflow-hidden">
+            <div className="absolute top-1/2 right-4 -translate-y-1/2 opacity-5">
+              <BookOpen size={120} className="text-blue-600" />
             </div>
-            <div className="text-xs text-gray-400 font-medium">
-              {stats.activeDecksCount} active · {stats.completedDecksCount} finalizate
+            <div className="relative z-10 flex flex-col">
+              <div className="text-5xl font-bold text-gray-900 mb-2">
+                {cardStats?.totalDecks || stats.activeDecksCount}
+              </div>
+              <div className="text-base font-bold text-gray-700 mb-1">Sesiuni învățare active</div>
+              <div className="text-sm text-gray-500">
+                {cardStats?.totalDecks || stats.activeDecksCount} deck-uri |{' '}
+                {cardStats?.inStudy || 0} în studiu | {cardStats?.mastered || 0} învățate
+              </div>
             </div>
           </div>
 
           {/* Success Rate */}
-          <div className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow border border-gray-100">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-3 bg-green-100 rounded-xl">
-                <TrendingUp size={24} className="text-green-600" />
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-gray-900">{stats.successRate}</div>
-                <div className="text-sm text-gray-500 font-medium">Rată de Succes</div>
+          <div className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow border border-gray-100 relative overflow-hidden">
+            <div className="absolute top-1/2 right-4 -translate-y-1/2 opacity-5">
+              <TrendingUp size={120} className="text-green-600" />
+            </div>
+            <div className="relative z-10 flex flex-col">
+              <div className="text-5xl font-bold text-gray-900 mb-2">{stats.successRate}</div>
+              <div className="text-base font-bold text-gray-700 mb-1">Rata de Succes</div>
+              <div className="text-sm text-gray-500">
+                {stats.totalCorrectAnswers} răspunse corect | {stats.totalAnswers} parcurse
               </div>
             </div>
-            <div className="text-xs text-gray-400 font-medium">Carduri învățate</div>
           </div>
 
           {/* Time Spent */}
-          <div className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow border border-gray-100">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-3 bg-purple-100 rounded-xl">
-                <Clock size={24} className="text-purple-600" />
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-gray-900">
-                  {stats.totalTimeSpentFormatted}
-                </div>
-                <div className="text-sm text-gray-500 font-medium">Timp Petrecut</div>
-              </div>
+          <div className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow border border-gray-100 relative overflow-hidden">
+            <div className="absolute top-1/2 right-4 -translate-y-1/2 opacity-5">
+              <Clock size={120} className="text-purple-600" />
             </div>
-            <div className="text-xs text-gray-400 font-medium">Timp total de studiu</div>
+            <div className="relative z-10 flex flex-col">
+              <div className="text-5xl font-bold text-gray-900 mb-2">
+                {stats.totalTimeSpentFormatted}
+              </div>
+              <div className="text-base font-bold text-gray-700 mb-1">Timp petrecut</div>
+              <div className="text-sm text-gray-500">Timp total de studiu</div>
+            </div>
           </div>
         </div>
 
@@ -409,6 +443,102 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
           </div>
         </div>
 
+        {/* Continue Learning - Active Sessions Preview */}
+        <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-gray-900">Continuă Învățarea</h2>
+            {activeSessions.length > 3 && (
+              <button
+                onClick={() => onChangeView('sessions')}
+                className="text-indigo-600 hover:text-indigo-700 font-semibold text-sm flex items-center gap-1"
+              >
+                Vezi Toate
+                <ChevronRight size={16} />
+              </button>
+            )}
+          </div>
+
+          {activeSessions.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {activeSessions.slice(0, 3).map(session => {
+                const progress = session.currentCardIndex
+                  ? Math.round((session.currentCardIndex / (session.totalCards || 1)) * 100)
+                  : 0;
+                const cardsRemaining = (session.totalCards || 0) - (session.currentCardIndex || 0);
+
+                return (
+                  <div
+                    key={session.id}
+                    className="group p-5 rounded-xl border-2 border-indigo-200 hover:border-indigo-400 hover:shadow-lg transition-all cursor-pointer bg-gradient-to-br from-indigo-50 to-white"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <h3 className="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors mb-1">
+                          {session.deck?.title || 'Sesiune Activă'}
+                        </h3>
+                        <p className="text-xs text-gray-500">
+                          {cardsRemaining} carduri rămase | {progress}% completat
+                        </p>
+                      </div>
+                      <div className="relative w-14 h-14">
+                        <svg className="w-full h-full transform -rotate-90">
+                          <circle
+                            cx="28"
+                            cy="28"
+                            r="24"
+                            stroke="#E0E7FF"
+                            strokeWidth="4"
+                            fill="transparent"
+                          />
+                          <circle
+                            cx="28"
+                            cy="28"
+                            r="24"
+                            stroke="#6366F1"
+                            strokeWidth="4"
+                            fill="transparent"
+                            strokeDasharray={150.8}
+                            strokeDashoffset={150.8 - (150.8 * progress) / 100}
+                            className="transition-all duration-1000"
+                          />
+                        </svg>
+                        <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-indigo-600">
+                          {progress}%
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={e => {
+                        e.stopPropagation();
+                        onChangeView('sessions');
+                      }}
+                      className="w-full mt-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-2 px-4 rounded-lg font-semibold text-sm transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                    >
+                      <Brain size={16} />
+                      Continuă Sesiunea
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-white rounded-xl border-2 border-dashed border-gray-200">
+              <Brain size={48} className="mx-auto mb-4 text-gray-400" />
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Nicio sesiune activă</h3>
+              <p className="text-sm text-gray-500 mb-4">
+                Începe o sesiune nouă pentru a continua învățarea!
+              </p>
+              <button
+                onClick={() => onChangeView('study')}
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl flex items-center gap-2 mx-auto"
+              >
+                <Brain size={20} />
+                Studiază Acum
+              </button>
+            </div>
+          )}
+        </div>
+
         {/* Study Recommendations & Achievements */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Study Recommendations */}
@@ -483,79 +613,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
                 <ChevronRight size={18} />
               </button>
             </div>
-          </div>
-        </div>
-
-        {/* Continue Learning Section */}
-        <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Continuă Învățarea</h2>
-            <button
-              onClick={() => onChangeView('decks')}
-              className="text-indigo-600 hover:text-indigo-700 font-semibold text-sm flex items-center gap-1"
-            >
-              Vezi Tot
-              <ChevronRight size={16} />
-            </button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {decks.slice(0, 3).map(deck => {
-              const percentage =
-                deck.totalCards > 0 ? Math.round((deck.masteredCards / deck.totalCards) * 100) : 0;
-              return (
-                <div
-                  key={deck.id}
-                  className="group p-5 rounded-xl border-2 border-gray-200 hover:border-indigo-400 hover:shadow-lg transition-all cursor-pointer bg-gradient-to-br from-white to-gray-50"
-                  onClick={() => onStartSession(deck)}
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <h3 className="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors mb-1">
-                        {deck.title}
-                      </h3>
-                      <p className="text-xs text-gray-500">
-                        {deck.totalCards} carduri | {deck.totalCards - deck.masteredCards} în studiu
-                        | {deck.masteredCards} învățate
-                      </p>
-                    </div>
-                    <div className="relative w-14 h-14">
-                      <svg className="w-full h-full transform -rotate-90">
-                        <circle
-                          cx="28"
-                          cy="28"
-                          r="24"
-                          stroke="#E5E7EB"
-                          strokeWidth="4"
-                          fill="transparent"
-                        />
-                        <circle
-                          cx="28"
-                          cy="28"
-                          r="24"
-                          stroke={
-                            percentage > 66 ? '#22C55E' : percentage > 33 ? '#F59E0B' : '#6366F1'
-                          }
-                          strokeWidth="4"
-                          fill="transparent"
-                          strokeDasharray={150.8}
-                          strokeDashoffset={150.8 - (150.8 * percentage) / 100}
-                          className="transition-all duration-1000"
-                        />
-                      </svg>
-                      <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-gray-700">
-                        {percentage}%
-                      </span>
-                    </div>
-                  </div>
-                  {deck.lastStudied && (
-                    <div className="flex items-center gap-2 text-xs text-green-600 font-medium">
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                      Studiat: {getTimeAgo(deck.lastStudied)}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
           </div>
         </div>
       </div>

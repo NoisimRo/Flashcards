@@ -225,6 +225,7 @@ export interface UpdateStudySessionRequest {
   answers?: Record<string, 'correct' | 'incorrect' | 'skipped'>;
   streak?: number;
   sessionXP?: number;
+  durationSeconds?: number; // Incremental time tracking
 }
 
 /**

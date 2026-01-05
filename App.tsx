@@ -36,6 +36,8 @@ const GUEST_USER = {
   totalTimeSpent: 0,
   totalCardsLearned: 0,
   totalDecksCompleted: 0,
+  totalCorrectAnswers: 0,
+  totalAnswers: 0,
   email: undefined,
   role: 'student' as const,
   avatar: undefined,
@@ -58,6 +60,8 @@ function adaptUserFromAPI(apiUser: {
   totalTimeSpent?: number;
   totalCardsLearned?: number;
   totalDecksCompleted?: number;
+  totalCorrectAnswers?: number;
+  totalAnswers?: number;
   preferences?: {
     dailyGoal?: number;
     soundEnabled?: boolean;
@@ -95,6 +99,8 @@ function adaptUserFromAPI(apiUser: {
     totalTimeSpent: apiUser.totalTimeSpent ?? 0,
     totalCardsLearned: apiUser.totalCardsLearned ?? 0,
     totalDecksCompleted: apiUser.totalDecksCompleted ?? 0,
+    totalCorrectAnswers: apiUser.totalCorrectAnswers ?? 0,
+    totalAnswers: apiUser.totalAnswers ?? 0,
     // Preferences
     preferences: apiUser.preferences
       ? {

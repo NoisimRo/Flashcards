@@ -61,7 +61,8 @@ router.post('/register', async (req: Request, res: Response) => {
        VALUES ($1, $2, $3, $4, $5)
        RETURNING id, email, name, role, level, current_xp, next_level_xp, total_xp,
                  streak, longest_streak, total_time_spent, total_cards_learned,
-                 total_decks_completed, preferences, created_at`,
+                 total_decks_completed, total_correct_answers, total_answers,
+                 preferences, created_at`,
       [
         email.toLowerCase(),
         passwordHash,
@@ -128,7 +129,8 @@ router.post('/login', async (req: Request, res: Response) => {
     const result = await query(
       `SELECT id, email, password_hash, name, role, level, current_xp, next_level_xp,
               total_xp, streak, longest_streak, last_active_date, total_time_spent,
-              total_cards_learned, total_decks_completed, preferences, created_at
+              total_cards_learned, total_decks_completed, total_correct_answers,
+              total_answers, preferences, created_at
        FROM users
        WHERE email = $1 AND deleted_at IS NULL`,
       [email.toLowerCase()]
@@ -286,7 +288,8 @@ router.post('/refresh', async (req: Request, res: Response) => {
     const userResult = await query(
       `SELECT id, email, name, role, level, current_xp, next_level_xp, total_xp,
               streak, longest_streak, total_time_spent, total_cards_learned,
-              total_decks_completed, preferences, created_at
+              total_decks_completed, total_correct_answers, total_answers,
+              preferences, created_at
        FROM users WHERE id = $1 AND deleted_at IS NULL`,
       [payload.sub]
     );
@@ -373,7 +376,8 @@ router.get('/me', authenticateToken, async (req: Request, res: Response) => {
     const result = await query(
       `SELECT id, email, name, avatar, role, level, current_xp, next_level_xp, total_xp,
               streak, longest_streak, last_active_date, total_time_spent,
-              total_cards_learned, total_decks_completed, preferences, created_at
+              total_cards_learned, total_decks_completed, total_correct_answers,
+              total_answers, preferences, created_at
        FROM users WHERE id = $1 AND deleted_at IS NULL`,
       [req.user!.id]
     );
@@ -503,6 +507,8 @@ function formatUser(user: any) {
     totalTimeSpent: user.total_time_spent,
     totalCardsLearned: user.total_cards_learned,
     totalDecksCompleted: user.total_decks_completed,
+    totalCorrectAnswers: user.total_correct_answers || 0,
+    totalAnswers: user.total_answers || 0,
     preferences: user.preferences,
     createdAt: user.created_at,
   };
