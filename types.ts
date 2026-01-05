@@ -1,13 +1,21 @@
 export type Difficulty = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
 
+/**
+ * Card Type Definitions:
+ * - standard: Flip card with front/back, no input required
+ * - type-answer: User must type the answer (includes cloze deletion)
+ * - quiz: Multiple choice question with options
+ */
+export type CardType = 'standard' | 'type-answer' | 'quiz';
+
 export interface Card {
   id: string;
   front: string;
   back: string;
   context?: string; // Example usage sentence
-  type: 'standard' | 'quiz';
-  options?: string[]; // For quiz mode
-  correctOptionIndex?: number;
+  type: CardType;
+  options?: string[]; // For quiz mode only
+  correctOptionIndex?: number; // For quiz mode only
   status: 'new' | 'learning' | 'mastered';
 }
 

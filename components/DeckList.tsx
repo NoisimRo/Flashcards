@@ -208,7 +208,7 @@ const DeckList: React.FC<DeckListProps> = ({
         front: string;
         back: string;
         context?: string;
-        type: 'standard' | 'quiz';
+        type: 'standard' | 'type-answer' | 'quiz';
         status: 'new' | 'learning' | 'mastered';
         options?: string[];
         correctOptionIndex?: number;
@@ -258,7 +258,7 @@ const DeckList: React.FC<DeckListProps> = ({
         front: string;
         back: string;
         context?: string;
-        type: 'standard' | 'quiz';
+        type: 'standard' | 'type-answer' | 'quiz';
         status: 'new' | 'learning' | 'mastered';
         options?: string[];
         correctOptionIndex?: number;
