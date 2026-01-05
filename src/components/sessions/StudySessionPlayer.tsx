@@ -114,21 +114,28 @@ const StudySessionPlayer: React.FC<StudySessionPlayerProps> = ({
           : null
       );
 
+      // Calculate elapsed time for incremental tracking
+      const durationSeconds = currentSession
+        ? Math.floor((Date.now() - new Date(currentSession.startedAt).getTime()) / 1000)
+        : 0;
+
       // Debounced save to backend
       console.log('🚀 [StudySessionPlayer] Calling updateSessionProgress with:', {
         currentCardIndex: data.currentIndex,
         answers: data.answers,
         streak: data.streak,
         sessionXP: data.sessionXP,
+        durationSeconds,
       });
       updateSessionProgress(sessionId, {
         currentCardIndex: data.currentIndex,
         answers: data.answers,
         streak: data.streak,
         sessionXP: data.sessionXP,
+        durationSeconds,
       });
     },
-    [sessionId, updateSessionProgress]
+    [sessionId, currentSession, updateSessionProgress]
   );
 
   const handleFinish = useCallback(
@@ -139,12 +146,18 @@ const StudySessionPlayer: React.FC<StudySessionPlayerProps> = ({
 
       // If clearSession is false, just save progress and exit (don't complete)
       if (!clearSession) {
-        // Save current progress
+        // Calculate elapsed time
+        const startTime = new Date(currentSession.startedAt).getTime();
+        const endTime = Date.now();
+        const durationSeconds = Math.floor((endTime - startTime) / 1000);
+
+        // Save current progress with duration
         await updateSessionProgress(sessionId, {
           currentCardIndex: sessionData.currentIndex,
           answers: sessionData.answers,
           streak: sessionData.streak,
           sessionXP: sessionData.sessionXP,
+          durationSeconds,
         });
         toast.success('Progres salvat! Poți relua sesiunea mai târziu.');
         onFinish();
