@@ -443,6 +443,102 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
           </div>
         </div>
 
+        {/* Continue Learning - Active Sessions Preview */}
+        <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-gray-900">Continuă Învățarea</h2>
+            {activeSessions.length > 3 && (
+              <button
+                onClick={() => onChangeView('sessions')}
+                className="text-indigo-600 hover:text-indigo-700 font-semibold text-sm flex items-center gap-1"
+              >
+                Vezi Toate
+                <ChevronRight size={16} />
+              </button>
+            )}
+          </div>
+
+          {activeSessions.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {activeSessions.slice(0, 3).map(session => {
+                const progress = session.currentCardIndex
+                  ? Math.round((session.currentCardIndex / (session.totalCards || 1)) * 100)
+                  : 0;
+                const cardsRemaining = (session.totalCards || 0) - (session.currentCardIndex || 0);
+
+                return (
+                  <div
+                    key={session.id}
+                    className="group p-5 rounded-xl border-2 border-indigo-200 hover:border-indigo-400 hover:shadow-lg transition-all cursor-pointer bg-gradient-to-br from-indigo-50 to-white"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <h3 className="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors mb-1">
+                          {session.deck?.title || 'Sesiune Activă'}
+                        </h3>
+                        <p className="text-xs text-gray-500">
+                          {cardsRemaining} carduri rămase | {progress}% completat
+                        </p>
+                      </div>
+                      <div className="relative w-14 h-14">
+                        <svg className="w-full h-full transform -rotate-90">
+                          <circle
+                            cx="28"
+                            cy="28"
+                            r="24"
+                            stroke="#E0E7FF"
+                            strokeWidth="4"
+                            fill="transparent"
+                          />
+                          <circle
+                            cx="28"
+                            cy="28"
+                            r="24"
+                            stroke="#6366F1"
+                            strokeWidth="4"
+                            fill="transparent"
+                            strokeDasharray={150.8}
+                            strokeDashoffset={150.8 - (150.8 * progress) / 100}
+                            className="transition-all duration-1000"
+                          />
+                        </svg>
+                        <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-indigo-600">
+                          {progress}%
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={e => {
+                        e.stopPropagation();
+                        onChangeView('sessions');
+                      }}
+                      className="w-full mt-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-2 px-4 rounded-lg font-semibold text-sm transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                    >
+                      <Brain size={16} />
+                      Continuă Sesiunea
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-white rounded-xl border-2 border-dashed border-gray-200">
+              <Brain size={48} className="mx-auto mb-4 text-gray-400" />
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Nicio sesiune activă</h3>
+              <p className="text-sm text-gray-500 mb-4">
+                Începe o sesiune nouă pentru a continua învățarea!
+              </p>
+              <button
+                onClick={() => onChangeView('study')}
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl flex items-center gap-2 mx-auto"
+              >
+                <Brain size={20} />
+                Studiază Acum
+              </button>
+            </div>
+          )}
+        </div>
+
         {/* Study Recommendations & Achievements */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Study Recommendations */}
@@ -517,79 +613,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
                 <ChevronRight size={18} />
               </button>
             </div>
-          </div>
-        </div>
-
-        {/* Continue Learning Section */}
-        <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Continuă Învățarea</h2>
-            <button
-              onClick={() => onChangeView('decks')}
-              className="text-indigo-600 hover:text-indigo-700 font-semibold text-sm flex items-center gap-1"
-            >
-              Vezi Tot
-              <ChevronRight size={16} />
-            </button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {decks.slice(0, 3).map(deck => {
-              const percentage =
-                deck.totalCards > 0 ? Math.round((deck.masteredCards / deck.totalCards) * 100) : 0;
-              return (
-                <div
-                  key={deck.id}
-                  className="group p-5 rounded-xl border-2 border-gray-200 hover:border-indigo-400 hover:shadow-lg transition-all cursor-pointer bg-gradient-to-br from-white to-gray-50"
-                  onClick={() => onStartSession(deck)}
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <h3 className="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors mb-1">
-                        {deck.title}
-                      </h3>
-                      <p className="text-xs text-gray-500">
-                        {deck.totalCards} carduri | {deck.totalCards - deck.masteredCards} în studiu
-                        | {deck.masteredCards} învățate
-                      </p>
-                    </div>
-                    <div className="relative w-14 h-14">
-                      <svg className="w-full h-full transform -rotate-90">
-                        <circle
-                          cx="28"
-                          cy="28"
-                          r="24"
-                          stroke="#E5E7EB"
-                          strokeWidth="4"
-                          fill="transparent"
-                        />
-                        <circle
-                          cx="28"
-                          cy="28"
-                          r="24"
-                          stroke={
-                            percentage > 66 ? '#22C55E' : percentage > 33 ? '#F59E0B' : '#6366F1'
-                          }
-                          strokeWidth="4"
-                          fill="transparent"
-                          strokeDasharray={150.8}
-                          strokeDashoffset={150.8 - (150.8 * percentage) / 100}
-                          className="transition-all duration-1000"
-                        />
-                      </svg>
-                      <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-gray-700">
-                        {percentage}%
-                      </span>
-                    </div>
-                  </div>
-                  {deck.lastStudied && (
-                    <div className="flex items-center gap-2 text-xs text-green-600 font-medium">
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                      Studiat: {getTimeAgo(deck.lastStudied)}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
           </div>
         </div>
       </div>
