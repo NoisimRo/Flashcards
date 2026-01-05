@@ -381,7 +381,7 @@ const DeckList: React.FC<DeckListProps> = ({
               key={deck.id}
               className="bg-[#F8F6F1] p-6 rounded-3xl relative group hover:shadow-md transition-shadow flex flex-col"
             >
-              {/* Delete Menu (top-right corner) */}
+              {/* Three-Dot Menu (top-right corner) */}
               <div className="absolute top-4 right-4">
                 <div className="relative">
                   <button
@@ -392,12 +392,54 @@ const DeckList: React.FC<DeckListProps> = ({
                   </button>
 
                   {activeMenuId === deck.id && (
-                    <div className="absolute right-0 top-8 bg-white shadow-xl rounded-xl p-2 min-w-[140px] z-10 border border-gray-100 animate-fade-in">
+                    <div className="absolute right-0 top-8 bg-white shadow-xl rounded-xl p-2 min-w-[180px] z-10 border border-gray-100 animate-fade-in">
+                      {/* Resetează progresul - Only show if has progress */}
+                      {hasProgress && onResetDeck && deck.totalCards > 0 && (
+                        <button
+                          onClick={e => {
+                            e.stopPropagation();
+                            onResetDeck(deck.id);
+                            setActiveMenuId(null);
+                          }}
+                          className="w-full text-left px-3 py-2 text-sm text-orange-600 hover:bg-orange-50 rounded-lg flex items-center gap-2 font-medium"
+                        >
+                          <RotateCcw size={16} /> Resetează progresul
+                        </button>
+                      )}
+                      {/* Editează deck */}
                       <button
-                        onClick={() => onDeleteDeck(deck.id)}
-                        className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2 font-medium"
+                        onClick={e => {
+                          e.stopPropagation();
+                          openEditModal(deck);
+                        }}
+                        className="w-full text-left px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg flex items-center gap-2 font-medium"
                       >
-                        <Trash2 size={16} /> Șterge
+                        <Edit size={16} /> Editează deck
+                      </button>
+                      {/* Editează carduri - Only show if has cards */}
+                      {deck.cards && deck.cards.length > 0 && (
+                        <button
+                          onClick={e => {
+                            e.stopPropagation();
+                            openEditCardsModal(deck);
+                          }}
+                          className="w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg flex items-center gap-2 font-medium"
+                        >
+                          <List size={16} /> Editează carduri
+                        </button>
+                      )}
+                      {/* Șterge deck with confirmation */}
+                      <button
+                        onClick={e => {
+                          e.stopPropagation();
+                          if (confirm(`Sigur vrei să ștergi deck-ul "${deck.title}"?`)) {
+                            onDeleteDeck(deck.id);
+                          }
+                          setActiveMenuId(null);
+                        }}
+                        className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2 font-medium border-t border-gray-100 mt-1 pt-2"
+                      >
+                        <Trash2 size={16} /> Șterge deck
                       </button>
                     </div>
                   )}
@@ -452,37 +494,7 @@ const DeckList: React.FC<DeckListProps> = ({
 
               {/* Permanent Action Bar */}
               <div className="flex gap-2 mt-auto">
-                {/* 1. Reset Progress - Visible only if progress > 0% */}
-                {hasProgress && onResetDeck && deck.totalCards > 0 && (
-                  <button
-                    onClick={e => {
-                      e.stopPropagation();
-                      onResetDeck(deck.id);
-                    }}
-                    className="p-3 border-2 border-gray-200 text-gray-600 rounded-xl hover:border-red-200 hover:text-red-600 hover:bg-red-50 transition-colors"
-                    title="Resetează progresul"
-                  >
-                    <RotateCcw size={18} />
-                  </button>
-                )}
-
-                {/* 2. Modify - Icon only, permanent */}
-                <button
-                  onClick={e => {
-                    e.stopPropagation();
-                    if (deck.cards && deck.cards.length > 0) {
-                      openEditCardsModal(deck);
-                    } else {
-                      openEditModal(deck);
-                    }
-                  }}
-                  className="p-3 border-2 border-gray-200 text-gray-600 rounded-xl hover:border-indigo-200 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
-                  title="Modifică"
-                >
-                  <Edit size={18} />
-                </button>
-
-                {/* 3. Generate Cards - Permanent */}
+                {/* 1. Generate Cards */}
                 <button
                   onClick={e => {
                     e.stopPropagation();
@@ -494,13 +506,13 @@ const DeckList: React.FC<DeckListProps> = ({
                   <Sparkles size={18} /> Generează
                 </button>
 
-                {/* 4. Create Session - Re-labeled from "Studiază" */}
+                {/* 2. Create Session */}
                 <button
                   onClick={e => {
                     e.stopPropagation();
                     onStartSession(deck);
                   }}
-                  className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 text-sm"
+                  className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={!deck.cards || deck.cards.length === 0}
                   title={
                     deck.cards && deck.cards.length > 0
@@ -519,7 +531,7 @@ const DeckList: React.FC<DeckListProps> = ({
       {/* Modal for New/Edit Deck (Code omitted for brevity as it's identical to previous, just wrapped in same component) */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl animate-scale-up">
+          <div className="bg-white rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto p-8 shadow-2xl animate-scale-up">
             <h2 className="text-2xl font-bold mb-6 text-gray-900">
               {editingDeckId
                 ? 'Editează Deck'

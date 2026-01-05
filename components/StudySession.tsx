@@ -251,9 +251,14 @@ const StudySession: React.FC<StudySessionProps> = ({
       onUpdateUserXP(-remainingCost);
     }
 
-    // Reveal Hint
+    // Reveal Hint and auto-hide after 5 seconds
     setHintRevealed(true);
     toast.info('Indiciu folosit', `-${COST} XP`);
+
+    // Auto-hide hint after 5 seconds
+    setTimeout(() => {
+      setHintRevealed(false);
+    }, 5000);
   };
 
   // Helper to render context with bold word
@@ -1010,52 +1015,56 @@ const StudySession: React.FC<StudySessionProps> = ({
                   </div>
                 )}
 
-                {/* Navigation and Flip buttons at bottom of card - ONLY for standard cards */}
-                {!isFlipped && currentCard.type === 'standard' && (
-                  <div className="absolute bottom-6 left-0 right-0 px-6 z-50">
-                    <div className="flex items-center gap-3">
-                      {/* Back Button */}
-                      <button
-                        onClick={e => {
-                          e.stopPropagation();
-                          goToPrevious();
-                        }}
-                        disabled={currentIndex === 0}
-                        className="w-12 h-12 flex items-center justify-center rounded-xl bg-white border-2 border-gray-200 text-gray-600 shadow-sm hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95"
-                        title="Card anterior"
-                      >
-                        <ChevronLeft size={20} />
-                      </button>
+                {/* Navigation and Control buttons at bottom of card - for standard and type-answer cards */}
+                {!isFlipped &&
+                  (currentCard.type === 'standard' || currentCard.type === 'type-answer') && (
+                    <div className="absolute bottom-6 left-0 right-0 px-6 z-50">
+                      <div className="flex items-center gap-3">
+                        {/* Back Button */}
+                        <button
+                          onClick={e => {
+                            e.stopPropagation();
+                            goToPrevious();
+                          }}
+                          disabled={currentIndex === 0}
+                          className="w-12 h-12 flex items-center justify-center rounded-xl bg-white border-2 border-gray-200 text-gray-600 shadow-sm hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95"
+                          title="Înapoi"
+                        >
+                          <ChevronLeft size={20} />
+                        </button>
 
-                      {/* Show Answer Button */}
-                      <button
-                        onClick={e => {
-                          e.stopPropagation();
-                          handleFlip();
-                        }}
-                        className="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-md hover:bg-indigo-700 active:bg-indigo-800 transition-all active:scale-98"
-                      >
-                        Arată Răspunsul
-                      </button>
+                        {/* Show Answer Button - For standard cards OR when user hasn't typed answer in type-answer */}
+                        {currentCard.type === 'standard' ||
+                        (currentCard.type === 'type-answer' && !userInputValue.trim()) ? (
+                          <button
+                            onClick={e => {
+                              e.stopPropagation();
+                              handleFlip();
+                            }}
+                            className="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-md hover:bg-indigo-700 active:bg-indigo-800 transition-all active:scale-98"
+                          >
+                            Afișează răspunsul
+                          </button>
+                        ) : null}
 
-                      {/* Next Button */}
-                      <button
-                        onClick={e => {
-                          e.stopPropagation();
-                          handleSkip();
-                        }}
-                        className="w-12 h-12 flex items-center justify-center rounded-xl bg-white border-2 border-gray-200 text-gray-600 shadow-sm hover:bg-gray-50 transition-all active:scale-95"
-                        title="Card următor"
-                      >
-                        {currentIndex === activeCards.length - 1 ? (
-                          <CheckCircle size={20} className="text-indigo-600" />
-                        ) : (
-                          <ArrowRight size={20} />
-                        )}
-                      </button>
+                        {/* Forward Button (Skip) */}
+                        <button
+                          onClick={e => {
+                            e.stopPropagation();
+                            handleSkip();
+                          }}
+                          className="w-12 h-12 flex items-center justify-center rounded-xl bg-white border-2 border-gray-200 text-gray-600 shadow-sm hover:bg-gray-50 transition-all active:scale-95"
+                          title="Înainte"
+                        >
+                          {currentIndex === activeCards.length - 1 ? (
+                            <CheckCircle size={20} className="text-indigo-600" />
+                          ) : (
+                            <ArrowRight size={20} />
+                          )}
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
               </div>
 
               {/* BACK */}
