@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Play, Trash2, Clock, BookOpen, TrendingUp } from 'lucide-react';
+import { Play, Trash2, Shuffle, Brain, CheckSquare, List as ListIcon, BookOpen } from 'lucide-react';
 import { useStudySessionsStore } from '../../store/studySessionsStore';
 import { useToast } from '../ui/Toast';
 
@@ -23,22 +23,62 @@ const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({ onResumeSession
     }
   };
 
-  const formatTimeAgo = (timestamp: string) => {
-    const now = new Date();
-    const then = new Date(timestamp);
-    const diffMs = now.getTime() - then.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-
-    if (diffMins < 1) return 'Acum';
-    if (diffMins < 60) return `${diffMins} min`;
-    const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return `${diffHours} h`;
-    const diffDays = Math.floor(diffHours / 24);
-    return `${diffDays} zile`;
+  const formatDuration = (seconds: number | undefined) => {
+    if (!seconds || seconds === 0) return '0 min';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes} min`;
+    const hours = Math.floor(minutes / 60);
+    const remainingMins = minutes % 60;
+    return `${hours}h ${remainingMins}m`;
   };
 
   const getProgressPercentage = (session: any) => {
     return Math.round((session.currentCardIndex / session.totalCards) * 100);
+  };
+
+  const getAnswerStats = (session: any) => {
+    const answers = session.answers || {};
+    let correct = 0;
+    let incorrect = 0;
+    let skipped = 0;
+
+    Object.values(answers).forEach((answer: any) => {
+      if (answer === 'correct') correct++;
+      else if (answer === 'incorrect') incorrect++;
+      else if (answer === 'skipped') skipped++;
+    });
+
+    return { correct, incorrect, skipped, total: correct + incorrect + skipped };
+  };
+
+  const getMethodIcon = (method: string) => {
+    switch (method) {
+      case 'random':
+        return Shuffle;
+      case 'smart':
+        return Brain;
+      case 'manual':
+        return CheckSquare;
+      case 'all':
+        return ListIcon;
+      default:
+        return BookOpen;
+    }
+  };
+
+  const getMethodColor = (method: string) => {
+    switch (method) {
+      case 'random':
+        return 'text-blue-500';
+      case 'smart':
+        return 'text-purple-500';
+      case 'manual':
+        return 'text-green-500';
+      case 'all':
+        return 'text-orange-500';
+      default:
+        return 'text-gray-500';
+    }
   };
 
   if (isLoading) {
@@ -62,105 +102,134 @@ const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({ onResumeSession
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold text-gray-900">
-          Sesiuni Active ({activeSessions.length})
-        </h3>
+    <div className="p-6 md:p-8 space-y-8 h-full overflow-y-auto">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Sesiuni Active</h1>
+          <p className="text-gray-500">{activeSessions.length} sesiuni în desfășurare</p>
+        </div>
       </div>
 
-      {activeSessions.map(session => {
-        const progress = getProgressPercentage(session);
-        const cardsLeft = session.totalCards - session.currentCardIndex;
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        {activeSessions.map(session => {
+          const progress = getProgressPercentage(session);
+          const stats = getAnswerStats(session);
+          const MethodIcon = getMethodIcon(session.selectionMethod);
+          const methodColor = getMethodColor(session.selectionMethod);
 
-        return (
-          <div
-            key={session.id}
-            className="bg-white border-2 border-gray-200 rounded-xl p-4 hover:border-indigo-300 transition-all"
-          >
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex-1">
-                <h4 className="font-bold text-gray-900">{session.title}</h4>
-                {session.deck && (
-                  <div className="flex items-center gap-2 mt-1 text-sm text-gray-600">
-                    {session.deck.subjectName && (
-                      <span className="font-medium">{session.deck.subjectName}</span>
-                    )}
-                    {session.deck.subjectName && session.deck.topic && <span>•</span>}
-                    {session.deck.topic && <span>{session.deck.topic}</span>}
-                  </div>
-                )}
+          return (
+            <div
+              key={session.id}
+              className="bg-[#F8F6F1] p-6 rounded-3xl relative group hover:shadow-md transition-shadow flex flex-col"
+            >
+              {/* Watermark Icon */}
+              <div className="absolute top-6 right-6 opacity-10 pointer-events-none">
+                <MethodIcon size={120} />
               </div>
-              <div className="flex gap-2">
+
+              {/* Header: Session Title */}
+              <h3 className="text-2xl font-bold text-gray-900 mb-2 relative z-10 pr-16">
+                {session.title}
+              </h3>
+
+              {/* Deck Info */}
+              {session.deck && (
+                <div className="flex items-center gap-2 mb-4">
+                  {session.deck.subjectName && (
+                    <span className="px-3 py-1 rounded-full text-xs font-bold text-white bg-gray-900 shadow-sm">
+                      {session.deck.subjectName}
+                    </span>
+                  )}
+                  {session.deck.topic && (
+                    <span className="text-sm text-gray-600 font-medium">{session.deck.topic}</span>
+                  )}
+                </div>
+              )}
+
+              {/* Circular Progress */}
+              <div className="flex items-center justify-center my-6">
+                <div className="relative w-32 h-32">
+                  {/* Background circle */}
+                  <svg className="w-32 h-32 transform -rotate-90">
+                    <circle
+                      cx="64"
+                      cy="64"
+                      r="56"
+                      stroke="currentColor"
+                      strokeWidth="8"
+                      fill="none"
+                      className="text-gray-200"
+                    />
+                    {/* Progress circle */}
+                    <circle
+                      cx="64"
+                      cy="64"
+                      r="56"
+                      stroke="currentColor"
+                      strokeWidth="8"
+                      fill="none"
+                      strokeDasharray={`${2 * Math.PI * 56}`}
+                      strokeDashoffset={`${2 * Math.PI * 56 * (1 - progress / 100)}`}
+                      className="text-indigo-600 transition-all duration-500"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  {/* Center text */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-3xl font-bold text-gray-900">{progress}%</span>
+                    <span className="text-xs text-gray-500 font-medium">
+                      {session.currentCardIndex}/{session.totalCards}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Answer Stats */}
+              <div className="text-center mb-4">
+                <div className="text-sm text-gray-600 font-medium space-x-3">
+                  <span className="text-green-600">✓ {stats.correct} știute</span>
+                  <span className="text-red-600">✗ {stats.incorrect} greșite</span>
+                  <span className="text-gray-500">⊘ {stats.skipped} sărite</span>
+                </div>
+              </div>
+
+              {/* Time & Method Info */}
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                <div className="bg-white/70 rounded-xl p-3 text-center">
+                  <p className="text-xs text-gray-500 font-medium mb-1">Timp petrecut</p>
+                  <p className="text-lg font-bold text-gray-900">
+                    {formatDuration(session.durationSeconds)}
+                  </p>
+                </div>
+                <div className="bg-white/70 rounded-xl p-3 text-center">
+                  <p className="text-xs text-gray-500 font-medium mb-1">Metodă</p>
+                  <div className={`flex items-center justify-center gap-1 ${methodColor}`}>
+                    <MethodIcon size={18} />
+                    <span className="text-sm font-bold capitalize">{session.selectionMethod}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-2 mt-auto">
                 <button
                   onClick={() => onResumeSession(session.id)}
-                  className="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
+                  className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2"
                 >
-                  <Play size={16} />
-                  Continuă
+                  <Play size={18} fill="currentColor" /> Continuă
                 </button>
                 <button
                   onClick={() => handleAbandon(session.id, session.title)}
-                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  className="p-3 border-2 border-gray-200 text-red-600 rounded-xl hover:border-red-200 hover:bg-red-50 transition-colors"
                   title="Abandonează sesiunea"
                 >
                   <Trash2 size={18} />
                 </button>
               </div>
             </div>
-
-            {/* Progress Bar */}
-            <div className="mb-3">
-              <div className="flex justify-between text-sm text-gray-600 mb-1">
-                <span>
-                  Progres: {session.currentCardIndex}/{session.totalCards} carduri
-                </span>
-                <span>{progress}%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${progress}%` }}
-                ></div>
-              </div>
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="bg-gray-50 rounded-lg p-2">
-                <div className="flex items-center gap-2 text-gray-600">
-                  <BookOpen size={16} />
-                  <span className="text-sm font-medium">{cardsLeft} rămase</span>
-                </div>
-              </div>
-              <div className="bg-gray-50 rounded-lg p-2">
-                <div className="flex items-center gap-2 text-gray-600">
-                  <TrendingUp size={16} />
-                  <span className="text-sm font-medium">Streak: {session.streak}</span>
-                </div>
-              </div>
-              <div className="bg-gray-50 rounded-lg p-2">
-                <div className="flex items-center gap-2 text-gray-600">
-                  <Clock size={16} />
-                  <span className="text-sm font-medium">
-                    {formatTimeAgo(session.lastActivityAt)} ago
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Method Badge */}
-            <div className="mt-3">
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
-                {session.selectionMethod === 'random' && '🎲 Random'}
-                {session.selectionMethod === 'smart' && '🧠 Smart Review'}
-                {session.selectionMethod === 'manual' && '✅ Manual'}
-                {session.selectionMethod === 'all' && '📋 Toate'}
-              </span>
-            </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 };
