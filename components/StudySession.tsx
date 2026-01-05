@@ -1206,7 +1206,7 @@ const StudySession: React.FC<StudySessionProps> = ({
                 const isSelected = selectedQuizOption === idx;
                 const isCorrect = idx === currentCard.correctOptionIndex;
                 // Show feedback when currently answering OR when previously answered (strict mode)
-                const hasAnswered = quizAnswered || currentAnswer;
+                const hasAnswered = quizAnswered || Boolean(currentAnswer);
                 const showCorrect = hasAnswered && isCorrect;
                 const showIncorrect = hasAnswered && isSelected && !isCorrect;
 
