@@ -5,7 +5,7 @@ interface GeneratedCard {
   front: string;
   back: string;
   context: string;
-  type: 'standard' | 'quiz';
+  type: 'standard' | 'quiz' | 'type-answer';
   options?: string[];
   correctOptionIndex?: number;
 }
@@ -14,7 +14,8 @@ export const generateDeckWithAI = async (
   subject: string,
   topic: string,
   difficulty: string,
-  numberOfCards: number = 10
+  numberOfCards: number = 10,
+  cardTypes: Array<'standard' | 'quiz' | 'type-answer'> = ['standard', 'quiz']
 ): Promise<GeneratedCard[]> => {
   const apiKey = config.geminiApiKey;
 
@@ -23,9 +24,11 @@ export const generateDeckWithAI = async (
     // Fallback for demo purposes if no key is present
     const mockCards: GeneratedCard[] = [];
     for (let i = 1; i <= Math.min(numberOfCards, 3); i++) {
-      // Generate mix: 60% standard, 40% quiz
-      const isQuiz = i % 5 >= 3; // Makes roughly 40% quiz cards
-      if (isQuiz) {
+      // Distribute evenly among selected card types
+      const typeIndex = i % cardTypes.length;
+      const cardType = cardTypes[typeIndex];
+
+      if (cardType === 'quiz') {
         mockCards.push({
           front: `Întrebare Quiz ${i} (${topic})`,
           back: `Răspuns Corect ${i}`,
@@ -38,6 +41,13 @@ export const generateDeckWithAI = async (
             `Răspuns Greșit ${i}C`,
           ],
           correctOptionIndex: 0,
+        });
+      } else if (cardType === 'type-answer') {
+        mockCards.push({
+          front: `Care este ${topic} ${i}?`,
+          back: `Răspuns${i}`,
+          context: `Context pentru ${topic} ${i}.`,
+          type: 'type-answer',
         });
       } else {
         mockCards.push({
@@ -53,29 +63,47 @@ export const generateDeckWithAI = async (
 
   const ai = new GoogleGenAI({ apiKey });
 
+  // Build card type instructions dynamically
+  const cardTypeDescriptions = [];
+  if (cardTypes.includes('standard')) {
+    cardTypeDescriptions.push(
+      `- "standard": Traditional flashcard with question and detailed answer`
+    );
+  }
+  if (cardTypes.includes('quiz')) {
+    cardTypeDescriptions.push(
+      `- "quiz": Multiple choice question with 4 options and correctOptionIndex (0-3)`
+    );
+  }
+  if (cardTypes.includes('type-answer')) {
+    cardTypeDescriptions.push(
+      `- "type-answer": Short answer question (suitable for 1-2 word answers like names, dates, or simple terms)`
+    );
+  }
+
+  // Calculate distribution percentage
+  const percentagePerType = Math.floor(100 / cardTypes.length);
+  const typeDistribution = cardTypes.map(type => `${percentagePerType}% "${type}"`).join(', ');
+
   const prompt = `
     Create ${numberOfCards} flashcards for 8th grade students preparing for the National Evaluation.
     Subject: ${subject}
     Topic: ${topic}
     Difficulty: ${difficulty}
 
-    Generate a mix of card types:
-    - 60% should be "standard" flashcards (type: "standard")
-    - 40% should be "quiz" flashcards (type: "quiz")
+    Generate an even mix of these card types (${typeDistribution}):
+    ${cardTypeDescriptions.join('\n    ')}
 
     For each card, return a JSON object with:
     - front: The question or word
     - back: The definition, answer, or correct answer
     - context: A clear, eloquent sentence using the concept from "front" to demonstrate its meaning. The sentence should be in Romanian.
-    - type: Either "standard" or "quiz"
+    - type: One of: ${cardTypes.map(t => `"${t}"`).join(', ')}
 
-    For "quiz" type cards, also include:
-    - options: An array of 4 possible answers in Romanian (including the correct one from "back")
-    - correctOptionIndex: The index (0-3) of the correct answer in the options array
-
-    For "standard" type cards:
-    - options should be null or undefined
-    - correctOptionIndex should be null or undefined
+    Type-specific requirements:
+    - For "quiz" cards: Include "options" (array of 4 answers in Romanian) and "correctOptionIndex" (0-3)
+    - For "type-answer" cards: Keep "back" short (1-2 words), no options needed
+    - For "standard" cards: No options needed
 
     Make sure all content is appropriate for Romanian 8th grade students and uses proper Romanian language.
   `;
@@ -112,12 +140,16 @@ export const generateDeckWithAI = async (
 
     const rawCards = JSON.parse(text);
     return rawCards.map((c: any) => {
-      const cardType = c.type === 'quiz' ? 'quiz' : 'standard';
+      // Validate card type
+      let cardType: 'standard' | 'quiz' | 'type-answer' = 'standard';
+      if (c.type === 'quiz') cardType = 'quiz';
+      else if (c.type === 'type-answer') cardType = 'type-answer';
+
       const baseCard = {
         front: c.front,
         back: c.back,
         context: c.context,
-        type: cardType as 'standard' | 'quiz',
+        type: cardType,
       };
 
       // Add quiz-specific fields if it's a quiz card

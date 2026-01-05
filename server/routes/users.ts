@@ -506,18 +506,7 @@ router.get('/:id/card-stats', authenticateToken, async (req: Request, res: Respo
       });
     }
 
-    // Get card counts by status from user_card_progress
-    const cardStatusResult = await query(
-      `SELECT
-         status,
-         COUNT(*) as count
-       FROM user_card_progress
-       WHERE user_id = $1
-       GROUP BY status`,
-      [id]
-    );
-
-    // Build status map
+    // Build status map with defaults
     const statusCounts = {
       new: 0,
       learning: 0,
@@ -525,23 +514,59 @@ router.get('/:id/card-stats', authenticateToken, async (req: Request, res: Respo
       mastered: 0,
     };
 
-    cardStatusResult.rows.forEach((row: any) => {
-      statusCounts[row.status as keyof typeof statusCounts] = parseInt(row.count);
-    });
+    try {
+      // Get card counts by status from user_card_progress
+      const cardStatusResult = await query(
+        `SELECT
+           status,
+           COUNT(*) as count
+         FROM user_card_progress
+         WHERE user_id = $1
+         GROUP BY status`,
+        [id]
+      );
+
+      cardStatusResult.rows.forEach((row: any) => {
+        if (Object.prototype.hasOwnProperty.call(statusCounts, row.status)) {
+          statusCounts[row.status as keyof typeof statusCounts] = parseInt(row.count);
+        }
+      });
+    } catch (cardStatsError) {
+      console.warn('Could not fetch card progress stats:', cardStatsError);
+      // Continue with default values (all zeros)
+    }
 
     // Calculate derived stats
     const inStudy = statusCounts.learning + statusCounts.reviewing;
     const mastered = statusCounts.mastered;
 
     // Get total decks count
-    const decksResult = await query(
-      `SELECT COUNT(*) as total_decks
-       FROM decks
-       WHERE user_id = $1 AND deleted_at IS NULL`,
-      [id]
-    );
+    let totalDecks = 0;
+    try {
+      const decksResult = await query(
+        `SELECT COUNT(*) as total_decks
+         FROM decks
+         WHERE user_id = $1 AND deleted_at IS NULL`,
+        [id]
+      );
+      totalDecks = parseInt(decksResult.rows[0]?.total_decks || '0');
+    } catch (decksError) {
+      console.warn('Could not fetch decks count:', decksError);
+    }
 
-    const totalDecks = parseInt(decksResult.rows[0]?.total_decks || 0);
+    // Get active sessions count
+    let activeSessions = 0;
+    try {
+      const sessionsResult = await query(
+        `SELECT COUNT(*) as active_sessions
+         FROM study_sessions
+         WHERE user_id = $1 AND status = 'active'`,
+        [id]
+      );
+      activeSessions = parseInt(sessionsResult.rows[0]?.active_sessions || '0');
+    } catch (sessionsError) {
+      console.warn('Could not fetch active sessions count:', sessionsError);
+    }
 
     res.json({
       success: true,
@@ -550,6 +575,7 @@ router.get('/:id/card-stats', authenticateToken, async (req: Request, res: Respo
         inStudy,
         mastered,
         totalDecks,
+        activeSessions,
       },
     });
   } catch (error) {
@@ -559,6 +585,7 @@ router.get('/:id/card-stats', authenticateToken, async (req: Request, res: Respo
       error: {
         code: 'SERVER_ERROR',
         message: 'Eroare la obținerea statisticilor',
+        details: error instanceof Error ? error.message : String(error),
       },
     });
   }

@@ -43,9 +43,16 @@ interface DashboardProps {
   decks: Deck[];
   onStartSession: (deck: Deck) => void;
   onChangeView: (view: string) => void;
+  onResumeSession?: (sessionId: string) => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onChangeView }) => {
+const Dashboard: React.FC<DashboardProps> = ({
+  user,
+  decks,
+  onStartSession,
+  onChangeView,
+  onResumeSession,
+}) => {
   // State for daily challenges
   const [dailyChallenges, setDailyChallenges] = useState<DailyChallenge[]>([]);
   const [challengesLoading, setChallengesLoading] = useState(true);
@@ -307,12 +314,15 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
             </div>
             <div className="relative z-10 flex flex-col">
               <div className="text-5xl font-bold text-gray-900 mb-2">
-                {cardStats?.totalDecks || stats.activeDecksCount}
+                {cardStats?.activeSessions !== undefined
+                  ? cardStats.activeSessions
+                  : activeSessions.length}
               </div>
               <div className="text-base font-bold text-gray-700 mb-1">Sesiuni învățare active</div>
               <div className="text-sm text-gray-500">
                 {cardStats?.totalDecks || stats.activeDecksCount} deck-uri |{' '}
-                {cardStats?.inStudy || 0} în studiu | {cardStats?.mastered || 0} învățate
+                {cardStats?.inStudy || 0} carduri în studiu | {cardStats?.mastered || 0} carduri
+                învățate
               </div>
             </div>
           </div>
@@ -510,7 +520,11 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
                     <button
                       onClick={e => {
                         e.stopPropagation();
-                        onChangeView('sessions');
+                        if (onResumeSession) {
+                          onResumeSession(session.id);
+                        } else {
+                          onChangeView('sessions');
+                        }
                       }}
                       className="w-full mt-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-2 px-4 rounded-lg font-semibold text-sm transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
                     >

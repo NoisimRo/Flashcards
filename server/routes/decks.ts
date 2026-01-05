@@ -404,7 +404,7 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
 // ============================================
 router.post('/generate', authenticateToken, async (req: Request, res: Response) => {
   try {
-    const { subject, topic, difficulty = 'A2', numberOfCards = 10 } = req.body;
+    const { subject, topic, difficulty = 'A2', numberOfCards = 10, cardTypes } = req.body;
 
     if (!topic) {
       return res.status(400).json({
@@ -416,12 +416,19 @@ router.post('/generate', authenticateToken, async (req: Request, res: Response) 
       });
     }
 
+    // Validate and default card types
+    const validCardTypes: Array<'standard' | 'quiz' | 'type-answer'> =
+      Array.isArray(cardTypes) && cardTypes.length > 0
+        ? cardTypes.filter((t: string) => ['standard', 'quiz', 'type-answer'].includes(t))
+        : ['standard', 'quiz'];
+
     // Generate cards with AI
     const generatedCards = await generateDeckWithAI(
       subject || 'Limba Română',
       topic,
       difficulty,
-      numberOfCards
+      numberOfCards,
+      validCardTypes
     );
 
     res.json({

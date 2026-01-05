@@ -612,6 +612,11 @@ function AppContent() {
       );
     }
 
+    const handleResumeSession = (sessionId: string) => {
+      setActiveSessionId(sessionId);
+      setCurrentView('sessions');
+    };
+
     switch (currentView) {
       case 'dashboard':
         return (
@@ -620,6 +625,7 @@ function AppContent() {
             decks={decks}
             onStartSession={handleStartSession}
             onChangeView={setCurrentView}
+            onResumeSession={handleResumeSession}
           />
         );
       case 'decks':

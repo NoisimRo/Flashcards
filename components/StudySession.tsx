@@ -559,23 +559,31 @@ const StudySession: React.FC<StudySessionProps> = ({
         case 'Space':
         case 'Enter':
           e.preventDefault();
-          if (!isFlipped) {
+          // Only flip for standard cards (type-answer requires typed input)
+          if (!isFlipped && currentCard.type === 'standard') {
             handleFlip();
           }
           break;
         case 'ArrowLeft':
-          if (currentCard.type === 'standard' && isFlipped) handleAnswer('incorrect');
+          if ((currentCard.type === 'standard' || currentCard.type === 'type-answer') && isFlipped)
+            handleAnswer('incorrect');
           else goToPrevious();
           break;
         case 'ArrowRight':
           // Strict mode: If already incorrect, Right Arrow just moves next
-          if (currentCard.type === 'standard' && isFlipped) {
+          if (
+            (currentCard.type === 'standard' || currentCard.type === 'type-answer') &&
+            isFlipped
+          ) {
             if (currentAnswer === 'incorrect') goToNext();
             else handleAnswer('correct');
           } else handleSkip();
           break;
         case 'ArrowUp':
-          handleFlip();
+          // Only flip for standard cards
+          if (currentCard.type === 'standard') {
+            handleFlip();
+          }
           break;
       }
     };
@@ -846,7 +854,7 @@ const StudySession: React.FC<StudySessionProps> = ({
           </div>
         )}
 
-        {currentCard.type === 'standard' ? (
+        {currentCard.type === 'standard' || currentCard.type === 'type-answer' ? (
           <div className="w-full max-w-lg aspect-[4/3.9] relative group">
             {/* Swipe Indicator LEFT - Înapoi */}
             <div
@@ -971,8 +979,8 @@ const StudySession: React.FC<StudySessionProps> = ({
                   {currentCard.front}
                 </h3>
 
-                {/* Input Field on Front */}
-                {!isFlipped && (
+                {/* Input Field on Front - ONLY for type-answer cards */}
+                {!isFlipped && currentCard.type === 'type-answer' && (
                   <div
                     className="w-full max-w-xs relative mt-auto mb-20 z-50"
                     onClick={e => e.stopPropagation()}
@@ -981,25 +989,29 @@ const StudySession: React.FC<StudySessionProps> = ({
                       <input
                         ref={inputRef}
                         type="text"
-                        className="w-full bg-gray-50 border-2 border-gray-200 rounded-xl py-3 px-4 pr-12 text-center font-bold focus:border-indigo-500 focus:outline-none transition-colors"
-                        placeholder="Scrie răspunsul... (opțional)"
+                        className="w-full bg-indigo-50 border-2 border-indigo-300 rounded-xl py-3 px-4 pr-12 text-center font-bold focus:border-indigo-500 focus:outline-none transition-colors"
+                        placeholder="Scrie răspunsul..."
                         value={userInputValue}
                         onChange={e => setUserInputValue(e.target.value)}
                         onClick={e => e.stopPropagation()}
+                        autoFocus
                       />
                       <button
                         type="submit"
                         disabled={!userInputValue.trim()}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-gray-200 text-gray-500 p-1.5 rounded-lg hover:bg-indigo-600 hover:text-white disabled:opacity-50 disabled:hover:bg-gray-200 disabled:hover:text-gray-500 transition-colors"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-indigo-500 text-white p-1.5 rounded-lg hover:bg-indigo-600 disabled:opacity-50 disabled:bg-gray-300 transition-colors"
                       >
                         <ArrowRight size={16} />
                       </button>
                     </form>
+                    <p className="text-xs text-indigo-600 mt-2 font-medium text-center">
+                      Trebuie să scrii răspunsul pentru a continua
+                    </p>
                   </div>
                 )}
 
-                {/* Navigation and Flip buttons at bottom of card */}
-                {!isFlipped && (
+                {/* Navigation and Flip buttons at bottom of card - ONLY for standard cards */}
+                {!isFlipped && currentCard.type === 'standard' && (
                   <div className="absolute bottom-6 left-0 right-0 px-6 z-50">
                     <div className="flex items-center gap-3">
                       {/* Back Button */}

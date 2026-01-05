@@ -229,6 +229,179 @@ _None - all critical blockers resolved!_
 
 ## Session Notes
 
+### January 5, 2026 - Deep Card Type System Refactor & UI Design Unification
+
+**Session Focus**: Complete overhaul of card type architecture and unification of design system across all pages
+
+**Problems Identified**:
+
+1. Card type system inconsistency - `types.ts` only allowed `'standard' | 'quiz'` but code tried to use `'type-answer'`
+2. Standard cards incorrectly showing optional input field (should be flip-only)
+3. No proper handling for type-answer cards that require typed input
+4. Type-answer cards being converted to standard in StudySessionPlayer (hack/workaround)
+5. Multiple TypeScript compilation errors due to type mismatches
+6. ESLint errors (unused expressions, Object.prototype.hasOwnProperty)
+7. Design inconsistency between Dashboard, Decks, and Active Sessions pages
+
+**Root Cause Analysis**:
+
+**Card Type Architecture Issue:**
+
+- The application needed 3 distinct card types with different behaviors:
+  1. **Standard**: Flip card only, no input required
+  2. **Type-answer**: Must type answer (includes cloze deletion), input required
+  3. **Quiz**: Multiple choice with options
+- Problem: `types.ts` Card interface only supported `'standard' | 'quiz'`
+- StudySession component showed input on ALL standard cards (marked "optional")
+- Type-answer cards were being forcibly converted to standard type
+- No logic to distinguish when input should be required vs optional vs hidden
+
+**Design System Inconsistency:**
+
+- Active Sessions page used thin horizontal list items
+- Dashboard and Decks used volumetric cards with watermark icons
+- No unified visual language across pages
+
+**Completed**:
+
+**Deep Card Type Refactor:**
+
+- ✅ Updated `types.ts` Card interface to support all 3 types:
+  - Added `CardType = 'standard' | 'type-answer' | 'quiz'`
+  - Added documentation explaining each type's purpose
+- ✅ Fixed DeckList.tsx card type arrays (2 occurrences) to include `'type-answer'`
+- ✅ Removed type conversion hack in StudySessionPlayer.tsx (line 64)
+  - Changed from: `type: card.type === 'type-answer' ? 'standard' : (card.type as 'standard' | 'quiz')`
+  - To: `type: card.type` (pass through as-is)
+- ✅ Updated StudySession.tsx card rendering logic:
+  - Line 849: Changed condition to `currentCard.type === 'standard' || currentCard.type === 'type-answer'`
+  - Line 975: Input field ONLY shows for type-answer cards (`currentCard.type === 'type-answer'`)
+  - Line 1006: Flip button ONLY shows for standard cards (`currentCard.type === 'standard'`)
+  - Updated input styling: indigo background, required indicator, autoFocus
+  - Added helper text: "Trebuie să scrii răspunsul pentru a continua"
+- ✅ Updated keyboard shortcuts (lines 558-584):
+  - Space/Enter only flips standard cards (not type-answer)
+  - Arrow keys work for both standard and type-answer when flipped
+  - ArrowUp only flips standard cards
+- ✅ Updated geminiService.ts to generate all 3 types with dynamic distribution
+
+**Active Sessions Page Redesign:**
+
+- ✅ Complete refactor to match Dashboard/Decks visual language
+- ✅ Changed from thin horizontal list to volumetric cards:
+  - Background: `bg-[#F8F6F1]` (warm beige like deck tiles)
+  - Padding: `p-6`, rounded: `rounded-3xl`
+  - Responsive grid: 1 col (mobile) → 2 cols (lg) → 3 cols (xl)
+- ✅ Added large watermark icons (120px, opacity-10):
+  - Shuffle (blue) for Random
+  - Brain (purple) for Smart Review
+  - CheckSquare (green) for Manual
+  - List (orange) for All
+- ✅ Replaced linear progress bar with prominent circular progress indicator:
+  - 128px diameter SVG with smooth animations
+  - Shows percentage in center (text-3xl font-bold)
+  - Card count below (currentIndex/totalCards)
+  - Indigo-600 progress stroke
+- ✅ Added real-time answer statistics:
+  - ✓ X știute (green), ✗ X greșite (red), ⊘ X sărite (gray)
+  - Calculated from session.answers object
+- ✅ Changed time tracking from "X ago" to total time spent:
+  - Displays actual practice time from durationSeconds
+  - Formatted as "Xh Ym" or "X min"
+- ✅ Added method display with icons and colors
+- ✅ Full-page layout with header and subtitle
+- ✅ Action buttons match deck tile styling
+
+**Dashboard & Decks Enhancements:**
+
+- ✅ Fixed Dashboard tile data issues (card-stats API error handling)
+- ✅ Fixed Active Sessions tile to show session count (not deck count)
+- ✅ Fixed Success Rate to include all sessions (not just completed)
+- ✅ Fixed Time Spent double-counting bug with incremental tracking
+- ✅ Added incremental answer tracking for real-time success rate updates
+- ✅ Redesigned deck tiles with permanent action bar
+- ✅ Added card type selection to AI generation modal
+- ✅ Fixed manual session selection 500 error with card selection UI
+- ✅ Added hover tooltips to session selection methods
+- ✅ Implemented Continue Session button to open session directly
+
+**Files Modified**:
+
+Core Types:
+
+- `types.ts` - Updated Card interface with CardType union, added documentation
+
+Frontend Components:
+
+- `components/StudySession.tsx` - Complete card type rendering logic overhaul
+- `components/DeckList.tsx` - Updated card type arrays to include type-answer
+- `src/components/sessions/StudySessionPlayer.tsx` - Removed type conversion hack
+- `src/components/sessions/ActiveSessionsList.tsx` - Complete redesign matching unified design system
+- `src/components/sessions/CreateSessionModal.tsx` - Added manual card selection UI, tooltips
+- `components/Dashboard.tsx` - Card stats integration, session resuming, success rate fixes
+
+Backend:
+
+- `server/services/geminiService.ts` - Updated to generate all 3 card types
+- `server/routes/decks.ts` - Added cardTypes parameter to /api/decks/generate
+- `server/routes/studySessions.ts` - Incremental time/answer tracking
+- `server/routes/users.ts` - Card stats endpoint with error handling
+
+API:
+
+- `src/api/decks.ts` - Updated generateDeckWithAI to accept cardTypes parameter
+
+**Commits**:
+
+- `fix: implement incremental tracking for success rate and fix time double-counting`
+- `fix: resolve Dashboard tile data issues and improve error handling`
+- `fix: implement manual card selection UI to prevent 500 error`
+- `feat: redesign deck tiles, add card type selection, and improve session modal UX`
+- `feat: refactor Active Sessions page to match unified design system`
+- _(Next commit will be the deep card type refactor)_
+
+**Key Behavioral Changes**:
+
+1. **Standard Cards**:
+   - Pure flip cards - click/tap to flip, no input field
+   - Space/Enter flips the card
+   - Back side shows "Știu"/"Nu știu" buttons
+
+2. **Type-Answer Cards**:
+   - Front side shows input field (required, indigo styling, autofocus)
+   - User MUST type answer to proceed
+   - Space/Enter does NOT flip (input takes priority)
+   - Answer is validated against card.back (supports multiple answers separated by commas)
+   - Success feedback flips to back automatically
+
+3. **Quiz Cards**:
+   - Multiple choice with 4 options
+   - Click option to answer
+   - Visual feedback (green/red) shows correct/incorrect
+   - Auto-advances after 1.5 seconds
+
+**Testing Checklist**:
+
+1. ✅ Create deck with standard cards → Should flip without input field
+2. ✅ Create deck with type-answer cards → Should require typing
+3. ✅ Create deck with quiz cards → Should show multiple choice
+4. ✅ Generate cards with AI → Should create mix of selected types
+5. ✅ Active Sessions page → Should match Dashboard visual design
+6. ✅ Circular progress → Should animate smoothly
+7. ✅ Time tracking → Should show actual practice time
+8. ✅ TypeScript compilation → Should pass with no errors
+9. ✅ ESLint → Should pass with no errors
+
+**Next Session Recommendations**:
+
+- Test all 3 card types in production environment
+- Verify type-answer input validation with various answer formats
+- Consider adding cloze deletion syntax (e.g., "The capital of France is {{Paris}}")
+- Test circular progress animations on mobile devices
+- Monitor user engagement with different card types
+
+---
+
 ### January 4, 2026 - Data Accuracy & Real-Time Systems Implementation
 
 **Session Focus**: Resolve data accuracy issues and implement real-time gamification systems

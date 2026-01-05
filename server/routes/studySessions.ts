@@ -378,9 +378,9 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
     const { id } = req.params;
     const { currentCardIndex, answers, streak, sessionXP, durationSeconds } = req.body;
 
-    // Get current session to calculate incremental time
+    // Get current session to calculate incremental changes
     const sessionResult = await query(
-      'SELECT user_id, duration_seconds FROM study_sessions WHERE id = $1',
+      'SELECT user_id, duration_seconds, answers FROM study_sessions WHERE id = $1',
       [id]
     );
 
@@ -416,9 +416,40 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
       params.push(currentCardIndex);
     }
 
+    // Handle incremental answer tracking for success rate
     if (answers !== undefined) {
       updateFields.push(`answers = $${paramIndex++}`);
       params.push(JSON.stringify(answers));
+
+      // Calculate new answers since last save
+      const oldAnswers = session.answers || {};
+      const newAnswers = answers;
+
+      let newCorrectAnswers = 0;
+      let newTotalAnswers = 0;
+
+      // Find answers that are new or changed
+      for (const [cardId, answer] of Object.entries(newAnswers)) {
+        if (oldAnswers[cardId] !== answer) {
+          // This is a new or changed answer
+          newTotalAnswers++;
+          if (answer === 'correct') {
+            newCorrectAnswers++;
+          }
+        }
+      }
+
+      // Update user's success rate stats incrementally
+      if (newTotalAnswers > 0) {
+        await query(
+          `UPDATE users
+           SET total_correct_answers = total_correct_answers + $1,
+               total_answers = total_answers + $2,
+               updated_at = NOW()
+           WHERE id = $3`,
+          [newCorrectAnswers, newTotalAnswers, req.user!.id]
+        );
+      }
     }
 
     if (streak !== undefined) {
@@ -510,6 +541,11 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
         throw new Error('ALREADY_COMPLETED');
       }
 
+      // Calculate incremental time (to avoid double-counting with PUT updates)
+      const oldDurationSeconds = session.duration_seconds || 0;
+      const incrementalSeconds = Math.max(0, (durationSeconds || 0) - oldDurationSeconds);
+      const incrementalMinutes = Math.floor(incrementalSeconds / 60);
+
       // Update session
       const updatedSession = await client.query(
         `UPDATE study_sessions
@@ -537,6 +573,8 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
           const { cardId, wasCorrect } = update;
 
           // Track total answers and correct answers for success rate calculation
+          // Note: We only count these for card progress updates, as the incremental
+          // answer tracking in PUT endpoint already handles real-time updates
           totalAnswersInSession++;
           if (wasCorrect) {
             correctAnswersInSession++;
@@ -639,7 +677,6 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
 
       // Update user stats
       const sessionXP = session.session_xp || 0;
-      const durationMinutes = Math.floor((durationSeconds || 0) / 60);
 
       // Get current user stats for level-up calculation
       const userResult = await client.query(
@@ -664,6 +701,7 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
       }
 
       // Update user stats
+      // Note: We use incremental time/answers to avoid double-counting with PUT updates
       await client.query(
         `UPDATE users
          SET total_cards_learned = total_cards_learned + $1,
@@ -673,19 +711,15 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
              level = $4,
              next_level_xp = $5,
              total_time_spent = total_time_spent + $6,
-             total_correct_answers = total_correct_answers + $7,
-             total_answers = total_answers + $8,
              updated_at = NOW()
-         WHERE id = $9`,
+         WHERE id = $7`,
         [
           cardsLearned,
           sessionXP,
           newCurrentXP,
           newLevel,
           newNextLevelXP,
-          durationMinutes,
-          correctAnswersInSession,
-          totalAnswersInSession,
+          incrementalMinutes,
           req.user!.id,
         ]
       );
@@ -702,7 +736,7 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
            time_spent_minutes = daily_progress.time_spent_minutes + $4,
            xp_earned = daily_progress.xp_earned + $5,
            sessions_completed = daily_progress.sessions_completed + 1`,
-        [req.user!.id, today, cardsLearned, durationMinutes, sessionXP]
+        [req.user!.id, today, cardsLearned, incrementalMinutes, sessionXP]
       );
 
       // Check and unlock achievements

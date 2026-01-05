@@ -60,8 +60,8 @@ const StudySessionPlayer: React.FC<StudySessionPlayerProps> = ({
           return {
             ...card,
             status,
-            // Convert CardType to local Card type
-            type: card.type === 'type-answer' ? 'standard' : (card.type as 'standard' | 'quiz'),
+            // Pass through card type as-is (now supports type-answer)
+            type: card.type,
           };
         }),
         totalCards: currentSession.totalCards,
