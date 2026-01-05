@@ -80,6 +80,7 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
               <button
                 type="button"
                 onClick={() => setSelectionMethod('random')}
+                title="Selectează carduri aleatorii din deck"
                 className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${
                   selectionMethod === 'random'
                     ? 'bg-indigo-50 border-indigo-500 text-indigo-700'
@@ -88,12 +89,12 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
               >
                 <Shuffle size={24} />
                 <span className="font-semibold text-sm">Random</span>
-                <span className="text-xs text-center">Selectează carduri aleatorii</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setSelectionMethod('smart')}
+                title="Prioritizează carduri care necesită review (SM-2 algorithm)"
                 className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${
                   selectionMethod === 'smart'
                     ? 'bg-indigo-50 border-indigo-500 text-indigo-700'
@@ -102,12 +103,12 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
               >
                 <Brain size={24} />
                 <span className="font-semibold text-sm">Smart Review</span>
-                <span className="text-xs text-center">Carduri due for review</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setSelectionMethod('manual')}
+                title="Tu alegi exact ce carduri să studiezi"
                 className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${
                   selectionMethod === 'manual'
                     ? 'bg-indigo-50 border-indigo-500 text-indigo-700'
@@ -116,12 +117,12 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
               >
                 <CheckSquare size={24} />
                 <span className="font-semibold text-sm">Manual</span>
-                <span className="text-xs text-center">Selectează specific</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setSelectionMethod('all')}
+                title="Include toate cardurile din deck"
                 className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${
                   selectionMethod === 'all'
                     ? 'bg-indigo-50 border-indigo-500 text-indigo-700'
@@ -130,7 +131,6 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
               >
                 <List size={24} />
                 <span className="font-semibold text-sm">Toate</span>
-                <span className="text-xs text-center">Toate cardurile</span>
               </button>
             </div>
           </div>
@@ -175,25 +175,6 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                 </p>
               </div>
             </label>
-          </div>
-
-          {/* Info Box */}
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-            <h4 className="font-semibold text-blue-900 mb-2">ℹ️ Cum funcționează?</h4>
-            <ul className="text-sm text-blue-800 space-y-1">
-              <li>
-                • <strong>Random:</strong> Selectează carduri aleatorii din deck
-              </li>
-              <li>
-                • <strong>Smart:</strong> Prioritizează carduri care necesită review
-              </li>
-              <li>
-                • <strong>Manual:</strong> Tu alegi exact ce carduri să studiezi
-              </li>
-              <li>
-                • <strong>Toate:</strong> Include toate cardurile din deck
-              </li>
-            </ul>
           </div>
         </div>
 

@@ -46,6 +46,7 @@ const DeckList: React.FC<DeckListProps> = ({
   const [difficulty, setDifficulty] = useState<Difficulty>('A2');
   const [importMode, setImportMode] = useState<'manual' | 'ai' | 'file'>('ai');
   const [numberOfCards, setNumberOfCards] = useState(10);
+  const [selectedCardTypes, setSelectedCardTypes] = useState<Array<'standard' | 'quiz' | 'type-answer'>>(['standard', 'quiz']);
 
   // Edit Cards Modal State
   const [editCardsModalOpen, setEditCardsModalOpen] = useState(false);
@@ -63,6 +64,7 @@ const DeckList: React.FC<DeckListProps> = ({
     setDifficulty('A2');
     setImportMode('ai');
     setNumberOfCards(10);
+    setSelectedCardTypes(['standard', 'quiz']);
     setIsModalOpen(true);
   };
 
@@ -84,8 +86,21 @@ const DeckList: React.FC<DeckListProps> = ({
     setDifficulty(deck.difficulty);
     setImportMode('ai');
     setNumberOfCards(10);
+    setSelectedCardTypes(['standard', 'quiz']);
     setIsModalOpen(true);
     setActiveMenuId(null);
+  };
+
+  const toggleCardType = (type: 'standard' | 'quiz' | 'type-answer') => {
+    setSelectedCardTypes(prev => {
+      if (prev.includes(type)) {
+        // Don't allow deselecting if it's the last selected type
+        if (prev.length === 1) return prev;
+        return prev.filter(t => t !== type);
+      } else {
+        return [...prev, type];
+      }
+    });
   };
 
   // Edit Cards Modal Functions
@@ -200,14 +215,14 @@ const DeckList: React.FC<DeckListProps> = ({
       }> = [];
       if (importMode === 'ai') {
         try {
-          const response = await generateDeckWithAI(subject, title, difficulty, numberOfCards);
+          const response = await generateDeckWithAI(subject, title, difficulty, numberOfCards, selectedCardTypes);
           if (response.success && response.data) {
             newCards.push(
               ...response.data.map((card, index) => ({
                 ...card,
                 id: `ai-${Date.now()}-${index}`,
                 status: 'new' as const,
-                // Preserve quiz fields if they exist, otherwise use empty defaults
+                // Preserve all card type fields
                 type: card.type || 'standard',
                 options: card.options || undefined,
                 correctOptionIndex: card.correctOptionIndex ?? undefined,
@@ -250,14 +265,14 @@ const DeckList: React.FC<DeckListProps> = ({
       }> = [];
       if (importMode === 'ai') {
         try {
-          const response = await generateDeckWithAI(subject, title, difficulty, numberOfCards);
+          const response = await generateDeckWithAI(subject, title, difficulty, numberOfCards, selectedCardTypes);
           if (response.success && response.data) {
             newCards.push(
               ...response.data.map((card, index) => ({
                 ...card,
                 id: `ai-${Date.now()}-${index}`,
                 status: 'new' as const,
-                // Preserve quiz fields if they exist, otherwise use empty defaults
+                // Preserve all card type fields
                 type: card.type || 'standard',
                 options: card.options || undefined,
                 correctOptionIndex: card.correctOptionIndex ?? undefined,
@@ -345,13 +360,41 @@ const DeckList: React.FC<DeckListProps> = ({
           const hasProgress =
             percentage > 0 ||
             (deck.sessionData && Object.keys(deck.sessionData.answers).length > 0);
+          const inStudy = deck.totalCards - deck.masteredCards;
 
           return (
             <div
               key={deck.id}
-              className="bg-[#F8F6F1] p-6 rounded-3xl relative group hover:shadow-md transition-shadow"
+              className="bg-[#F8F6F1] p-6 rounded-3xl relative group hover:shadow-md transition-shadow flex flex-col"
             >
-              <div className="flex justify-between items-start mb-4">
+              {/* Delete Menu (top-right corner) */}
+              <div className="absolute top-4 right-4">
+                <div className="relative">
+                  <button
+                    onClick={e => toggleMenu(e, deck.id)}
+                    className="p-1 text-gray-400 hover:text-gray-900 rounded-full hover:bg-gray-200 transition-colors"
+                  >
+                    <MoreVertical size={18} />
+                  </button>
+
+                  {activeMenuId === deck.id && (
+                    <div className="absolute right-0 top-8 bg-white shadow-xl rounded-xl p-2 min-w-[140px] z-10 border border-gray-100 animate-fade-in">
+                      <button
+                        onClick={() => onDeleteDeck(deck.id)}
+                        className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2 font-medium"
+                      >
+                        <Trash2 size={16} /> Șterge
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Header: Title/Theme */}
+              <h3 className="text-2xl font-bold text-gray-900 mb-3 pr-8">{deck.title}</h3>
+
+              {/* Body: Category Badge (left) + Difficulty Badge (right) */}
+              <div className="flex justify-between items-center mb-4">
                 <span
                   className={`px-3 py-1 rounded-full text-xs font-bold text-white shadow-sm
                   ${
@@ -364,112 +407,82 @@ const DeckList: React.FC<DeckListProps> = ({
                 >
                   {deck.subject}
                 </span>
-
-                <div className="relative">
-                  <button
-                    onClick={e => toggleMenu(e, deck.id)}
-                    className="p-1 text-gray-400 hover:text-gray-900 rounded-full hover:bg-gray-200 transition-colors"
-                  >
-                    <MoreVertical size={18} />
-                  </button>
-
-                  {activeMenuId === deck.id && (
-                    <div className="absolute right-0 top-8 bg-white shadow-xl rounded-xl p-2 min-w-[140px] z-10 border border-gray-100 animate-fade-in">
-                      <button
-                        onClick={() => openEditModal(deck)}
-                        className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg flex items-center gap-2 font-medium"
-                      >
-                        <Edit size={16} /> Editează
-                      </button>
-                      <button
-                        onClick={() => onDeleteDeck(deck.id)}
-                        className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2 font-medium"
-                      >
-                        <Trash2 size={16} /> Șterge
-                      </button>
-                    </div>
-                  )}
-                </div>
+                <span className="px-3 py-1 rounded-full text-xs font-medium text-gray-600 bg-gray-200">
+                  {deck.difficulty} - {
+                    deck.difficulty === 'A1' ? 'Începător' :
+                    deck.difficulty === 'A2' ? 'Elementar' :
+                    deck.difficulty === 'B1' ? 'Intermediar' :
+                    deck.difficulty === 'B2' ? 'Intermediar Avansat' :
+                    deck.difficulty === 'C1' ? 'Avansat' : 'Expert'
+                  }
+                </span>
               </div>
 
-              <h3 className="text-xl font-bold text-gray-900 mb-1 truncate">{deck.title}</h3>
-              <p className="text-sm text-gray-500 mb-6 font-medium">Nivel {deck.difficulty}</p>
-
-              <div className="flex gap-2 mb-4">
-                <span className="bg-white border border-gray-200 px-3 py-1 rounded-full text-xs font-bold text-gray-600">
-                  {deck.totalCards} carduri
-                </span>
-                <span className="bg-white border border-gray-200 px-3 py-1 rounded-full text-xs font-bold text-gray-600">
-                  {deck.masteredCards} învățate
-                </span>
+              {/* Footer Stats: Total | In Study | Mastered */}
+              <div className="text-sm text-gray-600 mb-4 font-medium">
+                {deck.totalCards} carduri | {inStudy} în studiu | {deck.masteredCards} învățate
               </div>
 
               {/* Progress Bar */}
-              <div className="w-full bg-gray-200 h-2 rounded-full mb-2 overflow-hidden">
+              <div className="w-full bg-gray-200 h-2 rounded-full mb-6 overflow-hidden">
                 <div
-                  className="bg-green-500 h-2 rounded-full"
+                  className="bg-green-500 h-2 rounded-full transition-all"
                   style={{ width: `${percentage}%` }}
                 ></div>
               </div>
-              <div className="flex justify-between text-xs text-gray-500 mb-6 font-medium">
-                <span>Progres: {percentage}%</span>
-                <span>{deck.totalCards - deck.masteredCards} în studiu</span>
-              </div>
 
-              {/* Action Buttons */}
-              <div className="flex gap-3">
+              {/* Permanent Action Bar */}
+              <div className="flex gap-2 mt-auto">
+                {/* 1. Reset Progress - Visible only if progress > 0% */}
                 {hasProgress && onResetDeck && deck.totalCards > 0 && (
                   <button
                     onClick={e => {
                       e.stopPropagation();
                       onResetDeck(deck.id);
                     }}
-                    className="px-4 py-3 border-2 border-gray-200 text-gray-600 rounded-xl hover:border-red-200 hover:text-red-600 hover:bg-red-50 transition-colors font-bold"
+                    className="p-3 border-2 border-gray-200 text-gray-600 rounded-xl hover:border-red-200 hover:text-red-600 hover:bg-red-50 transition-colors"
                     title="Resetează progresul"
                   >
                     <RotateCcw size={18} />
                   </button>
                 )}
 
-                {!deck.cards || deck.cards.length === 0 ? (
-                  <button
-                    onClick={e => {
-                      e.stopPropagation();
-                      openGenerateCardsModal(deck);
-                    }}
-                    className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg"
-                  >
-                    <Sparkles size={18} /> Generează Carduri
-                  </button>
-                ) : (
-                  <>
-                    <button
-                      onClick={e => {
-                        e.stopPropagation();
-                        openEditCardsModal(deck);
-                      }}
-                      className="px-4 py-3 bg-white border-2 border-gray-200 text-gray-600 rounded-xl hover:border-indigo-200 hover:text-indigo-600 hover:bg-indigo-50 transition-colors font-bold flex items-center gap-2"
-                      title="Modifică Carduri"
-                    >
-                      <List size={18} />
-                      <span className="hidden sm:inline">Modifică</span>
-                    </button>
-                    <button
-                      onClick={() => onStartSession(deck)}
-                      className="flex-1 bg-white hover:bg-gray-900 hover:text-white border border-gray-900 text-gray-900 font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2"
-                    >
-                      {hasProgress ? (
-                        <>
-                          Continuă <ArrowRight size={18} />
-                        </>
-                      ) : (
-                        <>
-                          Studiază <Play size={18} fill="currentColor" />
-                        </>
-                      )}
-                    </button>
-                  </>
-                )}
+                {/* 2. Modify - Icon only, permanent */}
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    deck.cards && deck.cards.length > 0 ? openEditCardsModal(deck) : openEditModal(deck);
+                  }}
+                  className="p-3 border-2 border-gray-200 text-gray-600 rounded-xl hover:border-indigo-200 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                  title="Modifică"
+                >
+                  <Edit size={18} />
+                </button>
+
+                {/* 3. Generate Cards - Permanent */}
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    openGenerateCardsModal(deck);
+                  }}
+                  className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 text-sm"
+                  title="Generează carduri cu AI"
+                >
+                  <Sparkles size={18} /> Generează
+                </button>
+
+                {/* 4. Create Session - Re-labeled from "Studiază" */}
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    onStartSession(deck);
+                  }}
+                  className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 text-sm"
+                  disabled={!deck.cards || deck.cards.length === 0}
+                  title={deck.cards && deck.cards.length > 0 ? "Creează sesiune" : "Adaugă carduri mai întâi"}
+                >
+                  <Play size={18} fill="currentColor" /> Creează sesiune
+                </button>
               </div>
             </div>
           );
@@ -581,26 +594,140 @@ const DeckList: React.FC<DeckListProps> = ({
                       </button>
                     </div>
                   </div>
+
+                  {importMode === 'ai' && (
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-3">
+                        Tipuri Carduri
+                      </label>
+                      <div className="space-y-2">
+                        <label className="flex items-center gap-3 cursor-pointer p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                          <input
+                            type="checkbox"
+                            checked={selectedCardTypes.includes('standard')}
+                            onChange={() => toggleCardType('standard')}
+                            className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                          />
+                          <div className="flex-1">
+                            <span className="font-semibold text-gray-900">Standard</span>
+                            <p className="text-xs text-gray-600">
+                              Card tradițional cu întrebare și răspuns
+                            </p>
+                          </div>
+                        </label>
+
+                        <label className="flex items-center gap-3 cursor-pointer p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                          <input
+                            type="checkbox"
+                            checked={selectedCardTypes.includes('quiz')}
+                            onChange={() => toggleCardType('quiz')}
+                            className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                          />
+                          <div className="flex-1">
+                            <span className="font-semibold text-gray-900">Quiz</span>
+                            <p className="text-xs text-gray-600">
+                              Întrebare cu variante multiple de răspuns
+                            </p>
+                          </div>
+                        </label>
+
+                        <label className="flex items-center gap-3 cursor-pointer p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                          <input
+                            type="checkbox"
+                            checked={selectedCardTypes.includes('type-answer')}
+                            onChange={() => toggleCardType('type-answer')}
+                            className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                          />
+                          <div className="flex-1">
+                            <span className="font-semibold text-gray-900">Răspuns Scris</span>
+                            <p className="text-xs text-gray-600">
+                              Scrie răspunsul (potrivit pentru 1-2 cuvinte)
+                            </p>
+                          </div>
+                        </label>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">
+                        Selectează cel puțin un tip de card
+                      </p>
+                    </div>
+                  )}
                 </>
               )}
 
               {generatingForDeckId && (
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Număr de Carduri (pentru AI)
-                  </label>
-                  <input
-                    type="number"
-                    min="5"
-                    max="50"
-                    value={numberOfCards}
-                    onChange={e => setNumberOfCards(parseInt(e.target.value) || 10)}
-                    className="w-full border-2 border-gray-100 bg-gray-50 rounded-xl p-3 font-medium outline-none focus:border-indigo-500 transition-colors"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Recomandare: 10-20 carduri pentru sesiuni eficiente
-                  </p>
-                </div>
+                <>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      Număr de Carduri (pentru AI)
+                    </label>
+                    <input
+                      type="number"
+                      min="5"
+                      max="50"
+                      value={numberOfCards}
+                      onChange={e => setNumberOfCards(parseInt(e.target.value) || 10)}
+                      className="w-full border-2 border-gray-100 bg-gray-50 rounded-xl p-3 font-medium outline-none focus:border-indigo-500 transition-colors"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Recomandare: 10-20 carduri pentru sesiuni eficiente
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-3">
+                      Tipuri Carduri
+                    </label>
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-3 cursor-pointer p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={selectedCardTypes.includes('standard')}
+                          onChange={() => toggleCardType('standard')}
+                          className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <div className="flex-1">
+                          <span className="font-semibold text-gray-900">Standard</span>
+                          <p className="text-xs text-gray-600">
+                            Card tradițional cu întrebare și răspuns
+                          </p>
+                        </div>
+                      </label>
+
+                      <label className="flex items-center gap-3 cursor-pointer p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={selectedCardTypes.includes('quiz')}
+                          onChange={() => toggleCardType('quiz')}
+                          className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <div className="flex-1">
+                          <span className="font-semibold text-gray-900">Quiz</span>
+                          <p className="text-xs text-gray-600">
+                            Întrebare cu variante multiple de răspuns
+                          </p>
+                        </div>
+                      </label>
+
+                      <label className="flex items-center gap-3 cursor-pointer p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={selectedCardTypes.includes('type-answer')}
+                          onChange={() => toggleCardType('type-answer')}
+                          className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <div className="flex-1">
+                          <span className="font-semibold text-gray-900">Răspuns Scris</span>
+                          <p className="text-xs text-gray-600">
+                            Scrie răspunsul (potrivit pentru 1-2 cuvinte)
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Selectează cel puțin un tip de card
+                    </p>
+                  </div>
+                </>
               )}
 
               {importMode === 'file' && !editingDeckId && !generatingForDeckId && (

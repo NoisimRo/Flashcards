@@ -78,18 +78,19 @@ export async function generateDeckWithAI(
   subject: string,
   topic: string,
   difficulty: string,
-  numberOfCards: number = 10
+  numberOfCards: number = 10,
+  cardTypes?: Array<'standard' | 'quiz' | 'type-answer'>
 ) {
   return api.post<
     Array<{
       front: string;
       back: string;
       context: string;
-      type: 'standard' | 'quiz';
+      type: 'standard' | 'quiz' | 'type-answer';
       options?: string[];
       correctOptionIndex?: number;
     }>
-  >('/decks/generate', { subject, topic, difficulty, numberOfCards });
+  >('/decks/generate', { subject, topic, difficulty, numberOfCards, cardTypes });
 }
 
 // Helper to download exported file
