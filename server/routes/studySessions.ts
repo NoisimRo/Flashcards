@@ -505,10 +505,18 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
       // Update card progress for each card
       let cardsLearned = 0;
       let cardsMastered = 0;
+      let totalAnswersInSession = 0;
+      let correctAnswersInSession = 0;
 
       if (cardProgressUpdates && Array.isArray(cardProgressUpdates)) {
         for (const update of cardProgressUpdates) {
           const { cardId, wasCorrect } = update;
+
+          // Track total answers and correct answers for success rate calculation
+          totalAnswersInSession++;
+          if (wasCorrect) {
+            correctAnswersInSession++;
+          }
 
           // Get existing progress or create default
           const existingProgress = await client.query(
@@ -641,8 +649,10 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
              level = $4,
              next_level_xp = $5,
              total_time_spent = total_time_spent + $6,
+             total_correct_answers = total_correct_answers + $7,
+             total_answers = total_answers + $8,
              updated_at = NOW()
-         WHERE id = $7`,
+         WHERE id = $9`,
         [
           cardsLearned,
           sessionXP,
@@ -650,6 +660,8 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
           newLevel,
           newNextLevelXP,
           durationMinutes,
+          correctAnswersInSession,
+          totalAnswersInSession,
           req.user!.id,
         ]
       );

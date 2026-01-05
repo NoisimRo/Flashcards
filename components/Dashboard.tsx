@@ -95,7 +95,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
   const stats = useMemo(() => {
     const totalMastered = decks.reduce((sum, deck) => sum + deck.masteredCards, 0);
     const totalCards = decks.reduce((sum, deck) => sum + deck.totalCards, 0);
-    const successRate = totalCards > 0 ? Math.round((totalMastered / totalCards) * 100) : 0;
+    // Success rate based on correct answers / total answers (not mastered/total cards)
+    const successRate =
+      user.totalAnswers > 0 ? Math.round((user.totalCorrectAnswers / user.totalAnswers) * 100) : 0;
     const hours = (user.totalTimeSpent / 60).toFixed(1);
     const activeDecks = decks.filter(d => d.masteredCards < d.totalCards && d.totalCards > 0);
     const completedDecks = decks.filter(d => d.masteredCards === d.totalCards && d.totalCards > 0);
@@ -110,6 +112,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
       totalCardsLearned: user.totalCardsLearned || totalMastered,
       totalTimeSpentFormatted: `${hours}h`,
       successRate: `${successRate}%`,
+      successRateValue: successRate,
+      totalCorrectAnswers: user.totalCorrectAnswers || 0,
+      totalAnswers: user.totalAnswers || 0,
       streak: user.streak,
       longestStreak: user.longestStreak,
       totalXP: user.totalXP,
@@ -292,7 +297,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
                 <div className="text-sm text-gray-500 font-medium">Rată de Succes</div>
               </div>
             </div>
-            <div className="text-xs text-gray-400 font-medium">Carduri învățate</div>
+            <div className="text-xs text-gray-400 font-medium">
+              {stats.totalCorrectAnswers} răspunse corect | {stats.totalAnswers} parcurse
+            </div>
           </div>
 
           {/* Time Spent */}

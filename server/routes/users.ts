@@ -101,7 +101,8 @@ router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
     const result = await query(
       `SELECT id, email, name, avatar, role, level, current_xp, next_level_xp, total_xp,
               streak, longest_streak, total_time_spent, total_cards_learned,
-              total_decks_completed, preferences, created_at
+              total_decks_completed, total_correct_answers, total_answers,
+              preferences, created_at
        FROM users WHERE id = $1 AND deleted_at IS NULL`,
       [id]
     );
@@ -135,6 +136,8 @@ router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
         totalTimeSpent: user.total_time_spent,
         totalCardsLearned: user.total_cards_learned,
         totalDecksCompleted: user.total_decks_completed,
+        totalCorrectAnswers: user.total_correct_answers || 0,
+        totalAnswers: user.total_answers || 0,
         preferences: user.preferences,
         createdAt: user.created_at,
       },
@@ -203,7 +206,8 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
       `UPDATE users SET ${updates.join(', ')} WHERE id = $${paramIndex} AND deleted_at IS NULL
        RETURNING id, email, name, avatar, role, level, current_xp, next_level_xp, total_xp,
                  streak, longest_streak, total_time_spent, total_cards_learned,
-                 total_decks_completed, preferences, created_at`,
+                 total_decks_completed, total_correct_answers, total_answers,
+                 preferences, created_at`,
       values
     );
 
@@ -236,6 +240,8 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
         totalTimeSpent: user.total_time_spent,
         totalCardsLearned: user.total_cards_learned,
         totalDecksCompleted: user.total_decks_completed,
+        totalCorrectAnswers: user.total_correct_answers || 0,
+        totalAnswers: user.total_answers || 0,
         preferences: user.preferences,
         createdAt: user.created_at,
       },
@@ -440,7 +446,8 @@ router.post('/:id/xp', authenticateToken, async (req: Request, res: Response) =>
        WHERE id = $5 AND deleted_at IS NULL
        RETURNING id, email, name, avatar, role, level, current_xp, next_level_xp, total_xp,
                  streak, longest_streak, total_time_spent, total_cards_learned,
-                 total_decks_completed, preferences, created_at`,
+                 total_decks_completed, total_correct_answers, total_answers,
+                 preferences, created_at`,
       [newLevel, newCurrentXP, newNextLevelXP, newTotalXP, id]
     );
 
@@ -463,6 +470,8 @@ router.post('/:id/xp', authenticateToken, async (req: Request, res: Response) =>
         totalTimeSpent: updatedUser.total_time_spent,
         totalCardsLearned: updatedUser.total_cards_learned,
         totalDecksCompleted: updatedUser.total_decks_completed,
+        totalCorrectAnswers: updatedUser.total_correct_answers || 0,
+        totalAnswers: updatedUser.total_answers || 0,
         preferences: updatedUser.preferences,
         createdAt: updatedUser.created_at,
       },
