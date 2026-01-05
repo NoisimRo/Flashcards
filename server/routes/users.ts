@@ -489,6 +489,82 @@ router.post('/:id/xp', authenticateToken, async (req: Request, res: Response) =>
 });
 
 // ============================================
+// GET /api/users/:id/card-stats - Get user card statistics by status
+// ============================================
+router.get('/:id/card-stats', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    // Users can only view their own stats unless admin/teacher
+    if (id !== req.user!.id && req.user!.role === 'student') {
+      return res.status(403).json({
+        success: false,
+        error: {
+          code: 'FORBIDDEN',
+          message: 'Nu ai permisiunea să vezi aceste statistici',
+        },
+      });
+    }
+
+    // Get card counts by status from user_card_progress
+    const cardStatusResult = await query(
+      `SELECT
+         status,
+         COUNT(*) as count
+       FROM user_card_progress
+       WHERE user_id = $1
+       GROUP BY status`,
+      [id]
+    );
+
+    // Build status map
+    const statusCounts = {
+      new: 0,
+      learning: 0,
+      reviewing: 0,
+      mastered: 0,
+    };
+
+    cardStatusResult.rows.forEach((row: any) => {
+      statusCounts[row.status as keyof typeof statusCounts] = parseInt(row.count);
+    });
+
+    // Calculate derived stats
+    const inStudy = statusCounts.learning + statusCounts.reviewing;
+    const mastered = statusCounts.mastered;
+
+    // Get total decks count
+    const decksResult = await query(
+      `SELECT COUNT(*) as total_decks
+       FROM decks
+       WHERE user_id = $1 AND deleted_at IS NULL`,
+      [id]
+    );
+
+    const totalDecks = parseInt(decksResult.rows[0]?.total_decks || 0);
+
+    res.json({
+      success: true,
+      data: {
+        statusCounts,
+        inStudy,
+        mastered,
+        totalDecks,
+      },
+    });
+  } catch (error) {
+    console.error('Get card stats error:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'SERVER_ERROR',
+        message: 'Eroare la obținerea statisticilor',
+      },
+    });
+  }
+});
+
+// ============================================
 // GET /api/users/:id/stats - Get user statistics
 // ============================================
 router.get('/:id/stats', authenticateToken, async (req: Request, res: Response) => {

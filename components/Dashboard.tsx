@@ -7,6 +7,9 @@ import {
   ActivityDay,
 } from '../src/api/dailyChallenges';
 import { getAchievements, Achievement } from '../src/api/achievements';
+import { getUserCardStats, CardStats } from '../src/api/users';
+import { getStudySessions } from '../src/api/studySessions';
+import type { StudySession } from '../src/types/models';
 import {
   Flame,
   Clock,
@@ -55,14 +58,30 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [achievementsLoading, setAchievementsLoading] = useState(true);
 
-  // Fetch daily challenges, activity calendar, and achievements on mount
+  // State for card stats
+  const [cardStats, setCardStats] = useState<CardStats | null>(null);
+  const [cardStatsLoading, setCardStatsLoading] = useState(true);
+
+  // State for active sessions
+  const [activeSessions, setActiveSessions] = useState<StudySession[]>([]);
+  const [activeSessionsLoading, setActiveSessionsLoading] = useState(true);
+
+  // Fetch daily challenges, activity calendar, achievements, card stats, and active sessions on mount
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [challengesResponse, calendarResponse, achievementsResponse] = await Promise.all([
+        const [
+          challengesResponse,
+          calendarResponse,
+          achievementsResponse,
+          cardStatsResponse,
+          activeSessionsResponse,
+        ] = await Promise.all([
           getTodaysChallenges(),
           getActivityCalendar(),
           getAchievements(),
+          getUserCardStats(user.id),
+          getStudySessions({ status: 'active', limit: 3 }),
         ]);
 
         if (challengesResponse.success) {
@@ -76,20 +95,32 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
         if (achievementsResponse.success) {
           setAchievements(achievementsResponse.data.achievements);
         }
+
+        if (cardStatsResponse.success) {
+          setCardStats(cardStatsResponse.data);
+        }
+
+        if (activeSessionsResponse.success) {
+          setActiveSessions(activeSessionsResponse.data);
+        }
       } catch (error) {
         console.error('Failed to fetch data:', error);
         setDailyChallenges([]);
         setActivityCalendar([]);
         setAchievements([]);
+        setCardStats(null);
+        setActiveSessions([]);
       } finally {
         setChallengesLoading(false);
         setCalendarLoading(false);
         setAchievementsLoading(false);
+        setCardStatsLoading(false);
+        setActiveSessionsLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [user.id]);
 
   // Calculate stats from real data
   const stats = useMemo(() => {
@@ -275,10 +306,13 @@ const Dashboard: React.FC<DashboardProps> = ({ user, decks, onStartSession, onCh
               <BookOpen size={120} className="text-blue-600" />
             </div>
             <div className="relative z-10 flex flex-col">
-              <div className="text-5xl font-bold text-gray-900 mb-2">{stats.totalCardsLearned}</div>
+              <div className="text-5xl font-bold text-gray-900 mb-2">
+                {cardStats?.totalDecks || stats.activeDecksCount}
+              </div>
               <div className="text-base font-bold text-gray-700 mb-1">Sesiuni învățare active</div>
               <div className="text-sm text-gray-500">
-                {stats.activeDecksCount} deck-uri | {stats.totalCardsLearned} în studiu | 0 învățate
+                {cardStats?.totalDecks || stats.activeDecksCount} deck-uri |{' '}
+                {cardStats?.inStudy || 0} în studiu | {cardStats?.mastered || 0} învățate
               </div>
             </div>
           </div>

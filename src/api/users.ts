@@ -39,3 +39,19 @@ export async function updateUserProfile(
 export async function getGlobalLeaderboard(limit = 100) {
   return api.get<LeaderboardResponse>(`/users/leaderboard/global?limit=${limit}`);
 }
+
+export interface CardStats {
+  statusCounts: {
+    new: number;
+    learning: number;
+    reviewing: number;
+    mastered: number;
+  };
+  inStudy: number;
+  mastered: number;
+  totalDecks: number;
+}
+
+export async function getUserCardStats(userId: string) {
+  return api.get<CardStats>(`/users/${userId}/card-stats`);
+}
