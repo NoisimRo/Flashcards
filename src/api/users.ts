@@ -50,6 +50,7 @@ export interface CardStats {
   inStudy: number;
   mastered: number;
   totalDecks: number;
+  activeSessions: number;
 }
 
 export async function getUserCardStats(userId: string) {
