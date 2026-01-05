@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Play,
   Trash2,
@@ -7,6 +7,7 @@ import {
   CheckSquare,
   List as ListIcon,
   BookOpen,
+  MoreVertical,
 } from 'lucide-react';
 import { useStudySessionsStore } from '../../store/studySessionsStore';
 import { useToast } from '../ui/Toast';
@@ -19,16 +20,29 @@ const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({ onResumeSession
   const toast = useToast();
   const { activeSessions, isLoading, fetchActiveSessions, abandonSession } =
     useStudySessionsStore();
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchActiveSessions({ status: 'active' });
   }, [fetchActiveSessions]);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const closeMenu = () => setActiveMenuId(null);
+    document.addEventListener('click', closeMenu);
+    return () => document.removeEventListener('click', closeMenu);
+  }, []);
 
   const handleAbandon = async (sessionId: string, title: string) => {
     if (confirm(`Sigur vrei să abandonezi sesiunea "${title}"?`)) {
       await abandonSession(sessionId);
       toast.success('Sesiune abandonată');
     }
+  };
+
+  const toggleMenu = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    setActiveMenuId(activeMenuId === id ? null : id);
   };
 
   const formatDuration = (seconds: number | undefined) => {
@@ -114,7 +128,9 @@ const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({ onResumeSession
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Sesiuni Active</h1>
-          <p className="text-gray-500">{activeSessions.length} sesiuni în desfășurare</p>
+          <p className="text-gray-500">
+            {activeSessions.length} sesiuni de învățare în desfășurare
+          </p>
         </div>
       </div>
 
@@ -135,24 +151,49 @@ const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({ onResumeSession
                 <MethodIcon size={120} />
               </div>
 
-              {/* Header: Session Title */}
-              <h3 className="text-2xl font-bold text-gray-900 mb-2 relative z-10 pr-16">
-                {session.title}
-              </h3>
+              {/* Three-Dot Menu (top-right corner) */}
+              <div className="absolute top-4 right-4 z-20">
+                <div className="relative">
+                  <button
+                    onClick={e => toggleMenu(e, session.id)}
+                    className="p-1 text-gray-400 hover:text-gray-900 rounded-full hover:bg-gray-200 transition-colors"
+                  >
+                    <MoreVertical size={18} />
+                  </button>
 
-              {/* Deck Info */}
-              {session.deck && (
-                <div className="flex items-center gap-2 mb-4">
-                  {session.deck.subjectName && (
-                    <span className="px-3 py-1 rounded-full text-xs font-bold text-white bg-gray-900 shadow-sm">
-                      {session.deck.subjectName}
-                    </span>
-                  )}
-                  {session.deck.topic && (
-                    <span className="text-sm text-gray-600 font-medium">{session.deck.topic}</span>
+                  {activeMenuId === session.id && (
+                    <div className="absolute right-0 top-8 bg-white shadow-xl rounded-xl p-2 min-w-[180px] z-10 border border-gray-100 animate-fade-in">
+                      {/* Abandonează sesiunea */}
+                      <button
+                        onClick={e => {
+                          e.stopPropagation();
+                          handleAbandon(session.id, session.title);
+                          setActiveMenuId(null);
+                        }}
+                        className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2 font-medium"
+                      >
+                        <Trash2 size={16} /> Abandonează sesiunea
+                      </button>
+                    </div>
                   )}
                 </div>
-              )}
+              </div>
+
+              {/* Row 1 (H3): Category + Topic */}
+              <h3 className="text-2xl font-bold text-gray-900 mb-2 relative z-10 pr-16">
+                {session.deck?.subjectName || 'Sesiune'}
+                {session.deck?.topic ? ` • ${session.deck.topic}` : ''}
+              </h3>
+
+              {/* Row 2: Metadata - Cards Count | Method */}
+              <div className="flex items-center gap-2 mb-4 text-sm text-gray-600 font-medium">
+                <span>{session.totalCards} carduri</span>
+                <span className="text-gray-400">|</span>
+                <div className={`flex items-center gap-1 ${methodColor}`}>
+                  <MethodIcon size={16} />
+                  <span className="capitalize">{session.selectionMethod}</span>
+                </div>
+              </div>
 
               {/* Circular Progress */}
               <div className="flex items-center justify-center my-6">
@@ -201,37 +242,21 @@ const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({ onResumeSession
                 </div>
               </div>
 
-              {/* Time & Method Info */}
-              <div className="grid grid-cols-2 gap-3 mb-6">
-                <div className="bg-white/70 rounded-xl p-3 text-center">
-                  <p className="text-xs text-gray-500 font-medium mb-1">Timp petrecut</p>
-                  <p className="text-lg font-bold text-gray-900">
-                    {formatDuration(session.durationSeconds)}
-                  </p>
-                </div>
-                <div className="bg-white/70 rounded-xl p-3 text-center">
-                  <p className="text-xs text-gray-500 font-medium mb-1">Metodă</p>
-                  <div className={`flex items-center justify-center gap-1 ${methodColor}`}>
-                    <MethodIcon size={18} />
-                    <span className="text-sm font-bold capitalize">{session.selectionMethod}</span>
-                  </div>
-                </div>
+              {/* Time Info */}
+              <div className="bg-white/70 rounded-xl p-3 text-center mb-6">
+                <p className="text-xs text-gray-500 font-medium mb-1">Timp petrecut</p>
+                <p className="text-lg font-bold text-gray-900">
+                  {formatDuration(session.durationSeconds)}
+                </p>
               </div>
 
               {/* Action Buttons */}
               <div className="flex gap-2 mt-auto">
                 <button
                   onClick={() => onResumeSession(session.id)}
-                  className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2"
+                  className="w-full bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2"
                 >
                   <Play size={18} fill="currentColor" /> Continuă
-                </button>
-                <button
-                  onClick={() => handleAbandon(session.id, session.title)}
-                  className="p-3 border-2 border-gray-200 text-red-600 rounded-xl hover:border-red-200 hover:bg-red-50 transition-colors"
-                  title="Abandonează sesiunea"
-                >
-                  <Trash2 size={18} />
                 </button>
               </div>
             </div>
