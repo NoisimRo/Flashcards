@@ -527,7 +527,7 @@ router.get('/:id/card-stats', authenticateToken, async (req: Request, res: Respo
       );
 
       cardStatusResult.rows.forEach((row: any) => {
-        if (statusCounts.hasOwnProperty(row.status)) {
+        if (Object.prototype.hasOwnProperty.call(statusCounts, row.status)) {
           statusCounts[row.status as keyof typeof statusCounts] = parseInt(row.count);
         }
       });

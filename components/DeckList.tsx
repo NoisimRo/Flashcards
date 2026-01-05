@@ -451,7 +451,11 @@ const DeckList: React.FC<DeckListProps> = ({
                 <button
                   onClick={e => {
                     e.stopPropagation();
-                    deck.cards && deck.cards.length > 0 ? openEditCardsModal(deck) : openEditModal(deck);
+                    if (deck.cards && deck.cards.length > 0) {
+                      openEditCardsModal(deck);
+                    } else {
+                      openEditModal(deck);
+                    }
                   }}
                   className="p-3 border-2 border-gray-200 text-gray-600 rounded-xl hover:border-indigo-200 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
                   title="Modifică"
