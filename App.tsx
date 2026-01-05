@@ -60,6 +60,8 @@ function adaptUserFromAPI(apiUser: {
   totalTimeSpent?: number;
   totalCardsLearned?: number;
   totalDecksCompleted?: number;
+  totalCorrectAnswers?: number;
+  totalAnswers?: number;
   preferences?: {
     dailyGoal?: number;
     soundEnabled?: boolean;
