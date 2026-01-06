@@ -84,6 +84,7 @@ const StudySession: React.FC<StudySessionProps> = ({
   // Navigation & Display
   const [isFlipped, setIsFlipped] = useState(false);
   const [isShuffled, setIsShuffled] = useState(false);
+  const [answerRevealed, setAnswerRevealed] = useState(false); // For standard cards
 
   // Hint System
   const [hintRevealed, setHintRevealed] = useState(false);
@@ -335,6 +336,7 @@ const StudySession: React.FC<StudySessionProps> = ({
   const goToPrevious = useCallback(() => {
     if (currentIndex > 0) {
       setIsFlipped(false);
+      setAnswerRevealed(false);
       setUserInputValue('');
       setInputFeedback(null);
       setHintRevealed(false);
@@ -344,6 +346,7 @@ const StudySession: React.FC<StudySessionProps> = ({
 
   const goToNext = useCallback(() => {
     setIsFlipped(false);
+    setAnswerRevealed(false);
     setUserInputValue('');
     setInputFeedback(null);
     setHintRevealed(false);
@@ -1050,9 +1053,35 @@ const StudySession: React.FC<StudySessionProps> = ({
                           <ChevronLeft size={20} />
                         </button>
 
-                        {/* Show Answer Button - For standard cards OR when user hasn't typed answer in type-answer */}
-                        {currentCard.type === 'standard' ||
-                        (currentCard.type === 'type-answer' && !userInputValue.trim()) ? (
+                        {/* Standard Card: 4-button layout with "Arată răspuns" and "Știu" */}
+                        {currentCard.type === 'standard' ? (
+                          <>
+                            <button
+                              onClick={e => {
+                                e.stopPropagation();
+                                handleAnswer('incorrect');
+                                handleFlip();
+                              }}
+                              className="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-md hover:bg-indigo-700 active:bg-indigo-800 transition-all active:scale-98"
+                            >
+                              Arată răspuns
+                            </button>
+                            <button
+                              onClick={e => {
+                                e.stopPropagation();
+                                handleAnswer('correct');
+                                goToNext();
+                              }}
+                              className="flex-1 bg-green-600 text-white font-bold py-3 rounded-xl shadow-md hover:bg-green-700 active:bg-green-800 transition-all active:scale-98 flex items-center justify-center gap-2"
+                            >
+                              <CheckCircle size={20} />
+                              Știu
+                            </button>
+                          </>
+                        ) : null}
+
+                        {/* Type-Answer Card: Show Answer Button when user hasn't typed answer */}
+                        {currentCard.type === 'type-answer' && !userInputValue.trim() ? (
                           <button
                             onClick={e => {
                               e.stopPropagation();

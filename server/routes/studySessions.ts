@@ -380,7 +380,7 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
 
     // Get current session to calculate incremental changes
     const sessionResult = await query(
-      'SELECT user_id, duration_seconds, answers FROM study_sessions WHERE id = $1',
+      'SELECT user_id, duration_seconds, answers, session_xp FROM study_sessions WHERE id = $1',
       [id]
     );
 
@@ -520,6 +520,18 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
         await query(
           'UPDATE users SET total_time_spent = total_time_spent + $1, updated_at = NOW() WHERE id = $2',
           [incrementalMinutes, req.user!.id]
+        );
+
+        // Update daily progress for daily challenges
+        const today = new Date().toISOString().split('T')[0];
+        await query(
+          `INSERT INTO daily_progress
+             (user_id, date, cards_learned, time_spent_minutes, xp_earned, sessions_completed)
+           VALUES ($1, $2, 0, $3, 0, 0)
+           ON CONFLICT (user_id, date)
+           DO UPDATE SET
+             time_spent_minutes = daily_progress.time_spent_minutes + $3`,
+          [req.user!.id, today, incrementalMinutes]
         );
       }
     }
