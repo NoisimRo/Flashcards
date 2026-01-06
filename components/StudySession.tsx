@@ -118,7 +118,11 @@ const StudySession: React.FC<StudySessionProps> = ({
 
   const SWIPE_THRESHOLD = 100; // Minimum distance for valid swipe
 
-  // --- PERSISTENCE EFFECT ---
+  // Throttle ref to prevent rapid-fire saves
+  const lastSaveTimeRef = useRef<number>(0);
+  const SAVE_THROTTLE_MS = 1000; // Minimum 1 second between saves
+
+  // --- PERSISTENCE EFFECT (THROTTLED) ---
   useEffect(() => {
     console.log('🔍 [StudySession] Persistence effect triggered', {
       isFinished,
@@ -127,16 +131,27 @@ const StudySession: React.FC<StudySessionProps> = ({
       sessionXP,
     });
     if (!isFinished) {
-      const data: SessionData = {
-        answers,
-        streak,
-        sessionXP,
-        awardedCards: Array.from(awardedCards),
-        currentIndex,
-        shuffledOrder: activeCards.map(c => c.id),
-      };
-      console.log('💾 [StudySession] Calling onSaveProgress with data:', data);
-      onSaveProgress(deck.id, data);
+      const now = Date.now();
+      const timeSinceLastSave = now - lastSaveTimeRef.current;
+
+      // Only save if enough time has passed since last save
+      if (timeSinceLastSave >= SAVE_THROTTLE_MS) {
+        const data: SessionData = {
+          answers,
+          streak,
+          sessionXP,
+          awardedCards: Array.from(awardedCards),
+          currentIndex,
+          shuffledOrder: activeCards.map(c => c.id),
+        };
+        console.log('💾 [StudySession] Calling onSaveProgress with data:', data);
+        onSaveProgress(deck.id, data);
+        lastSaveTimeRef.current = now;
+      } else {
+        console.log(
+          `⏸️ [StudySession] Save throttled (${timeSinceLastSave}ms since last save, need ${SAVE_THROTTLE_MS}ms)`
+        );
+      }
     }
   }, [
     answers,
@@ -398,7 +413,8 @@ const StudySession: React.FC<StudySessionProps> = ({
   }, [activeCards, currentIndex, answers, goToNext]);
 
   const handleQuizAnswer = (idx: number) => {
-    if (quizAnswered) return; // Prevent multiple answers
+    // STRICT MODE: Prevent answering if already answered (even after going back)
+    if (quizAnswered || currentAnswer) return;
 
     setSelectedQuizOption(idx);
     setQuizAnswered(true);
@@ -860,7 +876,7 @@ const StudySession: React.FC<StudySessionProps> = ({
         )}
 
         {currentCard.type === 'standard' || currentCard.type === 'type-answer' ? (
-          <div className="w-full max-w-lg aspect-[4/3.9] relative group">
+          <div className="w-full max-w-lg aspect-[4/3.9] relative group transform-style-3d">
             {/* Swipe Indicator LEFT - Înapoi */}
             <div
               className="absolute inset-0 bg-gradient-to-r from-blue-500/90 to-transparent rounded-[2rem] flex items-center justify-start px-8 pointer-events-none z-10"
@@ -993,6 +1009,8 @@ const StudySession: React.FC<StudySessionProps> = ({
                     <form onSubmit={checkInputAnswer} className="relative">
                       <input
                         ref={inputRef}
+                        id="type-answer-input"
+                        name="typeAnswer"
                         type="text"
                         className="w-full bg-indigo-50 border-2 border-indigo-300 rounded-xl py-3 px-4 pr-12 text-center font-bold focus:border-indigo-500 focus:outline-none transition-colors"
                         placeholder="Scrie răspunsul..."
@@ -1204,19 +1222,22 @@ const StudySession: React.FC<StudySessionProps> = ({
               {currentCard.options?.map((opt, idx) => {
                 const isSelected = selectedQuizOption === idx;
                 const isCorrect = idx === currentCard.correctOptionIndex;
-                const showCorrect = quizAnswered && isCorrect;
-                const showIncorrect = quizAnswered && isSelected && !isCorrect;
+                // Show feedback when currently answering OR when previously answered (strict mode)
+                const hasAnswered = quizAnswered || Boolean(currentAnswer);
+                const showCorrect = hasAnswered && isCorrect;
+                const showIncorrect = hasAnswered && isSelected && !isCorrect;
 
                 return (
                   <button
                     key={idx}
                     onClick={() => handleQuizAnswer(idx)}
-                    disabled={quizAnswered}
+                    disabled={hasAnswered}
                     className={`w-full p-4 text-left border-2 rounded-xl transition-all font-medium active:scale-98 flex justify-between items-center
                       ${showCorrect ? 'bg-green-50 border-green-500 text-green-700' : ''}
                       ${showIncorrect ? 'bg-red-50 border-red-500 text-red-700' : ''}
-                      ${!quizAnswered ? 'border-transparent bg-gray-50 hover:bg-indigo-50 hover:border-indigo-500 text-gray-700' : ''}
-                      ${quizAnswered && !isSelected && !isCorrect ? 'opacity-50' : ''}
+                      ${!hasAnswered ? 'border-transparent bg-gray-50 hover:bg-indigo-50 hover:border-indigo-500 text-gray-700' : ''}
+                      ${hasAnswered && !isSelected && !isCorrect ? 'opacity-50' : ''}
+                      ${hasAnswered ? 'cursor-not-allowed' : ''}
                     `}
                   >
                     <span>{opt}</span>
@@ -1289,10 +1310,15 @@ const StudySession: React.FC<StudySessionProps> = ({
             </div>
             <form onSubmit={saveEdit} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
+                <label
+                  htmlFor="edit-card-front"
+                  className="block text-xs font-bold text-gray-500 uppercase mb-1"
+                >
                   Față (Întrebare)
                 </label>
                 <textarea
+                  id="edit-card-front"
+                  name="cardFront"
                   className="w-full border-2 border-gray-100 rounded-xl p-3 font-medium focus:border-indigo-500 outline-none resize-none"
                   rows={3}
                   value={editingCard.front}
@@ -1300,10 +1326,15 @@ const StudySession: React.FC<StudySessionProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
+                <label
+                  htmlFor="edit-card-back"
+                  className="block text-xs font-bold text-gray-500 uppercase mb-1"
+                >
                   Spate (Răspuns)
                 </label>
                 <textarea
+                  id="edit-card-back"
+                  name="cardBack"
                   className="w-full border-2 border-gray-100 rounded-xl p-3 font-medium focus:border-indigo-500 outline-none resize-none"
                   rows={3}
                   value={editingCard.back}

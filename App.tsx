@@ -612,11 +612,6 @@ function AppContent() {
       );
     }
 
-    const handleResumeSession = (sessionId: string) => {
-      setActiveSessionId(sessionId);
-      setCurrentView('sessions');
-    };
-
     switch (currentView) {
       case 'dashboard':
         return (

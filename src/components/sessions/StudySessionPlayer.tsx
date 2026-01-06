@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useStudySessionsStore } from '../../store/studySessionsStore';
 import { useToast } from '../ui/Toast';
 import StudySession from '../../../components/StudySession';
@@ -28,6 +28,7 @@ const StudySessionPlayer: React.FC<StudySessionPlayerProps> = ({
 
   const [isInitialized, setIsInitialized] = useState(false);
   const [localDeck, setLocalDeck] = useState<Deck | null>(null);
+  const sessionStartTimeRef = useRef<number>(Date.now());
 
   // Load session on mount
   useEffect(() => {
@@ -35,6 +36,13 @@ const StudySessionPlayer: React.FC<StudySessionPlayerProps> = ({
       setIsInitialized(true);
     });
   }, [sessionId, loadSession]);
+
+  // Store session start time when session loads
+  useEffect(() => {
+    if (currentSession?.startedAt) {
+      sessionStartTimeRef.current = new Date(currentSession.startedAt).getTime();
+    }
+  }, [currentSession?.startedAt]);
 
   // Convert session to Deck format for existing StudySession component
   useEffect(() => {
@@ -104,22 +112,11 @@ const StudySessionPlayer: React.FC<StudySessionPlayerProps> = ({
         deckId,
         data,
       });
-      // Update local state
-      setLocalDeck(prev =>
-        prev
-          ? {
-              ...prev,
-              sessionData: data,
-            }
-          : null
-      );
 
-      // Calculate elapsed time for incremental tracking
-      const durationSeconds = currentSession
-        ? Math.floor((Date.now() - new Date(currentSession.startedAt).getTime()) / 1000)
-        : 0;
+      // Calculate elapsed time using ref to avoid dependency on currentSession
+      const durationSeconds = Math.floor((Date.now() - sessionStartTimeRef.current) / 1000);
 
-      // Debounced save to backend
+      // Save to backend
       console.log('🚀 [StudySessionPlayer] Calling updateSessionProgress with:', {
         currentCardIndex: data.currentIndex,
         answers: data.answers,
@@ -135,7 +132,7 @@ const StudySessionPlayer: React.FC<StudySessionPlayerProps> = ({
         durationSeconds,
       });
     },
-    [sessionId, currentSession, updateSessionProgress]
+    [sessionId, updateSessionProgress]
   );
 
   const handleFinish = useCallback(
