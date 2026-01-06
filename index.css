@@ -106,3 +106,51 @@
     box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
   }
 }
+
+/* Juggling cards animation for AI loading state */
+@keyframes juggle {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-40px) rotate(15deg);
+  }
+  50% {
+    transform: translateY(0) rotate(-15deg);
+  }
+  75% {
+    transform: translateY(-40px) rotate(15deg);
+  }
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+}
+
+@layer utilities {
+  .animate-juggle-1 {
+    animation: juggle 2s ease-in-out infinite;
+  }
+
+  .animate-juggle-2 {
+    animation: juggle 2s ease-in-out infinite;
+    animation-delay: 0.33s;
+  }
+
+  .animate-juggle-3 {
+    animation: juggle 2s ease-in-out infinite;
+    animation-delay: 0.66s;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
