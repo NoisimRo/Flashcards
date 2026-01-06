@@ -362,7 +362,8 @@ function AppContent() {
   const handleAddDeck = async (newDeck: Deck) => {
     if (isGuest) {
       // Allow adding deck locally but prompt to save
-      setDecks(prev => [...prev, newDeck]);
+      // Prepend new deck to show it first
+      setDecks(prev => [newDeck, ...prev]);
       promptLogin(
         'Salvează deck-ul creat',
         'Creează un cont pentru a salva permanent deck-urile tale și a le accesa de pe orice dispozitiv.'
@@ -388,11 +389,13 @@ function AppContent() {
 
       if (response.success && response.data) {
         const adaptedDeck = adaptDeckFromAPI(response.data);
-        setDecks(prev => [...prev, adaptedDeck]);
+        // Prepend new deck to show it first
+        setDecks(prev => [adaptedDeck, ...prev]);
       }
     } catch (error) {
       console.error('Error creating deck:', error);
-      setDecks(prev => [...prev, newDeck]);
+      // Prepend new deck to show it first
+      setDecks(prev => [newDeck, ...prev]);
     }
   };
 
@@ -664,7 +667,14 @@ function AppContent() {
           />
         );
       case 'sessions':
-        return <ActiveSessionsList onResumeSession={handleResumeSession} />;
+        return (
+          <ActiveSessionsList
+            onResumeSession={handleResumeSession}
+            decks={decks}
+            onChangeView={setCurrentView}
+            onCreateDeck={() => setCurrentView('decks')}
+          />
+        );
       case 'session-player':
         return activeSessionId ? (
           <StudySessionPlayer
@@ -674,7 +684,12 @@ function AppContent() {
             onBack={handleCloseSession}
           />
         ) : (
-          <ActiveSessionsList onResumeSession={handleResumeSession} />
+          <ActiveSessionsList
+            onResumeSession={handleResumeSession}
+            decks={decks}
+            onChangeView={setCurrentView}
+            onCreateDeck={() => setCurrentView('decks')}
+          />
         );
       default:
         return (

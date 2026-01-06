@@ -280,7 +280,19 @@ const Dashboard: React.FC<DashboardProps> = ({
           {/* Quick Actions */}
           <div className="flex gap-3">
             <button
-              onClick={() => onChangeView('sessions')}
+              onClick={() => {
+                // Smart redirect based on user's current state
+                if (decks.length === 0) {
+                  // No decks exist: redirect to deck creation
+                  onChangeView('my-decks');
+                } else if (activeSessions.length === 0) {
+                  // Decks exist but no active sessions: redirect to session creation
+                  onChangeView('study-now');
+                } else {
+                  // Active sessions exist: show sessions page
+                  onChangeView('sessions');
+                }
+              }}
               className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
               <Brain size={20} />
