@@ -100,8 +100,18 @@ export const generateDeckWithAI = async (
     - context: A clear, eloquent sentence using the concept from "front" to demonstrate its meaning. The sentence should be in Romanian.
     - type: One of: ${cardTypes.map(t => `"${t}"`).join(', ')}
 
+    STRICT CONSTRAINT FOR QUESTIONS:
+    - The "front" field (question) must NEVER exceed 100 characters with spaces
+    - Keep questions concise and direct
+    - This is a HARD LIMIT - questions longer than 100 characters are invalid
+
     Type-specific requirements:
-    - For "quiz" cards: Include "options" (array of 4 answers in Romanian) and "correctOptionIndex" (0-3)
+    - For "quiz" cards:
+      * Include "options" (array of 4 answers in Romanian) and "correctOptionIndex" (0-3)
+      * When contextually relevant, generate these quiz sub-types:
+        - Cloze Deletion (Fill-in-the-blanks): Sentences with hidden key terms using context to help recall
+        - True/False: Rapid-fire statements for quick conceptual validation
+      * Use standard multiple choice format when above sub-types don't fit
     - For "type-answer" cards: Keep "back" short (1-2 words), no options needed
     - For "standard" cards: No options needed
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Deck, Difficulty, Card } from '../types';
 import {
   Plus,
@@ -50,7 +50,7 @@ const DeckList: React.FC<DeckListProps> = ({
   const [numberOfCards, setNumberOfCards] = useState(10);
   const [selectedCardTypes, setSelectedCardTypes] = useState<
     Array<'standard' | 'quiz' | 'type-answer'>
-  >(['standard', 'quiz']);
+  >(['standard', 'quiz', 'type-answer']);
 
   // Edit Cards Modal State
   const [editCardsModalOpen, setEditCardsModalOpen] = useState(false);
@@ -60,6 +60,29 @@ const DeckList: React.FC<DeckListProps> = ({
   const [editCardBack, setEditCardBack] = useState('');
   const [editCardContext, setEditCardContext] = useState('');
 
+  // Loading messages for "The Dealer's Table" loading state
+  const dealerMessages = [
+    'Dealerul nostru AI amestecă pachetul. Sperăm că ai un as în mânecă!',
+    'Se împart cărțile! Miza de azi? Viitorul tău de geniu.',
+    'Pregătim masa de joc. Fără cacealmele, doar cunoștințe pure!',
+    'Jonglăm cu informațiile până obținem pachetul câștigător.',
+    'Ce se întâmplă în sesiune, rămâne în sesiune... dar te ajută la examen!',
+    'All-in pe învățare? Cărțile sunt aproape gata de servit.',
+    'Dealerul AI calculează cotele. Ai șanse 100% să devii mai deștept.',
+  ];
+  const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
+
+  // Rotate loading messages every 3 seconds
+  useEffect(() => {
+    if (!isGenerating) return;
+
+    const interval = setInterval(() => {
+      setCurrentMessageIndex(prev => (prev + 1) % dealerMessages.length);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [isGenerating, dealerMessages.length]);
+
   const openCreateModal = () => {
     setEditingDeckId(null);
     setGeneratingForDeckId(null);
@@ -68,7 +91,7 @@ const DeckList: React.FC<DeckListProps> = ({
     setDifficulty('A2');
     setImportMode('ai');
     setNumberOfCards(10);
-    setSelectedCardTypes(['standard', 'quiz']);
+    setSelectedCardTypes(['standard', 'quiz', 'type-answer']);
     setIsModalOpen(true);
   };
 
@@ -90,7 +113,7 @@ const DeckList: React.FC<DeckListProps> = ({
     setDifficulty(deck.difficulty);
     setImportMode('ai');
     setNumberOfCards(10);
-    setSelectedCardTypes(['standard', 'quiz']);
+    setSelectedCardTypes(['standard', 'quiz', 'type-answer']);
     setIsModalOpen(true);
     setActiveMenuId(null);
   };
@@ -551,7 +574,41 @@ const DeckList: React.FC<DeckListProps> = ({
       {/* Modal for New/Edit Deck (Code omitted for brevity as it's identical to previous, just wrapped in same component) */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto p-8 shadow-2xl animate-scale-up">
+          <div className="bg-white rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto p-8 shadow-2xl animate-scale-up relative">
+            {/* "The Dealer's Table" Loading Overlay */}
+            {isGenerating && (
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/95 to-purple-900/95 rounded-3xl flex flex-col items-center justify-center z-50 backdrop-blur-sm">
+                {/* Juggling Cards Animation */}
+                <div className="relative w-32 h-32 mb-8">
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="absolute animate-juggle-1">
+                      <div className="w-16 h-24 bg-gradient-to-br from-white to-gray-100 rounded-lg shadow-2xl border-2 border-gray-200 flex items-center justify-center text-3xl font-bold text-indigo-600">
+                        A
+                      </div>
+                    </div>
+                    <div className="absolute animate-juggle-2" style={{ animationDelay: '0.33s' }}>
+                      <div className="w-16 h-24 bg-gradient-to-br from-white to-gray-100 rounded-lg shadow-2xl border-2 border-gray-200 flex items-center justify-center text-3xl font-bold text-purple-600">
+                        K
+                      </div>
+                    </div>
+                    <div className="absolute animate-juggle-3" style={{ animationDelay: '0.66s' }}>
+                      <div className="w-16 h-24 bg-gradient-to-br from-white to-gray-100 rounded-lg shadow-2xl border-2 border-gray-200 flex items-center justify-center text-3xl font-bold text-pink-600">
+                        Q
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Dynamic Rotating Messages */}
+                <p className="text-white text-center font-semibold text-base px-8 max-w-sm leading-relaxed animate-fade-in">
+                  {dealerMessages[currentMessageIndex]}
+                </p>
+
+                {/* Loading spinner */}
+                <Loader2 className="text-white animate-spin mt-6" size={24} />
+              </div>
+            )}
+
             <h2 className="text-2xl font-bold mb-6 text-gray-900">
               {editingDeckId
                 ? 'Editează Deck'
@@ -706,7 +763,7 @@ const DeckList: React.FC<DeckListProps> = ({
                         </label>
                       </div>
                       <p className="text-xs text-gray-500 mt-2">
-                        Selectează cel puțin un tip de card
+                        Deselectează tipul de card nedorit
                       </p>
                     </div>
                   )}
@@ -782,9 +839,7 @@ const DeckList: React.FC<DeckListProps> = ({
                         </div>
                       </label>
                     </div>
-                    <p className="text-xs text-gray-500 mt-2">
-                      Selectează cel puțin un tip de card
-                    </p>
+                    <p className="text-xs text-gray-500 mt-2">Deselectează tipul de card nedorit</p>
                   </div>
                 </>
               )}
