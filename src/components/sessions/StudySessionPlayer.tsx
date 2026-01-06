@@ -28,7 +28,10 @@ const StudySessionPlayer: React.FC<StudySessionPlayerProps> = ({
 
   const [isInitialized, setIsInitialized] = useState(false);
   const [localDeck, setLocalDeck] = useState<Deck | null>(null);
-  const sessionStartTimeRef = useRef<number>(Date.now());
+
+  // Store when user OPENED this session (not when session was created)
+  const sessionOpenTimeRef = useRef<number>(Date.now());
+  const baselineDurationRef = useRef<number>(0);
 
   // Load session on mount
   useEffect(() => {
@@ -37,12 +40,15 @@ const StudySessionPlayer: React.FC<StudySessionPlayerProps> = ({
     });
   }, [sessionId, loadSession]);
 
-  // Store session start time when session loads
+  // Store baseline duration when session loads
   useEffect(() => {
-    if (currentSession?.startedAt) {
-      sessionStartTimeRef.current = new Date(currentSession.startedAt).getTime();
+    if (currentSession?.durationSeconds !== undefined) {
+      // Save the existing duration as baseline
+      baselineDurationRef.current = currentSession.durationSeconds;
+      // Reset the open time to now
+      sessionOpenTimeRef.current = Date.now();
     }
-  }, [currentSession?.startedAt]);
+  }, [currentSession?.id]); // Only run when session ID changes
 
   // Convert session to Deck format for existing StudySession component
   useEffect(() => {
@@ -113,8 +119,9 @@ const StudySessionPlayer: React.FC<StudySessionPlayerProps> = ({
         data,
       });
 
-      // Calculate elapsed time using ref to avoid dependency on currentSession
-      const durationSeconds = Math.floor((Date.now() - sessionStartTimeRef.current) / 1000);
+      // Calculate TOTAL duration: baseline + elapsed time since session opened
+      const elapsedSeconds = Math.floor((Date.now() - sessionOpenTimeRef.current) / 1000);
+      const durationSeconds = baselineDurationRef.current + elapsedSeconds;
 
       // Save to backend
       console.log('🚀 [StudySessionPlayer] Calling updateSessionProgress with:', {
@@ -123,6 +130,10 @@ const StudySessionPlayer: React.FC<StudySessionPlayerProps> = ({
         streak: data.streak,
         sessionXP: data.sessionXP,
         durationSeconds,
+        breakdown: {
+          baseline: baselineDurationRef.current,
+          elapsed: elapsedSeconds,
+        },
       });
       updateSessionProgress(sessionId, {
         currentCardIndex: data.currentIndex,
@@ -143,10 +154,9 @@ const StudySessionPlayer: React.FC<StudySessionPlayerProps> = ({
 
       // If clearSession is false, just save progress and exit (don't complete)
       if (!clearSession) {
-        // Calculate elapsed time
-        const startTime = new Date(currentSession.startedAt).getTime();
-        const endTime = Date.now();
-        const durationSeconds = Math.floor((endTime - startTime) / 1000);
+        // Calculate TOTAL duration: baseline + elapsed time since session opened
+        const elapsedSeconds = Math.floor((Date.now() - sessionOpenTimeRef.current) / 1000);
+        const durationSeconds = baselineDurationRef.current + elapsedSeconds;
 
         // Save current progress with duration
         await updateSessionProgress(sessionId, {
@@ -167,10 +177,9 @@ const StudySessionPlayer: React.FC<StudySessionPlayerProps> = ({
       const incorrectCount = answersArray.filter(a => a === 'incorrect').length;
       const skippedCount = answersArray.filter(a => a === 'skipped').length;
 
-      // Calculate duration (rough estimate)
-      const startTime = new Date(currentSession.startedAt).getTime();
-      const endTime = Date.now();
-      const durationSeconds = Math.floor((endTime - startTime) / 1000);
+      // Calculate TOTAL duration: baseline + elapsed time since session opened
+      const elapsedSeconds = Math.floor((Date.now() - sessionOpenTimeRef.current) / 1000);
+      const durationSeconds = baselineDurationRef.current + elapsedSeconds;
 
       // Build card progress updates
       const cardProgressUpdates: CardProgressBatchUpdate[] = [];

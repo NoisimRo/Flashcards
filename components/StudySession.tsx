@@ -512,10 +512,12 @@ const StudySession: React.FC<StudySessionProps> = ({
     }
   };
 
-  // Calculate dynamic styles for swipe animation
+  // Calculate dynamic styles for swipe animation (FIXED: Include flip transform)
   const getSwipeStyles = () => {
+    const flipTransform = isFlipped ? ' rotateY(180deg)' : '';
+
     if (!swipeActive || !touchStart || !touchCurrent) {
-      return { transform: 'translateX(0px) rotate(0deg)', opacity: 1 };
+      return { transform: `translateX(0px) rotate(0deg)${flipTransform}`, opacity: 1 };
     }
 
     const deltaX = touchCurrent.x - touchStart.x;
@@ -523,7 +525,7 @@ const StudySession: React.FC<StudySessionProps> = ({
     const rotation = deltaX * 0.05; // Subtle rotation
 
     return {
-      transform: `translateX(${deltaX}px) rotate(${rotation}deg)`,
+      transform: `translateX(${deltaX}px) rotate(${rotation}deg)${flipTransform}`,
       opacity: opacity,
       transition: 'none',
     };
@@ -896,10 +898,7 @@ const StudySession: React.FC<StudySessionProps> = ({
             </div>
 
             <div
-              className={`
-                  w-full h-full transition-all duration-500 transform-style-3d relative
-                  ${isFlipped ? 'rotate-y-180' : ''}
-                `}
+              className="w-full h-full transition-all duration-500 transform-style-3d relative"
               style={getSwipeStyles()}
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
@@ -1214,6 +1213,27 @@ const StudySession: React.FC<StudySessionProps> = ({
                 <Trash2 size={16} />
               </button>
             </div>
+
+            {/* Status Badge (Center Top) for Quiz Cards */}
+            {currentAnswer && (
+              <div
+                className={`absolute top-4 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-bold uppercase shadow-sm whitespace-nowrap z-40
+                     ${
+                       currentAnswer === 'correct'
+                         ? 'bg-green-100 text-green-700'
+                         : currentAnswer === 'incorrect'
+                           ? 'bg-red-100 text-red-700'
+                           : 'bg-gray-100 text-gray-600'
+                     }
+                   `}
+              >
+                {currentAnswer === 'correct'
+                  ? 'Știut'
+                  : currentAnswer === 'incorrect'
+                    ? 'Neștiut'
+                    : 'Sărit'}
+              </div>
+            )}
 
             <h3 className="text-2xl font-bold text-gray-800 text-center mb-8">
               {currentCard.front}

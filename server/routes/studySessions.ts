@@ -460,6 +460,49 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
     if (sessionXP !== undefined) {
       updateFields.push(`session_xp = $${paramIndex++}`);
       params.push(sessionXP);
+
+      // Get current session XP to calculate incremental XP
+      const oldSessionXP = session.session_xp || 0;
+      const incrementalXP = Math.max(0, sessionXP - oldSessionXP);
+
+      // Update user's XP incrementally (only new XP earned since last save)
+      if (incrementalXP > 0) {
+        const userResult = await query(
+          'SELECT total_xp, current_xp, level FROM users WHERE id = $1',
+          [req.user!.id]
+        );
+
+        if (userResult.rows.length > 0) {
+          const user = userResult.rows[0];
+          const newTotalXP = user.total_xp + incrementalXP;
+          const newCurrentXP = user.current_xp + incrementalXP;
+
+          // Calculate XP needed for next level (exponential growth: 20% per level)
+          const calculateXPForLevel = (level: number) => {
+            return Math.floor(100 * Math.pow(1.2, level - 1));
+          };
+
+          let newLevel = user.level;
+          let currentXP = newCurrentXP;
+
+          // Check for level up
+          while (currentXP >= calculateXPForLevel(newLevel + 1)) {
+            currentXP -= calculateXPForLevel(newLevel + 1);
+            newLevel++;
+          }
+
+          // Update user with new XP and possibly new level
+          await query(
+            `UPDATE users
+             SET total_xp = $1,
+                 current_xp = $2,
+                 level = $3,
+                 updated_at = NOW()
+             WHERE id = $4`,
+            [newTotalXP, currentXP, newLevel, req.user!.id]
+          );
+        }
+      }
     }
 
     // Handle incremental time tracking

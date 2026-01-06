@@ -106,10 +106,33 @@ const DeckList: React.FC<DeckListProps> = ({
   };
 
   // Edit Cards Modal Functions
-  const openEditCardsModal = (deck: Deck) => {
-    setEditCardsModalDeck(deck);
-    setEditCardsModalOpen(true);
-    setActiveMenuId(null);
+  const openEditCardsModal = async (deck: Deck) => {
+    try {
+      // Fetch full deck with cards from API
+      const response = await fetch(`/api/decks/${deck.id}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch deck cards');
+      }
+
+      const result = await response.json();
+      if (result.success && result.data) {
+        // Set deck with cards loaded
+        setEditCardsModalDeck(result.data);
+        setEditCardsModalOpen(true);
+        setActiveMenuId(null);
+      } else {
+        throw new Error('Invalid response format');
+      }
+    } catch (error) {
+      console.error('Error loading deck cards:', error);
+      toast.error('Eroare la încărcarea cardurilor');
+    }
   };
 
   const closeEditCardsModal = () => {
