@@ -72,6 +72,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   // State for active sessions
   const [activeSessions, setActiveSessions] = useState<StudySession[]>([]);
   const [activeSessionsLoading, setActiveSessionsLoading] = useState(true);
+  const [totalActiveSessions, setTotalActiveSessions] = useState(0);
 
   // Fetch daily challenges, activity calendar, achievements, card stats, and active sessions on mount
   useEffect(() => {
@@ -88,7 +89,7 @@ const Dashboard: React.FC<DashboardProps> = ({
           getActivityCalendar(),
           getAchievements(),
           getUserCardStats(user.id),
-          getStudySessions({ status: 'active', limit: 3 }),
+          getStudySessions({ status: 'active', limit: 100 }), // Fetch all active sessions
         ]);
 
         if (challengesResponse.success) {
@@ -108,7 +109,9 @@ const Dashboard: React.FC<DashboardProps> = ({
         }
 
         if (activeSessionsResponse.success) {
-          setActiveSessions(activeSessionsResponse.data);
+          const sessions = activeSessionsResponse.data;
+          setActiveSessions(sessions);
+          setTotalActiveSessions(sessions.length);
         }
       } catch (error) {
         console.error('Failed to fetch data:', error);
