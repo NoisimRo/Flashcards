@@ -118,7 +118,11 @@ const StudySession: React.FC<StudySessionProps> = ({
 
   const SWIPE_THRESHOLD = 100; // Minimum distance for valid swipe
 
-  // --- PERSISTENCE EFFECT ---
+  // Throttle ref to prevent rapid-fire saves
+  const lastSaveTimeRef = useRef<number>(0);
+  const SAVE_THROTTLE_MS = 1000; // Minimum 1 second between saves
+
+  // --- PERSISTENCE EFFECT (THROTTLED) ---
   useEffect(() => {
     console.log('🔍 [StudySession] Persistence effect triggered', {
       isFinished,
@@ -127,16 +131,27 @@ const StudySession: React.FC<StudySessionProps> = ({
       sessionXP,
     });
     if (!isFinished) {
-      const data: SessionData = {
-        answers,
-        streak,
-        sessionXP,
-        awardedCards: Array.from(awardedCards),
-        currentIndex,
-        shuffledOrder: activeCards.map(c => c.id),
-      };
-      console.log('💾 [StudySession] Calling onSaveProgress with data:', data);
-      onSaveProgress(deck.id, data);
+      const now = Date.now();
+      const timeSinceLastSave = now - lastSaveTimeRef.current;
+
+      // Only save if enough time has passed since last save
+      if (timeSinceLastSave >= SAVE_THROTTLE_MS) {
+        const data: SessionData = {
+          answers,
+          streak,
+          sessionXP,
+          awardedCards: Array.from(awardedCards),
+          currentIndex,
+          shuffledOrder: activeCards.map(c => c.id),
+        };
+        console.log('💾 [StudySession] Calling onSaveProgress with data:', data);
+        onSaveProgress(deck.id, data);
+        lastSaveTimeRef.current = now;
+      } else {
+        console.log(
+          `⏸️ [StudySession] Save throttled (${timeSinceLastSave}ms since last save, need ${SAVE_THROTTLE_MS}ms)`
+        );
+      }
     }
   }, [
     answers,
@@ -994,6 +1009,8 @@ const StudySession: React.FC<StudySessionProps> = ({
                     <form onSubmit={checkInputAnswer} className="relative">
                       <input
                         ref={inputRef}
+                        id="type-answer-input"
+                        name="typeAnswer"
                         type="text"
                         className="w-full bg-indigo-50 border-2 border-indigo-300 rounded-xl py-3 px-4 pr-12 text-center font-bold focus:border-indigo-500 focus:outline-none transition-colors"
                         placeholder="Scrie răspunsul..."
@@ -1293,10 +1310,15 @@ const StudySession: React.FC<StudySessionProps> = ({
             </div>
             <form onSubmit={saveEdit} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
+                <label
+                  htmlFor="edit-card-front"
+                  className="block text-xs font-bold text-gray-500 uppercase mb-1"
+                >
                   Față (Întrebare)
                 </label>
                 <textarea
+                  id="edit-card-front"
+                  name="cardFront"
                   className="w-full border-2 border-gray-100 rounded-xl p-3 font-medium focus:border-indigo-500 outline-none resize-none"
                   rows={3}
                   value={editingCard.front}
@@ -1304,10 +1326,15 @@ const StudySession: React.FC<StudySessionProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
+                <label
+                  htmlFor="edit-card-back"
+                  className="block text-xs font-bold text-gray-500 uppercase mb-1"
+                >
                   Spate (Răspuns)
                 </label>
                 <textarea
+                  id="edit-card-back"
+                  name="cardBack"
                   className="w-full border-2 border-gray-100 rounded-xl p-3 font-medium focus:border-indigo-500 outline-none resize-none"
                   rows={3}
                   value={editingCard.back}
