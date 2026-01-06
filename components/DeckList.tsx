@@ -16,6 +16,7 @@ import {
   Save,
 } from 'lucide-react';
 import { generateDeckWithAI } from '../src/api/decks';
+import { useToast } from '../src/components/ui/Toast';
 
 interface DeckListProps {
   decks: Deck[];
@@ -34,6 +35,7 @@ const DeckList: React.FC<DeckListProps> = ({
   onStartSession,
   onResetDeck,
 }) => {
+  const toast = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
