@@ -8,15 +8,25 @@ import {
   List as ListIcon,
   BookOpen,
   MoreVertical,
+  Plus,
+  Layers,
 } from 'lucide-react';
 import { useStudySessionsStore } from '../../store/studySessionsStore';
 import { useToast } from '../ui/Toast';
 
 interface ActiveSessionsListProps {
   onResumeSession: (sessionId: string) => void;
+  decks?: any[];
+  onChangeView?: (view: string) => void;
+  onCreateDeck?: () => void;
 }
 
-const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({ onResumeSession }) => {
+const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({
+  onResumeSession,
+  decks = [],
+  onChangeView,
+  onCreateDeck,
+}) => {
   const toast = useToast();
   const { activeSessions, isLoading, fetchActiveSessions, abandonSession } =
     useStudySessionsStore();
@@ -112,13 +122,53 @@ const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({ onResumeSession
   }
 
   if (activeSessions.length === 0) {
+    // Scenario A: No decks exist
+    if (decks.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center py-16 px-4">
+          <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-3xl p-12 max-w-md w-full text-center shadow-lg">
+            <Layers size={64} className="mx-auto text-indigo-600 mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">
+              Creează prima colecție de flashcards
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Pentru a începe o sesiune de studiu, mai întâi trebuie să creezi un deck cu carduri.
+            </p>
+            <button
+              onClick={onCreateDeck}
+              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 flex items-center gap-2 mx-auto"
+            >
+              <Plus size={20} />
+              Deck nou
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // Scenario B: Decks exist but no active sessions
     return (
-      <div className="text-center py-12">
-        <BookOpen size={48} className="mx-auto text-gray-400 mb-3" />
-        <p className="text-gray-600 font-medium">Nu ai sesiuni active</p>
-        <p className="text-sm text-gray-500 mt-1">
-          Creează o sesiune nouă pentru a începe să înveți!
-        </p>
+      <div className="flex flex-col items-center justify-center py-16 px-4">
+        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-3xl p-12 max-w-md w-full text-center shadow-lg">
+          <Brain size={64} className="mx-auto text-green-600 mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">Creează o sesiune de studiu</h2>
+          <p className="text-gray-600 mb-6">
+            Nu ai nicio sesiune activă. Începe o sesiune nouă pentru a învăța!
+          </p>
+          <button
+            onClick={() => {
+              // If only one deck, could open session modal directly
+              // For now, redirect to study-now page
+              if (onChangeView) {
+                onChangeView('study-now');
+              }
+            }}
+            className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 flex items-center gap-2 mx-auto"
+          >
+            <Plus size={20} />
+            Sesiune nouă
+          </button>
+        </div>
       </div>
     );
   }

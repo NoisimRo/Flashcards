@@ -1059,8 +1059,15 @@ const StudySession: React.FC<StudySessionProps> = ({
                             <button
                               onClick={e => {
                                 e.stopPropagation();
-                                handleAnswer('incorrect');
-                                handleFlip();
+                                // Flip to show answer, mark as incorrect, reset streak
+                                if (!isFlipped) {
+                                  setAnswers(prev => ({
+                                    ...prev,
+                                    [activeCards[currentIndex].id]: 'incorrect',
+                                  }));
+                                  setStreak(0);
+                                  handleFlip();
+                                }
                               }}
                               className="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-md hover:bg-indigo-700 active:bg-indigo-800 transition-all active:scale-98"
                             >
@@ -1069,8 +1076,46 @@ const StudySession: React.FC<StudySessionProps> = ({
                             <button
                               onClick={e => {
                                 e.stopPropagation();
-                                handleAnswer('correct');
-                                goToNext();
+                                // For "Știu": flip to show answer first, then auto-advance after delay
+                                if (!isFlipped) {
+                                  const cardId = activeCards[currentIndex].id;
+
+                                  // Mark as correct and award XP (without auto-navigation from handleAnswer)
+                                  setAnswers(prev => ({ ...prev, [cardId]: 'correct' }));
+
+                                  // Award XP and handle streak
+                                  if (!awardedCards.has(cardId)) {
+                                    const newStreak = streak + 1;
+                                    setStreak(newStreak);
+
+                                    let xpGained = 10;
+                                    if (newStreak > 0 && newStreak % 5 === 0) {
+                                      xpGained += 50;
+                                      setShowCelebration(true);
+                                      setTimeout(() => setShowCelebration(false), 4000);
+                                      toast.success(
+                                        'Streak Bonus!',
+                                        `+50 XP pentru ${newStreak} răspunsuri consecutive corecte!`
+                                      );
+                                    }
+
+                                    setSessionXP(prev => prev + xpGained);
+                                    setAwardedCards(prev => new Set(prev).add(cardId));
+                                    setFloatingXP({ show: true, id: Date.now() });
+                                    setTimeout(
+                                      () => setFloatingXP(prev => ({ ...prev, show: false })),
+                                      1500
+                                    );
+                                  }
+
+                                  // Flip to show answer
+                                  handleFlip();
+
+                                  // Auto-advance after 2 seconds to allow confirmation
+                                  setTimeout(() => {
+                                    goToNext();
+                                  }, 2000);
+                                }
                               }}
                               className="flex-1 bg-green-600 text-white font-bold py-3 rounded-xl shadow-md hover:bg-green-700 active:bg-green-800 transition-all active:scale-98 flex items-center justify-center gap-2"
                             >
