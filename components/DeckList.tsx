@@ -15,7 +15,7 @@ import {
   X,
   Save,
 } from 'lucide-react';
-import { generateDeckWithAI } from '../src/api/decks';
+import { generateDeckWithAI, getDeck } from '../src/api/decks';
 import { useToast } from '../src/components/ui/Toast';
 
 interface DeckListProps {
@@ -111,25 +111,24 @@ const DeckList: React.FC<DeckListProps> = ({
   const openEditCardsModal = async (deck: Deck) => {
     try {
       // Fetch full deck with cards from API
-      const response = await fetch(`/api/decks/${deck.id}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
+      const response = await getDeck(deck.id);
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch deck cards');
-      }
-
-      const result = await response.json();
-      if (result.success && result.data) {
-        // Set deck with cards loaded
-        setEditCardsModalDeck(result.data);
+      if (response.success && response.data) {
+        // Adapt DeckWithCards to Deck type expected by modal
+        const deckWithCards: Deck = {
+          ...response.data,
+          subject: response.data.subjectName || response.data.subject,
+          masteredCards: deck.masteredCards || 0, // Preserve from original deck
+          cards: response.data.cards.map(card => ({
+            ...card,
+            status: 'new' as const, // Default status for modal
+          })),
+        };
+        setEditCardsModalDeck(deckWithCards);
         setEditCardsModalOpen(true);
         setActiveMenuId(null);
       } else {
-        throw new Error('Invalid response format');
+        throw new Error('Failed to load deck cards');
       }
     } catch (error) {
       console.error('Error loading deck cards:', error);

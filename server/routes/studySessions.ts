@@ -380,7 +380,7 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
 
     // Get current session to calculate incremental changes
     const sessionResult = await query(
-      'SELECT user_id, duration_seconds, answers FROM study_sessions WHERE id = $1',
+      'SELECT user_id, duration_seconds, answers, session_xp FROM study_sessions WHERE id = $1',
       [id]
     );
 

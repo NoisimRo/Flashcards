@@ -84,6 +84,7 @@ const StudySession: React.FC<StudySessionProps> = ({
   // Navigation & Display
   const [isFlipped, setIsFlipped] = useState(false);
   const [isShuffled, setIsShuffled] = useState(false);
+  const [answerRevealed, setAnswerRevealed] = useState(false); // For standard cards
 
   // Hint System
   const [hintRevealed, setHintRevealed] = useState(false);
@@ -335,6 +336,7 @@ const StudySession: React.FC<StudySessionProps> = ({
   const goToPrevious = useCallback(() => {
     if (currentIndex > 0) {
       setIsFlipped(false);
+      setAnswerRevealed(false);
       setUserInputValue('');
       setInputFeedback(null);
       setHintRevealed(false);
@@ -344,6 +346,7 @@ const StudySession: React.FC<StudySessionProps> = ({
 
   const goToNext = useCallback(() => {
     setIsFlipped(false);
+    setAnswerRevealed(false);
     setUserInputValue('');
     setInputFeedback(null);
     setHintRevealed(false);
