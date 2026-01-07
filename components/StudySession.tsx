@@ -325,13 +325,24 @@ const StudySession: React.FC<StudySessionProps> = ({
   };
 
   const handleFlip = () => {
-    // Strict Mode: If manually flipping, assume incorrect
-    if (!isFlipped && !inputFeedback) {
-      setAnswers(prev => ({ ...prev, [activeCards[currentIndex].id]: 'incorrect' }));
+  // Adăugat de SIMION MANUAL Anti-cheat:
+  // - When flipping front->back, mark non-standard cards (type !== 'standard') as incorrect (NEȘTIUT).
+  // - For standard cards, do not change answer state on generic flip — standard behavior is explicit via buttons.
+  if (!isFlipped && !inputFeedback && activeCards[currentIndex]) {
+    const card = activeCards[currentIndex];
+
+    if (card.type !== 'standard') {
+      setAnswers(prev => ({
+        ...prev,
+        [card.id]: 'incorrect',
+      }));
       setStreak(0);
+      // persistence will be handled by the existing onSaveProgress persistence effect
     }
-    setIsFlipped(!isFlipped);
-  };
+  }
+
+  setIsFlipped(prev => !prev);
+};
 
   const goToPrevious = useCallback(() => {
     if (currentIndex > 0) {
@@ -1111,10 +1122,10 @@ const StudySession: React.FC<StudySessionProps> = ({
                                   // Flip to show answer
                                   handleFlip();
 
-                                  // Auto-advance after 2 seconds to allow confirmation
+                                  // Auto-advance after 10 seconds to allow confirmation
                                   setTimeout(() => {
                                     goToNext();
-                                  }, 2000);
+                                  }, 10000);
                                 }
                               }}
                               className="flex-1 bg-green-600 text-white font-bold py-3 rounded-xl shadow-md hover:bg-green-700 active:bg-green-800 transition-all active:scale-98 flex items-center justify-center gap-2"
