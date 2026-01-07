@@ -324,13 +324,39 @@ const StudySession: React.FC<StudySessionProps> = ({
     setHintRevealed(false);
   };
 
+  // --- Flip behavior ---
+  // For anti-cheat:
+  // - If user flips a non-standard card (type !== 'standard') by tap / button flip,
+  //   we persistently mark it as NEȘTIUT (incorrect).
+  // - For STANDARD cards, flipping by generic tap/keyboard does NOT overwrite the explicit button-based marking.
   const handleFlip = () => {
-    // Strict Mode: If manually flipping, assume incorrect
-    if (!isFlipped && !inputFeedback) {
-      setAnswers(prev => ({ ...prev, [activeCards[currentIndex].id]: 'incorrect' }));
-      setStreak(0);
+    // If flipping from front -> back and there is no input feedback,
+    // then for non-standard cards mark as incorrect (anti-cheat).
+    if (!isFlipped && !inputFeedback && currentCard) {
+      if (currentCard.type !== 'standard') {
+        const cardId = currentCard.id;
+        const newAnswers = { ...answers, [cardId]: 'incorrect' };
+        setAnswers(newAnswers);
+        setStreak(0);
+        // Persist immediately
+        const data: SessionData = {
+          answers: newAnswers,
+          streak: 0,
+          sessionXP,
+          awardedCards: Array.from(awardedCards),
+          currentIndex,
+          shuffledOrder: activeCards.map(c => c.id),
+        };
+        try {
+          onSaveProgress(deck.id, data);
+        } catch (err) {
+          console.error('Failed to persist mark-on-flip', err);
+        }
+      }
     }
-    setIsFlipped(!isFlipped);
+
+    // Toggle flip UI (no marking for standard cards here — standard handled via buttons)
+    setIsFlipped(prev => !prev);
   };
 
   const goToPrevious = useCallback(() => {
@@ -359,6 +385,66 @@ const StudySession: React.FC<StudySessionProps> = ({
     }, 150);
   }, [currentIndex, activeCards.length]);
 
+  // Helper to persist immediately after marking
+  const persistNow = (updatedAnswers: Record<string, AnswerStatus>, updatedStreak: number, updatedSessionXP: number, updatedAwardedCards: Set<string>) => {
+    const data: SessionData = {
+      answers: updatedAnswers,
+      streak: updatedStreak,
+      sessionXP: updatedSessionXP,
+      awardedCards: Array.from(updatedAwardedCards),
+      currentIndex,
+      shuffledOrder: activeCards.map(c => c.id),
+    };
+    try {
+      onSaveProgress(deck.id, data);
+    } catch (err) {
+      console.error('Failed to persist status immediately', err);
+    }
+  };
+
+  // Explicit marking — used by front/back buttons — does NOT auto-advance.
+  const markCurrentAsStatus = (status: 'correct' | 'incorrect') => {
+    if (!currentCard) return;
+    const cardId = currentCard.id;
+    const newAnswers = { ...answers, [cardId]: status };
+
+    if (status === 'correct') {
+      // Award XP/streak only if not awarded previously for this card
+      if (!awardedCards.has(cardId)) {
+        const newStreak = streak + 1;
+        let xpGained = 10;
+        if (newStreak > 0 && newStreak % 5 === 0) {
+          xpGained += 50;
+          setShowCelebration(true);
+          setTimeout(() => setShowCelebration(false), 4000);
+          toast.success('Streak Bonus!', `+50 XP pentru ${newStreak} răspunsuri consecutive corecte!`);
+        }
+        setStreak(newStreak);
+        setSessionXP(prev => prev + xpGained);
+        const newAwarded = new Set(awardedCards);
+        newAwarded.add(cardId);
+        setAwardedCards(newAwarded);
+        setFloatingXP({ show: true, id: Date.now() });
+        setTimeout(() => setFloatingXP(prev => ({ ...prev, show: false })), 1500);
+
+        // Persist immediately using computed values
+        persistNow(newAnswers, newStreak, sessionXP + xpGained, newAwarded);
+      } else {
+        // Already awarded
+        setStreak(prev => prev + 1);
+        persistNow(newAnswers, streak + 1, sessionXP, awardedCards);
+      }
+      setAnswers(newAnswers);
+    } else {
+      // incorrect
+      const newStreak = 0;
+      setStreak(0);
+      setAnswers(newAnswers);
+      persistNow(newAnswers, newStreak, sessionXP, awardedCards);
+    }
+  };
+
+  // Existing function which auto-advances after setting answer — used by quiz/type-answer flows.
   const handleAnswer = useCallback(
     (status: 'correct' | 'incorrect') => {
       const cardId = activeCards[currentIndex].id;
@@ -853,10 +939,7 @@ const StudySession: React.FC<StudySessionProps> = ({
             title="Restart"
             className="group relative p-2 bg-white border border-gray-200 text-gray-600 rounded-full hover:bg-red-50 hover:text-red-600 hover:border-red-100 transition-colors shadow-sm"
           >
-            <RotateCcw size={18} />
-            <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-              Restart
-            </span>
+            <RotateCw size={18} />
           </button>
 
           <button
@@ -909,7 +992,7 @@ const StudySession: React.FC<StudySessionProps> = ({
             >
               {/* FRONT */}
               <div
-                className="absolute inset-0 backface-hidden bg-white border-2 border-[#E5E7EB] rounded-[2rem] shadow-xl flex flex-col items-center justify-center p-6 md:p-10 text-center z-20 overflow-hidden cursor-pointer"
+                className="absolute inset-0 backface-hidden bg-white border-2 border-[#E5E7EB] rounded-[2rem] shadow-xl flex flex-col items-center justify-center p-6 md:p-10 text-center z-20 over[...]
                 onClick={e => {
                   // Don't flip if clicking on buttons or input
                   if ((e.target as HTMLElement).closest('button, input')) return;
@@ -1024,7 +1107,7 @@ const StudySession: React.FC<StudySessionProps> = ({
                       <button
                         type="submit"
                         disabled={!userInputValue.trim()}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-indigo-500 text-white p-1.5 rounded-lg hover:bg-indigo-600 disabled:opacity-50 disabled:bg-gray-300 transition-colors"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-indigo-500 text-white p-1.5 rounded-lg hover:bg-indigo-600 disabled:opacity-50 disabled:bg-gray-300 transition-col[...]
                       >
                         <ArrowRight size={16} />
                       </button>
@@ -1047,7 +1130,7 @@ const StudySession: React.FC<StudySessionProps> = ({
                             goToPrevious();
                           }}
                           disabled={currentIndex === 0}
-                          className="w-12 h-12 flex items-center justify-center rounded-xl bg-white border-2 border-gray-200 text-gray-600 shadow-sm hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95"
+                          className="w-12 h-12 flex items-center justify-center rounded-xl bg-white border-2 border-gray-200 text-gray-600 shadow-sm hover:bg-gray-50 disabled:opacity-30 disabled[...]
                           title="Înapoi"
                         >
                           <ChevronLeft size={20} />
@@ -1059,13 +1142,9 @@ const StudySession: React.FC<StudySessionProps> = ({
                             <button
                               onClick={e => {
                                 e.stopPropagation();
-                                // Flip to show answer, mark as incorrect, reset streak
+                                // Show Answer: explicitly mark as incorrect (Neștiut), reset streak, persist, then flip
                                 if (!isFlipped) {
-                                  setAnswers(prev => ({
-                                    ...prev,
-                                    [activeCards[currentIndex].id]: 'incorrect',
-                                  }));
-                                  setStreak(0);
+                                  markCurrentAsStatus('incorrect');
                                   handleFlip();
                                 }
                               }}
@@ -1076,48 +1155,13 @@ const StudySession: React.FC<StudySessionProps> = ({
                             <button
                               onClick={e => {
                                 e.stopPropagation();
-                                // For "Știu": flip to show answer first, then auto-advance after delay
+                                // For "Știu": explicitly mark correct (Știut), persist, then flip. NO auto-advance.
                                 if (!isFlipped) {
-                                  const cardId = activeCards[currentIndex].id;
-
-                                  // Mark as correct and award XP (without auto-navigation from handleAnswer)
-                                  setAnswers(prev => ({ ...prev, [cardId]: 'correct' }));
-
-                                  // Award XP and handle streak
-                                  if (!awardedCards.has(cardId)) {
-                                    const newStreak = streak + 1;
-                                    setStreak(newStreak);
-
-                                    let xpGained = 10;
-                                    if (newStreak > 0 && newStreak % 5 === 0) {
-                                      xpGained += 50;
-                                      setShowCelebration(true);
-                                      setTimeout(() => setShowCelebration(false), 4000);
-                                      toast.success(
-                                        'Streak Bonus!',
-                                        `+50 XP pentru ${newStreak} răspunsuri consecutive corecte!`
-                                      );
-                                    }
-
-                                    setSessionXP(prev => prev + xpGained);
-                                    setAwardedCards(prev => new Set(prev).add(cardId));
-                                    setFloatingXP({ show: true, id: Date.now() });
-                                    setTimeout(
-                                      () => setFloatingXP(prev => ({ ...prev, show: false })),
-                                      1500
-                                    );
-                                  }
-
-                                  // Flip to show answer
+                                  markCurrentAsStatus('correct');
                                   handleFlip();
-
-                                  // Auto-advance after 2 seconds to allow confirmation
-                                  setTimeout(() => {
-                                    goToNext();
-                                  }, 2000);
                                 }
                               }}
-                              className="flex-1 bg-green-600 text-white font-bold py-3 rounded-xl shadow-md hover:bg-green-700 active:bg-green-800 transition-all active:scale-98 flex items-center justify-center gap-2"
+                              className="flex-1 bg-green-600 text-white font-bold py-3 rounded-xl shadow-md hover:bg-green-700 active:bg-green-800 transition-all active:scale-98 flex items-cente[...]
                             >
                               <CheckCircle size={20} />
                               Știu
@@ -1144,7 +1188,7 @@ const StudySession: React.FC<StudySessionProps> = ({
                             e.stopPropagation();
                             handleSkip();
                           }}
-                          className="w-12 h-12 flex items-center justify-center rounded-xl bg-white border-2 border-gray-200 text-gray-600 shadow-sm hover:bg-gray-50 transition-all active:scale-95"
+                          className="w-12 h-12 flex items-center justify-center rounded-xl bg-white border-2 border-gray-200 text-gray-600 shadow-sm hover:bg-gray-50 transition-all active:scale-[...]
                           title="Înainte"
                         >
                           {currentIndex === activeCards.length - 1 ? (
@@ -1160,7 +1204,7 @@ const StudySession: React.FC<StudySessionProps> = ({
 
               {/* BACK */}
               <div
-                className={`absolute inset-0 backface-hidden rotate-y-180 border-2 rounded-[2rem] shadow-xl flex flex-col items-center justify-center p-6 md:p-10 text-center z-20 group cursor-pointer
+                className={`absolute inset-0 backface-hidden rotate-y-180 border-2 rounded-[2rem] shadow-xl flex flex-col items-center justify-center p-6 md:p-10 text-center z-20 group cursor-po[...]
                  ${inputFeedback === 'error' ? 'bg-red-50 border-red-200' : 'bg-[#F0FDF4] border-green-200'}
               `}
                 onClick={e => {
@@ -1210,7 +1254,7 @@ const StudySession: React.FC<StudySessionProps> = ({
                         goToPrevious();
                       }}
                       disabled={currentIndex === 0}
-                      className="w-10 h-10 flex items-center justify-center rounded-lg bg-white/80 border border-gray-200 text-gray-600 shadow-sm hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95"
+                      className="w-10 h-10 flex items-center justify-center rounded-lg bg-white/80 border border-gray-200 text-gray-600 shadow-sm hover:bg-white disabled:opacity-30 disabled:curs[...]
                       title="Card anterior"
                     >
                       <ChevronLeft size={18} />
@@ -1232,39 +1276,39 @@ const StudySession: React.FC<StudySessionProps> = ({
                     </button>
                   </div>
 
-                  {/* Answer buttons row */}
+                  {/* Answer buttons row - explicit override and persist, user decides when to continue */}
                   <div className="flex gap-3">
                     <button
                       onClick={e => {
                         e.stopPropagation();
-                        handleAnswer('incorrect');
+                        // Manual override to "Nu știu" without advancing
+                        markCurrentAsStatus('incorrect');
                       }}
-                      className="flex-1 bg-red-100 text-red-700 border border-red-200 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-red-200 transition-all active:scale-95 shadow-sm"
+                      className="flex-1 bg-red-100 text-red-700 border border-red-200 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-red-200 transition-all active:scal[...]
                     >
                       <XCircle size={20} /> <span>Nu știu</span>
                     </button>
 
-                    {currentAnswer === 'incorrect' ? (
-                      <button
-                        onClick={e => {
-                          e.stopPropagation();
-                          goToNext();
-                        }}
-                        className="flex-1 bg-gray-900 text-white border border-gray-900 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-800 transition-all active:scale-95 shadow-sm"
-                      >
-                        <span>Continuă</span> <ArrowRight size={20} />
-                      </button>
-                    ) : (
-                      <button
-                        onClick={e => {
-                          e.stopPropagation();
-                          handleAnswer('correct');
-                        }}
-                        className="flex-1 bg-green-100 text-green-700 border border-green-200 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-green-200 transition-all active:scale-95 shadow-sm animate-pulse-green"
-                      >
-                        <CheckCircle size={20} /> <span>Știu</span>
-                      </button>
-                    )}
+                    <button
+                      onClick={e => {
+                        e.stopPropagation();
+                        // Manual override to "Știu" without advancing
+                        markCurrentAsStatus('correct');
+                      }}
+                      className="flex-1 bg-green-100 text-green-700 border border-green-200 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-green-200 transition-all a[...]
+                    >
+                      <CheckCircle size={20} /> <span>Știu</span>
+                    </button>
+
+                    <button
+                      onClick={e => {
+                        e.stopPropagation();
+                        goToNext();
+                      }}
+                      className="flex-1 bg-gray-900 text-white border border-gray-900 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-800 transition-all active:s[...]
+                    >
+                      <span>Continuă</span> <ArrowRight size={20} />
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1351,7 +1395,7 @@ const StudySession: React.FC<StudySessionProps> = ({
                     goToPrevious();
                   }}
                   disabled={currentIndex === 0}
-                  className="w-12 h-12 flex items-center justify-center rounded-xl bg-white border-2 border-gray-200 text-gray-600 shadow-sm hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all active:scale-95"
+                  className="w-12 h-12 flex items-center justify-center rounded-xl bg-white border-2 border-gray-200 text-gray-600 shadow-sm hover:bg-gray-50 disabled:opacity-30 disabled:cursor-[...]
                   title="Card anterior"
                 >
                   <ChevronLeft size={20} />
