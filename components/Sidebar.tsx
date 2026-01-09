@@ -37,7 +37,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'decks', label: 'Deck-urile Mele', icon: Layers },
     { id: 'sessions', label: 'Sesiuni Active', icon: PlayCircle },
-    { id: 'study', label: 'Studiază Acum', icon: BookOpen },
+    { id: 'study', label: 'Deck-uri Globale', icon: BookOpen },
     { id: 'achievements', label: 'Realizări', icon: Trophy },
     { id: 'leaderboard', label: 'Clasament', icon: Users },
     { id: 'settings', label: 'Setări', icon: Settings },

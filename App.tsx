@@ -7,7 +7,7 @@ import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import DeckList from './components/DeckList';
 import StudySession from './components/StudySession';
-import StudyNow from './components/StudyNow';
+import GlobalDecks from './components/GlobalDecks';
 import Achievements from './components/Achievements';
 import Leaderboard from './components/Leaderboard';
 import Settings from './components/Settings';
@@ -236,16 +236,13 @@ function AppContent() {
       const response = await decksApi.getDecks({ ownedOnly: true });
       if (response.success && response.data) {
         const adaptedDecks = response.data.map(adaptDeckFromAPI);
-        // Merge with mock decks if user has no decks
-        if (adaptedDecks.length === 0) {
-          setDecks(MOCK_DECKS);
-        } else {
-          setDecks(adaptedDecks);
-        }
+        // Only show user's own decks (no mock decks fallback)
+        setDecks(adaptedDecks);
       }
     } catch (error) {
       console.error('Error fetching decks:', error);
-      setDecks(MOCK_DECKS);
+      // On error, show empty array instead of mock decks
+      setDecks([]);
     } finally {
       setIsLoadingDecks(false);
     }
@@ -650,7 +647,7 @@ function AppContent() {
             onDeleteCard={cardId => handleDeleteCard(activeDeck.id, cardId)}
           />
         ) : (
-          <StudyNow decks={decks} onStartSession={handleStartSession} />
+          <GlobalDecks onStartSession={handleStartSession} onImportDeck={handleAddDeck} />
         );
       case 'achievements':
         return <Achievements achievements={MOCK_ACHIEVEMENTS} user={user} />;
