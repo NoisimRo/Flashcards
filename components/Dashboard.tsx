@@ -284,10 +284,10 @@ const Dashboard: React.FC<DashboardProps> = ({
                 // Smart redirect based on user's current state
                 if (decks.length === 0) {
                   // No decks exist: redirect to deck creation
-                  onChangeView('my-decks');
+                  onChangeView('decks');
                 } else if (activeSessions.length === 0) {
-                  // Decks exist but no active sessions: redirect to session creation
-                  onChangeView('study-now');
+                  // Decks exist but no active sessions: redirect to My Decks to create session
+                  onChangeView('decks');
                 } else {
                   // Active sessions exist: show sessions page
                   onChangeView('sessions');
@@ -558,11 +558,11 @@ const Dashboard: React.FC<DashboardProps> = ({
                 Începe o sesiune nouă pentru a continua învățarea!
               </p>
               <button
-                onClick={() => onChangeView('study')}
+                onClick={() => onChangeView('decks')}
                 className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl flex items-center gap-2 mx-auto"
               >
                 <Brain size={20} />
-                Studiază Acum
+                Începe Sesiune
               </button>
             </div>
           )}

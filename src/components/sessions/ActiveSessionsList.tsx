@@ -157,10 +157,9 @@ const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({
           </p>
           <button
             onClick={() => {
-              // If only one deck, could open session modal directly
-              // For now, redirect to study-now page
+              // Redirect to My Decks page to create a new session
               if (onChangeView) {
-                onChangeView('study-now');
+                onChangeView('decks');
               }
             }}
             className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 flex items-center gap-2 mx-auto"
