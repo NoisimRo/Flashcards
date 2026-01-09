@@ -1110,11 +1110,6 @@ const StudySession: React.FC<StudySessionProps> = ({
 
                                   // Flip to show answer
                                   handleFlip();
-
-                                  // Auto-advance after 2 seconds to allow confirmation
-                                  setTimeout(() => {
-                                    goToNext();
-                                  }, 2000);
                                 }
                               }}
                               className="flex-1 bg-green-600 text-white font-bold py-3 rounded-xl shadow-md hover:bg-green-700 active:bg-green-800 transition-all active:scale-98 flex items-center justify-center gap-2"
@@ -1232,19 +1227,25 @@ const StudySession: React.FC<StudySessionProps> = ({
                     </button>
                   </div>
 
-                  {/* Answer buttons row */}
+                  {/* Answer buttons row - for Standard cards */}
                   <div className="flex gap-3">
-                    <button
-                      onClick={e => {
-                        e.stopPropagation();
-                        handleAnswer('incorrect');
-                      }}
-                      className="flex-1 bg-red-100 text-red-700 border border-red-200 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-red-200 transition-all active:scale-95 shadow-sm"
-                    >
-                      <XCircle size={20} /> <span>Nu știu</span>
-                    </button>
+                    {/* "Nu știu" button - visible when answer is 'correct' to allow override */}
+                    {currentAnswer === 'correct' && (
+                      <button
+                        onClick={e => {
+                          e.stopPropagation();
+                          setAnswers(prev => ({ ...prev, [currentCard.id]: 'incorrect' }));
+                          setStreak(0);
+                          toast.info('Card marcat ca Neștiut');
+                        }}
+                        className="flex-1 bg-red-100 text-red-700 border border-red-200 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-red-200 transition-all active:scale-95 shadow-sm"
+                      >
+                        <XCircle size={20} /> <span>Nu știu</span>
+                      </button>
+                    )}
 
-                    {currentAnswer === 'incorrect' ? (
+                    {/* "Continuă" button - visible when user has made a choice */}
+                    {currentAnswer === 'incorrect' || currentAnswer === 'correct' ? (
                       <button
                         onClick={e => {
                           e.stopPropagation();
@@ -1255,15 +1256,27 @@ const StudySession: React.FC<StudySessionProps> = ({
                         <span>Continuă</span> <ArrowRight size={20} />
                       </button>
                     ) : (
-                      <button
-                        onClick={e => {
-                          e.stopPropagation();
-                          handleAnswer('correct');
-                        }}
-                        className="flex-1 bg-green-100 text-green-700 border border-green-200 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-green-200 transition-all active:scale-95 shadow-sm animate-pulse-green"
-                      >
-                        <CheckCircle size={20} /> <span>Știu</span>
-                      </button>
+                      /* Default state - show both answer buttons */
+                      <>
+                        <button
+                          onClick={e => {
+                            e.stopPropagation();
+                            handleAnswer('incorrect');
+                          }}
+                          className="flex-1 bg-red-100 text-red-700 border border-red-200 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-red-200 transition-all active:scale-95 shadow-sm"
+                        >
+                          <XCircle size={20} /> <span>Nu știu</span>
+                        </button>
+                        <button
+                          onClick={e => {
+                            e.stopPropagation();
+                            handleAnswer('correct');
+                          }}
+                          className="flex-1 bg-green-100 text-green-700 border border-green-200 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-green-200 transition-all active:scale-95 shadow-sm animate-pulse-green"
+                        >
+                          <CheckCircle size={20} /> <span>Știu</span>
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>

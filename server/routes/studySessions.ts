@@ -129,16 +129,27 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
     }
 
     // Get user's card progress
+    const cardIds = cardsResult.rows.map((c: any) => c.id);
     const progressResult = await query(
       `SELECT * FROM user_card_progress
-       WHERE user_id = $1 AND card_id = ANY($2::uuid[])`,
-      [req.user!.id, cardsResult.rows.map((c: any) => c.id)]
+       WHERE user_id = $1 AND card_id = ANY($2)`,
+      [req.user!.id, cardIds]
     );
+
+    // Transform snake_case to camelCase for cardSelectionService
+    const transformedProgress = progressResult.rows.map((p: any) => ({
+      cardId: p.card_id,
+      status: p.status,
+      nextReviewDate: p.next_review_date,
+      easeFactor: p.ease_factor,
+      interval: p.interval,
+      repetitions: p.repetitions,
+    }));
 
     // Select cards using service
     const { selectedCards, availableCount, masteredCount } = selectCardsForSession(
       cardsResult.rows,
-      progressResult.rows,
+      transformedProgress,
       selectionMethod,
       { cardCount, selectedCardIds, excludeMastered: excludeMasteredCards }
     );
@@ -158,19 +169,13 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
       title ||
       `${selectionMethod.charAt(0).toUpperCase() + selectionMethod.slice(1)} - ${selectedCards.length} carduri`;
 
+    const selectedCardUuids = selectedCards.map((c: any) => c.id);
     const sessionResult = await query(
       `INSERT INTO study_sessions
          (user_id, deck_id, title, selection_method, total_cards, selected_card_ids)
-       VALUES ($1, $2, $3, $4, $5, $6)
+       VALUES ($1, $2, $3, $4, $5, $6::uuid[])
        RETURNING *`,
-      [
-        req.user!.id,
-        deckId,
-        sessionTitle,
-        selectionMethod,
-        selectedCards.length,
-        selectedCards.map((c: any) => c.id),
-      ]
+      [req.user!.id, deckId, sessionTitle, selectionMethod, selectedCards.length, selectedCardUuids]
     );
 
     const session = formatSession(sessionResult.rows[0]);
@@ -213,11 +218,22 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Create session error:', error);
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      deckId: req.body.deckId,
+      selectionMethod: req.body.selectionMethod,
+      userId: req.user?.id,
+      cardCount: req.body.cardCount,
+    });
     res.status(500).json({
       success: false,
       error: {
         code: 'SERVER_ERROR',
         message: 'Eroare la crearea sesiunii',
+        ...(process.env.NODE_ENV === 'development' && {
+          details: error instanceof Error ? error.message : 'Unknown error',
+        }),
       },
     });
   }
