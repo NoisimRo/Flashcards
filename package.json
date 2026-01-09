@@ -12,6 +12,7 @@
     "preview": "vite preview",
     "start:server": "node dist/server/index.js",
     "db:init": "psql -f server/db/schema.sql",
+    "migrate:public-decks": "tsx scripts/migrate-public-decks.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",

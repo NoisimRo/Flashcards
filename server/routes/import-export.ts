@@ -59,14 +59,15 @@ router.post('/deck', authenticateToken, async (req: Request, res: Response) => {
     // Create deck with cards
     const result = await withTransaction(async client => {
       const deckResult = await client.query(
-        `INSERT INTO decks (title, subject_id, topic, difficulty, owner_id)
-         VALUES ($1, $2, $3, $4, $5)
+        `INSERT INTO decks (title, subject_id, topic, difficulty, is_public, owner_id)
+         VALUES ($1, $2, $3, $4, $5, $6)
          RETURNING *`,
         [
           title || `Import ${new Date().toLocaleDateString('ro-RO')}`,
           subject || 'romana',
           title,
           difficulty,
+          true,
           req.user!.id,
         ]
       );
