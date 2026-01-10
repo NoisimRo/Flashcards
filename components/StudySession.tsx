@@ -1138,9 +1138,10 @@ const StudySession: React.FC<StudySessionProps> = ({
                                   handleFlip();
                                 }
                               }}
-                              className="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-md hover:bg-indigo-700 active:bg-indigo-800 transition-all active:scale-98"
+                              className="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-md hover:bg-indigo-700 active:bg-indigo-800 transition-all active:scale-98 flex items-center justify-center gap-2"
                             >
-                              Arată răspuns
+                              <Eye size={20} />
+                              Arată
                             </button>
                             <button
                               onClick={e => {
@@ -1199,7 +1200,7 @@ const StudySession: React.FC<StudySessionProps> = ({
                             className="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-md hover:bg-indigo-700 active:bg-indigo-800 transition-all active:scale-98 flex items-center justify-center gap-2"
                           >
                             <Eye size={20} />
-                            Arată
+                            Arată răspunsul
                           </button>
                         ) : null}
 

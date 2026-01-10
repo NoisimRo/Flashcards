@@ -224,7 +224,7 @@ const DeckList: React.FC<DeckListProps> = ({
         updateData.correctOptionIndex = editCardCorrectIndex;
       }
 
-      const response = await updateCard(editingCardId, updateData);
+      const response = await updateCard(editCardsModalDeck.id, editingCardId, updateData);
 
       if (response.success) {
         // Update local state with API response
@@ -263,7 +263,7 @@ const DeckList: React.FC<DeckListProps> = ({
     if (!confirm('Sigur vrei să ștergi acest card?')) return;
 
     try {
-      const response = await deleteCardAPI(cardId);
+      const response = await deleteCardAPI(editCardsModalDeck.id, cardId);
 
       if (response.success) {
         const updatedCards = editCardsModalDeck.cards.filter(card => card.id !== cardId);
@@ -591,18 +591,20 @@ const DeckList: React.FC<DeckListProps> = ({
                           <ThumbsUp size={16} /> Lasă o recenzie
                         </button>
                       )}
-                      {/* Raportează deck */}
-                      <button
-                        onClick={e => {
-                          e.stopPropagation();
-                          setSelectedDeckForFlag(deck);
-                          setFlagModalOpen(true);
-                          setActiveMenuId(null);
-                        }}
-                        className="w-full text-left px-3 py-2 text-sm text-orange-600 hover:bg-orange-50 rounded-lg flex items-center gap-2 font-medium"
-                      >
-                        <Flag size={16} /> Raportează deck
-                      </button>
+                      {/* Raportează deck - Only for decks not owned by current user */}
+                      {!deck.isOwner && (
+                        <button
+                          onClick={e => {
+                            e.stopPropagation();
+                            setSelectedDeckForFlag(deck);
+                            setFlagModalOpen(true);
+                            setActiveMenuId(null);
+                          }}
+                          className="w-full text-left px-3 py-2 text-sm text-orange-600 hover:bg-orange-50 rounded-lg flex items-center gap-2 font-medium"
+                        >
+                          <Flag size={16} /> Raportează deck
+                        </button>
+                      )}
                       {/* Șterge deck with confirmation */}
                       <button
                         onClick={e => {

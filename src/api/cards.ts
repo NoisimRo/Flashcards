@@ -33,17 +33,18 @@ export interface CardResponse {
 }
 
 export async function createCard(data: CreateCardRequest) {
-  return api.post<CardResponse>('/cards', data);
+  const { deckId, ...cardData } = data;
+  return api.post<CardResponse>(`/decks/${deckId}/cards`, cardData);
 }
 
-export async function updateCard(cardId: string, data: UpdateCardRequest) {
-  return api.put<CardResponse>(`/cards/${cardId}`, data);
+export async function updateCard(deckId: string, cardId: string, data: UpdateCardRequest) {
+  return api.put<CardResponse>(`/decks/${deckId}/cards/${cardId}`, data);
 }
 
-export async function deleteCard(cardId: string) {
-  return api.delete<void>(`/cards/${cardId}`);
+export async function deleteCard(deckId: string, cardId: string) {
+  return api.delete<void>(`/decks/${deckId}/cards/${cardId}`);
 }
 
-export async function getCard(cardId: string) {
-  return api.get<CardResponse>(`/cards/${cardId}`);
+export async function getCard(deckId: string, cardId: string) {
+  return api.get<CardResponse>(`/decks/${deckId}/cards/${cardId}`);
 }
