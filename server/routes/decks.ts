@@ -314,7 +314,7 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
       subject,
       topic,
       difficulty = 'A2',
-      isPublic = false,
+      isPublic = true,
       tags = [],
       cards = [],
     } = req.body;

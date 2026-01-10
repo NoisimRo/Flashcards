@@ -116,7 +116,7 @@ CREATE TABLE decks (
     topic VARCHAR(200),
     difficulty difficulty_level DEFAULT 'A2',
     cover_image VARCHAR(500),
-    is_public BOOLEAN DEFAULT false,
+    is_public BOOLEAN DEFAULT true,
     tags TEXT[] DEFAULT '{}',
 
     -- Stats (denormalized for performance)
