@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Deck, Card, User, SessionData } from '../types';
 import { useToast } from '../src/components/ui/Toast';
+import { useAuth } from '../src/store/AuthContext';
+import { hasPermission } from '../src/utils/permissions';
+import { FlagModal } from '../src/components/flags/FlagModal';
 import {
   CheckCircle,
   XCircle,
@@ -20,6 +23,9 @@ import {
   ArrowRight,
   Lightbulb,
   RotateCcw,
+  MoreVertical,
+  Flag,
+  Eye,
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
@@ -48,6 +54,20 @@ const StudySession: React.FC<StudySessionProps> = ({
 }) => {
   // Toast for notifications
   const toast = useToast();
+  const { user: authUser } = useAuth();
+
+  // Card menu and flag modal state
+  const [cardMenuOpen, setCardMenuOpen] = useState(false);
+  const [flagModalOpen, setFlagModalOpen] = useState(false);
+
+  // Close card menu when clicking outside
+  useEffect(() => {
+    const closeMenu = () => setCardMenuOpen(false);
+    if (cardMenuOpen) {
+      document.addEventListener('click', closeMenu);
+      return () => document.removeEventListener('click', closeMenu);
+    }
+  }, [cardMenuOpen]);
 
   // --- STATE ---
 
@@ -927,25 +947,63 @@ const StudySession: React.FC<StudySessionProps> = ({
                   handleFlip();
                 }}
               >
-                {/* Card Edit Controls (Top Right) */}
-                <div
-                  className="absolute top-4 right-4 flex gap-2 z-50 group-hover:opacity-100 transition-opacity"
-                  onClick={e => e.stopPropagation()}
-                >
-                  <button
-                    onClick={openEditModal}
-                    className="p-2 bg-gray-100 hover:bg-indigo-100 hover:text-indigo-600 rounded-full transition-colors cursor-pointer shadow-sm"
-                    title="Editează"
-                  >
-                    <Edit2 size={16} />
-                  </button>
-                  <button
-                    onClick={deleteCurrentCard}
-                    className="p-2 bg-gray-100 hover:bg-red-100 hover:text-red-600 rounded-full transition-colors cursor-pointer shadow-sm"
-                    title="Șterge"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                {/* Card Menu (Top Right) */}
+                <div className="absolute top-4 right-4 z-50" onClick={e => e.stopPropagation()}>
+                  <div className="relative">
+                    <button
+                      onClick={e => {
+                        e.stopPropagation();
+                        setCardMenuOpen(!cardMenuOpen);
+                      }}
+                      className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors shadow-sm"
+                    >
+                      <MoreVertical size={18} />
+                    </button>
+
+                    {cardMenuOpen && (
+                      <div className="absolute right-0 top-10 bg-white shadow-xl rounded-xl p-2 min-w-[160px] border border-gray-100 animate-fade-in">
+                        {/* Edit - for teachers/admins or deck owners */}
+                        {authUser && (hasPermission(authUser, 'cards:update') || deck.isOwner) && (
+                          <button
+                            onClick={e => {
+                              e.stopPropagation();
+                              openEditModal(e);
+                              setCardMenuOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg flex items-center gap-2 font-medium"
+                          >
+                            <Edit2 size={16} /> Editează
+                          </button>
+                        )}
+
+                        {/* Delete - for teachers/admins or deck owners */}
+                        {authUser && (hasPermission(authUser, 'cards:delete') || deck.isOwner) && (
+                          <button
+                            onClick={e => {
+                              e.stopPropagation();
+                              deleteCurrentCard(e);
+                              setCardMenuOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2 font-medium"
+                          >
+                            <Trash2 size={16} /> Șterge
+                          </button>
+                        )}
+
+                        {/* Flag - for everyone */}
+                        <button
+                          onClick={e => {
+                            e.stopPropagation();
+                            setFlagModalOpen(true);
+                            setCardMenuOpen(false);
+                          }}
+                          className="w-full text-left px-3 py-2 text-sm text-orange-600 hover:bg-orange-50 rounded-lg flex items-center gap-2 font-medium"
+                        >
+                          <Flag size={16} /> Raportează card
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Hint Button (Top Left) */}
@@ -1138,9 +1196,10 @@ const StudySession: React.FC<StudySessionProps> = ({
                               e.stopPropagation();
                               handleFlip();
                             }}
-                            className="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-md hover:bg-indigo-700 active:bg-indigo-800 transition-all active:scale-98"
+                            className="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-md hover:bg-indigo-700 active:bg-indigo-800 transition-all active:scale-98 flex items-center justify-center gap-2"
                           >
-                            Afișează răspunsul
+                            <Eye size={20} />
+                            Arată
                           </button>
                         ) : null}
 
@@ -1175,17 +1234,63 @@ const StudySession: React.FC<StudySessionProps> = ({
                   handleFlip();
                 }}
               >
-                {/* Back Controls */}
-                <div
-                  className="absolute top-4 right-4 flex gap-2 z-50 group-hover:opacity-100 transition-opacity"
-                  onClick={e => e.stopPropagation()}
-                >
-                  <button
-                    onClick={openEditModal}
-                    className="p-2 bg-white/50 hover:bg-white hover:text-indigo-600 rounded-full transition-colors shadow-sm cursor-pointer"
-                  >
-                    <Edit2 size={16} />
-                  </button>
+                {/* Back Controls - Same menu as front */}
+                <div className="absolute top-4 right-4 z-50" onClick={e => e.stopPropagation()}>
+                  <div className="relative">
+                    <button
+                      onClick={e => {
+                        e.stopPropagation();
+                        setCardMenuOpen(!cardMenuOpen);
+                      }}
+                      className="p-2 bg-white/80 hover:bg-white text-gray-700 rounded-full transition-colors shadow-sm"
+                    >
+                      <MoreVertical size={18} />
+                    </button>
+
+                    {cardMenuOpen && (
+                      <div className="absolute right-0 top-10 bg-white shadow-xl rounded-xl p-2 min-w-[160px] border border-gray-100 animate-fade-in">
+                        {/* Edit - for teachers/admins or deck owners */}
+                        {authUser && (hasPermission(authUser, 'cards:update') || deck.isOwner) && (
+                          <button
+                            onClick={e => {
+                              e.stopPropagation();
+                              openEditModal(e);
+                              setCardMenuOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg flex items-center gap-2 font-medium"
+                          >
+                            <Edit2 size={16} /> Editează
+                          </button>
+                        )}
+
+                        {/* Delete - for teachers/admins or deck owners */}
+                        {authUser && (hasPermission(authUser, 'cards:delete') || deck.isOwner) && (
+                          <button
+                            onClick={e => {
+                              e.stopPropagation();
+                              deleteCurrentCard(e);
+                              setCardMenuOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2 font-medium"
+                          >
+                            <Trash2 size={16} /> Șterge
+                          </button>
+                        )}
+
+                        {/* Flag - for everyone */}
+                        <button
+                          onClick={e => {
+                            e.stopPropagation();
+                            setFlagModalOpen(true);
+                            setCardMenuOpen(false);
+                          }}
+                          className="w-full text-left px-3 py-2 text-sm text-orange-600 hover:bg-orange-50 rounded-lg flex items-center gap-2 font-medium"
+                        >
+                          <Flag size={16} /> Raportează card
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {inputFeedback === 'error' && (
@@ -1468,6 +1573,19 @@ const StudySession: React.FC<StudySessionProps> = ({
             </form>
           </div>
         </div>
+      )}
+
+      {/* Flag Modal */}
+      {flagModalOpen && (
+        <FlagModal
+          type="card"
+          itemId={currentCard.id}
+          itemTitle={`${currentCard.front.substring(0, 50)}...`}
+          onClose={() => setFlagModalOpen(false)}
+          onSuccess={() => {
+            toast.success('Cardul a fost raportat cu succes');
+          }}
+        />
       )}
     </div>
   );
