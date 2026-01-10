@@ -369,18 +369,20 @@ const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImportDeck 
                                   <ThumbsUp size={16} /> Lasă o recenzie
                                 </button>
                               )}
-                              {/* Raportează deck */}
-                              <button
-                                onClick={e => {
-                                  e.stopPropagation();
-                                  setSelectedDeckForFlag(convertToDeck(deck));
-                                  setFlagModalOpen(true);
-                                  setActiveMenuId(null);
-                                }}
-                                className="w-full text-left px-3 py-2 text-sm text-orange-600 hover:bg-orange-50 rounded-lg flex items-center gap-2 font-medium"
-                              >
-                                <Flag size={16} /> Raportează deck
-                              </button>
+                              {/* Raportează deck - Only for decks not owned by current user */}
+                              {!isOwner && (
+                                <button
+                                  onClick={e => {
+                                    e.stopPropagation();
+                                    setSelectedDeckForFlag(convertToDeck(deck));
+                                    setFlagModalOpen(true);
+                                    setActiveMenuId(null);
+                                  }}
+                                  className="w-full text-left px-3 py-2 text-sm text-orange-600 hover:bg-orange-50 rounded-lg flex items-center gap-2 font-medium"
+                                >
+                                  <Flag size={16} /> Raportează deck
+                                </button>
+                              )}
                             </div>
                           )}
                         </div>

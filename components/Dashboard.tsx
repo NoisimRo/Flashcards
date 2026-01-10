@@ -232,17 +232,31 @@ const Dashboard: React.FC<DashboardProps> = ({
     // Get today's time
     const todayActivity = activityCalendar.find(day => day.date === todayStr);
     const todayMinutes = todayActivity?.timeSpent || 0;
-    const todayHours = todayMinutes > 0 ? (todayMinutes / 60).toFixed(1) : '0';
 
     // Get weekly time (last 7 days including today)
     const last7Days = activityCalendar.slice(-7);
     const weeklyMinutes = last7Days.reduce((sum, day) => sum + (day.timeSpent || 0), 0);
-    const weeklyHours = weeklyMinutes > 0 ? (weeklyMinutes / 60).toFixed(1) : '0';
 
-    // Format dates
+    // Romanian month abbreviations
+    const romanianMonths = [
+      'ian',
+      'feb',
+      'mar',
+      'apr',
+      'mai',
+      'iun',
+      'iul',
+      'aug',
+      'sep',
+      'oct',
+      'nov',
+      'dec',
+    ];
+
+    // Format dates with Romanian month abbreviations: DD.lun
     const formatDate = (date: Date) => {
-      const day = String(date.getDate()).padStart(2, '0');
-      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = date.getDate();
+      const month = romanianMonths[date.getMonth()];
       return `${day}.${month}`;
     };
 
@@ -255,9 +269,9 @@ const Dashboard: React.FC<DashboardProps> = ({
     const weekEndFormatted = formatDate(today);
 
     return {
-      todayHours,
+      todayMinutes,
       todayFormatted,
-      weeklyHours,
+      weeklyMinutes,
       weekRange: `${weekStartFormatted}-${weekEndFormatted}`,
     };
   }, [activityCalendar]);
@@ -404,8 +418,8 @@ const Dashboard: React.FC<DashboardProps> = ({
               </div>
               <div className="text-base font-bold text-gray-700 mb-1">Timp total studiu</div>
               <div className="text-sm text-gray-500">
-                {studyTimeStats.todayHours}h today ({studyTimeStats.todayFormatted}) |{' '}
-                {studyTimeStats.weeklyHours}h săptămânal ({studyTimeStats.weekRange})
+                {studyTimeStats.todayMinutes} min. - {studyTimeStats.todayFormatted} |{' '}
+                {studyTimeStats.weeklyMinutes} min. - {studyTimeStats.weekRange}
               </div>
             </div>
           </div>

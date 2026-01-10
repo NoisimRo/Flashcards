@@ -697,6 +697,155 @@ router.post('/:id/cards', authenticateToken, async (req: Request, res: Response)
   }
 });
 
+/**
+ * PUT /api/decks/:deckId/cards/:cardId
+ * Update a card
+ */
+router.put('/:deckId/cards/:cardId', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { deckId, cardId } = req.params;
+    const { front, back, context, hint, type, options, correctOptionIndex } = req.body;
+
+    if (!front || !back) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Front și back sunt obligatorii',
+        },
+      });
+    }
+
+    // Check deck ownership
+    const deckResult = await query(
+      'SELECT owner_id FROM decks WHERE id = $1 AND deleted_at IS NULL',
+      [deckId]
+    );
+
+    if (deckResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'NOT_FOUND',
+          message: 'Deck-ul nu a fost găsit',
+        },
+      });
+    }
+
+    if (deckResult.rows[0].owner_id !== req.user!.id && req.user!.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        error: {
+          code: 'FORBIDDEN',
+          message: 'Nu ai permisiunea să modifici carduri în acest deck',
+        },
+      });
+    }
+
+    // Update card
+    const cardResult = await query(
+      `UPDATE cards
+       SET front = $1, back = $2, context = $3, hint = $4, type = $5, options = $6, correct_option_index = $7, updated_at = NOW()
+       WHERE id = $8 AND deck_id = $9 AND deleted_at IS NULL
+       RETURNING *`,
+      [front, back, context, hint, type, options || [], correctOptionIndex, cardId, deckId]
+    );
+
+    if (cardResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'NOT_FOUND',
+          message: 'Cardul nu a fost găsit',
+        },
+      });
+    }
+
+    res.json({
+      success: true,
+      data: formatCard(cardResult.rows[0]),
+    });
+  } catch (error) {
+    console.error('Update card error:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'SERVER_ERROR',
+        message: 'Eroare la actualizarea cardului',
+      },
+    });
+  }
+});
+
+/**
+ * DELETE /api/decks/:deckId/cards/:cardId
+ * Delete a card (soft delete)
+ */
+router.delete('/:deckId/cards/:cardId', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { deckId, cardId } = req.params;
+
+    // Check deck ownership
+    const deckResult = await query(
+      'SELECT owner_id FROM decks WHERE id = $1 AND deleted_at IS NULL',
+      [deckId]
+    );
+
+    if (deckResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'NOT_FOUND',
+          message: 'Deck-ul nu a fost găsit',
+        },
+      });
+    }
+
+    if (deckResult.rows[0].owner_id !== req.user!.id && req.user!.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        error: {
+          code: 'FORBIDDEN',
+          message: 'Nu ai permisiunea să ștergi carduri din acest deck',
+        },
+      });
+    }
+
+    // Soft delete card
+    const cardResult = await query(
+      `UPDATE cards
+       SET deleted_at = NOW()
+       WHERE id = $1 AND deck_id = $2 AND deleted_at IS NULL
+       RETURNING id`,
+      [cardId, deckId]
+    );
+
+    if (cardResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'NOT_FOUND',
+          message: 'Cardul nu a fost găsit',
+        },
+      });
+    }
+
+    res.json({
+      success: true,
+      data: { id: cardId },
+    });
+  } catch (error) {
+    console.error('Delete card error:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'SERVER_ERROR',
+        message: 'Eroare la ștergerea cardului',
+      },
+    });
+  }
+});
+
 // Helper functions
 function formatDeck(deck: any) {
   return {

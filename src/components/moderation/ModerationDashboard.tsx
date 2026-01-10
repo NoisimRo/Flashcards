@@ -147,11 +147,17 @@ export const ModerationDashboard: React.FC = () => {
   };
 
   const handleSaveCardEdit = async () => {
-    if (!editCardId) return;
+    if (!editCardId || !selectedFlag || selectedFlag.type !== 'card') return;
+
+    const deckId = (selectedFlag as any).deckId;
+    if (!deckId) {
+      toast.error('Eroare', 'DeckId lipsește din flag');
+      return;
+    }
 
     setIsSavingCard(true);
     try {
-      const response = await updateCard(editCardId, {
+      const response = await updateCard(deckId, editCardId, {
         front: editCardFront,
         back: editCardBack,
         context: editCardContext || undefined,

@@ -45,7 +45,7 @@ router.get('/today', authenticateToken, async (req, res) => {
 
     // Get today's actual progress from study_sessions table (aggregate all sessions from today)
     const sessionsResult = await query(
-      `SELECT correct_count, total_time_seconds
+      `SELECT correct_count, duration_seconds
        FROM study_sessions
        WHERE user_id = $1
          AND DATE(started_at) = $2`,
@@ -58,7 +58,7 @@ router.get('/today', authenticateToken, async (req, res) => {
 
     for (const session of sessionsResult.rows) {
       totalCorrectAnswers += session.correct_count || 0;
-      totalTimeMinutes += Math.floor((session.total_time_seconds || 0) / 60);
+      totalTimeMinutes += Math.floor((session.duration_seconds || 0) / 60);
     }
 
     const todayProgress = {
@@ -185,12 +185,12 @@ router.post('/claim-reward', authenticateToken, async (req, res) => {
     } else if (challengeId === 'time') {
       // Aggregate time from all sessions today
       const sessionsResult = await query(
-        'SELECT total_time_seconds FROM study_sessions WHERE user_id = $1 AND DATE(started_at) = $2',
+        'SELECT duration_seconds FROM study_sessions WHERE user_id = $1 AND DATE(started_at) = $2',
         [userId, today]
       );
       let totalTimeMinutes = 0;
       for (const session of sessionsResult.rows) {
-        totalTimeMinutes += Math.floor((session.total_time_seconds || 0) / 60);
+        totalTimeMinutes += Math.floor((session.duration_seconds || 0) / 60);
       }
       isCompleted = totalTimeMinutes >= challenge.time_target;
       rewardXP = 30;

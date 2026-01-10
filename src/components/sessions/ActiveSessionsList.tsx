@@ -65,7 +65,10 @@ const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({
   };
 
   const getProgressPercentage = (session: any) => {
-    return Math.round((session.currentCardIndex / session.totalCards) * 100);
+    // Show proportion of correct cards vs total cards
+    const stats = getAnswerStats(session);
+    if (session.totalCards === 0) return 0;
+    return Math.round((stats.correct / session.totalCards) * 100);
   };
 
   const getAnswerStats = (session: any) => {
