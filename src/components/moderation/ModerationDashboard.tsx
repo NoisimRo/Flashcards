@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Filter, Eye, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Shield, Filter, Eye, CheckCircle, XCircle, Clock, Edit, X, Save } from 'lucide-react';
 import { useToast } from '../ui/Toast';
 import { getFlags, updateFlagStatus, type Flag, type FlagStatus } from '../../api/flags';
+import { updateCard } from '../../api/cards';
 
 type FlagTypeFilter = 'all' | 'card' | 'deck';
 
@@ -64,6 +65,15 @@ export const ModerationDashboard: React.FC = () => {
   const [selectedFlag, setSelectedFlag] = useState<Flag | null>(null);
   const [reviewNotes, setReviewNotes] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
+
+  // Edit card modal state
+  const [editCardModalOpen, setEditCardModalOpen] = useState(false);
+  const [editCardFront, setEditCardFront] = useState('');
+  const [editCardBack, setEditCardBack] = useState('');
+  const [editCardContext, setEditCardContext] = useState('');
+  const [editCardId, setEditCardId] = useState<string | null>(null);
+  const [isSavingCard, setIsSavingCard] = useState(false);
+
   const toast = useToast();
 
   useEffect(() => {
@@ -121,6 +131,53 @@ export const ModerationDashboard: React.FC = () => {
       toast.error('Eroare', 'A apărut o eroare la actualizarea statusului');
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const openEditCardModal = () => {
+    if (!selectedFlag || selectedFlag.type !== 'card' || !('cardFront' in selectedFlag)) {
+      return;
+    }
+
+    setEditCardId('cardId' in selectedFlag ? selectedFlag.cardId : null);
+    setEditCardFront('cardFront' in selectedFlag ? selectedFlag.cardFront || '' : '');
+    setEditCardBack('cardBack' in selectedFlag ? selectedFlag.cardBack || '' : '');
+    setEditCardContext(''); // Context not available in flag data
+    setEditCardModalOpen(true);
+  };
+
+  const handleSaveCardEdit = async () => {
+    if (!editCardId) return;
+
+    setIsSavingCard(true);
+    try {
+      const response = await updateCard(editCardId, {
+        front: editCardFront,
+        back: editCardBack,
+        context: editCardContext || undefined,
+      });
+
+      if (response.success) {
+        toast.success('Card actualizat cu succes');
+
+        // Auto-resolve the flag after successful edit
+        if (selectedFlag) {
+          await handleUpdateStatus(selectedFlag.id, 'resolved');
+        }
+
+        setEditCardModalOpen(false);
+        setEditCardId(null);
+        setEditCardFront('');
+        setEditCardBack('');
+        setEditCardContext('');
+      } else {
+        toast.error('Eroare', response.error?.message || 'Nu s-a putut actualiza cardul');
+      }
+    } catch (error) {
+      console.error('Error updating card:', error);
+      toast.error('Eroare', 'A apărut o eroare la actualizarea cardului');
+    } finally {
+      setIsSavingCard(false);
     }
   };
 
@@ -343,6 +400,21 @@ export const ModerationDashboard: React.FC = () => {
                     </div>
                   )}
 
+                  {/* Edit Card Button (for card flags) */}
+                  {selectedFlag.type === 'card' && 'cardFront' in selectedFlag && (
+                    <div className="pt-4 border-t">
+                      <button
+                        onClick={openEditCardModal}
+                        className="w-full px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Edit size={18} /> Editează Card
+                      </button>
+                      <p className="text-xs text-gray-500 mt-2 text-center">
+                        Editarea va rezolva automat raportul
+                      </p>
+                    </div>
+                  )}
+
                   {/* Actions */}
                   {selectedFlag.status === 'pending' && (
                     <div className="space-y-2 pt-4 border-t">
@@ -397,6 +469,105 @@ export const ModerationDashboard: React.FC = () => {
             )}
           </div>
         </div>
+
+        {/* Edit Card Modal */}
+        {editCardModalOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in"
+            onClick={() => setEditCardModalOpen(false)}
+          >
+            <div
+              className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl animate-scale-up"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-bold text-lg">Editează Card</h3>
+                <button
+                  onClick={() => setEditCardModalOpen(false)}
+                  className="text-gray-400 hover:text-gray-900"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <form
+                onSubmit={e => {
+                  e.preventDefault();
+                  handleSaveCardEdit();
+                }}
+                className="space-y-4"
+              >
+                <div>
+                  <label
+                    htmlFor="edit-card-front"
+                    className="block text-xs font-bold text-gray-500 uppercase mb-2"
+                  >
+                    Față (Întrebare)
+                  </label>
+                  <textarea
+                    id="edit-card-front"
+                    className="w-full border-2 border-gray-100 rounded-xl p-3 font-medium focus:border-indigo-500 outline-none resize-none"
+                    rows={3}
+                    value={editCardFront}
+                    onChange={e => setEditCardFront(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="edit-card-back"
+                    className="block text-xs font-bold text-gray-500 uppercase mb-2"
+                  >
+                    Spate (Răspuns)
+                  </label>
+                  <textarea
+                    id="edit-card-back"
+                    className="w-full border-2 border-gray-100 rounded-xl p-3 font-medium focus:border-indigo-500 outline-none resize-none"
+                    rows={3}
+                    value={editCardBack}
+                    onChange={e => setEditCardBack(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="edit-card-context"
+                    className="block text-xs font-bold text-gray-500 uppercase mb-2"
+                  >
+                    Context (Opțional)
+                  </label>
+                  <input
+                    id="edit-card-context"
+                    type="text"
+                    className="w-full border-2 border-gray-100 rounded-xl p-3 font-medium focus:border-indigo-500 outline-none"
+                    value={editCardContext}
+                    onChange={e => setEditCardContext(e.target.value)}
+                    placeholder="Ex: propoziție exemplu"
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setEditCardModalOpen(false)}
+                    className="flex-1 px-4 py-2 bg-white border-2 border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-colors"
+                  >
+                    Anulează
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSavingCard}
+                    className="flex-1 px-4 py-2 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    <Save size={18} /> {isSavingCard ? 'Se salvează...' : 'Salvează'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

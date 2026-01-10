@@ -19,6 +19,7 @@ import {
   ThumbsUp,
 } from 'lucide-react';
 import { generateDeckWithAI, getDeck } from '../src/api/decks';
+import { createCard, updateCard, deleteCard as deleteCardAPI } from '../src/api/cards';
 import { useToast } from '../src/components/ui/Toast';
 import { ReviewModal } from '../src/components/reviews/ReviewModal';
 import { FlagModal } from '../src/components/flags/FlagModal';
@@ -64,6 +65,10 @@ const DeckList: React.FC<DeckListProps> = ({
   const [editCardFront, setEditCardFront] = useState('');
   const [editCardBack, setEditCardBack] = useState('');
   const [editCardContext, setEditCardContext] = useState('');
+  const [editCardType, setEditCardType] = useState<'standard' | 'type-answer' | 'quiz'>('standard');
+  const [editCardOptions, setEditCardOptions] = useState<string[]>(['', '', '', '']);
+  const [editCardCorrectIndex, setEditCardCorrectIndex] = useState(0);
+  const [isSavingCard, setIsSavingCard] = useState(false);
 
   // Review & Flag Modal State
   const [flagModalOpen, setFlagModalOpen] = useState(false);
@@ -184,6 +189,14 @@ const DeckList: React.FC<DeckListProps> = ({
     setEditCardFront(card.front);
     setEditCardBack(card.back);
     setEditCardContext(card.context || '');
+    setEditCardType(card.type);
+    if (card.type === 'quiz' && card.options && card.options.length > 0) {
+      setEditCardOptions([...card.options]);
+      setEditCardCorrectIndex(card.correctOptionIndex || 0);
+    } else {
+      setEditCardOptions(['', '', '', '']);
+      setEditCardCorrectIndex(0);
+    }
   };
 
   const cancelEditCard = () => {
@@ -193,56 +206,123 @@ const DeckList: React.FC<DeckListProps> = ({
     setEditCardContext('');
   };
 
-  const saveEditCard = () => {
+  const saveEditCard = async () => {
     if (!editCardsModalDeck || !editingCardId) return;
 
-    const updatedCards = editCardsModalDeck.cards.map(card =>
-      card.id === editingCardId
-        ? { ...card, front: editCardFront, back: editCardBack, context: editCardContext }
-        : card
-    );
+    setIsSavingCard(true);
+    try {
+      const updateData: any = {
+        front: editCardFront,
+        back: editCardBack,
+        context: editCardContext || undefined,
+        type: editCardType,
+      };
 
-    const updatedDeck = { ...editCardsModalDeck, cards: updatedCards };
-    onEditDeck(updatedDeck);
-    setEditCardsModalDeck(updatedDeck);
-    cancelEditCard();
+      // Add quiz-specific fields if needed
+      if (editCardType === 'quiz') {
+        updateData.options = editCardOptions.filter(opt => opt.trim() !== '');
+        updateData.correctOptionIndex = editCardCorrectIndex;
+      }
+
+      const response = await updateCard(editingCardId, updateData);
+
+      if (response.success) {
+        // Update local state with API response
+        const updatedCards = editCardsModalDeck.cards.map(card =>
+          card.id === editingCardId
+            ? {
+                ...card,
+                front: editCardFront,
+                back: editCardBack,
+                context: editCardContext,
+                type: editCardType,
+                options: editCardType === 'quiz' ? editCardOptions : undefined,
+                correctOptionIndex: editCardType === 'quiz' ? editCardCorrectIndex : undefined,
+              }
+            : card
+        );
+
+        const updatedDeck = { ...editCardsModalDeck, cards: updatedCards };
+        onEditDeck(updatedDeck);
+        setEditCardsModalDeck(updatedDeck);
+        cancelEditCard();
+        toast.success('Card actualizat cu succes');
+      } else {
+        toast.error(response.error?.message || 'Eroare la actualizarea cardului');
+      }
+    } catch (error) {
+      console.error('Error updating card:', error);
+      toast.error('A apărut o eroare la actualizarea cardului');
+    } finally {
+      setIsSavingCard(false);
+    }
   };
 
-  const deleteCard = (cardId: string) => {
+  const deleteCard = async (cardId: string) => {
     if (!editCardsModalDeck) return;
     if (!confirm('Sigur vrei să ștergi acest card?')) return;
 
-    const updatedCards = editCardsModalDeck.cards.filter(card => card.id !== cardId);
-    const updatedDeck = {
-      ...editCardsModalDeck,
-      cards: updatedCards,
-      totalCards: updatedCards.length,
-    };
-    onEditDeck(updatedDeck);
-    setEditCardsModalDeck(updatedDeck);
+    try {
+      const response = await deleteCardAPI(cardId);
+
+      if (response.success) {
+        const updatedCards = editCardsModalDeck.cards.filter(card => card.id !== cardId);
+        const updatedDeck = {
+          ...editCardsModalDeck,
+          cards: updatedCards,
+          totalCards: updatedCards.length,
+        };
+        onEditDeck(updatedDeck);
+        setEditCardsModalDeck(updatedDeck);
+        toast.success('Card șters cu succes');
+      } else {
+        toast.error(response.error?.message || 'Eroare la ștergerea cardului');
+      }
+    } catch (error) {
+      console.error('Error deleting card:', error);
+      toast.error('A apărut o eroare la ștergerea cardului');
+    }
   };
 
-  const addNewCard = () => {
+  const addNewCard = async () => {
     if (!editCardsModalDeck) return;
 
-    const newCard: Card = {
-      id: `card-${Date.now()}`,
-      front: 'Întrebare nouă',
-      back: 'Răspuns nou',
-      context: '',
-      type: 'standard',
-      status: 'new',
-    };
+    try {
+      const response = await createCard({
+        deckId: editCardsModalDeck.id,
+        front: 'Întrebare nouă',
+        back: 'Răspuns nou',
+        context: '',
+        type: 'standard',
+      });
 
-    const updatedCards = [...editCardsModalDeck.cards, newCard];
-    const updatedDeck = {
-      ...editCardsModalDeck,
-      cards: updatedCards,
-      totalCards: updatedCards.length,
-    };
-    onEditDeck(updatedDeck);
-    setEditCardsModalDeck(updatedDeck);
-    startEditCard(newCard);
+      if (response.success && response.data) {
+        const newCard: Card = {
+          id: response.data.id,
+          front: response.data.front,
+          back: response.data.back,
+          context: response.data.context,
+          type: response.data.type as 'standard' | 'type-answer' | 'quiz',
+          status: 'new',
+        };
+
+        const updatedCards = [...editCardsModalDeck.cards, newCard];
+        const updatedDeck = {
+          ...editCardsModalDeck,
+          cards: updatedCards,
+          totalCards: updatedCards.length,
+        };
+        onEditDeck(updatedDeck);
+        setEditCardsModalDeck(updatedDeck);
+        startEditCard(newCard);
+        toast.success('Card adăugat cu succes');
+      } else {
+        toast.error(response.error?.message || 'Eroare la adăugarea cardului');
+      }
+    } catch (error) {
+      console.error('Error creating card:', error);
+      toast.error('A apărut o eroare la adăugarea cardului');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -1006,12 +1086,66 @@ const DeckList: React.FC<DeckListProps> = ({
                             placeholder="Ex: propoziție exemplu"
                           />
                         </div>
+
+                        {/* Card Type Selection */}
+                        <div>
+                          <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
+                            Tip Card
+                          </label>
+                          <select
+                            className="w-full border-2 border-gray-200 bg-white rounded-lg p-2 font-medium focus:border-indigo-500 outline-none"
+                            value={editCardType}
+                            onChange={e =>
+                              setEditCardType(e.target.value as 'standard' | 'type-answer' | 'quiz')
+                            }
+                          >
+                            <option value="standard">Standard</option>
+                            <option value="type-answer">Răspuns Scris</option>
+                            <option value="quiz">Quiz</option>
+                          </select>
+                        </div>
+
+                        {/* Quiz Options (only for quiz type) */}
+                        {editCardType === 'quiz' && (
+                          <div className="space-y-2">
+                            <label className="block text-xs font-bold text-gray-500 uppercase">
+                              Variante de Răspuns (Quiz)
+                            </label>
+                            {editCardOptions.map((option, idx) => (
+                              <div key={idx} className="flex items-center gap-2">
+                                <input
+                                  type="radio"
+                                  name="correctOption"
+                                  checked={editCardCorrectIndex === idx}
+                                  onChange={() => setEditCardCorrectIndex(idx)}
+                                  className="w-4 h-4 text-indigo-600"
+                                />
+                                <input
+                                  type="text"
+                                  className="flex-1 border-2 border-gray-200 bg-white rounded-lg p-2 text-sm font-medium focus:border-indigo-500 outline-none"
+                                  value={option}
+                                  onChange={e => {
+                                    const newOptions = [...editCardOptions];
+                                    newOptions[idx] = e.target.value;
+                                    setEditCardOptions(newOptions);
+                                  }}
+                                  placeholder={`Opțiunea ${idx + 1}`}
+                                />
+                              </div>
+                            ))}
+                            <p className="text-xs text-gray-500">
+                              Selectează varianta corectă (bifă)
+                            </p>
+                          </div>
+                        )}
+
                         <div className="flex gap-2">
                           <button
                             onClick={saveEditCard}
-                            className="flex-1 bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+                            disabled={isSavingCard}
+                            className="flex-1 bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                           >
-                            <Save size={16} /> Salvează
+                            <Save size={16} /> {isSavingCard ? 'Se salvează...' : 'Salvează'}
                           </button>
                           <button
                             onClick={cancelEditCard}

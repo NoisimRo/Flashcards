@@ -17,7 +17,7 @@ export interface Card {
   options?: string[]; // For quiz mode only
   correctOptionIndex?: number; // For quiz mode only
   status: 'new' | 'learning' | 'mastered';
-  flagCount?: number;
+  flagCount?: number; // Number of flags reported on this card
 }
 
 export interface SessionData {
