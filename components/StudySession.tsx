@@ -963,34 +963,32 @@ const StudySession: React.FC<StudySessionProps> = ({
                     {cardMenuOpen && (
                       <div className="absolute right-0 top-10 bg-white shadow-xl rounded-xl p-2 min-w-[160px] border border-gray-100 animate-fade-in">
                         {/* Edit - for teachers/admins or deck owners */}
-                        {authUser &&
-                          (hasPermission(authUser, 'cards:update_any') || deck.isOwner) && (
-                            <button
-                              onClick={e => {
-                                e.stopPropagation();
-                                openEditModal(e);
-                                setCardMenuOpen(false);
-                              }}
-                              className="w-full text-left px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg flex items-center gap-2 font-medium"
-                            >
-                              <Edit2 size={16} /> Editează
-                            </button>
-                          )}
+                        {authUser && (hasPermission(authUser, 'cards:update') || deck.isOwner) && (
+                          <button
+                            onClick={e => {
+                              e.stopPropagation();
+                              openEditModal(e);
+                              setCardMenuOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg flex items-center gap-2 font-medium"
+                          >
+                            <Edit2 size={16} /> Editează
+                          </button>
+                        )}
 
                         {/* Delete - for teachers/admins or deck owners */}
-                        {authUser &&
-                          (hasPermission(authUser, 'cards:delete_any') || deck.isOwner) && (
-                            <button
-                              onClick={e => {
-                                e.stopPropagation();
-                                deleteCurrentCard(e);
-                                setCardMenuOpen(false);
-                              }}
-                              className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2 font-medium"
-                            >
-                              <Trash2 size={16} /> Șterge
-                            </button>
-                          )}
+                        {authUser && (hasPermission(authUser, 'cards:delete') || deck.isOwner) && (
+                          <button
+                            onClick={e => {
+                              e.stopPropagation();
+                              deleteCurrentCard(e);
+                              setCardMenuOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2 font-medium"
+                          >
+                            <Trash2 size={16} /> Șterge
+                          </button>
+                        )}
 
                         {/* Flag - for everyone */}
                         <button
@@ -1252,34 +1250,32 @@ const StudySession: React.FC<StudySessionProps> = ({
                     {cardMenuOpen && (
                       <div className="absolute right-0 top-10 bg-white shadow-xl rounded-xl p-2 min-w-[160px] border border-gray-100 animate-fade-in">
                         {/* Edit - for teachers/admins or deck owners */}
-                        {authUser &&
-                          (hasPermission(authUser, 'cards:update_any') || deck.isOwner) && (
-                            <button
-                              onClick={e => {
-                                e.stopPropagation();
-                                openEditModal(e);
-                                setCardMenuOpen(false);
-                              }}
-                              className="w-full text-left px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg flex items-center gap-2 font-medium"
-                            >
-                              <Edit2 size={16} /> Editează
-                            </button>
-                          )}
+                        {authUser && (hasPermission(authUser, 'cards:update') || deck.isOwner) && (
+                          <button
+                            onClick={e => {
+                              e.stopPropagation();
+                              openEditModal(e);
+                              setCardMenuOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg flex items-center gap-2 font-medium"
+                          >
+                            <Edit2 size={16} /> Editează
+                          </button>
+                        )}
 
                         {/* Delete - for teachers/admins or deck owners */}
-                        {authUser &&
-                          (hasPermission(authUser, 'cards:delete_any') || deck.isOwner) && (
-                            <button
-                              onClick={e => {
-                                e.stopPropagation();
-                                deleteCurrentCard(e);
-                                setCardMenuOpen(false);
-                              }}
-                              className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2 font-medium"
-                            >
-                              <Trash2 size={16} /> Șterge
-                            </button>
-                          )}
+                        {authUser && (hasPermission(authUser, 'cards:delete') || deck.isOwner) && (
+                          <button
+                            onClick={e => {
+                              e.stopPropagation();
+                              deleteCurrentCard(e);
+                              setCardMenuOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2 font-medium"
+                          >
+                            <Trash2 size={16} /> Șterge
+                          </button>
+                        )}
 
                         {/* Flag - for everyone */}
                         <button
@@ -1585,7 +1581,6 @@ const StudySession: React.FC<StudySessionProps> = ({
           type="card"
           itemId={currentCard.id}
           itemTitle={`${currentCard.front.substring(0, 50)}...`}
-          deckId={deck.id}
           onClose={() => setFlagModalOpen(false)}
           onSuccess={() => {
             toast.success('Cardul a fost raportat cu succes');
