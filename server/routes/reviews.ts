@@ -148,17 +148,11 @@ router.get('/', authenticateToken, async (req: Request, res: Response) => {
     }
 
     const pageNum = Math.max(1, parseInt(page as string));
-    const limitNum = Math.min(
-      config.pagination.maxLimit,
-      Math.max(1, parseInt(limit as string))
-    );
+    const limitNum = Math.min(config.pagination.maxLimit, Math.max(1, parseInt(limit as string)));
     const offset = (pageNum - 1) * limitNum;
 
     // Check if deck exists
-    const deckResult = await query(
-      'SELECT id, deleted_at FROM decks WHERE id = $1',
-      [deckId]
-    );
+    const deckResult = await query('SELECT id, deleted_at FROM decks WHERE id = $1', [deckId]);
 
     if (deckResult.rows.length === 0 || deckResult.rows[0].deleted_at) {
       return res.status(404).json({
@@ -171,10 +165,9 @@ router.get('/', authenticateToken, async (req: Request, res: Response) => {
     }
 
     // Get total count
-    const countResult = await query(
-      'SELECT COUNT(*) FROM deck_reviews WHERE deck_id = $1',
-      [deckId]
-    );
+    const countResult = await query('SELECT COUNT(*) FROM deck_reviews WHERE deck_id = $1', [
+      deckId,
+    ]);
     const total = parseInt(countResult.rows[0].count);
 
     // Get reviews with user info
@@ -188,7 +181,7 @@ router.get('/', authenticateToken, async (req: Request, res: Response) => {
       [deckId, limitNum, offset]
     );
 
-    const reviews = reviewsResult.rows.map((row) => ({
+    const reviews = reviewsResult.rows.map(row => ({
       id: row.id,
       deckId: row.deck_id,
       userId: row.user_id,
@@ -231,17 +224,13 @@ router.get('/my', authenticateToken, async (req: Request, res: Response) => {
     const userId = req.user!.id;
 
     const pageNum = Math.max(1, parseInt(page as string));
-    const limitNum = Math.min(
-      config.pagination.maxLimit,
-      Math.max(1, parseInt(limit as string))
-    );
+    const limitNum = Math.min(config.pagination.maxLimit, Math.max(1, parseInt(limit as string)));
     const offset = (pageNum - 1) * limitNum;
 
     // Get total count
-    const countResult = await query(
-      'SELECT COUNT(*) FROM deck_reviews WHERE user_id = $1',
-      [userId]
-    );
+    const countResult = await query('SELECT COUNT(*) FROM deck_reviews WHERE user_id = $1', [
+      userId,
+    ]);
     const total = parseInt(countResult.rows[0].count);
 
     // Get reviews with deck info
@@ -257,7 +246,7 @@ router.get('/my', authenticateToken, async (req: Request, res: Response) => {
       [userId, limitNum, offset]
     );
 
-    const reviews = reviewsResult.rows.map((row) => ({
+    const reviews = reviewsResult.rows.map(row => ({
       id: row.id,
       deckId: row.deck_id,
       deckTitle: row.deck_title,

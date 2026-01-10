@@ -42,7 +42,7 @@ export const StarRating: React.FC<StarRatingProps> = ({
 
   return (
     <div className="flex items-center gap-1">
-      {[1, 2, 3, 4, 5].map((star) => (
+      {[1, 2, 3, 4, 5].map(star => (
         <button
           key={star}
           type="button"
@@ -57,9 +57,7 @@ export const StarRating: React.FC<StarRatingProps> = ({
           <Star
             size={size}
             className={`${
-              star <= displayRating
-                ? 'fill-yellow-400 text-yellow-400'
-                : 'text-gray-300'
+              star <= displayRating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
             }`}
           />
         </button>

@@ -2,20 +2,36 @@ import React, { useState, useEffect } from 'react';
 import { Trash2, User } from 'lucide-react';
 import { StarRating } from '../ui/StarRating';
 import { useToast } from '../ui/Toast';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../store/AuthContext';
 import { getReviews, deleteReview, type Review } from '../../api/reviews';
-import { formatDistanceToNow } from 'date-fns';
-import { ro } from 'date-fns/locale';
+
+// Simple time ago function
+function timeAgo(date: Date): string {
+  const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
+  const intervals = {
+    an: 31536000,
+    lună: 2592000,
+    săptămână: 604800,
+    zi: 86400,
+    oră: 3600,
+    minut: 60,
+  };
+
+  for (const [name, secondsInInterval] of Object.entries(intervals)) {
+    const interval = Math.floor(seconds / secondsInInterval);
+    if (interval >= 1) {
+      return `acum ${interval} ${name}${interval > 1 && name !== 'lună' ? (name === 'zi' ? 'le' : name === 'oră' ? 'e' : name === 'an' ? 'i' : 'i') : ''}`;
+    }
+  }
+  return 'acum';
+}
 
 interface ReviewsListProps {
   deckId: string;
   onReviewDeleted?: () => void;
 }
 
-export const ReviewsList: React.FC<ReviewsListProps> = ({
-  deckId,
-  onReviewDeleted,
-}) => {
+export const ReviewsList: React.FC<ReviewsListProps> = ({ deckId, onReviewDeleted }) => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -54,7 +70,7 @@ export const ReviewsList: React.FC<ReviewsListProps> = ({
       const response = await deleteReview(reviewId);
       if (response.success) {
         toast.success('Recenzie ștearsă', 'Recenzia a fost ștearsă cu succes');
-        setReviews(reviews.filter((r) => r.id !== reviewId));
+        setReviews(reviews.filter(r => r.id !== reviewId));
         onReviewDeleted?.();
       } else {
         toast.error('Eroare', response.error?.message || 'Nu s-a putut șterge recenzia');
@@ -68,19 +84,14 @@ export const ReviewsList: React.FC<ReviewsListProps> = ({
   };
 
   const canDeleteReview = (review: Review) => {
-    return (
-      review.userId === user?.id || hasPermission('reviews:delete_any')
-    );
+    return review.userId === user?.id || hasPermission('reviews:delete_any');
   };
 
   if (isLoading && page === 1) {
     return (
       <div className="space-y-4">
-        {[1, 2, 3].map((i) => (
-          <div
-            key={i}
-            className="bg-gray-100 rounded-xl p-4 animate-pulse"
-          >
+        {[1, 2, 3].map(i => (
+          <div key={i} className="bg-gray-100 rounded-xl p-4 animate-pulse">
             <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
             <div className="h-3 bg-gray-200 rounded w-3/4"></div>
           </div>
@@ -100,7 +111,7 @@ export const ReviewsList: React.FC<ReviewsListProps> = ({
 
   return (
     <div className="space-y-4">
-      {reviews.map((review) => (
+      {reviews.map(review => (
         <div
           key={review.id}
           className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow"
@@ -120,15 +131,8 @@ export const ReviewsList: React.FC<ReviewsListProps> = ({
                 </div>
               )}
               <div>
-                <p className="font-medium text-gray-900">
-                  {review.userName || 'Utilizator'}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {formatDistanceToNow(new Date(review.createdAt), {
-                    addSuffix: true,
-                    locale: ro,
-                  })}
-                </p>
+                <p className="font-medium text-gray-900">{review.userName || 'Utilizator'}</p>
+                <p className="text-xs text-gray-500">{timeAgo(new Date(review.createdAt))}</p>
               </div>
             </div>
 

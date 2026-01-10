@@ -37,10 +37,9 @@ router.post('/cards', authenticateToken, async (req: Request, res: Response) => 
     }
 
     // Check if card exists and get deck_id
-    const cardResult = await query(
-      'SELECT id, deck_id, deleted_at FROM cards WHERE id = $1',
-      [cardId]
-    );
+    const cardResult = await query('SELECT id, deck_id, deleted_at FROM cards WHERE id = $1', [
+      cardId,
+    ]);
 
     if (cardResult.rows.length === 0 || cardResult.rows[0].deleted_at) {
       return res.status(404).json({
@@ -108,13 +107,7 @@ router.post('/decks', authenticateToken, async (req: Request, res: Response) => 
       });
     }
 
-    const validReasons = [
-      'inappropriate',
-      'incorrect_information',
-      'duplicate',
-      'spam',
-      'other',
-    ];
+    const validReasons = ['inappropriate', 'incorrect_information', 'duplicate', 'spam', 'other'];
     if (reason && !validReasons.includes(reason)) {
       return res.status(400).json({
         success: false,
@@ -136,10 +129,7 @@ router.post('/decks', authenticateToken, async (req: Request, res: Response) => 
     }
 
     // Check if deck exists
-    const deckResult = await query(
-      'SELECT id, deleted_at FROM decks WHERE id = $1',
-      [deckId]
-    );
+    const deckResult = await query('SELECT id, deleted_at FROM decks WHERE id = $1', [deckId]);
 
     if (deckResult.rows.length === 0 || deckResult.rows[0].deleted_at) {
       return res.status(404).json({
@@ -195,27 +185,14 @@ router.get(
   requireRole('admin', 'teacher'),
   async (req: Request, res: Response) => {
     try {
-      const {
-        type = 'all',
-        status,
-        page = '1',
-        limit = '20',
-      } = req.query;
+      const { type = 'all', status, page = '1', limit = '20' } = req.query;
 
       const pageNum = Math.max(1, parseInt(page as string));
-      const limitNum = Math.min(
-        config.pagination.maxLimit,
-        Math.max(1, parseInt(limit as string))
-      );
+      const limitNum = Math.min(config.pagination.maxLimit, Math.max(1, parseInt(limit as string)));
       const offset = (pageNum - 1) * limitNum;
 
       // Validate status if provided
-      const validStatuses: FlagStatus[] = [
-        'pending',
-        'under_review',
-        'resolved',
-        'dismissed',
-      ];
+      const validStatuses: FlagStatus[] = ['pending', 'under_review', 'resolved', 'dismissed'];
       if (status && !validStatuses.includes(status as FlagStatus)) {
         return res.status(400).json({
           success: false,
@@ -233,9 +210,7 @@ router.get(
 
       // Build query based on type
       if (type === 'card' || type === 'all') {
-        const cardCondition = status
-          ? `WHERE cf.status = $${paramIndex}::flag_status`
-          : '';
+        const cardCondition = status ? `WHERE cf.status = $${paramIndex}::flag_status` : '';
         if (status) {
           params.push(status);
           paramIndex++;
@@ -338,7 +313,7 @@ router.get(
 
       const flagsResult = await query(dataQuery, params);
 
-      const flags = flagsResult.rows.map((row) => ({
+      const flags = flagsResult.rows.map(row => ({
         type: row.type,
         id: row.id,
         cardId: row.card_id,
@@ -553,8 +528,7 @@ router.put(
           success: false,
           error: {
             code: 'VALIDATION_ERROR',
-            message:
-              'Status-ul trebuie să fie unul dintre: under_review, resolved, dismissed',
+            message: 'Status-ul trebuie să fie unul dintre: under_review, resolved, dismissed',
           },
         });
       }

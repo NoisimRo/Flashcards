@@ -83,11 +83,7 @@ export const FlagModal: React.FC<FlagModalProps> = ({
       if (type === 'card') {
         response = await flagCard(itemId, comment);
       } else {
-        response = await flagDeck(
-          itemId,
-          reason !== '' ? reason : undefined,
-          comment || undefined
-        );
+        response = await flagDeck(itemId, reason !== '' ? reason : undefined, comment || undefined);
       }
 
       if (response.success) {
@@ -115,7 +111,7 @@ export const FlagModal: React.FC<FlagModalProps> = ({
     >
       <div
         className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl animate-scale-up max-h-[90vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
@@ -162,7 +158,7 @@ export const FlagModal: React.FC<FlagModalProps> = ({
                 Motivul raportării (opțional)
               </label>
               <div className="space-y-2">
-                {FLAG_REASONS.map((flagReason) => (
+                {FLAG_REASONS.map(flagReason => (
                   <label
                     key={flagReason.value}
                     className={`flex items-start gap-3 p-3 border rounded-xl cursor-pointer transition-colors ${
@@ -176,16 +172,12 @@ export const FlagModal: React.FC<FlagModalProps> = ({
                       name="reason"
                       value={flagReason.value}
                       checked={reason === flagReason.value}
-                      onChange={(e) => setReason(e.target.value as FlagReason)}
+                      onChange={e => setReason(e.target.value as FlagReason)}
                       className="mt-1"
                     />
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">
-                        {flagReason.label}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {flagReason.description}
-                      </p>
+                      <p className="text-sm font-medium text-gray-900">{flagReason.label}</p>
+                      <p className="text-xs text-gray-500">{flagReason.description}</p>
                     </div>
                   </label>
                 ))}
@@ -195,16 +187,13 @@ export const FlagModal: React.FC<FlagModalProps> = ({
 
           {/* Comment */}
           <div>
-            <label
-              htmlFor="comment"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
+            <label htmlFor="comment" className="block text-sm font-medium text-gray-700 mb-2">
               Detalii {type === 'card' && <span className="text-red-500">*</span>}
             </label>
             <textarea
               id="comment"
               value={comment}
-              onChange={(e) => setComment(e.target.value)}
+              onChange={e => setComment(e.target.value)}
               rows={4}
               maxLength={1000}
               required={type === 'card'}
@@ -226,12 +215,10 @@ export const FlagModal: React.FC<FlagModalProps> = ({
             <div className="flex gap-3">
               <Flag size={20} className="text-blue-600 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-medium text-blue-900 mb-1">
-                  Raportul tău este anonim
-                </p>
+                <p className="text-sm font-medium text-blue-900 mb-1">Raportul tău este anonim</p>
                 <p className="text-xs text-blue-700">
-                  Echipa de moderatori va revizui raportul tău și va lua măsurile
-                  necesare. Vei fi notificat despre rezultat.
+                  Echipa de moderatori va revizui raportul tău și va lua măsurile necesare. Vei fi
+                  notificat despre rezultat.
                 </p>
               </div>
             </div>

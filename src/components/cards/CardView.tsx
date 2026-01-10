@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MoreVertical, Edit, Trash2, Flag } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
-import type { Card } from '../../types';
+import { useAuth } from '../../store/AuthContext';
+import type { Card } from '../../../types';
 
 interface CardViewProps {
   card: Card;
@@ -58,11 +58,11 @@ export const CardView: React.FC<CardViewProps> = ({
         {activeMenu && (
           <div
             className="absolute right-0 top-10 bg-white shadow-xl rounded-xl p-2 min-w-[180px] z-10 border border-gray-100 animate-fade-in"
-            onClick={(e) => e.stopPropagation()}
+            onClick={e => e.stopPropagation()}
           >
             {canEdit && onEdit && (
               <button
-                onClick={(e) => {
+                onClick={e => {
                   e.stopPropagation();
                   onEdit();
                   setActiveMenu(false);
@@ -75,7 +75,7 @@ export const CardView: React.FC<CardViewProps> = ({
 
             {canDelete && onDelete && (
               <button
-                onClick={(e) => {
+                onClick={e => {
                   e.stopPropagation();
                   onDelete();
                   setActiveMenu(false);
@@ -88,7 +88,7 @@ export const CardView: React.FC<CardViewProps> = ({
 
             {onFlag && (
               <button
-                onClick={(e) => {
+                onClick={e => {
                   e.stopPropagation();
                   onFlag();
                   setActiveMenu(false);

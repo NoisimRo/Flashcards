@@ -2,12 +2,7 @@ import { api } from './client';
 
 export type FlagStatus = 'pending' | 'under_review' | 'resolved' | 'dismissed';
 export type FlagType = 'card' | 'deck';
-export type FlagReason =
-  | 'inappropriate'
-  | 'incorrect_information'
-  | 'duplicate'
-  | 'spam'
-  | 'other';
+export type FlagReason = 'inappropriate' | 'incorrect_information' | 'duplicate' | 'spam' | 'other';
 
 export interface CardFlag {
   id: string;

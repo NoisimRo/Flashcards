@@ -52,10 +52,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
         // Update existing review
         const response = await updateReview(existingReview.id, { rating, comment });
         if (response.success) {
-          toast.success(
-            'Recenzie actualizată!',
-            'Recenzia ta a fost actualizată cu succes'
-          );
+          toast.success('Recenzie actualizată!', 'Recenzia ta a fost actualizată cu succes');
           onSuccess?.();
           onClose();
         } else {
@@ -87,7 +84,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
     >
       <div
         className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl animate-scale-up"
-        onClick={(e) => e.stopPropagation()}
+        onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
@@ -113,11 +110,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
               Rating <span className="text-red-500">*</span>
             </label>
             <div className="flex justify-center">
-              <StarRating
-                rating={rating}
-                onRatingChange={setRating}
-                size={32}
-              />
+              <StarRating rating={rating} onRatingChange={setRating} size={32} />
             </div>
             {rating > 0 && (
               <p className="text-center text-sm text-gray-500 mt-2">
@@ -132,16 +125,13 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
 
           {/* Comment */}
           <div>
-            <label
-              htmlFor="comment"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
+            <label htmlFor="comment" className="block text-sm font-medium text-gray-700 mb-2">
               Comentariu (opțional)
             </label>
             <textarea
               id="comment"
               value={comment}
-              onChange={(e) => setComment(e.target.value)}
+              onChange={e => setComment(e.target.value)}
               rows={4}
               maxLength={1000}
               placeholder="Împărtășește-ne părerea ta despre acest deck..."

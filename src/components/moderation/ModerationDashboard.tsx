@@ -2,10 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { Shield, Filter, Eye, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { useToast } from '../ui/Toast';
 import { getFlags, updateFlagStatus, type Flag, type FlagStatus } from '../../api/flags';
-import { formatDistanceToNow } from 'date-fns';
-import { ro } from 'date-fns/locale';
 
 type FlagTypeFilter = 'all' | 'card' | 'deck';
+
+// Simple time ago function
+function timeAgo(date: Date): string {
+  const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
+  const intervals = {
+    an: 31536000,
+    lună: 2592000,
+    săptămână: 604800,
+    zi: 86400,
+    oră: 3600,
+    minut: 60,
+  };
+
+  for (const [name, secondsInInterval] of Object.entries(intervals)) {
+    const interval = Math.floor(seconds / secondsInInterval);
+    if (interval >= 1) {
+      return `acum ${interval} ${name}${interval > 1 && name !== 'lună' ? (name === 'zi' ? 'le' : name === 'oră' ? 'e' : name === 'an' ? 'i' : 'i') : ''}`;
+    }
+  }
+  return 'acum';
+}
 
 const STATUS_CONFIG: Record<
   FlagStatus,
@@ -90,7 +109,7 @@ export const ModerationDashboard: React.FC = () => {
           'Status actualizat',
           `Raportul a fost marcat ca ${STATUS_CONFIG[newStatus].label.toLowerCase()}`
         );
-        setFlags(flags.map((f) => (f.id === flagId ? { ...f, status: newStatus } : f)));
+        setFlags(flags.map(f => (f.id === flagId ? { ...f, status: newStatus } : f)));
         setSelectedFlag(null);
         setReviewNotes('');
         loadFlags(); // Refresh list
@@ -125,9 +144,7 @@ export const ModerationDashboard: React.FC = () => {
           <Shield size={32} className="text-indigo-600" />
           <h1 className="text-4xl font-bold text-gray-900">Panou de Moderare</h1>
         </div>
-        <p className="text-gray-600">
-          Gestionează rapoartele de conținut și moderează platforma
-        </p>
+        <p className="text-gray-600">Gestionează rapoartele de conținut și moderează platforma</p>
       </div>
 
       <div className="max-w-7xl mx-auto">
@@ -149,7 +166,7 @@ export const ModerationDashboard: React.FC = () => {
                   </label>
                   <select
                     value={typeFilter}
-                    onChange={(e) => setTypeFilter(e.target.value as FlagTypeFilter)}
+                    onChange={e => setTypeFilter(e.target.value as FlagTypeFilter)}
                     className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   >
                     <option value="all">Toate</option>
@@ -160,14 +177,10 @@ export const ModerationDashboard: React.FC = () => {
 
                 {/* Status Filter */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Status
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
                   <select
                     value={statusFilter}
-                    onChange={(e) =>
-                      setStatusFilter(e.target.value as FlagStatus | 'all')
-                    }
+                    onChange={e => setStatusFilter(e.target.value as FlagStatus | 'all')}
                     className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   >
                     <option value="all">Toate</option>
@@ -191,7 +204,7 @@ export const ModerationDashboard: React.FC = () => {
                   <p className="text-gray-500">Nu există rapoarte cu aceste filtre</p>
                 </div>
               ) : (
-                flags.map((flag) => (
+                flags.map(flag => (
                   <div
                     key={flag.id}
                     className={`bg-white rounded-2xl p-6 shadow-sm cursor-pointer transition-all hover:shadow-md ${
@@ -206,25 +219,22 @@ export const ModerationDashboard: React.FC = () => {
                         </span>
                         {getStatusBadge(flag.status)}
                       </div>
-                      <p className="text-xs text-gray-500">
-                        {formatDistanceToNow(new Date(flag.createdAt), {
-                          addSuffix: true,
-                          locale: ro,
-                        })}
-                      </p>
+                      <p className="text-xs text-gray-500">{timeAgo(new Date(flag.createdAt))}</p>
                     </div>
 
                     <h3 className="font-bold text-gray-900 mb-2">
                       {flag.deckTitle || 'Fără titlu'}
                     </h3>
 
-                    {flag.type === 'card' && (flag.cardFront || flag.cardBack) && (
-                      <div className="mb-3 p-3 bg-gray-50 rounded-lg text-sm">
-                        <p className="text-gray-600 truncate">
-                          <span className="font-medium">Față:</span> {flag.cardFront}
-                        </p>
-                      </div>
-                    )}
+                    {flag.type === 'card' &&
+                      'cardFront' in flag &&
+                      (flag.cardFront || flag.cardBack) && (
+                        <div className="mb-3 p-3 bg-gray-50 rounded-lg text-sm">
+                          <p className="text-gray-600 truncate">
+                            <span className="font-medium">Față:</span> {flag.cardFront}
+                          </p>
+                        </div>
+                      )}
 
                     {'reason' in flag && flag.reason && (
                       <p className="text-sm text-orange-600 font-medium mb-2">
@@ -266,10 +276,8 @@ export const ModerationDashboard: React.FC = () => {
                   {/* Content */}
                   <div>
                     <p className="text-xs font-medium text-gray-500 mb-2">CONȚINUT</p>
-                    <p className="text-sm font-medium text-gray-900">
-                      {selectedFlag.deckTitle}
-                    </p>
-                    {selectedFlag.type === 'card' && (
+                    <p className="text-sm font-medium text-gray-900">{selectedFlag.deckTitle}</p>
+                    {selectedFlag.type === 'card' && 'cardFront' in selectedFlag && (
                       <div className="mt-2 p-3 bg-gray-50 rounded-lg space-y-2">
                         <div>
                           <p className="text-xs font-medium text-gray-600">Față:</p>
@@ -310,10 +318,7 @@ export const ModerationDashboard: React.FC = () => {
                       {selectedFlag.flaggedByName || 'Anonim'}
                     </p>
                     <p className="text-xs text-gray-500">
-                      {formatDistanceToNow(new Date(selectedFlag.createdAt), {
-                        addSuffix: true,
-                        locale: ro,
-                      })}
+                      {timeAgo(new Date(selectedFlag.createdAt))}
                     </p>
                   </div>
 
@@ -329,7 +334,7 @@ export const ModerationDashboard: React.FC = () => {
                       <textarea
                         id="reviewNotes"
                         value={reviewNotes}
-                        onChange={(e) => setReviewNotes(e.target.value)}
+                        onChange={e => setReviewNotes(e.target.value)}
                         rows={3}
                         maxLength={2000}
                         placeholder="Adaugă note despre decizia ta..."
@@ -368,18 +373,11 @@ export const ModerationDashboard: React.FC = () => {
                   {/* Review Info (if already reviewed) */}
                   {selectedFlag.status !== 'pending' && selectedFlag.reviewedByName && (
                     <div className="pt-4 border-t">
-                      <p className="text-xs font-medium text-gray-500 mb-2">
-                        REVIZUIT DE
-                      </p>
-                      <p className="text-sm text-gray-900">
-                        {selectedFlag.reviewedByName}
-                      </p>
+                      <p className="text-xs font-medium text-gray-500 mb-2">REVIZUIT DE</p>
+                      <p className="text-sm text-gray-900">{selectedFlag.reviewedByName}</p>
                       {selectedFlag.reviewedAt && (
                         <p className="text-xs text-gray-500">
-                          {formatDistanceToNow(new Date(selectedFlag.reviewedAt), {
-                            addSuffix: true,
-                            locale: ro,
-                          })}
+                          {timeAgo(new Date(selectedFlag.reviewedAt))}
                         </p>
                       )}
                       {selectedFlag.reviewNotes && (
