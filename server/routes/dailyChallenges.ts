@@ -43,17 +43,27 @@ router.get('/today', authenticateToken, async (req, res) => {
 
     const challenge = challenges.rows[0];
 
-    // Get today's actual progress from daily_progress table
-    const progressResult = await query(
-      `SELECT cards_learned, time_spent_minutes
-       FROM daily_progress
-       WHERE user_id = $1 AND date = $2`,
+    // Get today's actual progress from study_sessions table (aggregate all sessions from today)
+    const sessionsResult = await query(
+      `SELECT correct_count, total_time_seconds
+       FROM study_sessions
+       WHERE user_id = $1
+         AND DATE(started_at) = $2`,
       [userId, today]
     );
 
-    const todayProgress = progressResult.rows[0] || {
-      cards_learned: 0,
-      time_spent_minutes: 0,
+    // Aggregate correct answers and time from all sessions today
+    let totalCorrectAnswers = 0;
+    let totalTimeMinutes = 0;
+
+    for (const session of sessionsResult.rows) {
+      totalCorrectAnswers += session.correct_count || 0;
+      totalTimeMinutes += Math.floor((session.total_time_seconds || 0) / 60);
+    }
+
+    const todayProgress = {
+      correct_answers: totalCorrectAnswers,
+      time_spent_minutes: totalTimeMinutes,
     };
 
     // Get user's current streak
@@ -67,10 +77,10 @@ router.get('/today', authenticateToken, async (req, res) => {
         challenges: [
           {
             id: 'cards',
-            title: `Învață ${challenge.cards_target} carduri noi`,
-            progress: todayProgress.cards_learned,
+            title: `Răspunde corect la ${challenge.cards_target} carduri`,
+            progress: todayProgress.correct_answers,
             target: challenge.cards_target,
-            completed: todayProgress.cards_learned >= challenge.cards_target,
+            completed: todayProgress.correct_answers >= challenge.cards_target,
             rewardClaimed: challenge.cards_reward_claimed,
             reward: 50,
             icon: 'BookOpen',
@@ -161,20 +171,28 @@ router.post('/claim-reward', authenticateToken, async (req, res) => {
     let rewardXP = 0;
 
     if (challengeId === 'cards') {
-      const progressResult = await query(
-        'SELECT cards_learned FROM daily_progress WHERE user_id = $1 AND date = $2',
+      // Count correct answers from all sessions today
+      const sessionsResult = await query(
+        'SELECT correct_count FROM study_sessions WHERE user_id = $1 AND DATE(started_at) = $2',
         [userId, today]
       );
-      const cardsLearned = progressResult.rows[0]?.cards_learned || 0;
-      isCompleted = cardsLearned >= challenge.cards_target;
+      let totalCorrectAnswers = 0;
+      for (const session of sessionsResult.rows) {
+        totalCorrectAnswers += session.correct_count || 0;
+      }
+      isCompleted = totalCorrectAnswers >= challenge.cards_target;
       rewardXP = 50;
     } else if (challengeId === 'time') {
-      const progressResult = await query(
-        'SELECT time_spent_minutes FROM daily_progress WHERE user_id = $1 AND date = $2',
+      // Aggregate time from all sessions today
+      const sessionsResult = await query(
+        'SELECT total_time_seconds FROM study_sessions WHERE user_id = $1 AND DATE(started_at) = $2',
         [userId, today]
       );
-      const timeSpent = progressResult.rows[0]?.time_spent_minutes || 0;
-      isCompleted = timeSpent >= challenge.time_target;
+      let totalTimeMinutes = 0;
+      for (const session of sessionsResult.rows) {
+        totalTimeMinutes += Math.floor((session.total_time_seconds || 0) / 60);
+      }
+      isCompleted = totalTimeMinutes >= challenge.time_target;
       rewardXP = 30;
     } else if (challengeId === 'streak') {
       const userResult = await query('SELECT streak FROM users WHERE id = $1', [userId]);

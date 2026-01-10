@@ -143,10 +143,10 @@ const Dashboard: React.FC<DashboardProps> = ({
     const activeDecks = decks.filter(d => d.masteredCards < d.totalCards && d.totalCards > 0);
     const completedDecks = decks.filter(d => d.masteredCards === d.totalCards && d.totalCards > 0);
 
-    // Calculate XP progress to next level
-    const xpForNextLevel = calculateXPForLevel(user.level + 1);
+    // Calculate XP progress to next level (using backend values)
+    const xpForNextLevel = user.nextLevelXP;
     const xpProgress = user.currentXP;
-    const xpNeeded = xpForNextLevel - user.totalXP;
+    const xpNeeded = xpForNextLevel - xpProgress;
     const progressPercentage = Math.round((xpProgress / xpForNextLevel) * 100);
 
     return {
@@ -223,6 +223,44 @@ const Dashboard: React.FC<DashboardProps> = ({
         color: a.color || 'bg-gray-100',
       }));
   }, [achievements]);
+
+  // Calculate today's and weekly study time from activity calendar
+  const studyTimeStats = useMemo(() => {
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+
+    // Get today's time
+    const todayActivity = activityCalendar.find(day => day.date === todayStr);
+    const todayMinutes = todayActivity?.timeSpent || 0;
+    const todayHours = todayMinutes > 0 ? (todayMinutes / 60).toFixed(1) : '0';
+
+    // Get weekly time (last 7 days including today)
+    const last7Days = activityCalendar.slice(-7);
+    const weeklyMinutes = last7Days.reduce((sum, day) => sum + (day.timeSpent || 0), 0);
+    const weeklyHours = weeklyMinutes > 0 ? (weeklyMinutes / 60).toFixed(1) : '0';
+
+    // Format dates
+    const formatDate = (date: Date) => {
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      return `${day}.${month}`;
+    };
+
+    const todayFormatted = formatDate(today);
+
+    // Weekly range: 6 days ago to today
+    const weekStart = new Date(today);
+    weekStart.setDate(weekStart.getDate() - 6);
+    const weekStartFormatted = formatDate(weekStart);
+    const weekEndFormatted = formatDate(today);
+
+    return {
+      todayHours,
+      todayFormatted,
+      weeklyHours,
+      weekRange: `${weekStartFormatted}-${weekEndFormatted}`,
+    };
+  }, [activityCalendar]);
 
   // Radial chart data for XP progress
   const radialData = [
@@ -322,9 +360,9 @@ const Dashboard: React.FC<DashboardProps> = ({
             </div>
           </div>
 
-          {/* Sesiuni învățare active */}
-          <div className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow border border-gray-100 relative overflow-hidden">
-            <div className="absolute top-1/2 right-4 -translate-y-1/2 opacity-5">
+          {/* Sesiuni active */}
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow border border-blue-100 relative overflow-hidden">
+            <div className="absolute top-1/2 right-4 -translate-y-1/2 opacity-10">
               <BookOpen size={120} className="text-blue-600" />
             </div>
             <div className="relative z-10 flex flex-col">
@@ -333,40 +371,42 @@ const Dashboard: React.FC<DashboardProps> = ({
                   ? cardStats.activeSessions
                   : activeSessions.length}
               </div>
-              <div className="text-base font-bold text-gray-700 mb-1">Sesiuni învățare active</div>
+              <div className="text-base font-bold text-gray-700 mb-1">Sesiuni active</div>
               <div className="text-sm text-gray-500">
-                {cardStats?.totalDecks || stats.activeDecksCount} deck-uri |{' '}
-                {cardStats?.inStudy || 0} carduri în studiu | {cardStats?.mastered || 0} carduri
-                învățate
+                {cardStats?.totalDecks || stats.activeDecksCount} Deck-uri create |{' '}
+                {cardStats?.inStudy || 0} Carduri în studiu
               </div>
             </div>
           </div>
 
           {/* Success Rate */}
-          <div className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow border border-gray-100 relative overflow-hidden">
-            <div className="absolute top-1/2 right-4 -translate-y-1/2 opacity-5">
-              <TrendingUp size={120} className="text-green-600" />
+          <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow border border-purple-100 relative overflow-hidden">
+            <div className="absolute top-1/2 right-4 -translate-y-1/2 opacity-10">
+              <TrendingUp size={120} className="text-purple-600" />
             </div>
             <div className="relative z-10 flex flex-col">
               <div className="text-5xl font-bold text-gray-900 mb-2">{stats.successRate}</div>
-              <div className="text-base font-bold text-gray-700 mb-1">Rata de Succes</div>
+              <div className="text-base font-bold text-gray-700 mb-1">Rata de succes</div>
               <div className="text-sm text-gray-500">
-                {stats.totalCorrectAnswers} răspunse corect | {stats.totalAnswers} parcurse
+                {stats.totalCorrectAnswers} corecte | {stats.totalAnswers} parcurse
               </div>
             </div>
           </div>
 
           {/* Time Spent */}
-          <div className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow border border-gray-100 relative overflow-hidden">
-            <div className="absolute top-1/2 right-4 -translate-y-1/2 opacity-5">
-              <Clock size={120} className="text-purple-600" />
+          <div className="bg-gradient-to-br from-cyan-50 to-blue-50 p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow border border-cyan-100 relative overflow-hidden">
+            <div className="absolute top-1/2 right-4 -translate-y-1/2 opacity-10">
+              <Clock size={120} className="text-cyan-600" />
             </div>
             <div className="relative z-10 flex flex-col">
               <div className="text-5xl font-bold text-gray-900 mb-2">
                 {stats.totalTimeSpentFormatted}
               </div>
-              <div className="text-base font-bold text-gray-700 mb-1">Timp petrecut</div>
-              <div className="text-sm text-gray-500">Timp total de studiu</div>
+              <div className="text-base font-bold text-gray-700 mb-1">Timp total studiu</div>
+              <div className="text-sm text-gray-500">
+                {studyTimeStats.todayHours}h today ({studyTimeStats.todayFormatted}) |{' '}
+                {studyTimeStats.weeklyHours}h săptămânal ({studyTimeStats.weekRange})
+              </div>
             </div>
           </div>
         </div>

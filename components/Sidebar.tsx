@@ -74,9 +74,14 @@ const Sidebar: React.FC<SidebarProps> = ({
             {isGuest ? (
               <span className="text-sm text-orange-600 font-medium">Mod vizitator</span>
             ) : (
-              <span className="text-sm text-gray-500">
-                Nivel {user.level} · {user.totalXP.toLocaleString()} XP total
-              </span>
+              <>
+                <div className="text-sm text-gray-600 font-medium">
+                  {user.role === 'admin' ? 'Admin' : user.role === 'teacher' ? 'Profesor' : 'Elev'}
+                </div>
+                <span className="text-sm text-gray-500">
+                  Nivel {user.level} · {user.totalXP.toLocaleString()} XP total
+                </span>
+              </>
             )}
           </div>
         </div>
