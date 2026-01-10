@@ -25,6 +25,7 @@ import {
   RotateCcw,
   MoreVertical,
   Flag,
+  Eye,
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
@@ -1197,9 +1198,10 @@ const StudySession: React.FC<StudySessionProps> = ({
                               e.stopPropagation();
                               handleFlip();
                             }}
-                            className="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-md hover:bg-indigo-700 active:bg-indigo-800 transition-all active:scale-98"
+                            className="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-md hover:bg-indigo-700 active:bg-indigo-800 transition-all active:scale-98 flex items-center justify-center gap-2"
                           >
-                            Afișează răspunsul
+                            <Eye size={20} />
+                            Arată
                           </button>
                         ) : null}
 
