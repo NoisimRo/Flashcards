@@ -38,6 +38,8 @@ export interface Card {
   type: CardType;
   options?: string[];
   correctOptionIndex?: number;
+  // Flags
+  flagCount?: number;
   // Metadata
   position: number;
   createdAt: string;
@@ -91,6 +93,10 @@ export interface Deck {
   tags: string[];
   // Stats (denormalized for performance)
   totalCards: number;
+  // Reviews & Flags
+  averageRating?: number;
+  reviewCount?: number;
+  flagCount?: number;
   // Ownership
   ownerName?: string; // Populated from join
   isOwner?: boolean; // Populated from join
@@ -310,4 +316,73 @@ export interface SyncConflict {
   localData: any;
   serverData: any;
   detectedAt: string;
+}
+
+// ============================================
+// REVIEWS & FLAGS
+// ============================================
+
+export interface DeckReview {
+  id: string;
+  deckId: string;
+  userId: string;
+  userName?: string;
+  userAvatar?: string;
+  rating: number; // 1-5
+  comment?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type FlagStatus = 'pending' | 'under_review' | 'resolved' | 'dismissed';
+export type FlagReason =
+  | 'inappropriate'
+  | 'incorrect_information'
+  | 'duplicate'
+  | 'spam'
+  | 'other';
+
+export interface CardFlag {
+  id: string;
+  cardId: string;
+  deckId: string;
+  flaggedByUserId: string;
+  flaggedByName?: string;
+  flaggedByEmail?: string;
+  comment?: string;
+  status: FlagStatus;
+  reviewedByUserId?: string;
+  reviewedByName?: string;
+  reviewedAt?: string;
+  reviewNotes?: string;
+  createdAt: string;
+  updatedAt: string;
+  // Populated fields
+  cardFront?: string;
+  cardBack?: string;
+  cardContext?: string;
+  cardType?: string;
+  deckTitle?: string;
+  deckTopic?: string;
+}
+
+export interface DeckFlag {
+  id: string;
+  deckId: string;
+  flaggedByUserId: string;
+  flaggedByName?: string;
+  flaggedByEmail?: string;
+  reason?: FlagReason;
+  comment?: string;
+  status: FlagStatus;
+  reviewedByUserId?: string;
+  reviewedByName?: string;
+  reviewedAt?: string;
+  reviewNotes?: string;
+  createdAt: string;
+  updatedAt: string;
+  // Populated fields
+  deckTitle?: string;
+  deckTopic?: string;
+  totalCards?: number;
 }

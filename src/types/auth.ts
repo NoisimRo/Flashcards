@@ -27,6 +27,16 @@ export type Permission =
   // Study
   | 'study:access'
   | 'study:view_all_progress'
+  // Reviews
+  | 'reviews:create'
+  | 'reviews:read'
+  | 'reviews:update_own'
+  | 'reviews:delete_own'
+  | 'reviews:delete_any'
+  // Flags
+  | 'flags:create'
+  | 'flags:read_all'
+  | 'flags:moderate'
   // Admin
   | 'admin:access'
   | 'admin:view_stats'
@@ -57,6 +67,14 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     'cards:delete',
     'study:access',
     'study:view_all_progress',
+    'reviews:create',
+    'reviews:read',
+    'reviews:update_own',
+    'reviews:delete_own',
+    'reviews:delete_any',
+    'flags:create',
+    'flags:read_all',
+    'flags:moderate',
     'admin:access',
     'admin:view_stats',
     'admin:manage_content',
@@ -74,6 +92,14 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     'cards:delete',
     'study:access',
     'study:view_all_progress',
+    'reviews:create',
+    'reviews:read',
+    'reviews:update_own',
+    'reviews:delete_own',
+    'reviews:delete_any',
+    'flags:create',
+    'flags:read_all',
+    'flags:moderate',
   ],
   student: [
     'decks:read',
@@ -84,6 +110,11 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     'cards:update',
     'cards:delete',
     'study:access',
+    'reviews:create',
+    'reviews:read',
+    'reviews:update_own',
+    'reviews:delete_own',
+    'flags:create',
   ],
 };
 

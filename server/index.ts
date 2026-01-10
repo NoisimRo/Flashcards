@@ -18,6 +18,8 @@ import studySessionsRoutes from './routes/studySessions.js';
 import importExportRoutes from './routes/import-export.js';
 import dailyChallengesRoutes from './routes/dailyChallenges.js';
 import achievementsRoutes from './routes/achievements.js';
+import reviewsRoutes from './routes/reviews.js';
+import flagsRoutes from './routes/flags.js';
 
 const app = express();
 
@@ -81,6 +83,8 @@ app.use('/api/daily-challenges', dailyChallengesRoutes);
 app.use('/api/achievements', achievementsRoutes);
 app.use('/api/import', importExportRoutes);
 app.use('/api/export', importExportRoutes);
+app.use('/api/reviews', reviewsRoutes);
+app.use('/api/flags', flagsRoutes);
 
 // ============================================
 // STATIC FILES (Production)

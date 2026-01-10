@@ -14,9 +14,14 @@ import {
   List,
   X,
   Save,
+  Star,
+  Flag,
+  ThumbsUp,
 } from 'lucide-react';
 import { generateDeckWithAI, getDeck } from '../src/api/decks';
 import { useToast } from '../src/components/ui/Toast';
+import { ReviewModal } from '../src/components/reviews/ReviewModal';
+import { FlagModal } from '../src/components/flags/FlagModal';
 
 interface DeckListProps {
   decks: Deck[];
@@ -59,6 +64,12 @@ const DeckList: React.FC<DeckListProps> = ({
   const [editCardFront, setEditCardFront] = useState('');
   const [editCardBack, setEditCardBack] = useState('');
   const [editCardContext, setEditCardContext] = useState('');
+
+  // Review & Flag Modal State
+  const [flagModalOpen, setFlagModalOpen] = useState(false);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [selectedDeckForFlag, setSelectedDeckForFlag] = useState<Deck | null>(null);
+  const [selectedDeckForReview, setSelectedDeckForReview] = useState<Deck | null>(null);
 
   // Loading messages for "The Dealer's Table" loading state
   const dealerMessages = [
@@ -428,6 +439,17 @@ const DeckList: React.FC<DeckListProps> = ({
               key={deck.id}
               className="bg-[#F8F6F1] p-6 rounded-3xl relative group hover:shadow-md transition-shadow flex flex-col"
             >
+              {/* Rating Display (top-right, before menu) */}
+              {deck.averageRating && deck.averageRating > 0 && (
+                <div className="absolute top-4 right-12 flex items-center gap-1 bg-white px-2 py-1 rounded-full shadow-sm">
+                  <Star size={14} className="fill-yellow-400 text-yellow-400" />
+                  <span className="text-sm font-semibold text-gray-700">
+                    {deck.averageRating.toFixed(1)}
+                  </span>
+                  <span className="text-xs text-gray-500">({deck.reviewCount})</span>
+                </div>
+              )}
+
               {/* Three-Dot Menu (top-right corner) */}
               <div className="absolute top-4 right-4">
                 <div className="relative">
@@ -475,6 +497,32 @@ const DeckList: React.FC<DeckListProps> = ({
                           <List size={16} /> Editează carduri
                         </button>
                       )}
+                      {/* Lasă o recenzie - Only for public decks, not owner */}
+                      {deck.isPublic && !deck.isOwner && (
+                        <button
+                          onClick={e => {
+                            e.stopPropagation();
+                            setSelectedDeckForReview(deck);
+                            setReviewModalOpen(true);
+                            setActiveMenuId(null);
+                          }}
+                          className="w-full text-left px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg flex items-center gap-2 font-medium"
+                        >
+                          <ThumbsUp size={16} /> Lasă o recenzie
+                        </button>
+                      )}
+                      {/* Raportează deck */}
+                      <button
+                        onClick={e => {
+                          e.stopPropagation();
+                          setSelectedDeckForFlag(deck);
+                          setFlagModalOpen(true);
+                          setActiveMenuId(null);
+                        }}
+                        className="w-full text-left px-3 py-2 text-sm text-orange-600 hover:bg-orange-50 rounded-lg flex items-center gap-2 font-medium"
+                      >
+                        <Flag size={16} /> Raportează deck
+                      </button>
                       {/* Șterge deck with confirmation */}
                       <button
                         onClick={e => {
@@ -1031,6 +1079,38 @@ const DeckList: React.FC<DeckListProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Review Modal */}
+      {reviewModalOpen && selectedDeckForReview && (
+        <ReviewModal
+          deckId={selectedDeckForReview.id}
+          deckTitle={selectedDeckForReview.title}
+          onClose={() => {
+            setReviewModalOpen(false);
+            setSelectedDeckForReview(null);
+          }}
+          onSuccess={() => {
+            // Optionally refresh decks to show updated rating
+            window.location.reload();
+          }}
+        />
+      )}
+
+      {/* Flag Modal */}
+      {flagModalOpen && selectedDeckForFlag && (
+        <FlagModal
+          type="deck"
+          itemId={selectedDeckForFlag.id}
+          itemTitle={selectedDeckForFlag.title}
+          onClose={() => {
+            setFlagModalOpen(false);
+            setSelectedDeckForFlag(null);
+          }}
+          onSuccess={() => {
+            // Flag submitted successfully
+          }}
+        />
       )}
     </div>
   );
