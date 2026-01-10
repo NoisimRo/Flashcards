@@ -17,6 +17,7 @@ export interface Card {
   options?: string[]; // For quiz mode only
   correctOptionIndex?: number; // For quiz mode only
   status: 'new' | 'learning' | 'mastered';
+  flagCount?: number;
 }
 
 export interface SessionData {
@@ -39,6 +40,12 @@ export interface Deck {
   masteredCards: number;
   lastStudied?: string;
   sessionData?: SessionData; // Persisted progress
+  // Reviews & Flags
+  averageRating?: number;
+  reviewCount?: number;
+  flagCount?: number;
+  isPublic?: boolean;
+  isOwner?: boolean;
 }
 
 export interface User {

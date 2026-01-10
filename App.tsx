@@ -11,6 +11,7 @@ import GlobalDecks from './components/GlobalDecks';
 import Achievements from './components/Achievements';
 import Leaderboard from './components/Leaderboard';
 import Settings from './components/Settings';
+import { ModerationDashboard } from './src/components/moderation/ModerationDashboard';
 // New session components
 import CreateSessionModal from './src/components/sessions/CreateSessionModal';
 import ActiveSessionsList from './src/components/sessions/ActiveSessionsList';
@@ -686,6 +687,20 @@ function AppContent() {
             decks={decks}
             onChangeView={setCurrentView}
             onCreateDeck={() => setCurrentView('decks')}
+          />
+        );
+      case 'moderation':
+        // Only admin and teacher can access moderation
+        if (user.role === 'admin' || user.role === 'teacher') {
+          return <ModerationDashboard />;
+        }
+        // Redirect to dashboard if user doesn't have permission
+        return (
+          <Dashboard
+            user={user}
+            decks={decks}
+            onStartSession={handleStartSession}
+            onChangeView={setCurrentView}
           />
         );
       default:

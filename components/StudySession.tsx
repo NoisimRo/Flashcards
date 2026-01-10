@@ -325,24 +325,24 @@ const StudySession: React.FC<StudySessionProps> = ({
   };
 
   const handleFlip = () => {
-  // Adăugat de SIMION MANUAL Anti-cheat:
-  // - When flipping front->back, mark non-standard cards (type !== 'standard') as incorrect (NEȘTIUT).
-  // - For standard cards, do not change answer state on generic flip — standard behavior is explicit via buttons.
-  if (!isFlipped && !inputFeedback && activeCards[currentIndex]) {
-    const card = activeCards[currentIndex];
+    // Adăugat de SIMION MANUAL Anti-cheat:
+    // - When flipping front->back, mark non-standard cards (type !== 'standard') as incorrect (NEȘTIUT).
+    // - For standard cards, do not change answer state on generic flip — standard behavior is explicit via buttons.
+    if (!isFlipped && !inputFeedback && activeCards[currentIndex]) {
+      const card = activeCards[currentIndex];
 
-    if (card.type !== 'standard') {
-      setAnswers(prev => ({
-        ...prev,
-        [card.id]: 'incorrect',
-      }));
-      setStreak(0);
-      // persistence will be handled by the existing onSaveProgress persistence effect
+      if (card.type !== 'standard') {
+        setAnswers(prev => ({
+          ...prev,
+          [card.id]: 'incorrect',
+        }));
+        setStreak(0);
+        // persistence will be handled by the existing onSaveProgress persistence effect
+      }
     }
-  }
 
-  setIsFlipped(prev => !prev);
-};
+    setIsFlipped(prev => !prev);
+  };
 
   const goToPrevious = useCallback(() => {
     if (currentIndex > 0) {

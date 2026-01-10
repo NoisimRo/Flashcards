@@ -9,6 +9,7 @@ import {
   LogIn,
   UserPlus,
   PlayCircle,
+  Shield,
 } from 'lucide-react';
 import { User } from '../types';
 
@@ -33,12 +34,16 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const xpPercentage = Math.min((user.currentXP / user.nextLevelXP) * 100, 100);
 
+  // Show moderation for admin and teacher roles
+  const canModerate = user.role === 'admin' || user.role === 'teacher';
+
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'decks', label: 'Deck-urile Mele', icon: Layers },
     { id: 'sessions', label: 'Sesiuni Active', icon: PlayCircle },
     { id: 'study', label: 'Deck-uri Globale', icon: BookOpen },
     { id: 'achievements', label: 'Realizări', icon: Trophy },
+    ...(canModerate ? [{ id: 'moderation', label: 'Moderare', icon: Shield }] : []),
     { id: 'leaderboard', label: 'Clasament', icon: Users },
     { id: 'settings', label: 'Setări', icon: Settings },
   ];
