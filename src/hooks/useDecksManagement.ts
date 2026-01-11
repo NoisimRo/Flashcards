@@ -135,13 +135,10 @@ export function useDecksManagement() {
     [isGuest, setShowLoginPrompt]
   );
 
-  const handleEditCard = useCallback(
-    (deckId: string, updatedCard: Card) => {
-      // TODO: Implement card editing logic
-      console.log('Edit card:', deckId, updatedCard);
-    },
-    []
-  );
+  const handleEditCard = useCallback((deckId: string, updatedCard: Card) => {
+    // TODO: Implement card editing logic
+    console.log('Edit card:', deckId, updatedCard);
+  }, []);
 
   const handleDeleteCard = useCallback((deckId: string, cardId: string) => {
     if (!confirm('Vrei să elimini acest card din deck definitiv?')) return;

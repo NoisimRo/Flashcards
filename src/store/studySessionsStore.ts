@@ -319,7 +319,9 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
     try {
       const guestToken = getOrCreateGuestToken();
 
-      const response = await fetch(`/api/study-sessions/guest/${sessionId}?guestToken=${guestToken}`);
+      const response = await fetch(
+        `/api/study-sessions/guest/${sessionId}?guestToken=${guestToken}`
+      );
       const data = await response.json();
 
       if (data.success && data.data) {

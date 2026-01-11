@@ -12,12 +12,8 @@ import type { Deck } from '../../types';
 export function useSessionManagement() {
   const { isAuthenticated, refreshSession } = useAuth();
   const { createGuestSession, fetchActiveSessions } = useStudySessionsStore();
-  const {
-    setShowCreateSessionModal,
-    setActiveSessionId,
-    setCurrentView,
-    setShowLoginPrompt,
-  } = useUIStore();
+  const { setShowCreateSessionModal, setActiveSessionId, setCurrentView, setShowLoginPrompt } =
+    useUIStore();
 
   const isGuest = !isAuthenticated;
 
@@ -44,7 +40,14 @@ export function useSessionManagement() {
       // Authenticated: open create session modal
       setShowCreateSessionModal(true, deck.id);
     },
-    [isGuest, createGuestSession, setActiveSessionId, setCurrentView, setShowCreateSessionModal, setShowLoginPrompt]
+    [
+      isGuest,
+      createGuestSession,
+      setActiveSessionId,
+      setCurrentView,
+      setShowCreateSessionModal,
+      setShowLoginPrompt,
+    ]
   );
 
   const handleCreateSession = useCallback(

@@ -98,7 +98,7 @@ export const ViewRouter: React.FC = () => {
           onSaveProgress={(deckId, data) => {
             // Save progress logic
           }}
-          onUpdateUserXP={(deltaXP) => {
+          onUpdateUserXP={deltaXP => {
             // Update XP logic
           }}
           onBack={() => setCurrentView('decks')}
@@ -165,9 +165,13 @@ export const ViewRouter: React.FC = () => {
           onSave={() => {
             /* Save settings logic */
           }}
-          onLogout={isGuest ? undefined : async () => {
-            /* Logout handled via useAuthActions */
-          }}
+          onLogout={
+            isGuest
+              ? undefined
+              : async () => {
+                  /* Logout handled via useAuthActions */
+                }
+          }
           isGuest={isGuest}
           onLogin={() => {
             /* Login handled via useAuthActions */
