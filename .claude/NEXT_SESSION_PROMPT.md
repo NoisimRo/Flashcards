@@ -11,7 +11,7 @@ Aplicația Flashcards are 2 probleme critice:
 
 ---
 
-## 📝 Task List (Day 1-2)
+## 📝 Task List 
 
 ### ✅ Task 1: Extinde studySessionsStore.ts
 
@@ -279,7 +279,7 @@ npm run dev
 
 ---
 
-## 🎯 End Goal (Day 2)
+## 🎯 End Goal
 
 **Dashboard arată stats LIVE din session**:
 ```
