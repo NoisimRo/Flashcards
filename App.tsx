@@ -281,7 +281,15 @@ function AppContent() {
   // --- ACTIONS ---
 
   const handleStartSession = (deck: Deck) => {
-    // Use new session architecture
+    // Allow visitors to study the demo deck using legacy StudySession
+    if (isGuest && deck.id === 'd1') {
+      // Use old study session flow for demo deck
+      setActiveDeck(deck);
+      setCurrentView('study');
+      return;
+    }
+
+    // Use new session architecture for authenticated users
     handleCreateSession(deck);
   };
 
