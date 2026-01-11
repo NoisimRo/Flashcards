@@ -3,7 +3,9 @@
 ## TASK: Implementează Etapa 1 - Heart Transplant
 
 ### Context Rapid
+
 Aplicația Flashcards are 2 probleme critice:
+
 1. **State duplicat**: StudySession.tsx (local) vs studySessionsStore (Zustand)
 2. **Data inconsistency**: Dashboard arată stats diferite de session player
 
@@ -18,6 +20,7 @@ Aplicația Flashcards are 2 probleme critice:
 **Fișier**: `src/store/studySessionsStore.ts`
 
 **Adaugă state**:
+
 ```typescript
 interface StudySessionsStore {
   // Existing
@@ -46,11 +49,12 @@ interface StudySessionsStore {
 ```
 
 **Implementează XP calculation**:
+
 ```typescript
 const calculateXP = (isCorrect: boolean, streak: number, difficulty: Difficulty): number => {
   const baseXP = { A1: 5, A2: 8, B1: 12, B2: 15, C1: 20, C2: 25 }[difficulty];
   if (!isCorrect) return 0;
-  const streakMultiplier = Math.min(1 + (streak * 0.1), 2.5); // Max 2.5x
+  const streakMultiplier = Math.min(1 + streak * 0.1, 2.5); // Max 2.5x
   return Math.floor(baseXP * streakMultiplier);
 };
 
@@ -63,14 +67,15 @@ answerCard: (cardId, isCorrect) => {
     answers: { ...state.answers, [cardId]: isCorrect ? 'correct' : 'incorrect' },
     streak: isCorrect ? state.streak + 1 : 0,
     sessionXP: state.sessionXP + xpEarned,
-    isDirty: true
+    isDirty: true,
   }));
 
   get().syncProgress(); // Auto-sync
-}
+};
 ```
 
 **Implementează auto-save**:
+
 ```typescript
 let autoSaveTimer: NodeJS.Timeout | null = null;
 
@@ -108,6 +113,7 @@ syncProgress: async () => {
 **Fișier**: `components/StudySession.tsx`
 
 **ȘTERGE local state** (linii ~93-102):
+
 ```typescript
 // ❌ DELETE THESE
 const [answers, setAnswers] = useState<Record<string, AnswerStatus>>({});
@@ -119,6 +125,7 @@ const [hintRevealed, setHintRevealed] = useState(false);
 ```
 
 **ÎNLOCUIEȘTE cu Zustand**:
+
 ```typescript
 // ✅ ADD THIS
 import { useStudySessionsStore } from '../src/store/studySessionsStore';
@@ -137,7 +144,7 @@ const StudySession = ({ deck, user, onFinish, onBack }) => {
     nextCard,
     undoLastAnswer,
     enableAutoSave,
-    disableAutoSave
+    disableAutoSave,
   } = useStudySessionsStore();
 
   // Initialize auto-save on mount
@@ -147,10 +154,11 @@ const StudySession = ({ deck, user, onFinish, onBack }) => {
   }, []);
 
   // Rest of component uses store values
-}
+};
 ```
 
 **UPDATE event handlers**:
+
 ```typescript
 // Flip card
 // ❌ OLD: onClick={() => setIsFlipped(!isFlipped)}
@@ -176,6 +184,7 @@ const StudySession = ({ deck, user, onFinish, onBack }) => {
 **Fișier**: `src/components/sessions/StudySessionPlayer.tsx`
 
 **ȘTERGE data transformation** (linii ~54-96):
+
 ```typescript
 // ❌ DELETE: Deck format conversion
 const deck: Deck = {
@@ -184,6 +193,7 @@ const deck: Deck = {
 ```
 
 **ÎNLOCUIEȘTE cu direct render**:
+
 ```typescript
 // ✅ NEW: Just load session, store handles everything
 const StudySessionPlayer = ({ sessionId, onFinish }) => {
@@ -207,17 +217,20 @@ const StudySessionPlayer = ({ sessionId, onFinish }) => {
 ## 🧪 Testing Checklist
 
 ### Unit Tests
+
 ```bash
 npm run test src/store/studySessionsStore.test.ts
 ```
 
 **Test cases**:
+
 - ✅ XP calculation corectă (base XP × streak multiplier)
 - ✅ Streak reset la răspuns greșit
 - ✅ Auto-save triggered la 30s
 - ✅ `isDirty` flag corect
 
 ### Integration Tests
+
 1. **Dashboard sync**: Start session → answer cards → check dashboard stats update
 2. **Visitor mode**: Demo deck (d1) → no API calls → local only
 3. **Auto-save**: Answer card → wait 30s → verify backend saved
@@ -259,12 +272,12 @@ npm run dev
 
 ## 📁 Files to Modify
 
-| File | Action | Lines Affected |
-|------|--------|----------------|
-| `src/store/studySessionsStore.ts` | Extend | +150 linii |
-| `components/StudySession.tsx` | Refactor | ~50 linii changed |
-| `src/components/sessions/StudySessionPlayer.tsx` | Simplify | -100 linii |
-| `src/store/studySessionsStore.test.ts` | Add tests | +80 linii |
+| File                                             | Action    | Lines Affected    |
+| ------------------------------------------------ | --------- | ----------------- |
+| `src/store/studySessionsStore.ts`                | Extend    | +150 linii        |
+| `components/StudySession.tsx`                    | Refactor  | ~50 linii changed |
+| `src/components/sessions/StudySessionPlayer.tsx` | Simplify  | -100 linii        |
+| `src/store/studySessionsStore.test.ts`           | Add tests | +80 linii         |
 
 **Total LOC change**: +80 linii (net positive pentru tests, net negative pentru complexity)
 
@@ -282,6 +295,7 @@ npm run dev
 ## 🎯 End Goal (Day 2)
 
 **Dashboard arată stats LIVE din session**:
+
 ```
 [Dashboard]         [Study Session]
 XP: 145 ←──────────→ Session XP: 145
@@ -290,6 +304,7 @@ Correct: 12 ←───────→ Answers: { card1: 'correct', ... }
 ```
 
 **No more adapter overhead**:
+
 ```
 ❌ ÎNAINTE: Session API → Transform to Deck → Local State → Save → Transform back
 ✅ DUPĂ:   Session API → Store State → UI reads from Store → Auto-save

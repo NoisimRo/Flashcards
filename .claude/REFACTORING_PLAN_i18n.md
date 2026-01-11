@@ -26,23 +26,29 @@
 ### 🔴 Probleme Critice Identificate
 
 #### A. Monolitul StudySession.tsx (1600 linii)
+
 **Simptome**:
+
 - God Component: gestionează UI + state + business logic + animations
 - Greu de testat, debug și extins
 - Props pollution: 10 props, unele neutilizate (onEditCard, onDeleteCard)
 
 **Impact**:
+
 - ⏱️ Development time crescut pentru noi features
 - 🐛 Buguri greu de reprodus și fixat
 - 👥 Onboarding dificil pentru dezvoltatori noi
 
 #### B. Redundanță de State Management
+
 **Simptome**:
+
 - State duplicat între StudySession.tsx (local) și studySessionsStore (Zustand)
 - Data transformation overhead în StudySessionPlayer.tsx (Session → Deck)
 - Risk de inconsistență: dashboard arată date diferite de session player
 
 **Exemplu concret**:
+
 ```typescript
 // StudySessionPlayer.tsx - transformare costisitoare
 const deck: Deck = {
@@ -50,22 +56,26 @@ const deck: Deck = {
     const progress = currentSession.cardProgress?.[card.id];
     let status: 'new' | 'learning' | 'mastered' = 'new';
     // ... 15 linii de mapping logic
-  })
-}
+  }),
+};
 ```
 
 **Impact**:
+
 - 🔄 Auto-save inconsistent (local state ≠ backend state)
 - 📊 Dashboard stats out-of-sync cu session progress
 - 💾 Overhead de transformări repetate la fiecare render
 
 #### C. Lipsa de i18n Infrastructure
+
 **Simptome**:
+
 - Text hardcodat în componente: "Creează sesiune", "Deck-uri Globale"
 - Mixaj de limbaje în cod (ro/en): variabile în engleză, UI în română
 - Nu există strategie de traduceri pentru conținut dinamic (card content)
 
 **Impact**:
+
 - 🌍 Imposibil de lansat pe piețe internaționale
 - 🔧 Maintenance overhead (schimbare text = modificare cod)
 - 🧪 Testing dificil (nu poți testa UI în diferite limbi)
@@ -77,17 +87,20 @@ const deck: Deck = {
 ### 🎯 Principii Arhitecturale
 
 #### Principiul 1: Single Source of Truth (Zustand Store)
+
 ```
 ❌ ÎNAINTE: UI Component → Local State → Save to API → Store Update
 ✅ DUPĂ:   UI Component → Store Action → Store State + API Sync
 ```
 
 **Beneficii**:
+
 - Dashboard și Session Player citesc din același store → consistent data
 - Auto-save devine trivial (store subscription)
 - Undo/redo devine posibil (time-travel debugging)
 
 #### Principiul 2: Atomic Design Hierarchy
+
 ```
 Atoms (cele mai simple)
   ├─ Button
@@ -112,17 +125,20 @@ Pages (integrate everything)
 ```
 
 **Beneficii**:
+
 - Fiecare component <200 linii
 - Testare izolată (QuizCard nu depinde de StudySession)
 - Reusability maximă (StreakBadge poate fi folosit în Dashboard)
 
 #### Principiul 3: i18n First
+
 ```
 ❌ ÎNAINTE: <button>Creează sesiune</button>
 ✅ DUPĂ:   <button>{t('session.create')}</button>
 ```
 
 **Strategia de traduceri**:
+
 - **UI static** → JSON translation files (react-i18next)
 - **Conținut dinamic** (carduri) → Database-driven (table: `card_translations`)
 - **Fallback logic** → ro → en → key
@@ -140,7 +156,9 @@ Pages (integrate everything)
 #### Week 1, Day 1-2: Migrate State to Store
 
 **Acțiuni**:
+
 1. **Extinde studySessionsStore.ts** cu state management complet:
+
    ```typescript
    // Înainte (parțial)
    interface StudySessionsStore {
@@ -178,16 +196,22 @@ Pages (integrate everything)
    ```
 
 2. **Implementează XP Calculation în store**:
+
    ```typescript
    // store/studySessionsStore.ts
    const calculateXP = (isCorrect: boolean, streak: number, difficulty: Difficulty): number => {
      const baseXP = {
-       A1: 5, A2: 8, B1: 12, B2: 15, C1: 20, C2: 25
+       A1: 5,
+       A2: 8,
+       B1: 12,
+       B2: 15,
+       C1: 20,
+       C2: 25,
      }[difficulty];
 
      if (!isCorrect) return 0;
 
-     const streakMultiplier = Math.min(1 + (streak * 0.1), 2.5); // Max 2.5x
+     const streakMultiplier = Math.min(1 + streak * 0.1, 2.5); // Max 2.5x
      return Math.floor(baseXP * streakMultiplier);
    };
 
@@ -198,15 +222,16 @@ Pages (integrate everything)
      set(state => ({
        answers: { ...state.answers, [cardId]: isCorrect ? 'correct' : 'incorrect' },
        streak: isCorrect ? state.streak + 1 : 0,
-       sessionXP: state.sessionXP + xpEarned
+       sessionXP: state.sessionXP + xpEarned,
      }));
 
      // Auto-sync to backend
      get().syncProgress();
-   }
+   };
    ```
 
 3. **Remove local state din StudySession.tsx**:
+
    ```typescript
    // ❌ Șterge acestea din StudySession.tsx:
    const [answers, setAnswers] = useState<Record<string, AnswerStatus>>({});
@@ -218,21 +243,15 @@ Pages (integrate everything)
    import { useStudySessionsStore } from '../store/studySessionsStore';
 
    const StudySession = ({ sessionId }) => {
-     const {
-       answers,
-       streak,
-       sessionXP,
-       currentCardIndex,
-       answerCard,
-       flipCard,
-       nextCard
-     } = useStudySessionsStore();
+     const { answers, streak, sessionXP, currentCardIndex, answerCard, flipCard, nextCard } =
+       useStudySessionsStore();
 
      // Nu mai gestionăm state local!
-   }
+   };
    ```
 
 **Success Criteria (Week 1, Day 2)**:
+
 - ✅ All business logic moved to store
 - ✅ StudySession.tsx consumă doar din store (no local state)
 - ✅ Dashboard și Session Player arată aceleași date
@@ -241,7 +260,9 @@ Pages (integrate everything)
 #### Week 1, Day 3-4: Implement Auto-Save in Store
 
 **Acțiuni**:
+
 1. **Subscription-based auto-save**:
+
    ```typescript
    // store/studySessionsStore.ts
    let autoSaveTimer: NodeJS.Timeout | null = null;
@@ -279,6 +300,7 @@ Pages (integrate everything)
 2. **Remove StudySessionPlayer.tsx auto-save logic** (devine redundant)
 
 **Success Criteria (Week 1, Day 4)**:
+
 - ✅ Auto-save activat automat când se încarcă session
 - ✅ Progress salvat la fiecare 30s
 - ✅ No duplicate saves (dirty flag check)
@@ -287,12 +309,14 @@ Pages (integrate everything)
 #### Week 1, Day 5: Testing & Bug Fixes
 
 **Acțiuni**:
+
 1. Test visitor flow (demo deck) - nu trimite API calls
 2. Test authenticated flow (persistent sessions) - sync-uiește corect
 3. Verifică consistența între dashboard și session player
 4. Fix edge cases (browser refresh, network failures)
 
 **Success Criteria (Week 1, Day 5)**:
+
 - ✅ No regressions în visitor mode
 - ✅ Dashboard stats sync-ed cu session progress
 - ✅ Network failures handled gracefully (retry logic)
@@ -308,6 +332,7 @@ Pages (integrate everything)
 #### Week 2, Day 1-3: Extract Card Type Components
 
 **Structură țintă**:
+
 ```
 src/components/study-session/
 ├── cards/
@@ -334,6 +359,7 @@ src/components/study-session/
 ```
 
 **Implementare StandardCard.tsx** (exemplu):
+
 ```typescript
 // src/components/study-session/cards/StandardCard.tsx
 import { useStudySessionsStore } from '@/store/studySessionsStore';
@@ -364,6 +390,7 @@ export const StandardCard: React.FC<StandardCardProps> = ({ card }) => {
 ```
 
 **Implementare QuizCard.tsx** (exemplu):
+
 ```typescript
 // src/components/study-session/cards/QuizCard.tsx
 import { useStudySessionsStore } from '@/store/studySessionsStore';
@@ -402,6 +429,7 @@ export const QuizCard: React.FC<QuizCardProps> = ({ card }) => {
 ```
 
 **Success Criteria (Week 2, Day 3)**:
+
 - ✅ 3 card types extrași în componente separate
 - ✅ Fiecare component <150 linii
 - ✅ Unit tests pentru fiecare card type
@@ -410,7 +438,9 @@ export const QuizCard: React.FC<QuizCardProps> = ({ card }) => {
 #### Week 2, Day 4-6: Extract UI Components
 
 **Acțiuni**:
+
 1. **ProgressBar.tsx**:
+
    ```typescript
    export const ProgressBar: React.FC = () => {
      const { currentCardIndex, totalCards } = useStudySessionsStore();
@@ -426,6 +456,7 @@ export const QuizCard: React.FC<QuizCardProps> = ({ card }) => {
    ```
 
 2. **StreakIndicator.tsx**:
+
    ```typescript
    export const StreakIndicator: React.FC = () => {
      const { streak } = useStudySessionsStore();
@@ -439,6 +470,7 @@ export const QuizCard: React.FC<QuizCardProps> = ({ card }) => {
    ```
 
 3. **SessionStats.tsx**:
+
    ```typescript
    export const SessionStats: React.FC = () => {
      const { answers } = useStudySessionsStore();
@@ -457,6 +489,7 @@ export const QuizCard: React.FC<QuizCardProps> = ({ card }) => {
    ```
 
 **Success Criteria (Week 2, Day 6)**:
+
 - ✅ UI components extracted (progress, streak, stats, timer)
 - ✅ Reusable în alte contexte (dashboard, summary)
 - ✅ Visual consistency (shared design system)
@@ -464,7 +497,9 @@ export const QuizCard: React.FC<QuizCardProps> = ({ card }) => {
 #### Week 2, Day 7-10: Create StudySessionContainer
 
 **Acțiuni**:
+
 1. **Orchestrator component**:
+
    ```typescript
    // src/components/study-session/StudySessionContainer.tsx
    import { useEffect } from 'react';
@@ -519,6 +554,7 @@ export const QuizCard: React.FC<QuizCardProps> = ({ card }) => {
    ```
 
 2. **Update App.tsx routing**:
+
    ```typescript
    // App.tsx
    case 'session-player':
@@ -535,6 +571,7 @@ export const QuizCard: React.FC<QuizCardProps> = ({ card }) => {
    - ❌ `src/components/sessions/StudySessionPlayer.tsx` (adapter → deleted)
 
 **Success Criteria (Week 2, Day 10)**:
+
 - ✅ Monolitul eliminat complet
 - ✅ Componente sub 200 linii fiecare
 - ✅ No adapter layer (direct store consumption)
@@ -551,12 +588,15 @@ export const QuizCard: React.FC<QuizCardProps> = ({ card }) => {
 #### Week 3, Day 1: Setup i18n Infrastructure
 
 **Acțiuni**:
+
 1. **Install dependencies**:
+
    ```bash
    npm install i18next react-i18next i18next-browser-languagedetector i18next-http-backend
    ```
 
 2. **Create i18n config**:
+
    ```typescript
    // src/i18n/config.ts
    import i18n from 'i18next';
@@ -574,16 +614,16 @@ export const QuizCard: React.FC<QuizCardProps> = ({ card }) => {
        debug: process.env.NODE_ENV === 'development',
 
        backend: {
-         loadPath: '/locales/{{lng}}/{{ns}}.json'
+         loadPath: '/locales/{{lng}}/{{ns}}.json',
        },
 
        interpolation: {
-         escapeValue: false // React already escapes
+         escapeValue: false, // React already escapes
        },
 
        react: {
-         useSuspense: true
-       }
+         useSuspense: true,
+       },
      });
 
    export default i18n;
@@ -596,6 +636,7 @@ export const QuizCard: React.FC<QuizCardProps> = ({ card }) => {
    ```
 
 **Success Criteria (Week 3, Day 1)**:
+
 - ✅ i18next configured
 - ✅ Language detector active
 - ✅ Fallback to Romanian works
@@ -603,6 +644,7 @@ export const QuizCard: React.FC<QuizCardProps> = ({ card }) => {
 #### Week 3, Day 2-3: Create Translation Files
 
 **Structură**:
+
 ```
 public/locales/
 ├── ro/
@@ -626,6 +668,7 @@ public/locales/
 ```
 
 **Exemplu ro/session.json**:
+
 ```json
 {
   "create": "Creează sesiune",
@@ -661,6 +704,7 @@ public/locales/
 ```
 
 **Exemplu en/session.json**:
+
 ```json
 {
   "create": "Create Session",
@@ -696,6 +740,7 @@ public/locales/
 ```
 
 **Success Criteria (Week 3, Day 3)**:
+
 - ✅ Translation files pentru RO, EN, IT
 - ✅ Coverage 100% pentru UI static
 - ✅ Namespacing corect (common, auth, session, etc.)
@@ -703,7 +748,9 @@ public/locales/
 #### Week 3, Day 4: Replace Hardcoded Strings
 
 **Acțiuni**:
+
 1. **Update components cu useTranslation hook**:
+
    ```typescript
    // Înainte
    <button>Creează sesiune</button>
@@ -728,6 +775,7 @@ public/locales/
    - Settings.tsx
 
 **Success Criteria (Week 3, Day 4)**:
+
 - ✅ 0 hardcoded strings în components
 - ✅ Toate textele folosesc t('key')
 - ✅ Switch language funcționează live
@@ -735,7 +783,9 @@ public/locales/
 #### Week 3, Day 5: Language Switcher + Database Translations
 
 **Acțiuni**:
+
 1. **Add Language Switcher în Sidebar**:
+
    ```typescript
    // components/Sidebar.tsx
    import { useTranslation } from 'react-i18next';
@@ -757,6 +807,7 @@ public/locales/
    ```
 
 2. **Database schema pentru card translations** (long-term):
+
    ```sql
    -- Migration: Add card_translations table
    CREATE TABLE card_translations (
@@ -775,13 +826,15 @@ public/locales/
    ```
 
 3. **Update API pentru a returna traduceri**:
+
    ```typescript
    // server/routes/decks.ts
    router.get('/:id', optionalAuth, async (req, res) => {
      const { lang = 'ro' } = req.query; // Default to Romanian
 
      // Fetch cards with translations
-     const cardsResult = await query(`
+     const cardsResult = await query(
+       `
        SELECT
          c.id,
          c.type,
@@ -793,13 +846,16 @@ public/locales/
        LEFT JOIN card_translations ct ON ct.card_id = c.id AND ct.language_code = $1
        WHERE c.deck_id = $2 AND c.deleted_at IS NULL
        ORDER BY c.position ASC
-     `, [lang, deckId]);
+     `,
+       [lang, deckId]
+     );
 
      // ...
    });
    ```
 
 **Success Criteria (Week 3, Day 5)**:
+
 - ✅ Language switcher funcțional în UI
 - ✅ Database schema pentru card translations
 - ✅ API returnează traduceri în funcție de `lang` query param
@@ -812,6 +868,7 @@ public/locales/
 ### 🎨 Design Patterns pentru i18n
 
 #### Pattern 1: Namespace-based Organization
+
 ```typescript
 // ❌ BAD: All translations in one file
 {
@@ -838,6 +895,7 @@ public/locales/
 ```
 
 #### Pattern 2: Pluralization Support
+
 ```typescript
 // ro/session.json
 {
@@ -852,6 +910,7 @@ t('cardsCount', { count: 5 }); // "5 carduri"
 ```
 
 #### Pattern 3: Context-Aware Translations
+
 ```typescript
 // ro/session.json
 {
@@ -863,6 +922,7 @@ t('cardsCount', { count: 5 }); // "5 carduri"
 ```
 
 #### Pattern 4: Fallback Chain
+
 ```
 User Language Preference → Browser Language → App Default (ro) → Translation Key
 ```
@@ -870,7 +930,9 @@ User Language Preference → Browser Language → App Default (ro) → Translati
 ### 🔧 Tools & Infrastructure
 
 #### Translation Management Platform
+
 **Opțiuni**:
+
 1. **Lokalise** (recomandat pentru echipe mici/medii)
    - ✅ Editor vizual pentru traducători
    - ✅ Automatic push/pull cu GitHub
@@ -892,11 +954,13 @@ User Language Preference → Browser Language → App Default (ro) → Translati
 #### Content Translation Strategy
 
 **UI Static** (butoane, labels):
+
 ```
 Translator → Lokalise → JSON files → Git commit
 ```
 
 **Conținut Dinamic** (carduri, deck descriptions):
+
 ```
 Option A (MVP): Manual DB insert
 Admin Panel → Insert into card_translations table → API returns translated content
@@ -906,6 +970,7 @@ Original content (RO) → Google Translate API → Review by human → Save to D
 ```
 
 **Cost estimate (Google Translate API)**:
+
 - 50,000 carduri × 2 limbi (EN, IT) = 100,000 requests
 - $20 per 1M characters ≈ $10-20 pentru traducere inițială
 - Maintenance: $5/lună pentru carduri noi
@@ -919,6 +984,7 @@ Original content (RO) → Google Translate API → Review by human → Save to D
 #### Unit Tests (Jest/Vitest)
 
 **Store Tests**:
+
 ```typescript
 // store/studySessionsStore.test.ts
 describe('studySessionsStore', () => {
@@ -951,6 +1017,7 @@ describe('studySessionsStore', () => {
 ```
 
 **Component Tests** (React Testing Library):
+
 ```typescript
 // components/study-session/cards/StandardCard.test.tsx
 import { render, screen, fireEvent } from '@testing-library/react';
@@ -971,6 +1038,7 @@ describe('StandardCard', () => {
 ```
 
 **i18n Tests**:
+
 ```typescript
 // i18n/translations.test.ts
 import i18n from './config';
@@ -996,6 +1064,7 @@ describe('i18n', () => {
 #### Integration Tests
 
 **Session Flow Test**:
+
 ```typescript
 // e2e/session-flow.test.ts
 import { test, expect } from '@playwright/test';
@@ -1026,6 +1095,7 @@ test('complete study session flow', async ({ page }) => {
 ```
 
 **i18n E2E Test**:
+
 ```typescript
 test('language switcher changes UI language', async ({ page }) => {
   await page.goto('/');
@@ -1045,11 +1115,11 @@ test('language switcher changes UI language', async ({ page }) => {
 
 ### 📊 Coverage Targets
 
-| Category | Target Coverage |
-|----------|----------------|
-| Store Logic | 90%+ |
-| UI Components | 80%+ |
-| API Routes | 85%+ |
+| Category          | Target Coverage         |
+| ----------------- | ----------------------- |
+| Store Logic       | 90%+                    |
+| UI Components     | 80%+                    |
+| API Routes        | 85%+                    |
 | i18n Translations | 100% (all keys present) |
 
 ---
@@ -1058,34 +1128,35 @@ test('language switcher changes UI language', async ({ page }) => {
 
 ### ⏱️ Timeline Total: 4 Săptămâni
 
-| Etapă | Durată | Dependențe | Risk Level |
-|-------|--------|------------|------------|
-| **Etapa 1: Heart Transplant** | 1 săptămână | None | 🟡 Mediu |
-| **Etapa 2: Great Splitting** | 2 săptămâni | Etapa 1 completă | 🟡 Mediu |
-| **Etapa 3: i18n** | 1 săptămână | Etapa 2 completă | 🟢 Scăzut |
+| Etapă                         | Durată      | Dependențe       | Risk Level |
+| ----------------------------- | ----------- | ---------------- | ---------- |
+| **Etapa 1: Heart Transplant** | 1 săptămână | None             | 🟡 Mediu   |
+| **Etapa 2: Great Splitting**  | 2 săptămâni | Etapa 1 completă | 🟡 Mediu   |
+| **Etapa 3: i18n**             | 1 săptămână | Etapa 2 completă | 🟢 Scăzut  |
 
 ### 💰 Cost Estimates (opțional)
 
-| Item | Cost | Frecvență |
-|------|------|-----------|
-| Lokalise (translation platform) | $120 | /lună |
-| Google Translate API | $10-20 | one-time |
-| Professional translator (RO→EN) | $0.08/word | one-time |
-| Professional translator (RO→IT) | $0.10/word | one-time |
+| Item                            | Cost       | Frecvență |
+| ------------------------------- | ---------- | --------- |
+| Lokalise (translation platform) | $120       | /lună     |
+| Google Translate API            | $10-20     | one-time  |
+| Professional translator (RO→EN) | $0.08/word | one-time  |
+| Professional translator (RO→IT) | $0.10/word | one-time  |
 
 **Total pentru 10,000 cuvinte traduceri**:
+
 - EN: 10k × $0.08 = $800
 - IT: 10k × $0.10 = $1,000
 - **Total**: ~$1,800 (sau $0 dacă folosești Google Translate + review)
 
 ### 🚧 Risks & Mitigation
 
-| Risk | Impact | Probability | Mitigation |
-|------|--------|-------------|------------|
-| Regressions în visitor flow | 🔴 High | 🟡 Medium | Extensive testing, feature flags |
-| Store performance issues | 🟡 Medium | 🟢 Low | Profiling, memoization |
-| Translation quality poor (machine) | 🟡 Medium | 🟡 Medium | Human review, native speakers |
-| Breaking changes în API | 🔴 High | 🟢 Low | Versioned API, backward compatibility |
+| Risk                               | Impact    | Probability | Mitigation                            |
+| ---------------------------------- | --------- | ----------- | ------------------------------------- |
+| Regressions în visitor flow        | 🔴 High   | 🟡 Medium   | Extensive testing, feature flags      |
+| Store performance issues           | 🟡 Medium | 🟢 Low      | Profiling, memoization                |
+| Translation quality poor (machine) | 🟡 Medium | 🟡 Medium   | Human review, native speakers         |
+| Breaking changes în API            | 🔴 High   | 🟢 Low      | Versioned API, backward compatibility |
 
 ---
 
@@ -1093,24 +1164,29 @@ test('language switcher changes UI language', async ({ page }) => {
 
 ### 📝 Session Start Prompt
 
-```markdown
+````markdown
 # Sesiune de Lucru: Rearhitecturare Store-Driven + i18n
 
 ## Context
+
 Am identificat probleme critice în arhitectura aplicației Flashcards:
+
 1. **Monolit**: StudySession.tsx (1600 linii) - God Component
 2. **State duplicat**: între StudySession.tsx (local) și studySessionsStore (Zustand)
 3. **Lipsa i18n**: text hardcodat, imposibil de scalat internațional
 
 ## Obiectiv Sesiune
+
 Implementează **Etapa 1: Heart Transplant** din planul de rearhitecturare.
 
 ## Task-uri Concrete
 
 ### Task 1: Extinde studySessionsStore.ts
+
 **Fișier**: `src/store/studySessionsStore.ts`
 
 **Acțiuni**:
+
 1. Adaugă state management complet:
    - `currentCardIndex: number`
    - `answers: Record<string, 'correct' | 'incorrect' | 'skipped'>`
@@ -1133,16 +1209,20 @@ Implementează **Etapa 1: Heart Transplant** din planul de rearhitecturare.
    const calculateXP = (isCorrect: boolean, streak: number, difficulty: Difficulty): number => {
      const baseXP = { A1: 5, A2: 8, B1: 12, B2: 15, C1: 20, C2: 25 }[difficulty];
      if (!isCorrect) return 0;
-     const streakMultiplier = Math.min(1 + (streak * 0.1), 2.5);
+     const streakMultiplier = Math.min(1 + streak * 0.1, 2.5);
      return Math.floor(baseXP * streakMultiplier);
    };
    ```
+````
 
 ### Task 2: Implementează Auto-Save în Store
+
 **Fișier**: `src/store/studySessionsStore.ts`
 
 **Acțiuni**:
+
 1. Adaugă auto-save subscription:
+
    ```typescript
    let autoSaveTimer: NodeJS.Timeout | null = null;
 
@@ -1154,7 +1234,7 @@ Implementează **Etapa 1: Heart Transplant** din planul de rearhitecturare.
          state.syncProgress();
        }
      }, intervalMs);
-   }
+   };
    ```
 
 2. Implementează `syncProgress()`:
@@ -1169,13 +1249,15 @@ Implementează **Etapa 1: Heart Transplant** din planul de rearhitecturare.
        clearInterval(autoSaveTimer);
        autoSaveTimer = null;
      }
-   }
+   };
    ```
 
 ### Task 3: Refactorizează StudySession.tsx
+
 **Fișier**: `components/StudySession.tsx`
 
 **Acțiuni**:
+
 1. **ȘTERGE** local state:
    - `const [answers, setAnswers] = useState(...)`
    - `const [streak, setStreak] = useState(...)`
@@ -1184,6 +1266,7 @@ Implementează **Etapa 1: Heart Transplant** din planul de rearhitecturare.
    - `const [isFlipped, setIsFlipped] = useState(...)`
 
 2. **ÎNLOCUIEȘTE** cu Zustand store:
+
    ```typescript
    import { useStudySessionsStore } from '../src/store/studySessionsStore';
 
@@ -1197,11 +1280,11 @@ Implementează **Etapa 1: Heart Transplant** din planul de rearhitecturare.
        answerCard,
        flipCard,
        nextCard,
-       undoLastAnswer
+       undoLastAnswer,
      } = useStudySessionsStore();
 
      // Use store values instead of local state
-   }
+   };
    ```
 
 3. **UPDATE** event handlers:
@@ -1211,9 +1294,11 @@ Implementează **Etapa 1: Heart Transplant** din planul de rearhitecturare.
    - Click pe "Înapoi" → `undoLastAnswer()`
 
 ### Task 4: Testing
+
 **Fișiere**: `src/store/studySessionsStore.test.ts`, `components/StudySession.test.tsx`
 
 **Acțiuni**:
+
 1. Test store logic:
    - XP calculation corectă pentru răspunsuri corecte cu streak
    - Streak reset la răspuns greșit
@@ -1226,6 +1311,7 @@ Implementează **Etapa 1: Heart Transplant** din planul de rearhitecturare.
    - Dashboard stats sync-ed cu session progress
 
 ### Success Criteria
+
 ✅ All business logic moved to store
 ✅ StudySession.tsx consumă doar din store (no local state)
 ✅ Dashboard și Session Player arată aceleași date
@@ -1234,18 +1320,21 @@ Implementează **Etapa 1: Heart Transplant** din planul de rearhitecturare.
 ✅ No regressions în visitor mode
 
 ## Files to Focus On
+
 1. `src/store/studySessionsStore.ts` - Store implementation
 2. `components/StudySession.tsx` - Refactoring
 3. `src/components/sessions/StudySessionPlayer.tsx` - Simplify adapter
 4. `src/store/studySessionsStore.test.ts` - Tests
 
 ## Notes
+
 - Păstrează visitor mode funcțional (demo deck fără API calls)
 - Nu șterge încă StudySession.tsx (doar refactorizează)
 - Focus pe consistență de date între dashboard și session player
 - Auto-save trebuie să fie opt-in (enableAutoSave() explicit)
 
 ## Next Session (după Etapa 1)
+
 - Etapa 2: Sparge StudySession.tsx în componente Atomic Design
 - Extract StandardCard, QuizCard, TypeAnswerCard
 - Create ProgressBar, StreakIndicator, SessionStats
@@ -1253,6 +1342,7 @@ Implementează **Etapa 1: Heart Transplant** din planul de rearhitecturare.
 ---
 
 Confirmă că ai înțeles task-urile și începe cu Task 1 (extinde studySessionsStore.ts).
+
 ```
 
 ---
@@ -1287,3 +1377,4 @@ Confirmă că ai înțeles task-urile și începe cu Task 1 (extinde studySessio
 5. **Iterate** based on feedback
 
 Baftă! 🚀
+```
