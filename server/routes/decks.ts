@@ -98,51 +98,78 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
     // Get decks with user-specific mastered cards count (if authenticated) and review stats
     const userId = req.user?.id || null;
 
-    // Build the query parameters for decks selection
-    const decksParams = [...params];
-    let deckParamIndex = paramIndex;
+    // Build the query dynamically based on authentication status
+    let selectQuery: string;
+    let selectParams: any[];
 
-    // Add userId parameters if authenticated
     if (userId) {
-      decksParams.push(userId); // for is_owner check
-      deckParamIndex++;
-      decksParams.push(userId); // for mastered_cards subquery
-      deckParamIndex++;
+      // Authenticated user - include user-specific data
+      const ownerCheckParam = paramIndex;
+      const masteredCardsParam = paramIndex + 1;
+      const limitParam = paramIndex + 2;
+      const offsetParam = paramIndex + 3;
+
+      selectQuery = `
+        SELECT d.*, s.name as subject_name, s.color as subject_color,
+                u.name as owner_name,
+                (d.owner_id = $${ownerCheckParam}) as is_owner,
+                COALESCE((
+                  SELECT COUNT(*)
+                  FROM cards c
+                  LEFT JOIN user_card_progress ucp ON ucp.card_id = c.id AND ucp.user_id = $${masteredCardsParam}
+                  WHERE c.deck_id = d.id
+                    AND c.deleted_at IS NULL
+                    AND ucp.status = 'mastered'
+                ), 0) as mastered_cards,
+                COALESCE((
+                  SELECT AVG(rating)::numeric(3,2)
+                  FROM reviews
+                  WHERE target_type = 'deck' AND target_id = d.id AND deleted_at IS NULL
+                ), 0) as average_rating,
+                COALESCE((
+                  SELECT COUNT(*)
+                  FROM reviews
+                  WHERE target_type = 'deck' AND target_id = d.id AND deleted_at IS NULL
+                ), 0) as review_count
+        FROM decks d
+        LEFT JOIN subjects s ON d.subject_id = s.id
+        LEFT JOIN users u ON d.owner_id = u.id
+        WHERE ${whereClause}
+        ORDER BY ${sortColumn} ${order} NULLS LAST
+        LIMIT $${limitParam} OFFSET $${offsetParam}
+      `;
+      selectParams = [...params, userId, userId, limitNum, offset];
+    } else {
+      // Guest/visitor - no user-specific data
+      const limitParam = paramIndex;
+      const offsetParam = paramIndex + 1;
+
+      selectQuery = `
+        SELECT d.*, s.name as subject_name, s.color as subject_color,
+                u.name as owner_name,
+                false as is_owner,
+                0 as mastered_cards,
+                COALESCE((
+                  SELECT AVG(rating)::numeric(3,2)
+                  FROM reviews
+                  WHERE target_type = 'deck' AND target_id = d.id AND deleted_at IS NULL
+                ), 0) as average_rating,
+                COALESCE((
+                  SELECT COUNT(*)
+                  FROM reviews
+                  WHERE target_type = 'deck' AND target_id = d.id AND deleted_at IS NULL
+                ), 0) as review_count
+        FROM decks d
+        LEFT JOIN subjects s ON d.subject_id = s.id
+        LEFT JOIN users u ON d.owner_id = u.id
+        WHERE ${whereClause}
+        ORDER BY ${sortColumn} ${order} NULLS LAST
+        LIMIT $${limitParam} OFFSET $${offsetParam}
+      `;
+      selectParams = [...params, limitNum, offset];
     }
 
-    // Add limit and offset
-    decksParams.push(limitNum, offset);
-
-    const decksResult = await query(
-      `SELECT d.*, s.name as subject_name, s.color as subject_color,
-              u.name as owner_name,
-              ${userId ? `(d.owner_id = $${paramIndex}) as is_owner` : 'false as is_owner'},
-              COALESCE((
-                SELECT COUNT(*)
-                FROM cards c
-                ${userId ? `LEFT JOIN user_card_progress ucp ON ucp.card_id = c.id AND ucp.user_id = $${paramIndex + 1}` : ''}
-                WHERE c.deck_id = d.id
-                  AND c.deleted_at IS NULL
-                  ${userId ? `AND ucp.status = 'mastered'` : 'AND 1=0'}
-              ), 0) as mastered_cards,
-              COALESCE((
-                SELECT AVG(rating)::numeric(3,2)
-                FROM reviews
-                WHERE target_type = 'deck' AND target_id = d.id AND deleted_at IS NULL
-              ), 0) as average_rating,
-              COALESCE((
-                SELECT COUNT(*)
-                FROM reviews
-                WHERE target_type = 'deck' AND target_id = d.id AND deleted_at IS NULL
-              ), 0) as review_count
-       FROM decks d
-       LEFT JOIN subjects s ON d.subject_id = s.id
-       LEFT JOIN users u ON d.owner_id = u.id
-       WHERE ${whereClause}
-       ORDER BY ${sortColumn} ${order} NULLS LAST
-       LIMIT $${deckParamIndex} OFFSET $${deckParamIndex + 1}`,
-      decksParams
-    );
+    const decksResult = await query(selectQuery, selectParams);
 
     const decks = decksResult.rows.map(formatDeck);
 
