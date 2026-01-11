@@ -871,45 +871,17 @@ User Language Preference → Browser Language → App Default (ro) → Translati
 
 #### Translation Management Platform
 **Opțiuni**:
-1. **Lokalise** (recomandat pentru echipe mici/medii)
-   - ✅ Editor vizual pentru traducători
-   - ✅ Automatic push/pull cu GitHub
-   - ✅ Translation memory (reduce duplicate work)
-   - ❌ Cost: $120/lună pentru 3 limbi
-
-2. **Crowdin** (alternativă open-source-friendly)
+1. **Crowdin** (alternativă open-source-friendly)
    - ✅ Gratis pentru proiecte open-source
    - ✅ Community translations
    - ❌ Setup mai complicat
 
-3. **Manual JSON Files** (pentru MVP)
+2. **Manual JSON Files** (pentru MVP)
    - ✅ Gratis
    - ✅ Control total
    - ❌ Hard to scale (traducătorii editează direct JSON)
 
-**Recomandare**: Start cu manual JSON, migrează la Lokalise când ai >5 limbi.
-
-#### Content Translation Strategy
-
-**UI Static** (butoane, labels):
-```
-Translator → Lokalise → JSON files → Git commit
-```
-
-**Conținut Dinamic** (carduri, deck descriptions):
-```
-Option A (MVP): Manual DB insert
-Admin Panel → Insert into card_translations table → API returns translated content
-
-Option B (Long-term): AI-assisted translation
-Original content (RO) → Google Translate API → Review by human → Save to DB
-```
-
-**Cost estimate (Google Translate API)**:
-- 50,000 carduri × 2 limbi (EN, IT) = 100,000 requests
-- $20 per 1M characters ≈ $10-20 pentru traducere inițială
-- Maintenance: $5/lună pentru carduri noi
-
+**Recomandare**: Start cu manual JSON, migrează la Crowdin când ai >5 limbi.
 ---
 
 ## 5. Plan de Testare
@@ -1063,20 +1035,6 @@ test('language switcher changes UI language', async ({ page }) => {
 | **Etapa 1: Heart Transplant** | 1 săptămână | None | 🟡 Mediu |
 | **Etapa 2: Great Splitting** | 2 săptămâni | Etapa 1 completă | 🟡 Mediu |
 | **Etapa 3: i18n** | 1 săptămână | Etapa 2 completă | 🟢 Scăzut |
-
-### 💰 Cost Estimates (opțional)
-
-| Item | Cost | Frecvență |
-|------|------|-----------|
-| Lokalise (translation platform) | $120 | /lună |
-| Google Translate API | $10-20 | one-time |
-| Professional translator (RO→EN) | $0.08/word | one-time |
-| Professional translator (RO→IT) | $0.10/word | one-time |
-
-**Total pentru 10,000 cuvinte traduceri**:
-- EN: 10k × $0.08 = $800
-- IT: 10k × $0.10 = $1,000
-- **Total**: ~$1,800 (sau $0 dacă folosești Google Translate + review)
 
 ### 🚧 Risks & Mitigation
 
