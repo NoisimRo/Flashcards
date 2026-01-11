@@ -1,9 +1,7 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { useStudySessionsStore } from '../../store/studySessionsStore';
 import { useToast } from '../ui/Toast';
-import StudySession from '../../../components/StudySession';
-import type { Deck, Card, User, SessionData } from '../../../types';
-import type { CardProgressBatchUpdate } from '../../types/api';
+import type { User } from '../../../types';
 
 interface StudySessionPlayerProps {
   sessionId: string;
@@ -13,8 +11,7 @@ interface StudySessionPlayerProps {
 }
 
 /**
- * Wrapper around existing StudySession component
- * Integrates with new study sessions architecture
+ * Simplified wrapper - Store now handles all session logic
  */
 const StudySessionPlayer: React.FC<StudySessionPlayerProps> = ({
   sessionId,
@@ -23,211 +20,82 @@ const StudySessionPlayer: React.FC<StudySessionPlayerProps> = ({
   onBack,
 }) => {
   const toast = useToast();
-  const { currentSession, loadSession, updateSessionProgress, completeSession } =
-    useStudySessionsStore();
+  const {
+    currentSession,
+    loadSession,
+    enableAutoSave,
+    disableAutoSave,
+    completeSession,
+    isLoading,
+  } = useStudySessionsStore();
 
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [localDeck, setLocalDeck] = useState<Deck | null>(null);
-
-  // Store when user OPENED this session (not when session was created)
-  const sessionOpenTimeRef = useRef<number>(Date.now());
-  const baselineDurationRef = useRef<number>(0);
-
-  // Load session on mount
+  // Load session and enable auto-save
   useEffect(() => {
-    loadSession(sessionId).then(() => {
-      setIsInitialized(true);
+    loadSession(sessionId);
+    enableAutoSave();
+
+    return () => {
+      disableAutoSave();
+    };
+  }, [sessionId, loadSession, enableAutoSave, disableAutoSave]);
+
+  // Handle finish - sync with backend
+  const handleFinish = async (clearSession: boolean) => {
+    if (!currentSession) return;
+
+    // If clearSession is false, just save and exit
+    if (!clearSession) {
+      toast.success('Progres salvat! Poți relua sesiunea mai târziu.');
+      onFinish();
+      return;
+    }
+
+    // Complete session with final results
+    const { answers, sessionXP } = useStudySessionsStore.getState();
+    const answersArray = Object.values(answers);
+    const correctCount = answersArray.filter(a => a === 'correct').length;
+    const incorrectCount = answersArray.filter(a => a === 'incorrect').length;
+    const skippedCount = answersArray.filter(a => a === 'skipped').length;
+    const totalCards = currentSession.cards?.length || 0;
+    const score = totalCards > 0 ? Math.round((correctCount / totalCards) * 100) : 0;
+
+    const result = await completeSession(sessionId, {
+      score,
+      correctCount,
+      incorrectCount,
+      skippedCount,
+      durationSeconds: useStudySessionsStore.getState().baselineDuration +
+        Math.floor((Date.now() - useStudySessionsStore.getState().sessionStartTime) / 1000),
+      cardProgressUpdates: currentSession.selectedCardIds.map(cardId => ({
+        cardId,
+        wasCorrect: answers[cardId] === 'correct',
+        timeSpentSeconds: Math.floor(
+          (useStudySessionsStore.getState().baselineDuration +
+            Math.floor((Date.now() - useStudySessionsStore.getState().sessionStartTime) / 1000)) /
+            totalCards
+        ),
+      })),
     });
-  }, [sessionId, loadSession]);
 
-  // Store baseline duration when session loads
-  useEffect(() => {
-    if (currentSession?.durationSeconds !== undefined) {
-      // Save the existing duration as baseline
-      baselineDurationRef.current = currentSession.durationSeconds;
-      // Reset the open time to now
-      sessionOpenTimeRef.current = Date.now();
-    }
-  }, [currentSession?.id]); // Only run when session ID changes
-
-  // Convert session to Deck format for existing StudySession component
-  useEffect(() => {
-    if (currentSession && currentSession.cards) {
-      // Transform session data to Deck format
-      const deck: Deck = {
-        id: currentSession.deckId || '',
-        title: currentSession.deck?.title || currentSession.title,
-        subject: currentSession.deck?.subjectName || currentSession.deck?.subject || 'Necunoscut',
-        topic: currentSession.deck?.topic || '',
-        difficulty: (currentSession.deck?.difficulty as any) || 'A2',
-        cards: currentSession.cards.map(card => {
-          const progress = currentSession.cardProgress?.[card.id];
-          // Map CardStatus to local Card status type
-          let status: 'new' | 'learning' | 'mastered' = 'new';
-          if (progress) {
-            if (progress.status === 'mastered') status = 'mastered';
-            else if (progress.status === 'learning' || progress.status === 'reviewing')
-              status = 'learning';
-            else status = 'new';
-          }
-
-          return {
-            ...card,
-            status,
-            // Pass through card type as-is (now supports type-answer)
-            type: card.type,
-          };
-        }),
-        totalCards: currentSession.totalCards,
-        masteredCards: 0,
-        // Restore session data if exists
-        sessionData: {
-          answers: currentSession.answers,
-          streak: currentSession.streak,
-          sessionXP: currentSession.sessionXP,
-          awardedCards: [],
-          currentIndex: currentSession.currentCardIndex,
-          shuffledOrder: currentSession.selectedCardIds,
-        },
-      };
-
-      setLocalDeck(deck);
-    }
-  }, [currentSession]);
-
-  // Auto-save progress every 30 seconds
-  useEffect(() => {
-    if (!currentSession || !localDeck?.sessionData) return;
-
-    const interval = setInterval(() => {
-      updateSessionProgress(sessionId, {
-        currentCardIndex: localDeck.sessionData!.currentIndex,
-        answers: localDeck.sessionData!.answers,
-        streak: localDeck.sessionData!.streak,
-        sessionXP: localDeck.sessionData!.sessionXP,
-      });
-    }, 30000); // 30 seconds
-
-    return () => clearInterval(interval);
-  }, [sessionId, localDeck, currentSession, updateSessionProgress]);
-
-  const handleSaveProgress = useCallback(
-    (deckId: string, data: SessionData) => {
-      console.log('📥 [StudySessionPlayer] handleSaveProgress called', {
-        sessionId,
-        deckId,
-        data,
-      });
-
-      // Calculate TOTAL duration: baseline + elapsed time since session opened
-      const elapsedSeconds = Math.floor((Date.now() - sessionOpenTimeRef.current) / 1000);
-      const durationSeconds = baselineDurationRef.current + elapsedSeconds;
-
-      // Save to backend
-      console.log('🚀 [StudySessionPlayer] Calling updateSessionProgress with:', {
-        currentCardIndex: data.currentIndex,
-        answers: data.answers,
-        streak: data.streak,
-        sessionXP: data.sessionXP,
-        durationSeconds,
-        breakdown: {
-          baseline: baselineDurationRef.current,
-          elapsed: elapsedSeconds,
-        },
-      });
-      updateSessionProgress(sessionId, {
-        currentCardIndex: data.currentIndex,
-        answers: data.answers,
-        streak: data.streak,
-        sessionXP: data.sessionXP,
-        durationSeconds,
-      });
-    },
-    [sessionId, updateSessionProgress]
-  );
-
-  const handleFinish = useCallback(
-    async (score: number, totalCards: number, clearSession: boolean) => {
-      if (!localDeck || !currentSession) return;
-
-      const sessionData = localDeck.sessionData!;
-
-      // If clearSession is false, just save progress and exit (don't complete)
-      if (!clearSession) {
-        // Calculate TOTAL duration: baseline + elapsed time since session opened
-        const elapsedSeconds = Math.floor((Date.now() - sessionOpenTimeRef.current) / 1000);
-        const durationSeconds = baselineDurationRef.current + elapsedSeconds;
-
-        // Save current progress with duration
-        await updateSessionProgress(sessionId, {
-          currentCardIndex: sessionData.currentIndex,
-          answers: sessionData.answers,
-          streak: sessionData.streak,
-          sessionXP: sessionData.sessionXP,
-          durationSeconds,
-        });
-        toast.success('Progres salvat! Poți relua sesiunea mai târziu.');
-        onFinish();
-        return;
-      }
-
-      // Calculate results for completion
-      const answersArray = Object.values(sessionData.answers);
-      const correctCount = answersArray.filter(a => a === 'correct').length;
-      const incorrectCount = answersArray.filter(a => a === 'incorrect').length;
-      const skippedCount = answersArray.filter(a => a === 'skipped').length;
-
-      // Calculate TOTAL duration: baseline + elapsed time since session opened
-      const elapsedSeconds = Math.floor((Date.now() - sessionOpenTimeRef.current) / 1000);
-      const durationSeconds = baselineDurationRef.current + elapsedSeconds;
-
-      // Build card progress updates
-      const cardProgressUpdates: CardProgressBatchUpdate[] = [];
-      currentSession.selectedCardIds.forEach(cardId => {
-        const answer = sessionData.answers[cardId];
-        if (answer === 'correct' || answer === 'incorrect') {
-          cardProgressUpdates.push({
-            cardId,
-            wasCorrect: answer === 'correct',
-            timeSpentSeconds: Math.floor(durationSeconds / totalCards),
-          });
-        }
-      });
-
-      // Complete session
-      const result = await completeSession(sessionId, {
-        score,
-        correctCount,
-        incorrectCount,
-        skippedCount,
-        durationSeconds,
-        cardProgressUpdates,
-      });
-
-      if (result) {
-        // Show level up notification if applicable
-        if (result.leveledUp) {
-          toast.success(
-            `🎉 LEVEL UP! Nivel ${result.oldLevel} → ${result.newLevel}! +${result.xpEarned} XP`
-          );
-        } else if (result.xpEarned > 0) {
-          toast.success(
-            `Sesiune completată! +${result.xpEarned} XP | Scor: ${score}% (${correctCount}/${totalCards} corecte)`
-          );
-        } else {
-          toast.success(
-            `Sesiune completată! Scor: ${score}% (${correctCount}/${totalCards} corecte)`
-          );
-        }
-        onFinish();
+    if (result) {
+      if (result.leveledUp) {
+        toast.success(
+          `🎉 LEVEL UP! Nivel ${result.oldLevel} → ${result.newLevel}! +${result.xpEarned} XP`
+        );
+      } else if (result.xpEarned > 0) {
+        toast.success(
+          `Sesiune completată! +${result.xpEarned} XP | Scor: ${score}% (${correctCount}/${totalCards} corecte)`
+        );
       } else {
-        toast.error('Eroare la finalizarea sesiunii');
+        toast.success(`Sesiune completată! Scor: ${score}% (${correctCount}/${totalCards} corecte)`);
       }
-    },
-    [sessionId, localDeck, currentSession, completeSession, updateSessionProgress, toast, onFinish]
-  );
+      onFinish();
+    } else {
+      toast.error('Eroare la finalizarea sesiunii');
+    }
+  };
 
-  if (!isInitialized || !localDeck || !currentSession) {
+  if (isLoading || !currentSession) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
@@ -238,18 +106,68 @@ const StudySessionPlayer: React.FC<StudySessionPlayerProps> = ({
     );
   }
 
-  // Use existing StudySession component
+  // Render session UI - Store handles all state
   return (
-    <StudySession
-      deck={localDeck}
-      user={user}
-      onFinish={handleFinish}
-      onSaveProgress={handleSaveProgress}
-      onUpdateUserXP={() => {}} // XP handled by backend
-      onBack={onBack}
-      onEditCard={() => {}} // Disabled in session
-      onDeleteCard={() => {}} // Disabled in session
-    />
+    <div className="p-6">
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-4">
+          <button
+            onClick={onBack}
+            className="text-gray-600 hover:text-gray-900 font-medium"
+          >
+            ← Înapoi
+          </button>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-lg p-8">
+          <h1 className="text-2xl font-bold mb-4">
+            {currentSession.deck?.title || currentSession.title}
+          </h1>
+
+          <p className="text-gray-600 mb-6">
+            Session player UI will be implemented here using Zustand store state.
+          </p>
+
+          <div className="space-y-4">
+            <div className="flex justify-between">
+              <span className="text-gray-600">Progress:</span>
+              <span className="font-bold">
+                Card {useStudySessionsStore.getState().currentCardIndex + 1} of {currentSession.cards?.length || 0}
+              </span>
+            </div>
+
+            <div className="flex justify-between">
+              <span className="text-gray-600">XP:</span>
+              <span className="font-bold text-green-600">
+                {useStudySessionsStore.getState().sessionXP} XP
+              </span>
+            </div>
+
+            <div className="flex justify-between">
+              <span className="text-gray-600">Streak:</span>
+              <span className="font-bold text-orange-600">
+                {useStudySessionsStore.getState().streak}
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-8 flex gap-4">
+            <button
+              onClick={() => handleFinish(false)}
+              className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300"
+            >
+              Salvează & Ieși
+            </button>
+            <button
+              onClick={() => handleFinish(true)}
+              className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700"
+            >
+              Finalizează Sesiune
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
