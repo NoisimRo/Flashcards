@@ -7,7 +7,8 @@ import { useDecksManagement } from '../hooks/useDecksManagement';
 import { useSessionManagement } from '../hooks/useSessionManagement';
 import { useLeaderboard } from '../hooks/useLeaderboard';
 import { adaptUserFromAPI } from '../adapters/userAdapter';
-import { GUEST_USER, MOCK_ACHIEVEMENTS, VISITOR_ACHIEVEMENTS } from '../../constants';
+import { GUEST_USER } from '../utils/guestMode';
+import { MOCK_ACHIEVEMENTS, VISITOR_ACHIEVEMENTS } from '../../constants';
 
 // Component imports
 import Dashboard from '../../components/Dashboard';
