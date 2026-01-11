@@ -3,7 +3,7 @@ import { useStudySessionsStore } from '../store/studySessionsStore';
 import { useUIStore } from '../store/uiStore';
 import { useAuth } from '../store/AuthContext';
 import { shouldPromptLogin } from '../utils/guestMode';
-import type { Deck } from '../types';
+import type { Deck } from '../../types';
 
 /**
  * Custom hook for session management operations

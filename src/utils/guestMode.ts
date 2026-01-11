@@ -1,4 +1,4 @@
-import type { User } from '../types';
+import type { User } from '../../types';
 
 /**
  * Guest User Constants and Utilities
@@ -29,21 +29,18 @@ export const GUEST_USER: User = {
     theme: 'light' as const,
     language: 'ro',
   },
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
 };
 
-export interface GuestPrompt {
+export interface LoginPromptContext {
   title: string;
-  message: string | ((arg: any) => string);
+  message: string;
 }
 
 export const GUEST_PROMPTS = {
-  SAVE_PROGRESS: {
+  SAVE_PROGRESS: (score: number): LoginPromptContext => ({
     title: 'Bravo! Vrei să salvezi progresul?',
-    message: (score: number) =>
-      `Ai răspuns corect la ${score} carduri! Creează un cont pentru a nu pierde acest progres.`,
-  },
+    message: `Ai răspuns corect la ${score} carduri! Creează un cont pentru a nu pierde acest progres.`,
+  }),
   RESET_DECK: {
     title: 'Salvează progresul',
     message: 'Creează un cont pentru a putea reseta și salva progresul deck-urilor tale.',
@@ -73,10 +70,10 @@ export function isGuestUser(user: User | null | undefined): boolean {
 /**
  * Get the appropriate prompt for a guest action
  */
-export function shouldPromptLogin(action: string, isGuest: boolean): GuestPrompt | null {
+export function shouldPromptLogin(action: string, isGuest: boolean): LoginPromptContext | null {
   if (!isGuest) return null;
 
-  const promptMap: Record<string, GuestPrompt> = {
+  const promptMap: Record<string, LoginPromptContext> = {
     'reset-deck': GUEST_PROMPTS.RESET_DECK,
     'create-deck': GUEST_PROMPTS.CREATE_DECK,
     'create-session': GUEST_PROMPTS.CREATE_SESSION,

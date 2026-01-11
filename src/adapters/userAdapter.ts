@@ -1,4 +1,4 @@
-import type { User } from '../types';
+import type { User } from '../../types';
 
 /**
  * Adapter to convert API User format to local User format
@@ -63,8 +63,11 @@ export function adaptUserFromAPI(apiUser: {
     // Preferences
     preferences: apiUser.preferences
       ? {
-          ...apiUser.preferences,
+          dailyGoal: apiUser.preferences.dailyGoal,
+          soundEnabled: apiUser.preferences.soundEnabled,
+          animationsEnabled: apiUser.preferences.animationsEnabled,
           theme: validTheme,
+          language: apiUser.preferences.language,
         }
       : undefined,
   };

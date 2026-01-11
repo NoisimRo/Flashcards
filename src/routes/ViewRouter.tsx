@@ -7,6 +7,7 @@ import { useDecksManagement } from '../hooks/useDecksManagement';
 import { useSessionManagement } from '../hooks/useSessionManagement';
 import { useLeaderboard } from '../hooks/useLeaderboard';
 import { adaptUserFromAPI } from '../adapters/userAdapter';
+import { adaptDeckFromAPI } from '../adapters/deckAdapter';
 import { GUEST_USER } from '../utils/guestMode';
 import { MOCK_ACHIEVEMENTS, VISITOR_ACHIEVEMENTS } from '../../constants';
 
@@ -29,7 +30,7 @@ import { ModerationDashboard } from '../components/moderation/ModerationDashboar
  */
 export const ViewRouter: React.FC = () => {
   const { currentView, activeSessionId, activeDeckId, setCurrentView } = useUIStore();
-  const { decks, isLoading: isLoadingDecks } = useDecksStore();
+  const { decks: apiDecks, isLoading: isLoadingDecks } = useDecksStore();
   const { user: authUser, isAuthenticated } = useAuth();
   const decksManagement = useDecksManagement();
   const sessionManagement = useSessionManagement();
@@ -37,6 +38,9 @@ export const ViewRouter: React.FC = () => {
 
   const user = isAuthenticated && authUser ? adaptUserFromAPI(authUser) : GUEST_USER;
   const isGuest = !isAuthenticated;
+
+  // Adapt decks from API format to component format
+  const decks = React.useMemo(() => apiDecks.map(adaptDeckFromAPI), [apiDecks]);
 
   // Find active deck if specified
   const activeDeck = activeDeckId ? decks.find(d => d.id === activeDeckId) : null;

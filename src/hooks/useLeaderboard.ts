@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import type { LeaderboardEntry } from '../api/users';
 import * as usersApi from '../api/users';
-import { LEADERBOARD_DATA } from '../constants';
+import { LEADERBOARD_DATA } from '../../constants';
 
 /**
  * Custom hook for leaderboard data management

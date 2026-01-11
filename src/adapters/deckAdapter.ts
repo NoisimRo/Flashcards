@@ -1,4 +1,4 @@
-import type { Deck, Card } from '../types';
+import type { Deck, Card } from '../../types';
 import { getSubjectDisplayName } from '../constants/subjects';
 
 /**
@@ -29,14 +29,9 @@ export function adaptDeckFromAPI(apiDeck: {
     options?: string[];
     correctOptionIndex?: number;
     status?: string;
+    flagCount?: number;
   }>;
-}): Deck & {
-  ownerId: string;
-  isPublic: boolean;
-  tags: string[];
-  createdAt: string;
-  updatedAt: string;
-} {
+}): Deck {
   return {
     id: apiDeck.id,
     title: apiDeck.title,
@@ -52,16 +47,14 @@ export function adaptDeckFromAPI(apiDeck: {
       options: card.options,
       correctOptionIndex: card.correctOptionIndex,
       status: (card.status as Card['status']) || 'new',
+      flagCount: card.flagCount,
     })),
     totalCards: apiDeck.totalCards || apiDeck.cards?.length || 0,
     masteredCards: apiDeck.masteredCards || 0,
     lastStudied: apiDeck.lastStudied,
     sessionData: undefined,
-    // New required fields for session components
-    ownerId: apiDeck.ownerId || 'unknown',
-    isPublic: apiDeck.isPublic ?? false,
-    tags: apiDeck.tags || [],
-    createdAt: apiDeck.createdAt || new Date().toISOString(),
-    updatedAt: apiDeck.updatedAt || new Date().toISOString(),
+    // Extra fields from API
+    isPublic: apiDeck.isPublic,
+    isOwner: apiDeck.ownerId !== undefined,
   };
 }
