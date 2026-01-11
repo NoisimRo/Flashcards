@@ -16,7 +16,13 @@ import { ModerationDashboard } from './src/components/moderation/ModerationDashb
 import CreateSessionModal from './src/components/sessions/CreateSessionModal';
 import ActiveSessionsList from './src/components/sessions/ActiveSessionsList';
 import StudySessionPlayer from './src/components/sessions/StudySessionPlayer';
-import { MOCK_DECKS, MOCK_ACHIEVEMENTS, LEADERBOARD_DATA } from './constants';
+import {
+  MOCK_DECKS,
+  VISITOR_DECKS,
+  MOCK_ACHIEVEMENTS,
+  VISITOR_ACHIEVEMENTS,
+  LEADERBOARD_DATA,
+} from './constants';
 import { Deck, Card, SessionData, User } from './types';
 import { Menu, X, Loader2 } from 'lucide-react';
 import * as decksApi from './src/api/decks';
@@ -186,7 +192,7 @@ function AppContent() {
 
   const [currentView, setCurrentView] = useState('dashboard');
   const [activeDeck, setActiveDeck] = useState<Deck | null>(null);
-  const [decks, setDecks] = useState<Deck[]>(MOCK_DECKS); // Start with mock decks for guests
+  const [decks, setDecks] = useState<Deck[]>(VISITOR_DECKS); // Start with visitor decks (demo only)
   const [isLoadingDecks, setIsLoadingDecks] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [leaderboardEntries, setLeaderboardEntries] =
@@ -200,6 +206,7 @@ function AppContent() {
 
   // Auth modal states
   const [showAuthPage, setShowAuthPage] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [loginPromptContext, setLoginPromptContext] = useState({ title: '', message: '' });
 
@@ -207,17 +214,17 @@ function AppContent() {
   const user = isAuthenticated && authUser ? adaptUserFromAPI(authUser) : GUEST_USER;
   const isGuest = !isAuthenticated;
 
-  // Fetch decks and leaderboard when authenticated
+  // Fetch decks and leaderboard
   useEffect(() => {
     if (isAuthenticated && authUser) {
       fetchDecks();
-      fetchLeaderboard();
       setShowAuthPage(false);
     } else {
-      // Reset to mock data for guests
-      setDecks(MOCK_DECKS);
-      setLeaderboardEntries(LEADERBOARD_DATA);
+      // Reset to visitor demo deck only for guests
+      setDecks(VISITOR_DECKS);
     }
+    // Fetch leaderboard for everyone (visitors and authenticated users)
+    fetchLeaderboard();
   }, [isAuthenticated, authUser]);
 
   // Listen for token expiration events
@@ -535,6 +542,13 @@ function AppContent() {
   };
 
   const handleLoginClick = () => {
+    setAuthMode('login');
+    setShowAuthPage(true);
+    setShowLoginPrompt(false);
+  };
+
+  const handleRegisterClick = () => {
+    setAuthMode('register');
     setShowAuthPage(true);
     setShowLoginPrompt(false);
   };
@@ -588,7 +602,7 @@ function AppContent() {
   if (showAuthPage) {
     return (
       <div className="relative">
-        <AuthPage />
+        <AuthPage initialMode={authMode} />
         <button
           onClick={() => setShowAuthPage(false)}
           className="absolute top-4 left-4 bg-white/90 backdrop-blur px-4 py-2 rounded-xl font-medium text-gray-700 hover:bg-white transition-colors shadow-lg flex items-center gap-2"
@@ -633,6 +647,8 @@ function AppContent() {
             onDeleteDeck={handleDeleteDeck}
             onStartSession={handleStartSession}
             onResetDeck={handleResetDeck}
+            isGuest={isGuest}
+            onLoginPrompt={promptLogin}
           />
         );
       case 'study':
@@ -651,9 +667,20 @@ function AppContent() {
           <GlobalDecks onStartSession={handleStartSession} onImportDeck={handleAddDeck} />
         );
       case 'achievements':
-        return <Achievements achievements={MOCK_ACHIEVEMENTS} user={user} />;
+        return (
+          <Achievements
+            achievements={isGuest ? VISITOR_ACHIEVEMENTS : MOCK_ACHIEVEMENTS}
+            user={user}
+          />
+        );
       case 'leaderboard':
-        return <Leaderboard entries={leaderboardEntries} currentUser={user} />;
+        return (
+          <Leaderboard
+            entries={leaderboardEntries}
+            currentUser={user}
+            onRegisterClick={handleRegisterClick}
+          />
+        );
       case 'settings':
         return (
           <Settings
@@ -734,6 +761,7 @@ function AppContent() {
         onCloseMobile={() => setIsMobileMenuOpen(false)}
         isGuest={isGuest}
         onLoginClick={handleLoginClick}
+        onRegisterClick={handleRegisterClick}
       />
 
       {/* Main Content Area */}
@@ -751,7 +779,7 @@ function AppContent() {
           <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white px-4 py-2 text-center text-sm">
             <span className="opacity-90">Mod vizitator - progresul nu va fi salvat.</span>
             <button
-              onClick={handleLoginClick}
+              onClick={handleRegisterClick}
               className="ml-2 font-bold underline hover:no-underline"
             >
               Creează cont gratuit

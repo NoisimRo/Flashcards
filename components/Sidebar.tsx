@@ -21,6 +21,7 @@ interface SidebarProps {
   onCloseMobile: () => void;
   isGuest?: boolean;
   onLoginClick?: () => void;
+  onRegisterClick?: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -31,6 +32,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onCloseMobile,
   isGuest = false,
   onLoginClick,
+  onRegisterClick,
 }) => {
   const xpPercentage = Math.min((user.currentXP / user.nextLevelXP) * 100, 100);
 
@@ -105,17 +107,25 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
 
         {/* Guest CTA */}
-        {isGuest && onLoginClick && (
-          <div className="mb-6 bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-4 text-white">
-            <p className="text-sm opacity-90 mb-3">
-              Creează un cont pentru a salva progresul și a debloca toate funcționalitățile!
+        {isGuest && onRegisterClick && onLoginClick && (
+          <div className="mb-6 bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-4 text-white space-y-3">
+            <p className="text-sm opacity-90">
+              Creează un cont <span className="font-bold">gratuit</span> pentru a salva progresul și
+              a debloca funcții avansate!
             </p>
             <button
-              onClick={onLoginClick}
+              onClick={onRegisterClick}
               className="w-full bg-white text-gray-900 font-bold py-2 px-4 rounded-lg hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
             >
               <UserPlus size={18} />
-              Creează cont gratuit
+              Cont nou
+            </button>
+            <button
+              onClick={onLoginClick}
+              className="w-full bg-transparent text-white font-bold py-2 px-4 rounded-lg border-2 border-white/30 hover:bg-white/10 transition-colors flex items-center justify-center gap-2"
+            >
+              <LogIn size={18} />
+              Autentificare
             </button>
           </div>
         )}
@@ -140,17 +150,6 @@ const Sidebar: React.FC<SidebarProps> = ({
             </button>
           ))}
         </nav>
-
-        {/* Login button for guests */}
-        {isGuest && onLoginClick && (
-          <button
-            onClick={onLoginClick}
-            className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:text-gray-900 hover:bg-[#EFECE5] rounded-xl transition-colors mt-auto"
-          >
-            <LogIn size={20} />
-            <span>Autentificare</span>
-          </button>
-        )}
       </div>
     </div>
   );

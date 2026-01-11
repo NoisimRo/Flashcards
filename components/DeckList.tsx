@@ -31,6 +31,8 @@ interface DeckListProps {
   onDeleteDeck: (deckId: string) => void;
   onStartSession: (deck: Deck) => void;
   onResetDeck?: (deckId: string) => void;
+  isGuest?: boolean;
+  onLoginPrompt?: (title: string, message: string) => void;
 }
 
 const DeckList: React.FC<DeckListProps> = ({
@@ -40,6 +42,8 @@ const DeckList: React.FC<DeckListProps> = ({
   onDeleteDeck,
   onStartSession,
   onResetDeck,
+  isGuest = false,
+  onLoginPrompt,
 }) => {
   const toast = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -100,6 +104,15 @@ const DeckList: React.FC<DeckListProps> = ({
   }, [isGenerating, dealerMessages.length]);
 
   const openCreateModal = () => {
+    // Guard: Visitors must register to create decks
+    if (isGuest && onLoginPrompt) {
+      onLoginPrompt(
+        'Creează un cont gratuit',
+        'Pentru a crea propriile deck-uri și a le salva permanent, creează un cont gratuit!'
+      );
+      return;
+    }
+
     setEditingDeckId(null);
     setGeneratingForDeckId(null);
     setTitle('');
@@ -122,6 +135,15 @@ const DeckList: React.FC<DeckListProps> = ({
   };
 
   const openGenerateCardsModal = (deck: Deck) => {
+    // Guard: Visitors must register to use AI generation
+    if (isGuest && onLoginPrompt) {
+      onLoginPrompt(
+        'Funcție Premium',
+        'Generarea de carduri cu AI este disponibilă doar pentru utilizatorii cu cont. Creează un cont gratuit pentru a debloca această funcție!'
+      );
+      return;
+    }
+
     setEditingDeckId(null);
     setGeneratingForDeckId(deck.id);
     setTitle(deck.title || '');

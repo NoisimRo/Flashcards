@@ -5,9 +5,11 @@ import { Flame, Medal, Users } from 'lucide-react';
 interface LeaderboardProps {
   entries: LeaderboardEntry[];
   currentUser?: User;
+  onRegisterClick?: () => void;
 }
 
-const Leaderboard: React.FC<LeaderboardProps> = ({ entries, currentUser }) => {
+const Leaderboard: React.FC<LeaderboardProps> = ({ entries, currentUser, onRegisterClick }) => {
+  const isVisitor = currentUser?.id === 'guest';
   // Find current user in entries or create from currentUser prop
   const currentUserEntry = useMemo(() => {
     const fromEntries = entries.find(e => e.isCurrentUser);
@@ -94,9 +96,18 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ entries, currentUser }) => {
         <div className="bg-[#F8F6F1] p-6 rounded-2xl flex flex-col items-center justify-center text-center">
           <h3 className="text-gray-500 mb-2">Poziția Ta</h3>
           <div className="text-4xl font-bold text-gray-900">{userStats.position}</div>
-          <p className="text-xs text-gray-400 mt-1">
-            din {userStats.totalUsers.toLocaleString()} utilizatori
-          </p>
+          {isVisitor ? (
+            <button
+              onClick={onRegisterClick}
+              className="text-xs text-indigo-600 font-bold mt-2 hover:text-indigo-700 transition-colors"
+            >
+              Înregistrează-te pentru a apărea în clasament
+            </button>
+          ) : (
+            <p className="text-xs text-gray-400 mt-1">
+              din {userStats.totalUsers.toLocaleString()} utilizatori
+            </p>
+          )}
         </div>
         <div className="bg-[#F8F6F1] p-6 rounded-2xl flex flex-col items-center justify-center text-center">
           <h3 className="text-gray-500 mb-2">XP Total</h3>

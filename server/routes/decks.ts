@@ -9,7 +9,7 @@ const router = Router();
 // ============================================
 // GET /api/decks - List decks
 // ============================================
-router.get('/', authenticateToken, async (req: Request, res: Response) => {
+router.get('/', optionalAuth, async (req: Request, res: Response) => {
   try {
     const {
       page = '1',
@@ -34,16 +34,36 @@ router.get('/', authenticateToken, async (req: Request, res: Response) => {
 
     // Filter by ownership
     if (ownedOnly === 'true') {
+      // Owned decks require authentication
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'Autentificare necesară pentru a vedea deck-urile proprii',
+          },
+        });
+      }
       whereClause += ` AND d.owner_id = $${paramIndex++}`;
-      params.push(req.user!.id);
+      params.push(req.user.id);
     } else if (publicOnly === 'true') {
+      // Public decks are accessible to everyone (including visitors)
       whereClause += ' AND d.is_public = true';
     } else {
-      // Show owned + shared + public
+      // Show owned + shared + public (requires authentication)
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'Autentificare necesară',
+          },
+        });
+      }
       whereClause += ` AND (d.owner_id = $${paramIndex++} OR d.is_public = true OR EXISTS (
         SELECT 1 FROM deck_shares ds WHERE ds.deck_id = d.id AND ds.user_id = $${paramIndex++}
       ))`;
-      params.push(req.user!.id, req.user!.id);
+      params.push(req.user.id, req.user.id);
     }
 
     if (subject) {
@@ -75,26 +95,37 @@ router.get('/', authenticateToken, async (req: Request, res: Response) => {
     const countResult = await query(`SELECT COUNT(*) FROM decks d WHERE ${whereClause}`, params);
     const total = parseInt(countResult.rows[0].count);
 
-    // Get decks with user-specific mastered cards count
+    // Get decks with user-specific mastered cards count (if authenticated) and review stats
+    const userId = req.user?.id || null;
     const decksResult = await query(
       `SELECT d.*, s.name as subject_name, s.color as subject_color,
               u.name as owner_name,
-              (d.owner_id = $${paramIndex}) as is_owner,
+              ${userId ? `(d.owner_id = $${paramIndex}) as is_owner` : 'false as is_owner'},
               COALESCE((
                 SELECT COUNT(*)
                 FROM cards c
-                LEFT JOIN user_card_progress ucp ON ucp.card_id = c.id AND ucp.user_id = $${paramIndex}
+                ${userId ? `LEFT JOIN user_card_progress ucp ON ucp.card_id = c.id AND ucp.user_id = $${paramIndex}` : ''}
                 WHERE c.deck_id = d.id
                   AND c.deleted_at IS NULL
-                  AND ucp.status = 'mastered'
-              ), 0) as mastered_cards
+                  ${userId ? `AND ucp.status = 'mastered'` : 'AND 1=0'}
+              ), 0) as mastered_cards,
+              COALESCE((
+                SELECT AVG(rating)::numeric(3,2)
+                FROM reviews
+                WHERE target_type = 'deck' AND target_id = d.id AND deleted_at IS NULL
+              ), 0) as average_rating,
+              COALESCE((
+                SELECT COUNT(*)
+                FROM reviews
+                WHERE target_type = 'deck' AND target_id = d.id AND deleted_at IS NULL
+              ), 0) as review_count
        FROM decks d
        LEFT JOIN subjects s ON d.subject_id = s.id
        LEFT JOIN users u ON d.owner_id = u.id
        WHERE ${whereClause}
        ORDER BY ${sortColumn} ${order} NULLS LAST
        LIMIT $${paramIndex + 1} OFFSET $${paramIndex + 2}`,
-      [...params, req.user!.id, limitNum, offset]
+      userId ? [...params, userId, limitNum, offset] : [...params, limitNum, offset]
     );
 
     const decks = decksResult.rows.map(formatDeck);
@@ -870,6 +901,8 @@ function formatDeck(deck: any) {
     lastStudied: deck.last_studied,
     syncStatus: deck.sync_status,
     version: deck.version,
+    averageRating: deck.average_rating ? parseFloat(deck.average_rating) : undefined,
+    reviewCount: deck.review_count || 0,
   };
 }
 
