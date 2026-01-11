@@ -29,6 +29,10 @@ interface StudySessionsStore {
   sessionStartTime: number;
   baselineDuration: number;
 
+  // Guest mode state
+  guestToken: string | null;
+  isGuestMode: boolean;
+
   // Actions
   fetchActiveSessions: (params?: GetStudySessionsParams) => Promise<void>;
   createSession: (request: CreateStudySessionRequest) => Promise<StudySessionWithData | null>;
@@ -38,6 +42,10 @@ interface StudySessionsStore {
   abandonSession: (id: string) => Promise<void>;
   clearCurrentSession: () => void;
   clearError: () => void;
+
+  // Guest mode actions
+  createGuestSession: (deckId: string) => Promise<void>;
+  loadGuestSession: (sessionId: string) => Promise<void>;
 
   // NEW - Session Actions
   flipCard: () => void;
@@ -64,6 +72,16 @@ const calculateXP = (isCorrect: boolean, streak: number, difficulty: Difficulty)
 // Auto-save timer reference
 let autoSaveTimer: NodeJS.Timeout | null = null;
 
+// Helper to get or create guest token
+const getOrCreateGuestToken = (): string => {
+  let token = localStorage.getItem('guest_token');
+  if (!token) {
+    token = crypto.randomUUID();
+    localStorage.setItem('guest_token', token);
+  }
+  return token;
+};
+
 export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
   // Initial state
   activeSessions: [],
@@ -82,6 +100,10 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
   isDirty: false,
   sessionStartTime: Date.now(),
   baselineDuration: 0,
+
+  // Guest mode state
+  guestToken: null,
+  isGuestMode: false,
 
   // Fetch active sessions
   fetchActiveSessions: async (params?: GetStudySessionsParams) => {
@@ -239,6 +261,101 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
   // Clear error
   clearError: () => set({ error: null }),
 
+  // Create guest session
+  createGuestSession: async (deckId: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const guestToken = getOrCreateGuestToken();
+
+      const response = await fetch('/api/study-sessions/guest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          deckId,
+          guestToken,
+          selectionMethod: 'all',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.data) {
+        const session = data.data.session;
+
+        set({
+          currentSession: session,
+          guestToken,
+          isGuestMode: true,
+          currentCardIndex: session.currentCardIndex || 0,
+          answers: session.answers || {},
+          streak: session.streak || 0,
+          sessionXP: session.sessionXP || 0,
+          isCardFlipped: false,
+          hintRevealed: false,
+          selectedQuizOption: null,
+          isDirty: false,
+          sessionStartTime: Date.now(),
+          baselineDuration: session.durationSeconds || 0,
+          isLoading: false,
+        });
+
+        // Enable auto-save for guest session
+        get().enableAutoSave();
+      } else {
+        set({
+          error: data.error?.message || 'Failed to create guest session',
+          isLoading: false,
+        });
+      }
+    } catch (error) {
+      console.error('Create guest session error:', error);
+      set({ error: 'Network error', isLoading: false });
+    }
+  },
+
+  // Load guest session
+  loadGuestSession: async (sessionId: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const guestToken = getOrCreateGuestToken();
+
+      const response = await fetch(`/api/study-sessions/guest/${sessionId}?guestToken=${guestToken}`);
+      const data = await response.json();
+
+      if (data.success && data.data) {
+        const session = data.data;
+
+        set({
+          currentSession: session,
+          guestToken,
+          isGuestMode: true,
+          currentCardIndex: session.currentCardIndex || 0,
+          answers: session.answers || {},
+          streak: session.streak || 0,
+          sessionXP: session.sessionXP || 0,
+          isCardFlipped: false,
+          hintRevealed: false,
+          selectedQuizOption: null,
+          isDirty: false,
+          sessionStartTime: Date.now(),
+          baselineDuration: session.durationSeconds || 0,
+          isLoading: false,
+        });
+
+        // Enable auto-save for guest session
+        get().enableAutoSave();
+      } else {
+        set({
+          error: data.error?.message || 'Failed to load guest session',
+          isLoading: false,
+        });
+      }
+    } catch (error) {
+      console.error('Load guest session error:', error);
+      set({ error: 'Network error', isLoading: false });
+    }
+  },
+
   // NEW - Session Actions
 
   // Get current card
@@ -350,15 +467,36 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
     const elapsedSeconds = Math.floor((Date.now() - state.sessionStartTime) / 1000);
 
     try {
-      await state.updateSessionProgress(state.currentSession.id, {
-        currentCardIndex: state.currentCardIndex,
-        answers: state.answers,
-        streak: state.streak,
-        sessionXP: state.sessionXP,
-        durationSeconds: state.baselineDuration + elapsedSeconds,
-      });
+      // Guest mode: use guest endpoint
+      if (state.isGuestMode && state.guestToken) {
+        const response = await fetch(`/api/study-sessions/guest/${state.currentSession.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            guestToken: state.guestToken,
+            currentCardIndex: state.currentCardIndex,
+            answers: state.answers,
+            streak: state.streak,
+            sessionXP: state.sessionXP,
+            durationSeconds: state.baselineDuration + elapsedSeconds,
+          }),
+        });
 
-      set({ isDirty: false });
+        if (response.ok) {
+          set({ isDirty: false });
+        }
+      } else {
+        // Authenticated mode: use standard endpoint
+        await state.updateSessionProgress(state.currentSession.id, {
+          currentCardIndex: state.currentCardIndex,
+          answers: state.answers,
+          streak: state.streak,
+          sessionXP: state.sessionXP,
+          durationSeconds: state.baselineDuration + elapsedSeconds,
+        });
+
+        set({ isDirty: false });
+      }
     } catch (error) {
       console.error('Failed to sync progress:', error);
     }
