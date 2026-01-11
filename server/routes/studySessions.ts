@@ -913,4 +913,327 @@ router.delete('/:id', authenticateToken, async (req: Request, res: Response) => 
   }
 });
 
+// ============================================
+// GUEST SESSION ENDPOINTS
+// ============================================
+
+// ============================================
+// POST /api/study-sessions/guest - Create guest session
+// ============================================
+router.post('/guest', async (req: Request, res: Response) => {
+  try {
+    const {
+      deckId,
+      guestToken,
+      selectionMethod = 'all',
+      cardCount,
+      selectedCardIds,
+      excludeMasteredCards = false,
+      title,
+    } = req.body;
+
+    if (!deckId || !guestToken) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'deckId și guestToken sunt obligatorii',
+        },
+      });
+    }
+
+    // Validate guest token format (UUID v4)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(guestToken)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'guestToken invalid (trebuie să fie UUID v4)',
+        },
+      });
+    }
+
+    // Get all cards from deck
+    const cardsResult = await query(
+      `SELECT * FROM cards
+       WHERE deck_id = $1 AND deleted_at IS NULL
+       ORDER BY position ASC, created_at ASC`,
+      [deckId]
+    );
+
+    if (cardsResult.rows.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'NO_CARDS',
+          message: 'Deck-ul nu conține carduri',
+        },
+      });
+    }
+
+    // For guests, we don't filter by mastered cards (no progress tracked)
+    // Just use simple selection method
+    let selectedCards = cardsResult.rows;
+
+    if (selectionMethod === 'random' && cardCount) {
+      // Shuffle and take first N cards
+      selectedCards = selectedCards
+        .sort(() => Math.random() - 0.5)
+        .slice(0, Math.min(cardCount, selectedCards.length));
+    } else if (selectionMethod === 'manual' && selectedCardIds) {
+      selectedCards = selectedCards.filter((c: any) => selectedCardIds.includes(c.id));
+    } else if (cardCount) {
+      // Take first N cards
+      selectedCards = selectedCards.slice(0, Math.min(cardCount, selectedCards.length));
+    }
+
+    if (selectedCards.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'NO_CARDS_AVAILABLE',
+          message: 'Nu există carduri disponibile pentru selecție',
+        },
+      });
+    }
+
+    // Create guest session
+    const sessionTitle =
+      title ||
+      `Guest - ${selectionMethod.charAt(0).toUpperCase() + selectionMethod.slice(1)} - ${selectedCards.length} carduri`;
+
+    const selectedCardUuids = selectedCards.map((c: any) => c.id);
+    const sessionResult = await query(
+      `INSERT INTO study_sessions
+         (deck_id, title, selection_method, total_cards, selected_card_ids,
+          guest_token, is_guest, status)
+       VALUES ($1, $2, $3, $4, $5::uuid[], $6, true, 'active')
+       RETURNING *`,
+      [deckId, sessionTitle, selectionMethod, selectedCards.length, selectedCardUuids, guestToken]
+    );
+
+    const session = formatSession(sessionResult.rows[0]);
+
+    // Get deck info
+    const deckResult = await query(
+      `SELECT d.*, s.name as subject_name, s.color as subject_color
+       FROM decks d
+       LEFT JOIN subjects s ON d.subject_id = s.id
+       WHERE d.id = $1`,
+      [deckId]
+    );
+
+    res.json({
+      success: true,
+      data: {
+        session: {
+          ...session,
+          guestToken,
+          isGuest: true,
+          deck: deckResult.rows[0]
+            ? {
+                id: deckResult.rows[0].id,
+                title: deckResult.rows[0].title,
+                subject: deckResult.rows[0].subject_id,
+                subjectName: deckResult.rows[0].subject_name,
+                difficulty: deckResult.rows[0].difficulty,
+              }
+            : null,
+          cards: selectedCards.map(formatCard),
+          cardProgress: {}, // No progress for guests
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Create guest session error:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'SERVER_ERROR',
+        message: 'Eroare la crearea sesiunii guest',
+        ...(process.env.NODE_ENV === 'development' && {
+          details: error instanceof Error ? error.message : 'Unknown error',
+        }),
+      },
+    });
+  }
+});
+
+// ============================================
+// PUT /api/study-sessions/guest/:id - Update guest session progress
+// ============================================
+router.put('/guest/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { guestToken, currentCardIndex, answers, streak, sessionXP, durationSeconds } = req.body;
+
+    if (!guestToken) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'guestToken este obligatoriu',
+        },
+      });
+    }
+
+    // Verify session exists and belongs to guest token
+    const sessionResult = await query(
+      `SELECT * FROM study_sessions
+       WHERE id = $1 AND guest_token = $2 AND is_guest = true`,
+      [id, guestToken]
+    );
+
+    if (sessionResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'NOT_FOUND',
+          message: 'Sesiunea nu a fost găsită sau guest token-ul este invalid',
+        },
+      });
+    }
+
+    // Update session
+    const updateFields: string[] = [];
+    const params: any[] = [];
+    let paramIndex = 1;
+
+    if (currentCardIndex !== undefined) {
+      updateFields.push(`current_card_index = $${paramIndex++}`);
+      params.push(currentCardIndex);
+    }
+
+    if (answers !== undefined) {
+      updateFields.push(`answers = $${paramIndex++}`);
+      params.push(JSON.stringify(answers));
+    }
+
+    if (streak !== undefined) {
+      updateFields.push(`streak = $${paramIndex++}`);
+      params.push(streak);
+    }
+
+    if (sessionXP !== undefined) {
+      updateFields.push(`session_xp = $${paramIndex++}`);
+      params.push(sessionXP);
+    }
+
+    if (durationSeconds !== undefined) {
+      updateFields.push(`duration_seconds = $${paramIndex++}`);
+      params.push(durationSeconds);
+    }
+
+    updateFields.push(`last_activity_at = NOW()`);
+
+    params.push(id);
+
+    const result = await query(
+      `UPDATE study_sessions
+       SET ${updateFields.join(', ')}
+       WHERE id = $${paramIndex}
+       RETURNING *`,
+      params
+    );
+
+    res.json({
+      success: true,
+      data: formatSession(result.rows[0]),
+    });
+  } catch (error) {
+    console.error('Update guest session error:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'SERVER_ERROR',
+        message: 'Eroare la actualizarea sesiunii guest',
+      },
+    });
+  }
+});
+
+// ============================================
+// GET /api/study-sessions/guest/:id - Get guest session
+// ============================================
+router.get('/guest/:id', async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { guestToken } = req.query;
+
+    if (!guestToken) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'guestToken este obligatoriu',
+        },
+      });
+    }
+
+    const sessionResult = await query(
+      `SELECT s.*,
+              d.title as deck_title,
+              d.subject_id,
+              d.difficulty,
+              sub.name as subject_name
+       FROM study_sessions s
+       LEFT JOIN decks d ON s.deck_id = d.id
+       LEFT JOIN subjects sub ON d.subject_id = sub.id
+       WHERE s.id = $1 AND s.guest_token = $2 AND s.is_guest = true`,
+      [id, guestToken]
+    );
+
+    if (sessionResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'NOT_FOUND',
+          message: 'Sesiunea nu a fost găsită',
+        },
+      });
+    }
+
+    const sessionRow = sessionResult.rows[0];
+    const session = formatSession(sessionRow);
+
+    // Get cards
+    const cardsResult = await query(
+      `SELECT * FROM cards
+       WHERE id = ANY($1::uuid[])
+       ORDER BY position ASC`,
+      [session.selectedCardIds]
+    );
+
+    res.json({
+      success: true,
+      data: {
+        ...session,
+        guestToken,
+        isGuest: true,
+        deck: sessionRow.deck_title
+          ? {
+              id: sessionRow.deck_id,
+              title: sessionRow.deck_title,
+              subject: sessionRow.subject_id,
+              subjectName: sessionRow.subject_name,
+              difficulty: sessionRow.difficulty,
+            }
+          : null,
+        cards: cardsResult.rows.map(formatCard),
+        cardProgress: {}, // No progress for guests
+      },
+    });
+  } catch (error) {
+    console.error('Get guest session error:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'SERVER_ERROR',
+        message: 'Eroare la obținerea sesiunii',
+      },
+    });
+  }
+});
+
 export default router;

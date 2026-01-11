@@ -64,7 +64,8 @@ const StudySessionPlayer: React.FC<StudySessionPlayerProps> = ({
       correctCount,
       incorrectCount,
       skippedCount,
-      durationSeconds: useStudySessionsStore.getState().baselineDuration +
+      durationSeconds:
+        useStudySessionsStore.getState().baselineDuration +
         Math.floor((Date.now() - useStudySessionsStore.getState().sessionStartTime) / 1000),
       cardProgressUpdates: currentSession.selectedCardIds.map(cardId => ({
         cardId,
@@ -87,7 +88,9 @@ const StudySessionPlayer: React.FC<StudySessionPlayerProps> = ({
           `Sesiune completată! +${result.xpEarned} XP | Scor: ${score}% (${correctCount}/${totalCards} corecte)`
         );
       } else {
-        toast.success(`Sesiune completată! Scor: ${score}% (${correctCount}/${totalCards} corecte)`);
+        toast.success(
+          `Sesiune completată! Scor: ${score}% (${correctCount}/${totalCards} corecte)`
+        );
       }
       onFinish();
     } else {
@@ -111,10 +114,7 @@ const StudySessionPlayer: React.FC<StudySessionPlayerProps> = ({
     <div className="p-6">
       <div className="max-w-4xl mx-auto">
         <div className="mb-4">
-          <button
-            onClick={onBack}
-            className="text-gray-600 hover:text-gray-900 font-medium"
-          >
+          <button onClick={onBack} className="text-gray-600 hover:text-gray-900 font-medium">
             ← Înapoi
           </button>
         </div>
@@ -132,7 +132,8 @@ const StudySessionPlayer: React.FC<StudySessionPlayerProps> = ({
             <div className="flex justify-between">
               <span className="text-gray-600">Progress:</span>
               <span className="font-bold">
-                Card {useStudySessionsStore.getState().currentCardIndex + 1} of {currentSession.cards?.length || 0}
+                Card {useStudySessionsStore.getState().currentCardIndex + 1} of{' '}
+                {currentSession.cards?.length || 0}
               </span>
             </div>
 

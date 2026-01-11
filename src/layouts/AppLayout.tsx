@@ -1,0 +1,64 @@
+import React from 'react';
+import { Menu, X } from 'lucide-react';
+import Sidebar from '../../components/Sidebar';
+import { GuestBanner } from './GuestBanner';
+import { useUIStore } from '../store/uiStore';
+import { useAuth } from '../store/AuthContext';
+import { useAuthActions } from '../hooks/useAuthActions';
+import { adaptUserFromAPI } from '../adapters/userAdapter';
+import { GUEST_USER } from '../utils/guestMode';
+
+/**
+ * Main application layout
+ * Handles sidebar, mobile menu, and guest banner
+ */
+export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated, user: authUser } = useAuth();
+  const { isMobileMenuOpen, currentView, setMobileMenuOpen, setCurrentView } = useUIStore();
+  const { handleLoginClick, handleRegisterClick } = useAuthActions();
+
+  const user = isAuthenticated && authUser ? adaptUserFromAPI(authUser) : GUEST_USER;
+  const isGuest = !isAuthenticated;
+
+  return (
+    <div className="flex h-screen overflow-hidden bg-[#FDFBF7] text-gray-800 font-sans">
+      {/* Mobile Menu Toggle */}
+      <button
+        className="md:hidden fixed top-4 right-4 z-[60] bg-white p-2 rounded-lg shadow-md border border-gray-100"
+        onClick={() => setMobileMenuOpen(!isMobileMenuOpen)}
+        aria-label="Toggle menu"
+      >
+        {isMobileMenuOpen ? <X /> : <Menu />}
+      </button>
+
+      {/* Sidebar */}
+      <Sidebar
+        user={user}
+        currentView={currentView}
+        onChangeView={setCurrentView}
+        isMobileOpen={isMobileMenuOpen}
+        onCloseMobile={() => setMobileMenuOpen(false)}
+        isGuest={isGuest}
+        onLoginClick={handleLoginClick}
+        onRegisterClick={handleRegisterClick}
+      />
+
+      {/* Main Content Area */}
+      <main className="flex-1 h-full overflow-y-auto relative">
+        {/* Mobile Overlay */}
+        {isMobileMenuOpen && (
+          <div
+            className="fixed inset-0 bg-black/20 z-40 md:hidden backdrop-blur-sm"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+        )}
+
+        {/* Guest Banner */}
+        {isGuest && <GuestBanner />}
+
+        {/* Page Content */}
+        {children}
+      </main>
+    </div>
+  );
+};

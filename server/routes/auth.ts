@@ -17,7 +17,7 @@ const router = Router();
 // ============================================
 router.post('/register', async (req: Request, res: Response) => {
   try {
-    const { email, password, name, role = 'student' } = req.body;
+    const { email, password, name, role = 'student', guestToken } = req.body;
 
     // Validation
     if (!email || !password || !name) {
@@ -55,24 +55,84 @@ router.post('/register', async (req: Request, res: Response) => {
     // Hash password
     const passwordHash = await bcrypt.hash(password, 12);
 
-    // Create user
-    const result = await query(
-      `INSERT INTO users (email, password_hash, name, role, next_level_xp)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, email, name, role, level, current_xp, next_level_xp, total_xp,
-                 streak, longest_streak, total_time_spent, total_cards_learned,
-                 total_decks_completed, total_correct_answers, total_answers,
-                 preferences, created_at`,
-      [
-        email.toLowerCase(),
-        passwordHash,
-        name,
-        role === 'teacher' ? 'teacher' : 'student',
-        config.xp.baseXpForLevel,
-      ]
-    );
+    // Use transaction for atomic user creation + guest session migration
+    const result = await withTransaction(async client => {
+      // Create user
+      const userResult = await client.query(
+        `INSERT INTO users (email, password_hash, name, role, next_level_xp)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING id, email, name, role, level, current_xp, next_level_xp, total_xp,
+                   streak, longest_streak, total_time_spent, total_cards_learned,
+                   total_decks_completed, total_correct_answers, total_answers,
+                   preferences, created_at`,
+        [
+          email.toLowerCase(),
+          passwordHash,
+          name,
+          role === 'teacher' ? 'teacher' : 'student',
+          config.xp.baseXpForLevel,
+        ]
+      );
 
-    const user = result.rows[0];
+      const user = userResult.rows[0];
+
+      // Migrate guest sessions if token provided
+      let migratedSessionsCount = 0;
+      if (guestToken) {
+        const migrateResult = await client.query(
+          `UPDATE study_sessions
+           SET user_id = $1, is_guest = false
+           WHERE guest_token = $2 AND user_id IS NULL AND is_guest = true
+           RETURNING id`,
+          [user.id, guestToken]
+        );
+        migratedSessionsCount = migrateResult.rows.length;
+
+        // If sessions were migrated, recalculate user stats
+        if (migratedSessionsCount > 0) {
+          const sessionsData = await client.query(
+            `SELECT
+               COALESCE(SUM(session_xp), 0) as total_xp,
+               COALESCE(SUM(duration_seconds), 0) as total_seconds,
+               COUNT(*) FILTER (WHERE status = 'completed') as completed_sessions
+             FROM study_sessions
+             WHERE user_id = $1`,
+            [user.id]
+          );
+
+          const stats = sessionsData.rows[0];
+          const totalMinutes = Math.floor(stats.total_seconds / 60);
+
+          // Update user with migrated stats
+          await client.query(
+            `UPDATE users
+             SET total_xp = total_xp + $1,
+                 current_xp = current_xp + $1,
+                 total_time_spent = total_time_spent + $2,
+                 total_decks_completed = total_decks_completed + $3,
+                 updated_at = NOW()
+             WHERE id = $4`,
+            [stats.total_xp, totalMinutes, stats.completed_sessions, user.id]
+          );
+
+          // Re-fetch user with updated stats
+          const updatedUserResult = await client.query(
+            `SELECT id, email, name, role, level, current_xp, next_level_xp, total_xp,
+                    streak, longest_streak, total_time_spent, total_cards_learned,
+                    total_decks_completed, total_correct_answers, total_answers,
+                    preferences, created_at
+             FROM users WHERE id = $1`,
+            [user.id]
+          );
+
+          return { user: updatedUserResult.rows[0], migratedSessionsCount };
+        }
+      }
+
+      return { user, migratedSessionsCount };
+    });
+
+    const user = result.user;
 
     // Generate tokens
     const accessToken = generateAccessToken(user);
@@ -94,6 +154,7 @@ router.post('/register', async (req: Request, res: Response) => {
         accessToken,
         refreshToken,
         expiresAt: Math.floor(Date.now() / 1000) + 15 * 60, // 15 minutes
+        migratedSessions: result.migratedSessionsCount,
       },
     });
   } catch (error) {
