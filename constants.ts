@@ -394,6 +394,16 @@ export const MOCK_DECKS: (Deck & {
   },
 ];
 
+// Demo deck for visitors (only Sinonime)
+export const DEMO_DECK = MOCK_DECKS[0]; // Sinonime Esențiale
+export const VISITOR_DECKS = [DEMO_DECK];
+
+// Visitor achievements (all locked for demo purposes)
+export const VISITOR_ACHIEVEMENTS: Achievement[] = MOCK_ACHIEVEMENTS.map(achievement => ({
+  ...achievement,
+  unlocked: false,
+}));
+
 export const LEADERBOARD_DATA: LeaderboardEntry[] = [
   {
     id: 'l1',

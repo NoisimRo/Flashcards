@@ -2,8 +2,12 @@ import React, { useState } from 'react';
 import Login from './Login';
 import Register from './Register';
 
-const AuthPage: React.FC = () => {
-  const [isLogin, setIsLogin] = useState(true);
+interface AuthPageProps {
+  initialMode?: 'login' | 'register';
+}
+
+const AuthPage: React.FC<AuthPageProps> = ({ initialMode = 'login' }) => {
+  const [isLogin, setIsLogin] = useState(initialMode === 'login');
 
   return isLogin ? (
     <Login onSwitchToRegister={() => setIsLogin(false)} />
