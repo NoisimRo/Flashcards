@@ -5,7 +5,141 @@
 **Limbi țintă**: Română (RO), Engleză (EN), Italiană (IT) + scalabilitate la alte limbi
 
 **Data creării**: 2026-01-11
-**Versiune**: Draft v1.0
+**Versiune**: v1.1 (Actualizat 2026-01-11)
+**Ultima actualizare**: După finalizarea Etapa 1.5 (App.tsx Modularization)
+
+---
+
+## 🎯 PROGRES ACTUAL
+
+### ✅ COMPLETAT (Data: 2026-01-11)
+
+#### **Etapa 1.5: App.tsx Modularization** ✅ 100% FINALIZAT
+
+**Obiectiv**: Extragerea responsabilităților din App.tsx (838 linii) în module specializate
+
+**Ce s-a implementat**:
+
+1. **✅ Adapters (src/adapters/)**
+
+   - `userAdapter.ts` - Transformă User din API (models.ts) → UI (types.ts)
+   - `deckAdapter.ts` - Transformă Deck din API → UI
+
+2. **✅ Custom Hooks (src/hooks/)**
+
+   - `useDecksManagement.ts` - CRUD operations pentru decks
+   - `useSessionManagement.ts` - Session lifecycle management
+   - `useAuthActions.ts` - Authentication actions
+   - `useLeaderboard.ts` - Leaderboard data fetching
+
+3. **✅ Layouts (src/layouts/)**
+
+   - `AppLayout.tsx` - Main app layout (sidebar + main content)
+   - `GuestBanner.tsx` - Banner pentru guest users
+
+4. **✅ Routes (src/routes/)**
+
+   - `ViewRouter.tsx` - Centralizare routing logic (switch între views)
+
+5. **✅ Stores (src/store/)**
+
+   - `uiStore.ts` - Centralizare UI state (12 useState → 1 Zustand store)
+
+6. **✅ Utils (src/utils/)**
+   - `guestMode.ts` - Guest user logic, login prompts
+
+**Rezultat**:
+
+- **App.tsx**: 838 linii → 129 linii (**85% reducere**)
+- **Modularitate**: 11 fișiere noi, responsabilități clare
+- **Type System**: Fixed import paths (../../types)
+
+#### **Etapa 1: Guest Sessions (Visitor Mode)** ✅ 100% FINALIZAT
+
+**Obiectiv**: Implementare visitor mode cu database-backed guest sessions
+
+**Ce s-a implementat**:
+
+1. **✅ Backend Endpoints**
+
+   - `POST /api/study-sessions/guest` - Create guest session
+   - `PUT /api/study-sessions/guest/:id` - Update guest progress
+   - `GET /api/study-sessions/guest/:id` - Load guest session
+   - `POST /api/auth/register` - Modified to migrate guest sessions on signup
+
+2. **✅ Backend Jobs**
+
+   - `cleanupGuestSessions.ts` - Delete abandoned guest sessions (7-day retention)
+
+3. **✅ Frontend Store**
+
+   - Extended `studySessionsStore.ts` with:
+     - `guestToken` state (UUID v4 stored in localStorage)
+     - `isGuestMode` flag
+     - `createGuestSession()` action
+     - `loadGuestSession()` action
+     - Modified `syncProgress()` to handle guest vs authenticated
+
+4. **✅ Auto-Save**
+   - Implemented 30s auto-save interval
+   - Dirty flag tracking
+   - Guest sessions save without auth
+
+**Rezultat**:
+
+- ✅ Guests pot crea sesiuni pentru demo deck (d1)
+- ✅ Progress salvat în DB cu guest_token
+- ✅ Auto-migration la signup (guest sessions → user sessions)
+- ✅ Cleanup job șterge sesiuni abandonate după 7 zile
+
+---
+
+### ⚠️ PARȚIAL COMPLETAT
+
+#### **Etapa 1: "Heart Transplant" (State Centralization)** - ~60% FINALIZAT
+
+**Ce s-a făcut**:
+
+- ✅ Guest sessions implementate
+- ✅ Auto-save implementat în store
+- ✅ studySessionsStore.ts extins cu state management
+
+**Ce RĂMÂNE de făcut**:
+
+- ❌ **StudySession.tsx** încă folosește local state (answers, streak, sessionXP, currentIndex)
+  - Trebuie să fie refactorizat să consume doar din store
+- ❌ **StudySessionPlayer.tsx** încă face data transformation (Session → Deck)
+  - Trebuie eliminat adapter layer
+- ❌ **Dashboard sync** - Stats nu se actualizează real-time din session
+
+**Blocker**: Componenta StudySession.tsx (~1600 linii) trebuie refactorizată înainte de Etapa 2
+
+---
+
+### ❌ NU ÎNCEPUT
+
+#### **Etapa 2: "The Great Splitting" (Atomic Design)** - 0% FINALIZAT
+
+**Obiectiv**: Spargerea StudySession.tsx în componente mici (<200 linii)
+
+**Task-uri**:
+
+- ❌ Extract card types (StandardCard, QuizCard, TypeAnswerCard)
+- ❌ Extract UI components (ProgressBar, StreakIndicator, SessionStats)
+- ❌ Create StudySessionContainer orchestrator
+- ❌ Delete monolith (StudySession.tsx, StudySessionPlayer.tsx)
+
+#### **Etapa 3: "Internationalization" (i18n)** - 0% FINALIZAT
+
+**Obiectiv**: Suport multi-limbă (RO, EN, IT)
+
+**Task-uri**:
+
+- ❌ Install i18next dependencies
+- ❌ Setup i18n config
+- ❌ Create translation files (ro/en/it)
+- ❌ Replace hardcoded strings cu t('key')
+- ❌ Add language switcher în UI
 
 ---
 
