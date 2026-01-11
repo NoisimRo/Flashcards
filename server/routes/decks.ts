@@ -95,81 +95,40 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
     const countResult = await query(`SELECT COUNT(*) FROM decks d WHERE ${whereClause}`, params);
     const total = parseInt(countResult.rows[0].count);
 
-    // Get decks with user-specific mastered cards count (if authenticated) and review stats
-    const userId = req.user?.id || null;
+    // Get decks - simplified query that works for both auth and visitor
+    // For visitor: mastered_cards will be 0, is_owner will be false
+    const userId = req.user?.id;
 
-    // Build the query dynamically based on authentication status
-    let selectQuery: string;
-    let selectParams: any[];
-
-    if (userId) {
-      // Authenticated user - include user-specific data
-      const ownerCheckParam = paramIndex;
-      const masteredCardsParam = paramIndex + 1;
-      const limitParam = paramIndex + 2;
-      const offsetParam = paramIndex + 3;
-
-      selectQuery = `
-        SELECT d.*, s.name as subject_name, s.color as subject_color,
-                u.name as owner_name,
-                (d.owner_id = $${ownerCheckParam}) as is_owner,
-                COALESCE((
-                  SELECT COUNT(*)
-                  FROM cards c
-                  LEFT JOIN user_card_progress ucp ON ucp.card_id = c.id AND ucp.user_id = $${masteredCardsParam}
-                  WHERE c.deck_id = d.id
-                    AND c.deleted_at IS NULL
-                    AND ucp.status = 'mastered'
-                ), 0) as mastered_cards,
-                COALESCE((
-                  SELECT AVG(rating)::numeric(3,2)
-                  FROM reviews
-                  WHERE target_type = 'deck' AND target_id = d.id AND deleted_at IS NULL
-                ), 0) as average_rating,
-                COALESCE((
-                  SELECT COUNT(*)
-                  FROM reviews
-                  WHERE target_type = 'deck' AND target_id = d.id AND deleted_at IS NULL
-                ), 0) as review_count
-        FROM decks d
-        LEFT JOIN subjects s ON d.subject_id = s.id
-        LEFT JOIN users u ON d.owner_id = u.id
-        WHERE ${whereClause}
-        ORDER BY ${sortColumn} ${order} NULLS LAST
-        LIMIT $${limitParam} OFFSET $${offsetParam}
-      `;
-      selectParams = [...params, userId, userId, limitNum, offset];
-    } else {
-      // Guest/visitor - no user-specific data
-      const limitParam = paramIndex;
-      const offsetParam = paramIndex + 1;
-
-      selectQuery = `
-        SELECT d.*, s.name as subject_name, s.color as subject_color,
-                u.name as owner_name,
-                false as is_owner,
-                0 as mastered_cards,
-                COALESCE((
-                  SELECT AVG(rating)::numeric(3,2)
-                  FROM reviews
-                  WHERE target_type = 'deck' AND target_id = d.id AND deleted_at IS NULL
-                ), 0) as average_rating,
-                COALESCE((
-                  SELECT COUNT(*)
-                  FROM reviews
-                  WHERE target_type = 'deck' AND target_id = d.id AND deleted_at IS NULL
-                ), 0) as review_count
-        FROM decks d
-        LEFT JOIN subjects s ON d.subject_id = s.id
-        LEFT JOIN users u ON d.owner_id = u.id
-        WHERE ${whereClause}
-        ORDER BY ${sortColumn} ${order} NULLS LAST
-        LIMIT $${limitParam} OFFSET $${offsetParam}
-      `;
-      selectParams = [...params, limitNum, offset];
-    }
-
-    const decksResult = await query(selectQuery, selectParams);
+    const decksResult = await query(
+      `SELECT
+        d.id, d.title, d.description, d.subject_id, d.topic, d.difficulty,
+        d.cover_image, d.is_public, d.tags, d.total_cards,
+        d.owner_id, d.created_at, d.updated_at, d.last_studied,
+        d.sync_status, d.version,
+        s.name as subject_name,
+        s.color as subject_color,
+        u.name as owner_name,
+        ${userId ? `(d.owner_id = $${paramIndex}) as is_owner` : 'false as is_owner'},
+        ${
+          userId
+            ? `
+          COALESCE((
+            SELECT COUNT(*)
+            FROM cards c
+            LEFT JOIN user_card_progress ucp ON ucp.card_id = c.id AND ucp.user_id = $${paramIndex + 1}
+            WHERE c.deck_id = d.id AND c.deleted_at IS NULL AND ucp.status = 'mastered'
+          ), 0)
+        `
+            : '0'
+        } as mastered_cards
+       FROM decks d
+       LEFT JOIN subjects s ON d.subject_id = s.id
+       LEFT JOIN users u ON d.owner_id = u.id
+       WHERE ${whereClause}
+       ORDER BY ${sortColumn} ${order} NULLS LAST
+       LIMIT $${userId ? paramIndex + 2 : paramIndex} OFFSET $${userId ? paramIndex + 3 : paramIndex + 1}`,
+      userId ? [...params, userId, userId, limitNum, offset] : [...params, limitNum, offset]
+    );
 
     const decks = decksResult.rows.map(formatDeck);
 
@@ -935,7 +894,7 @@ function formatDeck(deck: any) {
     isPublic: deck.is_public,
     tags: deck.tags || [],
     totalCards: deck.total_cards,
-    masteredCards: deck.mastered_cards,
+    masteredCards: deck.mastered_cards || 0,
     ownerId: deck.owner_id,
     ownerName: deck.owner_name,
     isOwner: deck.is_owner,
@@ -944,8 +903,6 @@ function formatDeck(deck: any) {
     lastStudied: deck.last_studied,
     syncStatus: deck.sync_status,
     version: deck.version,
-    averageRating: deck.average_rating ? parseFloat(deck.average_rating) : undefined,
-    reviewCount: deck.review_count || 0,
   };
 }
 
