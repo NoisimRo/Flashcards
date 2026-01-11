@@ -97,6 +97,22 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
 
     // Get decks with user-specific mastered cards count (if authenticated) and review stats
     const userId = req.user?.id || null;
+
+    // Build the query parameters for decks selection
+    const decksParams = [...params];
+    let deckParamIndex = paramIndex;
+
+    // Add userId parameters if authenticated
+    if (userId) {
+      decksParams.push(userId); // for is_owner check
+      deckParamIndex++;
+      decksParams.push(userId); // for mastered_cards subquery
+      deckParamIndex++;
+    }
+
+    // Add limit and offset
+    decksParams.push(limitNum, offset);
+
     const decksResult = await query(
       `SELECT d.*, s.name as subject_name, s.color as subject_color,
               u.name as owner_name,
@@ -104,7 +120,7 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
               COALESCE((
                 SELECT COUNT(*)
                 FROM cards c
-                ${userId ? `LEFT JOIN user_card_progress ucp ON ucp.card_id = c.id AND ucp.user_id = $${paramIndex}` : ''}
+                ${userId ? `LEFT JOIN user_card_progress ucp ON ucp.card_id = c.id AND ucp.user_id = $${paramIndex + 1}` : ''}
                 WHERE c.deck_id = d.id
                   AND c.deleted_at IS NULL
                   ${userId ? `AND ucp.status = 'mastered'` : 'AND 1=0'}
@@ -124,8 +140,8 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
        LEFT JOIN users u ON d.owner_id = u.id
        WHERE ${whereClause}
        ORDER BY ${sortColumn} ${order} NULLS LAST
-       LIMIT $${paramIndex + 1} OFFSET $${paramIndex + 2}`,
-      userId ? [...params, userId, limitNum, offset] : [...params, limitNum, offset]
+       LIMIT $${deckParamIndex} OFFSET $${deckParamIndex + 1}`,
+      decksParams
     );
 
     const decks = decksResult.rows.map(formatDeck);
