@@ -21,28 +21,23 @@
 **Ce s-a implementat**:
 
 1. **✅ Adapters (src/adapters/)**
-
    - `userAdapter.ts` - Transformă User din API (models.ts) → UI (types.ts)
    - `deckAdapter.ts` - Transformă Deck din API → UI
 
 2. **✅ Custom Hooks (src/hooks/)**
-
    - `useDecksManagement.ts` - CRUD operations pentru decks
    - `useSessionManagement.ts` - Session lifecycle management
    - `useAuthActions.ts` - Authentication actions
    - `useLeaderboard.ts` - Leaderboard data fetching
 
 3. **✅ Layouts (src/layouts/)**
-
    - `AppLayout.tsx` - Main app layout (sidebar + main content)
    - `GuestBanner.tsx` - Banner pentru guest users
 
 4. **✅ Routes (src/routes/)**
-
    - `ViewRouter.tsx` - Centralizare routing logic (switch între views)
 
 5. **✅ Stores (src/store/)**
-
    - `uiStore.ts` - Centralizare UI state (12 useState → 1 Zustand store)
 
 6. **✅ Utils (src/utils/)**
@@ -61,18 +56,15 @@
 **Ce s-a implementat**:
 
 1. **✅ Backend Endpoints**
-
    - `POST /api/study-sessions/guest` - Create guest session
    - `PUT /api/study-sessions/guest/:id` - Update guest progress
    - `GET /api/study-sessions/guest/:id` - Load guest session
    - `POST /api/auth/register` - Modified to migrate guest sessions on signup
 
 2. **✅ Backend Jobs**
-
    - `cleanupGuestSessions.ts` - Delete abandoned guest sessions (7-day retention)
 
 3. **✅ Frontend Store**
-
    - Extended `studySessionsStore.ts` with:
      - `guestToken` state (UUID v4 stored in localStorage)
      - `isGuestMode` flag
