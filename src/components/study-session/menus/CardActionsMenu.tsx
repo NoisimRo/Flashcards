@@ -99,9 +99,7 @@ export const CardActionsMenu: React.FC<CardActionsMenuProps> = ({
             )}
 
             {/* Divider if both edit/delete and flag are shown */}
-            {canEditDelete && (onEdit || onDelete) && (
-              <div className="my-1 h-px bg-gray-200"></div>
-            )}
+            {canEditDelete && (onEdit || onDelete) && <div className="my-1 h-px bg-gray-200"></div>}
 
             {/* Flag Option (available to all) */}
             <button

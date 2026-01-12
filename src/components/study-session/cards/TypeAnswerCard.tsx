@@ -112,9 +112,7 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
         {/* Answer Input Form */}
         <form onSubmit={handleSubmit}>
           <div className="mb-6">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Răspunsul tău:
-            </label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Răspunsul tău:</label>
             <div className="flex gap-3">
               <input
                 type="text"
