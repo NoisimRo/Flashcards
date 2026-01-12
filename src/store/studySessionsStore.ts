@@ -454,9 +454,12 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
         ? { ...state.currentSession, cards: shuffledCards }
         : null,
       currentCardIndex: 0,
+      answers: {}, // Clear all answers when shuffling
       isCardFlipped: false,
       hintRevealed: false,
       selectedQuizOption: null,
+      streak: 0,
+      sessionXP: 0,
       isDirty: true,
     });
   },
