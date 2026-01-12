@@ -36,7 +36,7 @@ export const StandardCard: React.FC<StandardCardProps> = ({
   onEditCard,
   onDeleteCard,
 }) => {
-  const { isCardFlipped, flipCard, hintRevealed, revealHint, sessionXP } = useStudySessionsStore();
+  const { isCardFlipped, flipCard, hintRevealed, revealHint } = useStudySessionsStore();
 
   const handleKnow = () => {
     flipCard();
@@ -53,192 +53,230 @@ export const StandardCard: React.FC<StandardCardProps> = ({
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      {/* Card Container */}
+      {/* Card Container with 3D perspective */}
       <div
-        className={`relative bg-white rounded-2xl shadow-xl p-8 min-h-[400px] flex flex-col justify-center items-center cursor-pointer hover:shadow-2xl ${
-          isCardFlipped ? 'bg-gradient-to-br from-indigo-50 to-purple-50' : ''
-        }`}
+        className="relative min-h-[500px]"
         style={{
-          transition: 'all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
-          transform: isCardFlipped ? 'rotateY(180deg) scale(1.05)' : 'rotateY(0deg) scale(1)',
-          transformStyle: 'preserve-3d',
+          perspective: '1000px',
         }}
-        onClick={flipCard}
       >
-        {/* Lightbulb Hint Button (top-left) */}
-        {!isCardFlipped && card.context && !hintRevealed && (
-          <div className="absolute top-4 left-4" onClick={e => e.stopPropagation()}>
-            <button
-              onClick={e => {
-                e.stopPropagation();
-                revealHint();
-              }}
-              className="p-2 rounded-lg bg-yellow-100 hover:bg-yellow-200 text-yellow-700 transition-all active:scale-95"
-              title="Arată context (-20 XP)"
-            >
-              <Lightbulb size={20} />
-            </button>
-          </div>
-        )}
-
-        {/* Card Actions Menu (top-right) */}
-        <div className="absolute top-4 right-4" onClick={e => e.stopPropagation()}>
-          <CardActionsMenu
-            card={card}
-            canEditDelete={canEditDelete}
-            onEdit={onEditCard}
-            onDelete={onDeleteCard}
-          />
-        </div>
-
-        {/* Front/Back Content */}
-        <div className="text-center">
-          <div className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide">
-            {isCardFlipped ? 'Răspuns' : 'Întrebare'}
-          </div>
-
-          <div className="text-2xl font-bold text-gray-900 mb-6">
-            {isCardFlipped ? card.back : card.front}
-          </div>
-
-          {/* Context (if available and revealed) */}
-          {!isCardFlipped && card.context && hintRevealed && (
-            <div className="text-sm text-gray-600 italic bg-gray-50 rounded-lg p-4 mb-4">
-              <span className="font-semibold">Context:</span> {card.context}
-            </div>
-          )}
-        </div>
-
-        {/* Navigation Buttons (inside card at bottom) */}
         <div
-          className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white/80 backdrop-blur rounded-b-2xl"
-          onClick={e => e.stopPropagation()}
+          className="relative w-full h-full min-h-[500px] rounded-2xl shadow-xl cursor-pointer hover:shadow-2xl transition-shadow"
+          style={{
+            transformStyle: 'preserve-3d',
+            transform: isCardFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+            transition: 'transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+          }}
+          onClick={flipCard}
         >
-          {/* Front Side Buttons */}
-          {!isCardFlipped && !hasAnswered && (
-            <div className="flex items-center justify-between gap-2">
-              {/* Back/Skip button */}
-              <button
-                onClick={onUndo}
-                disabled={isFirstCard}
-                className={`p-2 rounded-lg transition-all ${
-                  isFirstCard
-                    ? 'text-gray-300 cursor-not-allowed'
-                    : 'text-gray-600 hover:bg-gray-100 active:scale-95'
-                }`}
-                title="Înapoi"
-              >
-                <ChevronLeft size={20} />
-              </button>
-
-              <div className="flex gap-2 flex-1 justify-center">
-                {/* Știu Button */}
+          {/* Front Face */}
+          <div
+            className="absolute inset-0 bg-white rounded-2xl p-8 flex flex-col justify-center items-center"
+            style={{
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden',
+            }}
+          >
+            {/* Lightbulb Hint Button (top-left) */}
+            {card.context && !hintRevealed && (
+              <div className="absolute top-4 left-4 z-10" onClick={e => e.stopPropagation()}>
                 <button
-                  onClick={handleKnow}
-                  className="flex items-center gap-2 px-6 py-2 bg-green-100 text-green-700 rounded-lg font-semibold hover:bg-green-200 transition-all active:scale-95"
+                  onClick={e => {
+                    e.stopPropagation();
+                    revealHint();
+                  }}
+                  className="p-2 rounded-lg bg-yellow-100 hover:bg-yellow-200 text-yellow-700 transition-all active:scale-95 shadow-md"
+                  title="Arată context (-20 XP)"
                 >
-                  <Check size={18} />
-                  Știu
-                </button>
-
-                {/* Arată Button */}
-                <button
-                  onClick={handleShow}
-                  className="flex items-center gap-2 px-6 py-2 bg-indigo-100 text-indigo-700 rounded-lg font-semibold hover:bg-indigo-200 transition-all active:scale-95"
-                >
-                  <Eye size={18} />
-                  Arată
+                  <Lightbulb size={20} />
                 </button>
               </div>
+            )}
 
-              {/* Skip button */}
-              <button
-                onClick={onSkip}
-                className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-all active:scale-95"
-                title="Sari peste"
-              >
-                <SkipForward size={20} />
-              </button>
+            {/* Card Actions Menu (top-right) */}
+            <div className="absolute top-4 right-4 z-10" onClick={e => e.stopPropagation()}>
+              <CardActionsMenu
+                card={card}
+                canEditDelete={canEditDelete}
+                onEdit={onEditCard}
+                onDelete={onDeleteCard}
+              />
             </div>
-          )}
 
-          {/* Back Side Buttons */}
-          {isCardFlipped && !hasAnswered && (
-            <div className="flex items-center justify-between gap-2">
-              {/* Back button */}
-              <button
-                onClick={onUndo}
-                disabled={isFirstCard}
-                className={`p-2 rounded-lg transition-all ${
-                  isFirstCard
-                    ? 'text-gray-300 cursor-not-allowed'
-                    : 'text-gray-600 hover:bg-gray-100 active:scale-95'
-                }`}
-                title="Înapoi"
+            {/* Glassmorphism Hint Overlay */}
+            {card.context && hintRevealed && (
+              <div
+                className="absolute top-16 left-4 right-4 backdrop-blur-md bg-yellow-50/95 border border-yellow-300/50 shadow-xl rounded-xl p-4 z-20 animate-fade-in"
+                onClick={e => e.stopPropagation()}
+                style={{
+                  animation: 'fadeIn 0.3s ease-in-out',
+                }}
               >
-                <ChevronLeft size={20} />
-              </button>
-
-              <div className="flex gap-2 flex-1 justify-center">
-                {/* Nu Știu Button */}
-                <button
-                  onClick={handleDontKnow}
-                  className="flex items-center gap-2 px-6 py-2 bg-red-100 text-red-700 rounded-lg font-semibold hover:bg-red-200 transition-all active:scale-95"
-                >
-                  ❌ Nu Știu
-                </button>
-
-                {/* Următorul Button */}
-                <button
-                  onClick={onNext}
-                  className="flex items-center gap-2 px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-all active:scale-95"
-                >
-                  Următorul
-                  <ChevronRight size={18} />
-                </button>
+                <div className="text-sm text-yellow-900">
+                  <span className="font-bold">💡 Context:</span> {card.context}
+                </div>
               </div>
+            )}
 
-              {/* Skip button */}
-              <button
-                onClick={onSkip}
-                className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-all active:scale-95"
-                title="Sari peste"
-              >
-                <SkipForward size={20} />
-              </button>
+            {/* Front Content */}
+            <div className="text-center px-4">
+              <div className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide">
+                Întrebare
+              </div>
+              <div className="text-2xl font-bold text-gray-900">{card.front}</div>
             </div>
-          )}
 
-          {/* After Answered */}
-          {hasAnswered && (
-            <div className="flex items-center justify-between gap-2">
-              <button
-                onClick={onUndo}
-                disabled={isFirstCard}
-                className={`p-2 rounded-lg transition-all ${
-                  isFirstCard
-                    ? 'text-gray-300 cursor-not-allowed'
-                    : 'text-gray-600 hover:bg-gray-100 active:scale-95'
-                }`}
-                title="Înapoi"
+            {/* Sticky Navigation Footer (front) */}
+            {!hasAnswered && (
+              <div
+                className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white/90 backdrop-blur rounded-b-2xl"
+                onClick={e => e.stopPropagation()}
               >
-                <ChevronLeft size={20} />
-              </button>
-              <button
-                onClick={onNext}
-                disabled={isLastCard}
-                className={`flex items-center gap-2 px-6 py-2 rounded-lg font-semibold transition-all ${
-                  isLastCard
-                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                    : 'bg-indigo-600 text-white hover:bg-indigo-700 active:scale-95'
-                }`}
-              >
-                Următorul
-                <ChevronRight size={18} />
-              </button>
-              <div className="w-10"></div> {/* Spacer for symmetry */}
+                <div className="flex items-center justify-between gap-2">
+                  <button
+                    onClick={onUndo}
+                    disabled={isFirstCard}
+                    className={`p-2 rounded-lg transition-all ${
+                      isFirstCard
+                        ? 'text-gray-300 cursor-not-allowed'
+                        : 'text-gray-600 hover:bg-gray-100 active:scale-95'
+                    }`}
+                    title="Înapoi"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+
+                  <div className="flex gap-2 flex-1 justify-center">
+                    <button
+                      onClick={handleKnow}
+                      className="flex items-center gap-2 px-6 py-2 bg-green-100 text-green-700 rounded-lg font-semibold hover:bg-green-200 transition-all active:scale-95"
+                    >
+                      <Check size={18} />
+                      Știu
+                    </button>
+                    <button
+                      onClick={handleShow}
+                      className="flex items-center gap-2 px-6 py-2 bg-indigo-100 text-indigo-700 rounded-lg font-semibold hover:bg-indigo-200 transition-all active:scale-95"
+                    >
+                      <Eye size={18} />
+                      Arată
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={onSkip}
+                    className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-all active:scale-95"
+                    title="Sari peste"
+                  >
+                    <SkipForward size={20} />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Back Face */}
+          <div
+            className="absolute inset-0 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-8 flex flex-col justify-center items-center"
+            style={{
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden',
+              transform: 'rotateY(180deg)',
+            }}
+          >
+            {/* Card Actions Menu (top-right) - mirrored compensation */}
+            <div className="absolute top-4 right-4 z-10" onClick={e => e.stopPropagation()}>
+              <CardActionsMenu
+                card={card}
+                canEditDelete={canEditDelete}
+                onEdit={onEditCard}
+                onDelete={onDeleteCard}
+              />
             </div>
-          )}
+
+            {/* Back Content */}
+            <div className="text-center px-4">
+              <div className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide">
+                Răspuns
+              </div>
+              <div className="text-2xl font-bold text-gray-900">{card.back}</div>
+            </div>
+
+            {/* Sticky Navigation Footer (back) - Always visible */}
+            <div
+              className="absolute bottom-0 left-0 right-0 p-4 border-t border-indigo-200 bg-indigo-50/90 backdrop-blur rounded-b-2xl"
+              onClick={e => e.stopPropagation()}
+            >
+              {!hasAnswered ? (
+                <div className="flex items-center justify-between gap-2">
+                  <button
+                    onClick={onUndo}
+                    disabled={isFirstCard}
+                    className={`p-2 rounded-lg transition-all ${
+                      isFirstCard
+                        ? 'text-gray-300 cursor-not-allowed'
+                        : 'text-gray-600 hover:bg-gray-100 active:scale-95'
+                    }`}
+                    title="Înapoi"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+
+                  <div className="flex gap-2 flex-1 justify-center">
+                    <button
+                      onClick={handleDontKnow}
+                      className="flex items-center gap-2 px-6 py-2 bg-red-100 text-red-700 rounded-lg font-semibold hover:bg-red-200 transition-all active:scale-95"
+                    >
+                      ❌ Nu Știu
+                    </button>
+                    <button
+                      onClick={onNext}
+                      className="flex items-center gap-2 px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-all active:scale-95"
+                    >
+                      Următorul
+                      <ChevronRight size={18} />
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={onSkip}
+                    className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-all active:scale-95"
+                    title="Sari peste"
+                  >
+                    <SkipForward size={20} />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between gap-2">
+                  <button
+                    onClick={onUndo}
+                    disabled={isFirstCard}
+                    className={`p-2 rounded-lg transition-all ${
+                      isFirstCard
+                        ? 'text-gray-300 cursor-not-allowed'
+                        : 'text-gray-600 hover:bg-gray-100 active:scale-95'
+                    }`}
+                    title="Înapoi"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  <button
+                    onClick={onNext}
+                    disabled={isLastCard}
+                    className={`flex items-center gap-2 px-6 py-2 rounded-lg font-semibold transition-all ${
+                      isLastCard
+                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                        : 'bg-indigo-600 text-white hover:bg-indigo-700 active:scale-95'
+                    }`}
+                  >
+                    Următorul
+                    <ChevronRight size={18} />
+                  </button>
+                  <div className="w-10"></div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

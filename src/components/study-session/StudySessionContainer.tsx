@@ -107,25 +107,21 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
       return;
     }
 
-    // Store the current session ID for reloading
-    const sessionId = currentSession.id;
-
-    // Reset the session state
-    resetSessionState();
-
-    // Reload with filtered cards
-    loadSession(sessionId).then(() => {
-      // After loading, filter to review cards only
-      const store = useStudySessionsStore.getState();
-      if (store.currentSession) {
-        useStudySessionsStore.setState({
-          currentSession: { ...store.currentSession, cards: reviewCards },
-          currentCardIndex: 0,
-        });
-      }
-    });
-
+    // Close modal first
     setShowCompletionModal(false);
+
+    // Update the store with filtered cards and reset state completely
+    useStudySessionsStore.setState({
+      currentSession: currentSession ? { ...currentSession, cards: reviewCards } : null,
+      currentCardIndex: 0,
+      answers: {}, // CRITICAL: Clear all answers to prevent infinite loop
+      streak: 0,
+      sessionXP: 0,
+      isCardFlipped: false,
+      hintRevealed: false,
+      selectedQuizOption: null,
+      isDirty: true,
+    });
   };
 
   const handleFinishAndExit = async () => {
@@ -366,6 +362,13 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
                   setShowCompletionModal(true);
                 }
               }}
+              onNext={() => {
+                if (currentCardIndex < (currentSession?.cards?.length || 0) - 1) {
+                  nextCard();
+                } else {
+                  setShowCompletionModal(true);
+                }
+              }}
               onSkip={() => {
                 skipCard(currentCard.id);
                 if (currentCardIndex < (currentSession?.cards?.length || 0) - 1) {
@@ -374,6 +377,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
               }}
               onUndo={undoLastAnswer}
               isFirstCard={currentCardIndex === 0}
+              isLastCard={currentCardIndex === (currentSession?.cards?.length || 0) - 1}
               hasAnswered={answers[currentCard.id] !== undefined}
             />
           )}
