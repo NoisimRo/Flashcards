@@ -23,15 +23,16 @@ export const QuizCard: React.FC<QuizCardProps> = ({ card, onAnswer }) => {
   const handleOptionClick = (index: number) => {
     if (hasAnswered) return;
     setQuizOption(index);
-  };
 
-  const handleSubmit = () => {
-    if (selectedQuizOption === null) return;
-
-    const correct = selectedQuizOption === card.correctOptionIndex;
+    // Instant feedback - check if answer is correct immediately
+    const correct = index === card.correctOptionIndex;
     setIsCorrect(correct);
     setHasAnswered(true);
-    onAnswer(correct);
+
+    // Call onAnswer after a tiny delay to show the feedback
+    setTimeout(() => {
+      onAnswer(correct);
+    }, 100);
   };
 
   return (
@@ -85,21 +86,6 @@ export const QuizCard: React.FC<QuizCardProps> = ({ card, onAnswer }) => {
             );
           })}
         </div>
-
-        {/* Submit Button */}
-        {!hasAnswered && (
-          <button
-            onClick={handleSubmit}
-            disabled={selectedQuizOption === null}
-            className={`w-full py-3 rounded-xl font-semibold transition-colors ${
-              selectedQuizOption !== null
-                ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-            }`}
-          >
-            Trimite Răspuns
-          </button>
-        )}
 
         {/* Result Feedback */}
         {showResult && (
