@@ -1,13 +1,17 @@
 import React from 'react';
 import { useStudySessionsStore } from '../../../store/studySessionsStore';
 import { Card } from '../../../types/models';
-import { Check, X, Lightbulb } from 'lucide-react';
+import { Check, X, Lightbulb, ChevronLeft, SkipForward } from 'lucide-react';
 import { CardActionsMenu } from '../menus/CardActionsMenu';
 
 interface QuizCardProps {
   card: Card;
   onAnswer: (isCorrect: boolean) => void;
   onAutoAdvance?: () => void;
+  onUndo?: () => void;
+  onSkip?: () => void;
+  isFirstCard?: boolean;
+  hasAnswered?: boolean;
   canEditDelete?: boolean;
   onEditCard?: () => void;
   onDeleteCard?: () => void;
@@ -21,13 +25,17 @@ export const QuizCard: React.FC<QuizCardProps> = ({
   card,
   onAnswer,
   onAutoAdvance,
+  onUndo,
+  onSkip,
+  isFirstCard = false,
+  hasAnswered: hasAnsweredProp = false,
   canEditDelete = false,
   onEditCard,
   onDeleteCard,
 }) => {
   const { selectedQuizOption, setQuizOption, answers, hintRevealed, revealHint, sessionXP } =
     useStudySessionsStore();
-  const [hasAnswered, setHasAnswered] = React.useState(false);
+  const [hasAnswered, setHasAnswered] = React.useState(hasAnsweredProp);
   const [isCorrect, setIsCorrect] = React.useState<boolean | null>(null);
 
   const cardAnswer = answers[card.id];
@@ -98,7 +106,6 @@ export const QuizCard: React.FC<QuizCardProps> = ({
               <span className="font-semibold">Context:</span> {card.context}
             </div>
           )}
-
         </div>
 
         {/* Options */}
@@ -134,6 +141,33 @@ export const QuizCard: React.FC<QuizCardProps> = ({
           })}
         </div>
 
+        {/* Navigation Buttons (inside card at bottom) */}
+        {!hasAnswered && (
+          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white/80 backdrop-blur rounded-b-2xl">
+            <div className="flex items-center justify-between gap-2">
+              <button
+                onClick={onUndo}
+                disabled={isFirstCard}
+                className={`p-2 rounded-lg transition-all ${
+                  isFirstCard
+                    ? 'text-gray-300 cursor-not-allowed'
+                    : 'text-gray-600 hover:bg-gray-100 active:scale-95'
+                }`}
+                title="Înapoi"
+              >
+                <ChevronLeft size={20} />
+              </button>
+
+              <button
+                onClick={onSkip}
+                className="flex items-center gap-2 px-4 py-2 text-yellow-700 hover:bg-yellow-50 rounded-lg transition-all active:scale-95"
+              >
+                <SkipForward size={18} />
+                <span className="hidden sm:inline">Sari</span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

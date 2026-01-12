@@ -53,6 +53,7 @@ interface StudySessionsStore {
   skipCard: (cardId: string) => void;
   nextCard: () => void;
   undoLastAnswer: () => void;
+  shuffleCards: () => void;
   enableAutoSave: (intervalMs?: number) => void;
   disableAutoSave: () => void;
   syncProgress: () => Promise<void>;
@@ -430,6 +431,29 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
     set({
       currentCardIndex: state.currentCardIndex - 1,
       answers: updatedAnswers,
+      isCardFlipped: false,
+      hintRevealed: false,
+      selectedQuizOption: null,
+      isDirty: true,
+    });
+  },
+
+  // Shuffle cards (Fisher-Yates algorithm)
+  shuffleCards: () => {
+    const state = get();
+    if (!state.currentSession?.cards) return;
+
+    const shuffledCards = [...state.currentSession.cards];
+    for (let i = shuffledCards.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledCards[i], shuffledCards[j]] = [shuffledCards[j], shuffledCards[i]];
+    }
+
+    set({
+      currentSession: state.currentSession
+        ? { ...state.currentSession, cards: shuffledCards }
+        : null,
+      currentCardIndex: 0,
       isCardFlipped: false,
       hintRevealed: false,
       selectedQuizOption: null,

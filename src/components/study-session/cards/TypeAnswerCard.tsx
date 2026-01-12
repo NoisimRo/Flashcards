@@ -1,13 +1,17 @@
 import React from 'react';
 import { useStudySessionsStore } from '../../../store/studySessionsStore';
 import { Card } from '../../../types/models';
-import { Check, X, Send, Lightbulb } from 'lucide-react';
+import { Check, X, Send, Lightbulb, ChevronLeft, SkipForward } from 'lucide-react';
 import { CardActionsMenu } from '../menus/CardActionsMenu';
 
 interface TypeAnswerCardProps {
   card: Card;
   onAnswer: (isCorrect: boolean) => void;
   onAutoAdvance?: () => void;
+  onUndo?: () => void;
+  onSkip?: () => void;
+  isFirstCard?: boolean;
+  hasAnswered?: boolean;
   canEditDelete?: boolean;
   onEditCard?: () => void;
   onDeleteCard?: () => void;
@@ -21,13 +25,17 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
   card,
   onAnswer,
   onAutoAdvance,
+  onUndo,
+  onSkip,
+  isFirstCard = false,
+  hasAnswered: hasAnsweredProp = false,
   canEditDelete = false,
   onEditCard,
   onDeleteCard,
 }) => {
   const { answers, hintRevealed, revealHint, sessionXP } = useStudySessionsStore();
   const [userAnswer, setUserAnswer] = React.useState('');
-  const [hasAnswered, setHasAnswered] = React.useState(false);
+  const [hasAnswered, setHasAnswered] = React.useState(hasAnsweredProp);
   const [isCorrect, setIsCorrect] = React.useState<boolean | null>(null);
   const [showBack, setShowBack] = React.useState(false);
 
@@ -128,37 +136,39 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
 
             {/* Answer Input Form */}
             <form onSubmit={handleSubmit}>
-          <div className="mb-6">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Răspunsul tău:</label>
-            <div className="relative">
-              <input
-                type="text"
-                value={userAnswer}
-                onChange={e => setUserAnswer(e.target.value)}
-                disabled={hasAnswered}
-                placeholder="Scrie răspunsul aici..."
-                className={`w-full px-5 py-4 pr-14 rounded-xl border-2 focus:outline-none focus:ring-2 transition-all text-base ${
-                  showResult
-                    ? isCorrect || cardAnswer === 'correct'
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-red-500 bg-red-50'
-                    : 'border-gray-300 focus:border-indigo-600 focus:ring-indigo-200'
-                } ${hasAnswered ? 'cursor-not-allowed' : ''}`}
-                autoFocus
-              />
-              <button
-                type="submit"
-                disabled={hasAnswered || !userAnswer.trim()}
-                className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all ${
-                  hasAnswered || !userAnswer.trim()
-                    ? 'text-gray-400 cursor-not-allowed'
-                    : 'text-indigo-600 hover:bg-indigo-50 active:scale-95'
-                }`}
-              >
-                <Send size={20} />
-              </button>
-            </div>
-          </div>
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Răspunsul tău:
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={userAnswer}
+                    onChange={e => setUserAnswer(e.target.value)}
+                    disabled={hasAnswered}
+                    placeholder="Scrie răspunsul aici..."
+                    className={`w-full px-5 py-4 pr-14 rounded-xl border-2 focus:outline-none focus:ring-2 transition-all text-base ${
+                      showResult
+                        ? isCorrect || cardAnswer === 'correct'
+                          ? 'border-green-500 bg-green-50'
+                          : 'border-red-500 bg-red-50'
+                        : 'border-gray-300 focus:border-indigo-600 focus:ring-indigo-200'
+                    } ${hasAnswered ? 'cursor-not-allowed' : ''}`}
+                    autoFocus
+                  />
+                  <button
+                    type="submit"
+                    disabled={hasAnswered || !userAnswer.trim()}
+                    className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all ${
+                      hasAnswered || !userAnswer.trim()
+                        ? 'text-gray-400 cursor-not-allowed'
+                        : 'text-indigo-600 hover:bg-indigo-50 active:scale-95'
+                    }`}
+                  >
+                    <Send size={20} />
+                  </button>
+                </div>
+              </div>
             </form>
           </>
         )}
@@ -197,6 +207,33 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
           </div>
         )}
 
+        {/* Navigation Buttons (inside card at bottom) - only on front */}
+        {!showBack && !hasAnswered && (
+          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white/80 backdrop-blur rounded-b-2xl">
+            <div className="flex items-center justify-between gap-2">
+              <button
+                onClick={onUndo}
+                disabled={isFirstCard}
+                className={`p-2 rounded-lg transition-all ${
+                  isFirstCard
+                    ? 'text-gray-300 cursor-not-allowed'
+                    : 'text-gray-600 hover:bg-gray-100 active:scale-95'
+                }`}
+                title="Înapoi"
+              >
+                <ChevronLeft size={20} />
+              </button>
+
+              <button
+                onClick={onSkip}
+                className="flex items-center gap-2 px-4 py-2 text-yellow-700 hover:bg-yellow-50 rounded-lg transition-all active:scale-95"
+              >
+                <SkipForward size={18} />
+                <span className="hidden sm:inline">Sari</span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
