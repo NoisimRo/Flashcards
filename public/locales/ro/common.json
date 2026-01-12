@@ -1,0 +1,12 @@
+{
+  "app": {
+    "title": "Flashcards - Evaluare Națională",
+    "loading": "Se încarcă...",
+    "back": "Înapoi",
+    "backToApp": "Înapoi la aplicație"
+  },
+  "buttons": {
+    "save": "Salvează",
+    "cancel": "Anulează"
+  }
+}

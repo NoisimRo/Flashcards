@@ -1,0 +1,10 @@
+{
+  "create": "Creează Sesiune",
+  "continue": "Continuă",
+  "finish": "Finalizează",
+  "skip": "Sari peste",
+  "undo": "Înapoi",
+  "next": "Următorul",
+  "loading": "Se încarcă sesiunea...",
+  "noCards": "Nu există carduri în această sesiune."
+}

@@ -1,0 +1,80 @@
+import React from 'react';
+import { useStudySessionsStore } from '../../../store/studySessionsStore';
+import { Card } from '../../../types/models';
+import { Eye } from 'lucide-react';
+
+interface StandardCardProps {
+  card: Card;
+}
+
+/**
+ * StandardCard - Flip card component for standard flashcards
+ * Displays front/back content with flip animation
+ */
+export const StandardCard: React.FC<StandardCardProps> = ({ card }) => {
+  const { isCardFlipped, flipCard, hintRevealed } = useStudySessionsStore();
+  const [showHint, setShowHint] = React.useState(false);
+
+  React.useEffect(() => {
+    setShowHint(hintRevealed);
+  }, [hintRevealed]);
+
+  return (
+    <div className="w-full max-w-2xl mx-auto">
+      {/* Card Container */}
+      <div
+        className={`relative bg-white rounded-2xl shadow-xl p-8 min-h-[400px] flex flex-col justify-center items-center cursor-pointer transition-all duration-300 hover:shadow-2xl ${
+          isCardFlipped ? 'bg-gradient-to-br from-indigo-50 to-purple-50' : ''
+        }`}
+        onClick={flipCard}
+      >
+        {/* Front/Back Content */}
+        <div className="text-center">
+          <div className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide">
+            {isCardFlipped ? 'Răspuns' : 'Întrebare'}
+          </div>
+
+          <div className="text-2xl font-bold text-gray-900 mb-6">
+            {isCardFlipped ? card.back : card.front}
+          </div>
+
+          {/* Context (if available) */}
+          {!isCardFlipped && card.context && (
+            <div className="text-sm text-gray-600 italic bg-gray-50 rounded-lg p-4 mb-4">
+              <span className="font-semibold">Context:</span> {card.context}
+            </div>
+          )}
+
+          {/* Hint (if available and revealed) */}
+          {!isCardFlipped && card.hint && showHint && (
+            <div className="text-sm text-indigo-600 bg-indigo-50 rounded-lg p-4 mb-4 flex items-start gap-2">
+              <Eye size={16} className="mt-0.5 flex-shrink-0" />
+              <span>
+                <span className="font-semibold">Indiciu:</span> {card.hint}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Flip Indicator */}
+        <div className="absolute bottom-4 right-4 text-gray-400 text-sm">
+          {isCardFlipped ? '↩️ Click pentru față' : '🔄 Click pentru răspuns'}
+        </div>
+      </div>
+
+      {/* Hint Button (if hint available and not revealed) */}
+      {!isCardFlipped && card.hint && !showHint && (
+        <button
+          onClick={e => {
+            e.stopPropagation();
+            setShowHint(true);
+          }}
+          className="mt-4 flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-medium mx-auto"
+        >
+          <Eye size={18} />
+          Arată indiciu
+        </button>
+      )}
+    </div>
+  );
+};
