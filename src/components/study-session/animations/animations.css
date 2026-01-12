@@ -1,0 +1,152 @@
+/* Study Session Animations */
+
+/* Floating XP Animation */
+@keyframes float-xp {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-30px) scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-60px) scale(1);
+  }
+}
+
+.animate-float-xp {
+  animation: float-xp 1.5s ease-out forwards;
+}
+
+/* Pop In Animation */
+@keyframes pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-pop-in {
+  animation: pop-in 0.3s ease-out;
+}
+
+/* Level Up Animation */
+@keyframes level-up {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) rotate(-10deg);
+  }
+  50% {
+    transform: scale(1.1) rotate(5deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.animate-level-up {
+  animation: level-up 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Fade In Animation */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-in;
+}
+
+/* Scale Up Animation */
+@keyframes scale-up {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scale-up {
+  animation: scale-up 0.3s ease-out;
+}
+
+/* Slide Up Animation */
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.4s ease-out;
+}
+
+/* Pulse Green Animation (for correct answer button) */
+@keyframes pulse-green {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
+  }
+}
+
+.animate-pulse-green {
+  animation: pulse-green 1.5s ease-in-out infinite;
+}
+
+/* Active Scale Effect */
+.active\:scale-95:active {
+  transform: scale(0.95);
+}
+
+.active\:scale-98:active {
+  transform: scale(0.98);
+}
+
+/* Bounce Animation */
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-bounce {
+  animation: bounce 0.6s ease-in-out infinite;
+}
+
+/* Transform Style for 3D flip cards */
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}

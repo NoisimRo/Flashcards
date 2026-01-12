@@ -1,11 +1,13 @@
-# Project Context - Flashcards Evaluare Nationala
+# Project Context - AiMinte (formerly Flashcards Evaluare Nationala)
 
 > This document provides context for AI assistants and developers working on this project.
-> Last updated: January 3, 2026
+> Last updated: January 12, 2026
+>
+> **⚠️ Current Status:** In active refactoring - See `.claude/REFACTORING_PLAN_i18n.md` and `.claude/COMPONENT_MIGRATION_STRATEGY.md`
 
 ## Project Purpose & Scope
 
-**Flashcards Evaluare Nationala** is an interactive flashcard application designed for Romanian students preparing for the National Evaluation exam (Evaluare Nationala). It provides:
+**AiMinte** (Romanian) / **BrAIn** (English) / **SaprAi** (Italian) is a multi-language interactive flashcard application designed for students preparing for national exams. It provides:
 
 - Flashcard creation and study with spaced repetition (SM-2 algorithm)
 - Gamification: XP, levels, achievements, streaks, leaderboards
@@ -21,14 +23,17 @@
 
 ### Frontend
 
-| Technology   | Version   | Purpose                 |
-| ------------ | --------- | ----------------------- |
-| React        | 19.x      | UI framework            |
-| TypeScript   | 5.8.x     | Type safety             |
-| Vite         | 6.x       | Build tool & dev server |
-| TailwindCSS  | (via CDN) | Styling                 |
-| Lucide React | 0.559.x   | Icons                   |
-| Recharts     | 3.5.x     | Charts/graphs           |
+| Technology        | Version     | Purpose                    |
+| ----------------- | ----------- | -------------------------- |
+| React             | 19.x        | UI framework               |
+| TypeScript        | 5.8.x       | Type safety                |
+| Vite              | 6.x         | Build tool & dev server    |
+| TailwindCSS       | (via CDN)   | Styling                    |
+| Lucide React      | 0.559.x     | Icons                      |
+| Recharts          | 3.5.x       | Charts/graphs              |
+| **i18next**       | **23.17.x** | **Internationalization**   |
+| **react-i18next** | **15.2.x**  | **React i18n integration** |
+| **Zustand**       | **5.0.x**   | **State management**       |
 
 ### Backend
 

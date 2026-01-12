@@ -67,13 +67,20 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({ card, onAnswer }
         {/* Answer Input Form */}
         <form onSubmit={handleSubmit}>
           <div className="mb-6">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Răspunsul tău:</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Răspunsul tău:
+              {!hasAnswered && (
+                <span className="text-xs text-gray-500 font-normal ml-2">
+                  (Apasă Enter pentru a trimite)
+                </span>
+              )}
+            </label>
             <input
               type="text"
               value={userAnswer}
               onChange={e => setUserAnswer(e.target.value)}
               disabled={hasAnswered}
-              placeholder="Scrie răspunsul aici..."
+              placeholder="Scrie răspunsul aici și apasă Enter..."
               className={`w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 transition-all ${
                 showResult
                   ? isCorrect || cardAnswer === 'correct'
@@ -84,21 +91,6 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({ card, onAnswer }
               autoFocus
             />
           </div>
-
-          {/* Submit Button */}
-          {!hasAnswered && (
-            <button
-              type="submit"
-              disabled={!userAnswer.trim()}
-              className={`w-full py-3 rounded-xl font-semibold transition-colors ${
-                userAnswer.trim()
-                  ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-              }`}
-            >
-              Verifică Răspuns
-            </button>
-          )}
         </form>
 
         {/* Result Feedback */}
