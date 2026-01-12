@@ -3,6 +3,7 @@ import { useStudySessionsStore } from '../../../store/studySessionsStore';
 import { Card } from '../../../types/models';
 import { Eye } from 'lucide-react';
 import { CardActionsMenu } from '../menus/CardActionsMenu';
+import '../animations/animations.css';
 
 interface StandardCardProps {
   card: Card;
@@ -27,9 +28,14 @@ export const StandardCard: React.FC<StandardCardProps> = ({
     <div className="w-full max-w-2xl mx-auto">
       {/* Card Container */}
       <div
-        className={`relative bg-white rounded-2xl shadow-xl p-8 min-h-[400px] flex flex-col justify-center items-center cursor-pointer transition-all duration-300 hover:shadow-2xl ${
+        className={`relative bg-white rounded-2xl shadow-xl p-8 min-h-[400px] flex flex-col justify-center items-center cursor-pointer hover:shadow-2xl ${
           isCardFlipped ? 'bg-gradient-to-br from-indigo-50 to-purple-50' : ''
         }`}
+        style={{
+          transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+          transform: isCardFlipped ? 'rotateY(360deg) scale(1.02)' : 'rotateY(0deg) scale(1)',
+          transformStyle: 'preserve-3d',
+        }}
         onClick={flipCard}
       >
         {/* Card Actions Menu (top-right) */}

@@ -12,7 +12,7 @@ import { XPFloatingAnimation } from './animations/XPFloatingAnimation';
 import { StreakCelebration } from './animations/StreakCelebration';
 import { LevelUpOverlay } from './animations/LevelUpOverlay';
 import { SessionCompletionModal } from './modals/SessionCompletionModal';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Shuffle, RotateCcw } from 'lucide-react';
 
 interface StudySessionContainerProps {
   sessionId: string;
@@ -143,6 +143,30 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     }
   };
 
+  // Handle shuffle cards
+  const handleShuffle = () => {
+    if (window.confirm('Sigur vrei să amesteci cardurile? Progresul actual nu va fi pierdut.')) {
+      // Shuffle logic would need to be implemented in the store
+      // For now, just show a toast or alert
+      alert('Funcția de amestecare va fi implementată în viitoarea versiune.');
+    }
+  };
+
+  // Handle restart session
+  const handleRestart = () => {
+    if (
+      window.confirm(
+        'Sigur vrei să restartezi sesiunea? Vei pierde tot progresul actual și XP-ul câștigat.'
+      )
+    ) {
+      resetSessionState();
+      setShowCompletionModal(false);
+      setShowXPAnimation(false);
+      setShowStreakCelebration(false);
+      setShowLevelUp(false);
+    }
+  };
+
   // Handle answer submission
   const handleAnswer = (isCorrect: boolean) => {
     const currentCard = getCurrentCard();
@@ -215,13 +239,36 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <button
-            onClick={onBack}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium mb-4 transition-colors"
-          >
-            <ArrowLeft size={20} />
-            Înapoi
-          </button>
+          <div className="flex items-center justify-between mb-4">
+            <button
+              onClick={onBack}
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium transition-all active:scale-95"
+            >
+              <ArrowLeft size={20} />
+              Înapoi
+            </button>
+
+            {/* Shuffle & Restart Buttons */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleShuffle}
+                className="flex items-center gap-2 px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg font-medium transition-all active:scale-95"
+                title="Amestecă cardurile"
+              >
+                <Shuffle size={18} />
+                <span className="hidden sm:inline">Amestecă</span>
+              </button>
+
+              <button
+                onClick={handleRestart}
+                className="flex items-center gap-2 px-3 py-2 text-sm text-orange-600 hover:bg-orange-50 rounded-lg font-medium transition-all active:scale-95"
+                title="Restartează sesiunea"
+              >
+                <RotateCcw size={18} />
+                <span className="hidden sm:inline">Restart</span>
+              </button>
+            </div>
+          </div>
 
           {/* Session Title */}
           <div className="bg-white rounded-xl shadow-sm p-6">

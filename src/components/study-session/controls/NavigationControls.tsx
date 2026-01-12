@@ -55,10 +55,10 @@ export const NavigationControls: React.FC<NavigationControlsProps> = ({ onComple
       <button
         onClick={handleUndo}
         disabled={isFirstCard}
-        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
           isFirstCard
             ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            : 'bg-gray-200 text-gray-700 hover:bg-gray-300 active:scale-95'
         }`}
       >
         <ChevronLeft size={20} />
@@ -69,7 +69,7 @@ export const NavigationControls: React.FC<NavigationControlsProps> = ({ onComple
       {!hasAnswered && (
         <button
           onClick={handleSkip}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium bg-yellow-100 text-yellow-700 hover:bg-yellow-200 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium bg-yellow-100 text-yellow-700 hover:bg-yellow-200 transition-all active:scale-95"
         >
           <SkipForward size={20} />
           Sari peste
@@ -80,7 +80,7 @@ export const NavigationControls: React.FC<NavigationControlsProps> = ({ onComple
       {hasAnswered && !isLastCard && (
         <button
           onClick={handleNext}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition-all active:scale-95"
         >
           Următorul
           <ChevronRight size={20} />
@@ -91,7 +91,7 @@ export const NavigationControls: React.FC<NavigationControlsProps> = ({ onComple
       {(isLastCard && hasAnswered) || allCardsAnswered ? (
         <button
           onClick={onComplete}
-          className="flex items-center gap-2 px-6 py-2 rounded-lg font-semibold bg-green-600 text-white hover:bg-green-700 transition-colors"
+          className="flex items-center gap-2 px-6 py-2 rounded-lg font-semibold bg-green-600 text-white hover:bg-green-700 transition-all active:scale-95"
         >
           <Check size={20} />
           Finalizează
