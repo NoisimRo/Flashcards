@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../store/AuthContext';
-import { BookOpen, Mail, Lock, Eye, EyeOff, Loader2, User, GraduationCap } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Loader2, User, GraduationCap } from 'lucide-react';
 
 interface RegisterProps {
   onSwitchToLogin: () => void;
 }
 
 const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
+  const { t } = useTranslation();
   const { register, isLoading, error } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -47,21 +49,23 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
       <div className="w-full max-w-md">
         {/* Logo & Title */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-900 rounded-2xl mb-4">
-            <BookOpen className="text-white" size={32} />
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-900 rounded-2xl mb-4 text-5xl">
+            {t('brand.emoji')}
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Flashcards</h1>
-          <p className="text-gray-500 mt-2">Evaluare Națională</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('brand.name')}</h1>
+          <p className="text-gray-500 mt-2">{t('brand.topic')}</p>
         </div>
 
         {/* Register Form */}
         <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Creează cont</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('auth:register.title')}</h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Name */}
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Nume complet</label>
+              <label className="block text-sm font-bold text-gray-700 mb-2">
+                {t('auth:register.nameLabel')}
+              </label>
               <div className="relative">
                 <User
                   className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
@@ -72,7 +76,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
                   value={name}
                   onChange={e => setName(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 border-2 border-gray-100 bg-gray-50 rounded-xl font-medium outline-none focus:border-gray-900 transition-colors"
-                  placeholder="Ion Popescu"
+                  placeholder={t('auth:register.namePlaceholder')}
                 />
               </div>
             </div>

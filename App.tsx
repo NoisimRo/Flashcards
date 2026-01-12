@@ -1,5 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense } from 'react';
 import { Loader2, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import './src/i18n/config'; // Initialize i18n
 import { AuthProvider, useAuth } from './src/store/AuthContext';
 import { ToastProvider } from './src/components/ui/Toast';
 import { AppLayout } from './src/layouts/AppLayout';
@@ -19,6 +21,7 @@ import { clearGuestToken } from './src/utils/guestMode';
  * Delegates routing to ViewRouter and layout to AppLayout
  */
 function AppContent() {
+  const { t } = useTranslation();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { fetchDecks } = useDecksStore();
   const {
@@ -61,7 +64,7 @@ function AppContent() {
       <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin text-gray-900 mx-auto mb-4" />
-          <p className="text-gray-600 font-medium">Se încarcă...</p>
+          <p className="text-gray-600 font-medium">{t('app.loading')}</p>
         </div>
       </div>
     );
@@ -77,7 +80,7 @@ function AppContent() {
           className="absolute top-4 left-4 bg-white/90 backdrop-blur px-4 py-2 rounded-xl font-medium text-gray-700 hover:bg-white transition-colors shadow-lg flex items-center gap-2"
         >
           <X size={18} />
-          Înapoi la aplicație
+          {t('app.backToApp')}
         </button>
       </div>
     );
@@ -117,11 +120,22 @@ function AppContent() {
  */
 function App() {
   return (
-    <AuthProvider>
-      <ToastProvider>
-        <AppContent />
-      </ToastProvider>
-    </AuthProvider>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 animate-spin text-gray-900 mx-auto mb-4" />
+            <p className="text-gray-600 font-medium">Loading...</p>
+          </div>
+        </div>
+      }
+    >
+      <AuthProvider>
+        <ToastProvider>
+          <AppContent />
+        </ToastProvider>
+      </AuthProvider>
+    </Suspense>
   );
 }
 

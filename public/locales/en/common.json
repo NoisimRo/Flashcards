@@ -1,12 +1,25 @@
 {
+  "brand": {
+    "name": "BrAIn",
+    "emoji": "🧠",
+    "topic": "Lock it in!",
+    "slogan": "You learn. AI does the rest."
+  },
   "app": {
-    "title": "Flashcards - National Evaluation",
+    "title": "BrAIn - Lock it in!",
     "loading": "Loading...",
     "back": "Back",
     "backToApp": "Back to app"
   },
   "buttons": {
     "save": "Save",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "create": "Create",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "close": "Close",
+    "yes": "Yes",
+    "no": "No"
   }
 }
