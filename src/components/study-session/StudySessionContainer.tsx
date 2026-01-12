@@ -295,9 +295,33 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
         {/* Card Display Area */}
         <div className="mb-6">
           {currentCard.type === 'standard' && <StandardCard card={currentCard} />}
-          {currentCard.type === 'quiz' && <QuizCard card={currentCard} onAnswer={handleAnswer} />}
+          {currentCard.type === 'quiz' && (
+            <QuizCard
+              card={currentCard}
+              onAnswer={handleAnswer}
+              onAutoAdvance={() => {
+                // Auto-advance to next card if not on last card
+                const totalCards = currentSession?.cards?.length || 0;
+                const isLastCard = (currentSession?.cards?.findIndex(c => c.id === currentCard.id) || 0) === totalCards - 1;
+                if (!isLastCard) {
+                  nextCard();
+                }
+              }}
+            />
+          )}
           {currentCard.type === 'type-answer' && (
-            <TypeAnswerCard card={currentCard} onAnswer={handleAnswer} />
+            <TypeAnswerCard
+              card={currentCard}
+              onAnswer={handleAnswer}
+              onAutoAdvance={() => {
+                // Auto-advance to next card if not on last card
+                const totalCards = currentSession?.cards?.length || 0;
+                const isLastCard = (currentSession?.cards?.findIndex(c => c.id === currentCard.id) || 0) === totalCards - 1;
+                if (!isLastCard) {
+                  nextCard();
+                }
+              }}
+            />
           )}
         </div>
 

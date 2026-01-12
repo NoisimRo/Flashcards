@@ -1,7 +1,7 @@
 import React from 'react';
 import { useStudySessionsStore } from '../../../store/studySessionsStore';
 import { Card } from '../../../types/models';
-import { Eye } from 'lucide-react';
+import { Lightbulb } from 'lucide-react';
 import { CardActionsMenu } from '../menus/CardActionsMenu';
 import '../animations/animations.css';
 
@@ -40,6 +40,22 @@ export const StandardCard: React.FC<StandardCardProps> = ({
         }}
         onClick={flipCard}
       >
+        {/* Lightbulb Hint Button (top-left) */}
+        {!isCardFlipped && card.context && !hintRevealed && (
+          <div className="absolute top-4 left-4" onClick={e => e.stopPropagation()}>
+            <button
+              onClick={e => {
+                e.stopPropagation();
+                revealHint();
+              }}
+              className="p-2 rounded-lg bg-yellow-100 hover:bg-yellow-200 text-yellow-700 transition-all active:scale-95"
+              title="Arată context (-20 XP)"
+            >
+              <Lightbulb size={20} />
+            </button>
+          </div>
+        )}
+
         {/* Card Actions Menu (top-right) */}
         <div className="absolute top-4 right-4" onClick={e => e.stopPropagation()}>
           <CardActionsMenu
@@ -60,22 +76,13 @@ export const StandardCard: React.FC<StandardCardProps> = ({
             {isCardFlipped ? card.back : card.front}
           </div>
 
-          {/* Context (if available) */}
-          {!isCardFlipped && card.context && (
+          {/* Context (if available and revealed) */}
+          {!isCardFlipped && card.context && hintRevealed && (
             <div className="text-sm text-gray-600 italic bg-gray-50 rounded-lg p-4 mb-4">
               <span className="font-semibold">Context:</span> {card.context}
             </div>
           )}
 
-          {/* Hint (if available and revealed) */}
-          {!isCardFlipped && card.hint && hintRevealed && (
-            <div className="text-sm text-indigo-600 bg-indigo-50 rounded-lg p-4 mb-4 flex items-start gap-2">
-              <Eye size={16} className="mt-0.5 flex-shrink-0" />
-              <span>
-                <span className="font-semibold">Indiciu (-20 XP):</span> {card.hint}
-              </span>
-            </div>
-          )}
         </div>
 
         {/* Flip Indicator */}
@@ -84,20 +91,6 @@ export const StandardCard: React.FC<StandardCardProps> = ({
         </div>
       </div>
 
-      {/* Hint Button (if hint available and not revealed) */}
-      {!isCardFlipped && card.hint && !hintRevealed && (
-        <button
-          onClick={e => {
-            e.stopPropagation();
-            revealHint();
-          }}
-          className="mt-4 flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-medium mx-auto transition-colors"
-          title={sessionXP >= 20 ? 'Costă 20 XP' : 'XP insuficient'}
-        >
-          <Eye size={18} />
-          Arată indiciu (-20 XP)
-        </button>
-      )}
     </div>
   );
 };
