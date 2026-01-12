@@ -103,13 +103,14 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     const elapsedSeconds = Math.floor((Date.now() - sessionStartTime) / 1000);
 
     // Build card progress updates
-    const cardProgressUpdates = currentSession.cards
-      ?.map(card => ({
-        cardId: card.id,
-        wasCorrect: answers[card.id] === 'correct',
-        timeSpentSeconds: 0, // We don't track per-card time in this simplified version
-      }))
-      .filter(update => answers[update.cardId] !== undefined) || [];
+    const cardProgressUpdates =
+      currentSession.cards
+        ?.map(card => ({
+          cardId: card.id,
+          wasCorrect: answers[card.id] === 'correct',
+          timeSpentSeconds: 0, // We don't track per-card time in this simplified version
+        }))
+        .filter(update => answers[update.cardId] !== undefined) || [];
 
     try {
       const { completeSession } = useStudySessionsStore.getState();

@@ -96,12 +96,8 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
         {/* Perfect Score Message */}
         {isPerfect && (
           <div className="bg-gradient-to-r from-yellow-100 to-amber-100 border-2 border-yellow-300 rounded-xl p-4 mb-6 text-center">
-            <p className="text-yellow-900 font-bold text-lg">
-              ⭐ Excelent! Scor perfect! ⭐
-            </p>
-            <p className="text-yellow-800 text-sm mt-2">
-              Ai răspuns corect la toate întrebările!
-            </p>
+            <p className="text-yellow-900 font-bold text-lg">⭐ Excelent! Scor perfect! ⭐</p>
+            <p className="text-yellow-800 text-sm mt-2">Ai răspuns corect la toate întrebările!</p>
           </div>
         )}
 
