@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trophy, Save, CheckCircle } from 'lucide-react';
+import { Trophy, Save, CheckCircle, RefreshCw } from 'lucide-react';
 import '../animations/animations.css';
 
 interface SessionCompletionModalProps {
@@ -10,6 +10,7 @@ interface SessionCompletionModalProps {
   xpEarned: number;
   onSaveAndExit: () => void;
   onFinishAndExit: () => void;
+  onReviewMistakes?: () => void;
 }
 
 /**
@@ -24,8 +25,10 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
   xpEarned,
   onSaveAndExit,
   onFinishAndExit,
+  onReviewMistakes,
 }) => {
   const isPerfect = score === 100;
+  const hasReviewableCards = incorrectCount + skippedCount > 0;
 
   return (
     <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
@@ -103,6 +106,17 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
 
         {/* Action Buttons */}
         <div className="space-y-3">
+          {/* Review Unknown/Skipped Cards */}
+          {hasReviewableCards && onReviewMistakes && (
+            <button
+              onClick={onReviewMistakes}
+              className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-4 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 active:scale-98"
+            >
+              <RefreshCw size={20} />
+              Exersează Greșite & Sărite ({incorrectCount + skippedCount})
+            </button>
+          )}
+
           {/* Save & Exit (without syncing) */}
           <button
             onClick={onSaveAndExit}

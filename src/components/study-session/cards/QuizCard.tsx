@@ -1,12 +1,17 @@
 import React from 'react';
 import { useStudySessionsStore } from '../../../store/studySessionsStore';
 import { Card } from '../../../types/models';
-import { Check, X, Eye } from 'lucide-react';
+import { Check, X, Lightbulb, ChevronLeft, SkipForward } from 'lucide-react';
 import { CardActionsMenu } from '../menus/CardActionsMenu';
 
 interface QuizCardProps {
   card: Card;
   onAnswer: (isCorrect: boolean) => void;
+  onAutoAdvance?: () => void;
+  onUndo?: () => void;
+  onSkip?: () => void;
+  isFirstCard?: boolean;
+  hasAnswered?: boolean;
   canEditDelete?: boolean;
   onEditCard?: () => void;
   onDeleteCard?: () => void;
@@ -19,13 +24,18 @@ interface QuizCardProps {
 export const QuizCard: React.FC<QuizCardProps> = ({
   card,
   onAnswer,
+  onAutoAdvance,
+  onUndo,
+  onSkip,
+  isFirstCard = false,
+  hasAnswered: hasAnsweredProp = false,
   canEditDelete = false,
   onEditCard,
   onDeleteCard,
 }) => {
   const { selectedQuizOption, setQuizOption, answers, hintRevealed, revealHint, sessionXP } =
     useStudySessionsStore();
-  const [hasAnswered, setHasAnswered] = React.useState(false);
+  const [hasAnswered, setHasAnswered] = React.useState(hasAnsweredProp);
   const [isCorrect, setIsCorrect] = React.useState<boolean | null>(null);
 
   const cardAnswer = answers[card.id];
@@ -44,12 +54,35 @@ export const QuizCard: React.FC<QuizCardProps> = ({
     setTimeout(() => {
       onAnswer(correct);
     }, 100);
+
+    // Auto-advance after 3 seconds
+    if (onAutoAdvance) {
+      setTimeout(() => {
+        onAutoAdvance();
+      }, 3000);
+    }
   };
 
   return (
     <div className="w-full max-w-2xl mx-auto">
       {/* Card Container */}
       <div className="relative bg-white rounded-2xl shadow-xl p-8">
+        {/* Lightbulb Hint Button (top-left) */}
+        {card.context && !hintRevealed && !hasAnswered && (
+          <div className="absolute top-4 left-4">
+            <button
+              onClick={e => {
+                e.stopPropagation();
+                revealHint();
+              }}
+              className="p-2 rounded-lg bg-yellow-100 hover:bg-yellow-200 text-yellow-700 transition-all active:scale-95"
+              title="Arată context (-20 XP)"
+            >
+              <Lightbulb size={20} />
+            </button>
+          </div>
+        )}
+
         {/* Card Actions Menu (top-right) */}
         <div className="absolute top-4 right-4">
           <CardActionsMenu
@@ -67,36 +100,11 @@ export const QuizCard: React.FC<QuizCardProps> = ({
           </div>
           <h2 className="text-2xl font-bold text-gray-900">{card.front}</h2>
 
-          {/* Context */}
-          {card.context && (
+          {/* Context (if available and revealed) */}
+          {card.context && hintRevealed && (
             <div className="mt-4 text-sm text-gray-600 italic bg-gray-50 rounded-lg p-4">
               <span className="font-semibold">Context:</span> {card.context}
             </div>
-          )}
-
-          {/* Hint (if available and revealed) */}
-          {card.hint && hintRevealed && (
-            <div className="mt-4 text-sm text-indigo-600 bg-indigo-50 rounded-lg p-4 flex items-start gap-2">
-              <Eye size={16} className="mt-0.5 flex-shrink-0" />
-              <span>
-                <span className="font-semibold">Indiciu (-20 XP):</span> {card.hint}
-              </span>
-            </div>
-          )}
-
-          {/* Hint Button (if hint available and not revealed and not answered) */}
-          {card.hint && !hintRevealed && !hasAnswered && (
-            <button
-              onClick={e => {
-                e.stopPropagation();
-                revealHint();
-              }}
-              className="mt-4 flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
-              title={sessionXP >= 20 ? 'Costă 20 XP' : 'XP insuficient'}
-            >
-              <Eye size={18} />
-              Arată indiciu (-20 XP)
-            </button>
           )}
         </div>
 
@@ -133,41 +141,31 @@ export const QuizCard: React.FC<QuizCardProps> = ({
           })}
         </div>
 
-        {/* Result Feedback */}
-        {showResult && (
-          <div
-            className={`mt-6 p-4 rounded-xl ${
-              isCorrect || cardAnswer === 'correct'
-                ? 'bg-green-50 border-2 border-green-200'
-                : cardAnswer === 'incorrect'
-                  ? 'bg-red-50 border-2 border-red-200'
-                  : 'bg-gray-50 border-2 border-gray-200'
-            }`}
-          >
-            <div className="flex items-center gap-2 font-semibold">
-              {(isCorrect || cardAnswer === 'correct') && (
-                <>
-                  <Check size={20} className="text-green-600" />
-                  <span className="text-green-900">Răspuns corect! 🎉</span>
-                </>
-              )}
-              {cardAnswer === 'incorrect' && (
-                <>
-                  <X size={20} className="text-red-600" />
-                  <span className="text-red-900">
-                    Răspuns greșit. Răspunsul corect: {card.options?.[card.correctOptionIndex!]}
-                  </span>
-                </>
-              )}
-              {cardAnswer === 'skipped' && <span className="text-gray-700">Întrebare sărită</span>}
-            </div>
+        {/* Navigation Buttons (inside card at bottom) */}
+        {!hasAnswered && (
+          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white/80 backdrop-blur rounded-b-2xl">
+            <div className="flex items-center justify-between gap-2">
+              <button
+                onClick={onUndo}
+                disabled={isFirstCard}
+                className={`p-2 rounded-lg transition-all ${
+                  isFirstCard
+                    ? 'text-gray-300 cursor-not-allowed'
+                    : 'text-gray-600 hover:bg-gray-100 active:scale-95'
+                }`}
+                title="Înapoi"
+              >
+                <ChevronLeft size={20} />
+              </button>
 
-            {/* Show back content if available */}
-            {card.back && (
-              <div className="mt-3 text-sm text-gray-700">
-                <span className="font-semibold">Explicație:</span> {card.back}
-              </div>
-            )}
+              <button
+                onClick={onSkip}
+                className="flex items-center gap-2 px-4 py-2 text-yellow-700 hover:bg-yellow-50 rounded-lg transition-all active:scale-95"
+              >
+                <SkipForward size={18} />
+                <span className="hidden sm:inline">Sari</span>
+              </button>
+            </div>
           </div>
         )}
       </div>

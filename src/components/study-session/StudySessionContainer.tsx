@@ -3,7 +3,6 @@ import { useStudySessionsStore } from '../../store/studySessionsStore';
 import { StandardCard } from './cards/StandardCard';
 import { QuizCard } from './cards/QuizCard';
 import { TypeAnswerCard } from './cards/TypeAnswerCard';
-import { NavigationControls } from './controls/NavigationControls';
 import { ProgressBar } from './progress/ProgressBar';
 import { SessionStats } from './progress/SessionStats';
 import { StreakIndicator } from './feedback/StreakIndicator';
@@ -37,6 +36,10 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     getCurrentCard,
     answerCard,
     nextCard,
+    undoLastAnswer,
+    skipCard,
+    shuffleCards,
+    currentCardIndex,
     isLoading,
     resetSessionState,
     setQuizOption,
@@ -88,6 +91,41 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
   const handleSaveAndExit = async () => {
     setShowCompletionModal(false);
     onBack();
+  };
+
+  const handleReviewMistakes = () => {
+    if (!currentSession) return;
+
+    // Filter cards to only include incorrect and skipped ones
+    const reviewCards = currentSession.cards?.filter(card => {
+      const answer = answers[card.id];
+      return answer === 'incorrect' || answer === 'skipped';
+    });
+
+    if (!reviewCards || reviewCards.length === 0) {
+      alert('Nu există carduri de revizuit.');
+      return;
+    }
+
+    // Store the current session ID for reloading
+    const sessionId = currentSession.id;
+
+    // Reset the session state
+    resetSessionState();
+
+    // Reload with filtered cards
+    loadSession(sessionId).then(() => {
+      // After loading, filter to review cards only
+      const store = useStudySessionsStore.getState();
+      if (store.currentSession) {
+        useStudySessionsStore.setState({
+          currentSession: { ...store.currentSession, cards: reviewCards },
+          currentCardIndex: 0,
+        });
+      }
+    });
+
+    setShowCompletionModal(false);
   };
 
   const handleFinishAndExit = async () => {
@@ -147,9 +185,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
   // Handle shuffle cards
   const handleShuffle = () => {
     if (window.confirm('Sigur vrei să amesteci cardurile? Progresul actual nu va fi pierdut.')) {
-      // Shuffle logic would need to be implemented in the store
-      // For now, just show a toast or alert
-      alert('Funcția de amestecare va fi implementată în viitoarea versiune.');
+      shuffleCards();
     }
   };
 
@@ -294,23 +330,77 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
 
         {/* Card Display Area */}
         <div className="mb-6">
-          {currentCard.type === 'standard' && <StandardCard card={currentCard} />}
-          {currentCard.type === 'quiz' && <QuizCard card={currentCard} onAnswer={handleAnswer} />}
-          {currentCard.type === 'type-answer' && (
-            <TypeAnswerCard card={currentCard} onAnswer={handleAnswer} />
+          {currentCard.type === 'standard' && (
+            <StandardCard
+              card={currentCard}
+              onAnswer={handleAnswer}
+              onNext={() => {
+                if (currentCardIndex < (currentSession?.cards?.length || 0) - 1) {
+                  nextCard();
+                } else {
+                  setShowCompletionModal(true);
+                }
+              }}
+              onSkip={() => {
+                skipCard(currentCard.id);
+                if (currentCardIndex < (currentSession?.cards?.length || 0) - 1) {
+                  nextCard();
+                }
+              }}
+              onUndo={undoLastAnswer}
+              isFirstCard={currentCardIndex === 0}
+              isLastCard={currentCardIndex === (currentSession?.cards?.length || 0) - 1}
+              hasAnswered={answers[currentCard.id] !== undefined}
+            />
           )}
-        </div>
-
-        {/* Action Buttons for Standard Cards */}
-        {currentCard.type === 'standard' && (
-          <div className="max-w-2xl mx-auto">
-            <StandardCardActions onAnswer={handleAnswer} />
-          </div>
-        )}
-
-        {/* Navigation Controls */}
-        <div className="max-w-2xl mx-auto">
-          <NavigationControls onComplete={onFinish} />
+          {currentCard.type === 'quiz' && (
+            <QuizCard
+              card={currentCard}
+              onAnswer={handleAnswer}
+              onAutoAdvance={() => {
+                // Auto-advance to next card if not on last card
+                const totalCards = currentSession?.cards?.length || 0;
+                if (currentCardIndex < totalCards - 1) {
+                  nextCard();
+                } else {
+                  setShowCompletionModal(true);
+                }
+              }}
+              onSkip={() => {
+                skipCard(currentCard.id);
+                if (currentCardIndex < (currentSession?.cards?.length || 0) - 1) {
+                  nextCard();
+                }
+              }}
+              onUndo={undoLastAnswer}
+              isFirstCard={currentCardIndex === 0}
+              hasAnswered={answers[currentCard.id] !== undefined}
+            />
+          )}
+          {currentCard.type === 'type-answer' && (
+            <TypeAnswerCard
+              card={currentCard}
+              onAnswer={handleAnswer}
+              onAutoAdvance={() => {
+                // Auto-advance to next card if not on last card
+                const totalCards = currentSession?.cards?.length || 0;
+                if (currentCardIndex < totalCards - 1) {
+                  nextCard();
+                } else {
+                  setShowCompletionModal(true);
+                }
+              }}
+              onSkip={() => {
+                skipCard(currentCard.id);
+                if (currentCardIndex < (currentSession?.cards?.length || 0) - 1) {
+                  nextCard();
+                }
+              }}
+              onUndo={undoLastAnswer}
+              isFirstCard={currentCardIndex === 0}
+              hasAnswered={answers[currentCard.id] !== undefined}
+            />
+          )}
         </div>
 
         {/* Animations */}
@@ -351,42 +441,9 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
             xpEarned={sessionXP}
             onSaveAndExit={handleSaveAndExit}
             onFinishAndExit={handleFinishAndExit}
+            onReviewMistakes={handleReviewMistakes}
           />
         )}
-      </div>
-    </div>
-  );
-};
-
-/**
- * StandardCardActions - Action buttons for standard flip cards
- * Allows user to mark card as correct or incorrect
- */
-const StandardCardActions: React.FC<{ onAnswer: (isCorrect: boolean) => void }> = ({
-  onAnswer,
-}) => {
-  const { isCardFlipped, answers, getCurrentCard } = useStudySessionsStore();
-  const currentCard = getCurrentCard();
-  const hasAnswered = currentCard && answers[currentCard.id] !== undefined;
-
-  if (!isCardFlipped || hasAnswered) return null;
-
-  return (
-    <div className="bg-white rounded-xl shadow-lg p-6 mt-6">
-      <p className="text-center text-gray-700 font-medium mb-4">Ai știut răspunsul?</p>
-      <div className="flex gap-4">
-        <button
-          onClick={() => onAnswer(false)}
-          className="flex-1 py-3 bg-red-100 text-red-700 rounded-xl font-semibold hover:bg-red-200 transition-colors"
-        >
-          ❌ Nu
-        </button>
-        <button
-          onClick={() => onAnswer(true)}
-          className="flex-1 py-3 bg-green-100 text-green-700 rounded-xl font-semibold hover:bg-green-200 transition-colors"
-        >
-          ✅ Da
-        </button>
       </div>
     </div>
   );
