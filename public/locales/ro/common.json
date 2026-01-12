@@ -1,12 +1,25 @@
 {
+  "brand": {
+    "name": "AiMinte",
+    "emoji": "🧠",
+    "topic": "Bagă la cap !",
+    "slogan": "Tu înveți. AI-ul face restul."
+  },
   "app": {
-    "title": "Flashcards - Evaluare Națională",
+    "title": "AiMinte - Bagă la cap !",
     "loading": "Se încarcă...",
     "back": "Înapoi",
     "backToApp": "Înapoi la aplicație"
   },
   "buttons": {
     "save": "Salvează",
-    "cancel": "Anulează"
+    "cancel": "Anulează",
+    "create": "Creează",
+    "edit": "Editează",
+    "delete": "Șterge",
+    "confirm": "Confirmă",
+    "close": "Închide",
+    "yes": "Da",
+    "no": "Nu"
   }
 }
