@@ -1,19 +1,29 @@
 import React from 'react';
 import { useStudySessionsStore } from '../../../store/studySessionsStore';
 import { Card } from '../../../types/models';
-import { Check, X } from 'lucide-react';
+import { Check, X, Send, Eye } from 'lucide-react';
+import { CardActionsMenu } from '../menus/CardActionsMenu';
 
 interface TypeAnswerCardProps {
   card: Card;
   onAnswer: (isCorrect: boolean) => void;
+  canEditDelete?: boolean;
+  onEditCard?: () => void;
+  onDeleteCard?: () => void;
 }
 
 /**
  * TypeAnswerCard - Type-in answer component
  * User types their answer and it's compared with the correct answer
  */
-export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({ card, onAnswer }) => {
-  const { answers } = useStudySessionsStore();
+export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
+  card,
+  onAnswer,
+  canEditDelete = false,
+  onEditCard,
+  onDeleteCard,
+}) => {
+  const { answers, hintRevealed, revealHint, sessionXP } = useStudySessionsStore();
   const [userAnswer, setUserAnswer] = React.useState('');
   const [hasAnswered, setHasAnswered] = React.useState(false);
   const [isCorrect, setIsCorrect] = React.useState<boolean | null>(null);
@@ -48,7 +58,17 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({ card, onAnswer }
   return (
     <div className="w-full max-w-2xl mx-auto">
       {/* Card Container */}
-      <div className="bg-white rounded-2xl shadow-xl p-8">
+      <div className="relative bg-white rounded-2xl shadow-xl p-8">
+        {/* Card Actions Menu (top-right) */}
+        <div className="absolute top-4 right-4">
+          <CardActionsMenu
+            card={card}
+            canEditDelete={canEditDelete}
+            onEdit={onEditCard}
+            onDelete={onDeleteCard}
+          />
+        </div>
+
         {/* Question */}
         <div className="mb-8">
           <div className="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wide">
@@ -62,6 +82,31 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({ card, onAnswer }
               <span className="font-semibold">Context:</span> {card.context}
             </div>
           )}
+
+          {/* Hint (if available and revealed) */}
+          {card.hint && hintRevealed && (
+            <div className="mt-4 text-sm text-indigo-600 bg-indigo-50 rounded-lg p-4 flex items-start gap-2">
+              <Eye size={16} className="mt-0.5 flex-shrink-0" />
+              <span>
+                <span className="font-semibold">Indiciu (-20 XP):</span> {card.hint}
+              </span>
+            </div>
+          )}
+
+          {/* Hint Button (if hint available and not revealed and not answered) */}
+          {card.hint && !hintRevealed && !hasAnswered && (
+            <button
+              onClick={e => {
+                e.stopPropagation();
+                revealHint();
+              }}
+              className="mt-4 flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
+              title={sessionXP >= 20 ? 'Costă 20 XP' : 'XP insuficient'}
+            >
+              <Eye size={18} />
+              Arată indiciu (-20 XP)
+            </button>
+          )}
         </div>
 
         {/* Answer Input Form */}
@@ -69,27 +114,36 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({ card, onAnswer }
           <div className="mb-6">
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Răspunsul tău:
-              {!hasAnswered && (
-                <span className="text-xs text-gray-500 font-normal ml-2">
-                  (Apasă Enter pentru a trimite)
-                </span>
-              )}
             </label>
-            <input
-              type="text"
-              value={userAnswer}
-              onChange={e => setUserAnswer(e.target.value)}
-              disabled={hasAnswered}
-              placeholder="Scrie răspunsul aici și apasă Enter..."
-              className={`w-full px-4 py-3 rounded-xl border-2 focus:outline-none focus:ring-2 transition-all ${
-                showResult
-                  ? isCorrect || cardAnswer === 'correct'
-                    ? 'border-green-500 bg-green-50'
-                    : 'border-red-500 bg-red-50'
-                  : 'border-gray-300 focus:border-indigo-600 focus:ring-indigo-200'
-              } ${hasAnswered ? 'cursor-not-allowed' : ''}`}
-              autoFocus
-            />
+            <div className="flex gap-3">
+              <input
+                type="text"
+                value={userAnswer}
+                onChange={e => setUserAnswer(e.target.value)}
+                disabled={hasAnswered}
+                placeholder="Scrie răspunsul aici..."
+                className={`flex-1 px-5 py-4 rounded-xl border-2 focus:outline-none focus:ring-2 transition-all text-base ${
+                  showResult
+                    ? isCorrect || cardAnswer === 'correct'
+                      ? 'border-green-500 bg-green-50'
+                      : 'border-red-500 bg-red-50'
+                    : 'border-gray-300 focus:border-indigo-600 focus:ring-indigo-200'
+                } ${hasAnswered ? 'cursor-not-allowed' : ''}`}
+                autoFocus
+              />
+              <button
+                type="submit"
+                disabled={hasAnswered || !userAnswer.trim()}
+                className={`px-6 py-4 rounded-xl font-semibold transition-all flex items-center gap-2 ${
+                  hasAnswered || !userAnswer.trim()
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'bg-indigo-600 text-white hover:bg-indigo-700 active:scale-95'
+                }`}
+              >
+                <Send size={20} />
+                <span className="hidden sm:inline">Trimite</span>
+              </button>
+            </div>
           </div>
         </form>
 

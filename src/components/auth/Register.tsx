@@ -75,7 +75,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
                   type="text"
                   value={name}
                   onChange={e => setName(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-100 bg-gray-50 rounded-xl font-medium outline-none focus:border-gray-900 transition-colors"
+                  className="w-full pl-12 pr-4 py-4 border-2 border-gray-100 bg-gray-50 rounded-xl font-medium outline-none focus:border-gray-900 transition-colors"
                   placeholder={t('auth:register.namePlaceholder')}
                 />
               </div>
@@ -93,7 +93,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-100 bg-gray-50 rounded-xl font-medium outline-none focus:border-gray-900 transition-colors"
+                  className="w-full pl-12 pr-4 py-4 border-2 border-gray-100 bg-gray-50 rounded-xl font-medium outline-none focus:border-gray-900 transition-colors"
                   placeholder="email@exemplu.ro"
                 />
               </div>
@@ -142,7 +142,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-12 py-3 border-2 border-gray-100 bg-gray-50 rounded-xl font-medium outline-none focus:border-gray-900 transition-colors"
+                  className="w-full pl-12 pr-12 py-4 border-2 border-gray-100 bg-gray-50 rounded-xl font-medium outline-none focus:border-gray-900 transition-colors"
                   placeholder="Minim 6 caractere"
                 />
                 <button
@@ -167,7 +167,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
                   type={showPassword ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={e => setConfirmPassword(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-100 bg-gray-50 rounded-xl font-medium outline-none focus:border-gray-900 transition-colors"
+                  className="w-full pl-12 pr-4 py-4 border-2 border-gray-100 bg-gray-50 rounded-xl font-medium outline-none focus:border-gray-900 transition-colors"
                   placeholder="Repetă parola"
                 />
               </div>

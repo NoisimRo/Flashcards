@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useStudySessionsStore } from '../../store/studySessionsStore';
 import { StandardCard } from './cards/StandardCard';
 import { QuizCard } from './cards/QuizCard';
@@ -8,6 +8,10 @@ import { ProgressBar } from './progress/ProgressBar';
 import { SessionStats } from './progress/SessionStats';
 import { StreakIndicator } from './feedback/StreakIndicator';
 import { XPIndicator } from './feedback/XPIndicator';
+import { XPFloatingAnimation } from './animations/XPFloatingAnimation';
+import { StreakCelebration } from './animations/StreakCelebration';
+import { LevelUpOverlay } from './animations/LevelUpOverlay';
+import { SessionCompletionModal } from './modals/SessionCompletionModal';
 import { ArrowLeft } from 'lucide-react';
 
 interface StudySessionContainerProps {
@@ -36,7 +40,22 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     isLoading,
     resetSessionState,
     setQuizOption,
+    streak,
+    sessionXP,
+    answers,
   } = useStudySessionsStore();
+
+  // Animation state
+  const [showXPAnimation, setShowXPAnimation] = useState(false);
+  const [earnedXP, setEarnedXP] = useState(0);
+  const [showStreakCelebration, setShowStreakCelebration] = useState(false);
+  const [celebrationStreak, setCelebrationStreak] = useState(0);
+  const [showLevelUp, setShowLevelUp] = useState(false);
+  const [levelUpData, setLevelUpData] = useState<{ oldLevel: number; newLevel: number } | null>(
+    null
+  );
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [previousStreak, setPreviousStreak] = useState(0);
 
   // Load session and enable auto-save on mount
   useEffect(() => {
@@ -49,12 +68,93 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     };
   }, [sessionId, loadSession, enableAutoSave, disableAutoSave, resetSessionState]);
 
+  // Check if session is complete (all cards answered)
+  useEffect(() => {
+    if (!currentSession?.cards) return;
+
+    const totalCards = currentSession.cards.length;
+    const answeredCards = Object.keys(answers).length;
+
+    // Show completion modal when all cards are answered
+    if (answeredCards === totalCards && totalCards > 0 && !showCompletionModal) {
+      setTimeout(() => {
+        setShowCompletionModal(true);
+      }, 500); // Small delay to show the last card feedback
+    }
+  }, [answers, currentSession, showCompletionModal]);
+
+  // Handle completion modal actions
+  const handleSaveAndExit = async () => {
+    setShowCompletionModal(false);
+    onBack();
+  };
+
+  const handleFinishAndExit = async () => {
+    if (!currentSession) return;
+
+    const totalCards = currentSession.cards?.length || 0;
+    const correctCount = Object.values(answers).filter(a => a === 'correct').length;
+    const incorrectCount = Object.values(answers).filter(a => a === 'incorrect').length;
+    const skippedCount = Object.values(answers).filter(a => a === 'skipped').length;
+
+    try {
+      const { completeSession } = useStudySessionsStore.getState();
+      const result = await completeSession(currentSession.id, {
+        answers,
+        durationSeconds: Math.floor((Date.now() - Date.now()) / 1000), // Will be calculated properly by store
+        finalStreak: streak,
+        xpEarned: sessionXP,
+      });
+
+      // Check if user leveled up
+      if (result?.leveledUp && result?.newLevel && result?.oldLevel) {
+        setLevelUpData({ oldLevel: result.oldLevel, newLevel: result.newLevel });
+        setShowLevelUp(true);
+        // Wait for level up animation before going back
+        setTimeout(() => {
+          setShowCompletionModal(false);
+          onFinish();
+        }, 3500);
+      } else {
+        setShowCompletionModal(false);
+        onFinish();
+      }
+    } catch (error) {
+      console.error('Error completing session:', error);
+      setShowCompletionModal(false);
+      onBack();
+    }
+  };
+
   // Handle answer submission
   const handleAnswer = (isCorrect: boolean) => {
     const currentCard = getCurrentCard();
     if (!currentCard) return;
 
+    // Get current values before answering
+    const currentStreak = streak;
+    const previousXP = sessionXP;
+
     answerCard(currentCard.id, isCorrect);
+
+    // Trigger XP animation if correct (calculate XP earned)
+    if (isCorrect) {
+      // XP is calculated in the store, so we need to wait a tick to get the updated value
+      setTimeout(() => {
+        const xpEarned = sessionXP - previousXP;
+        if (xpEarned > 0) {
+          setEarnedXP(xpEarned);
+          setShowXPAnimation(true);
+        }
+      }, 10);
+
+      // Check for streak celebration (5, 10, 15, 20, etc.)
+      const newStreak = currentStreak + 1;
+      if (newStreak % 5 === 0 && newStreak >= 5) {
+        setCelebrationStreak(newStreak);
+        setShowStreakCelebration(true);
+      }
+    }
 
     // Auto-advance to next card after a short delay
     setTimeout(() => {
@@ -147,6 +247,47 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
         <div className="max-w-2xl mx-auto">
           <NavigationControls onComplete={onFinish} />
         </div>
+
+        {/* Animations */}
+        {showXPAnimation && (
+          <XPFloatingAnimation xp={earnedXP} onAnimationEnd={() => setShowXPAnimation(false)} />
+        )}
+
+        {showStreakCelebration && (
+          <StreakCelebration
+            streak={celebrationStreak}
+            onComplete={() => setShowStreakCelebration(false)}
+          />
+        )}
+
+        {showLevelUp && levelUpData && (
+          <LevelUpOverlay
+            oldLevel={levelUpData.oldLevel}
+            newLevel={levelUpData.newLevel}
+            onComplete={() => setShowLevelUp(false)}
+          />
+        )}
+
+        {/* Session Completion Modal */}
+        {showCompletionModal && currentSession && (
+          <SessionCompletionModal
+            score={
+              currentSession.cards?.length
+                ? Math.round(
+                    (Object.values(answers).filter(a => a === 'correct').length /
+                      currentSession.cards.length) *
+                      100
+                  )
+                : 0
+            }
+            correctCount={Object.values(answers).filter(a => a === 'correct').length}
+            incorrectCount={Object.values(answers).filter(a => a === 'incorrect').length}
+            skippedCount={Object.values(answers).filter(a => a === 'skipped').length}
+            xpEarned={sessionXP}
+            onSaveAndExit={handleSaveAndExit}
+            onFinishAndExit={handleFinishAndExit}
+          />
+        )}
       </div>
     </div>
   );
