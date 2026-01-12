@@ -1,0 +1,14 @@
+{
+  "loading": "Caricamento...",
+  "back": "Indietro",
+  "save": "Salva",
+  "cancel": "Annulla",
+  "delete": "Elimina",
+  "edit": "Modifica",
+  "create": "Crea",
+  "submit": "Invia",
+  "yes": "Sì",
+  "no": "No",
+  "error": "Errore",
+  "success": "Successo"
+}

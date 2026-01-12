@@ -1,0 +1,12 @@
+{
+  "app": {
+    "title": "Flashcards - National Evaluation",
+    "loading": "Loading...",
+    "back": "Back",
+    "backToApp": "Back to app"
+  },
+  "buttons": {
+    "save": "Save",
+    "cancel": "Cancel"
+  }
+}

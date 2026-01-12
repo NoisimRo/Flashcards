@@ -1,0 +1,67 @@
+{
+  "create": "Crea Sessione",
+  "continue": "Continua",
+  "finish": "Termina",
+  "skip": "Salta",
+  "undo": "Indietro",
+  "next": "Avanti",
+  "loading": "Caricamento sessione...",
+  "noCards": "Nessuna carta in questa sessione.",
+
+  "progress": {
+    "title": "Progresso",
+    "cards": "{{current}} / {{total}}",
+    "completed": "{{percentage}}% completato",
+    "streak": "Serie: {{count}}"
+  },
+
+  "xp": {
+    "earned": "+{{amount}} XP",
+    "total": "{{amount}} XP"
+  },
+
+  "card": {
+    "question": "Domanda",
+    "answer": "Risposta",
+    "hint": "Suggerimento",
+    "showHint": "Mostra suggerimento",
+    "context": "Contesto",
+    "explanation": "Spiegazione",
+    "flipToAnswer": "🔄 Clicca per la risposta",
+    "flipToFront": "↩️ Clicca per tornare",
+    "typeAnswer": "Scrivi la tua risposta qui...",
+    "yourAnswer": "La tua risposta:",
+    "correctAnswer": "Risposta corretta:",
+    "selectOption": "Seleziona la risposta corretta",
+    "didYouKnow": "Conoscevi la risposta?",
+    "quizQuestion": "Domanda a Scelta Multipla",
+    "typeQuestion": "Scrivi la Risposta"
+  },
+
+  "feedback": {
+    "correct": "Risposta corretta! 🎉",
+    "incorrect": "Sbagliato. La risposta corretta:",
+    "tryAgain": "Riprova la prossima volta",
+    "skipped": "Domanda saltata",
+    "checkAnswer": "Verifica Risposta",
+    "submitAnswer": "Invia Risposta"
+  },
+
+  "streak": {
+    "hot": "In fiamme!",
+    "fire": "🔥 INCREDIBILE!"
+  },
+
+  "completion": {
+    "title": "Sessione Completata!",
+    "score": "Punteggio: {{percentage}}%",
+    "correct": "Corrette: {{count}}",
+    "incorrect": "Sbagliate: {{count}}",
+    "skipped": "Saltate: {{count}}",
+    "levelUp": "🎉 LIVELLO SUPERIORE! Livello {{oldLevel}} → {{newLevel}}! +{{xp}} XP",
+    "xpEarned": "Sessione completata! +{{xp}} XP | Punteggio: {{score}}% ({{correct}}/{{total}} corrette)",
+    "completed": "Sessione completata! Punteggio: {{score}}% ({{correct}}/{{total}} corrette)",
+    "error": "Errore nel completamento della sessione",
+    "progressSaved": "Progresso salvato! Puoi riprendere questa sessione più tardi."
+  }
+}

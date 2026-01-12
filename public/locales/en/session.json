@@ -1,0 +1,10 @@
+{
+  "create": "Create Session",
+  "continue": "Continue",
+  "finish": "Finish",
+  "skip": "Skip",
+  "undo": "Undo",
+  "next": "Next",
+  "loading": "Loading session...",
+  "noCards": "No cards in this session."
+}
