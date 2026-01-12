@@ -58,6 +58,7 @@ interface StudySessionsStore {
   syncProgress: () => Promise<void>;
   getCurrentCard: () => any | null;
   setQuizOption: (option: number | null) => void;
+  revealHint: () => void;
   resetSessionState: () => void;
 }
 
@@ -502,6 +503,16 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
     } catch (error) {
       console.error('Failed to sync progress:', error);
     }
+  },
+
+  // Reveal hint (costs 20 XP)
+  revealHint: () => {
+    const state = get();
+    set({
+      hintRevealed: true,
+      sessionXP: Math.max(0, state.sessionXP - 20), // Deduct 20 XP, minimum 0
+      isDirty: true,
+    });
   },
 
   // Reset session state (for new session or restart)

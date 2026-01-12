@@ -1,19 +1,30 @@
 import React from 'react';
 import { useStudySessionsStore } from '../../../store/studySessionsStore';
 import { Card } from '../../../types/models';
-import { Check, X } from 'lucide-react';
+import { Check, X, Eye } from 'lucide-react';
+import { CardActionsMenu } from '../menus/CardActionsMenu';
 
 interface QuizCardProps {
   card: Card;
   onAnswer: (isCorrect: boolean) => void;
+  canEditDelete?: boolean;
+  onEditCard?: () => void;
+  onDeleteCard?: () => void;
 }
 
 /**
  * QuizCard - Multiple choice quiz component
  * Displays question with selectable options
  */
-export const QuizCard: React.FC<QuizCardProps> = ({ card, onAnswer }) => {
-  const { selectedQuizOption, setQuizOption, answers } = useStudySessionsStore();
+export const QuizCard: React.FC<QuizCardProps> = ({
+  card,
+  onAnswer,
+  canEditDelete = false,
+  onEditCard,
+  onDeleteCard,
+}) => {
+  const { selectedQuizOption, setQuizOption, answers, hintRevealed, revealHint, sessionXP } =
+    useStudySessionsStore();
   const [hasAnswered, setHasAnswered] = React.useState(false);
   const [isCorrect, setIsCorrect] = React.useState<boolean | null>(null);
 
@@ -38,7 +49,17 @@ export const QuizCard: React.FC<QuizCardProps> = ({ card, onAnswer }) => {
   return (
     <div className="w-full max-w-2xl mx-auto">
       {/* Card Container */}
-      <div className="bg-white rounded-2xl shadow-xl p-8">
+      <div className="relative bg-white rounded-2xl shadow-xl p-8">
+        {/* Card Actions Menu (top-right) */}
+        <div className="absolute top-4 right-4">
+          <CardActionsMenu
+            card={card}
+            canEditDelete={canEditDelete}
+            onEdit={onEditCard}
+            onDelete={onDeleteCard}
+          />
+        </div>
+
         {/* Question */}
         <div className="mb-8">
           <div className="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wide">
@@ -51,6 +72,31 @@ export const QuizCard: React.FC<QuizCardProps> = ({ card, onAnswer }) => {
             <div className="mt-4 text-sm text-gray-600 italic bg-gray-50 rounded-lg p-4">
               <span className="font-semibold">Context:</span> {card.context}
             </div>
+          )}
+
+          {/* Hint (if available and revealed) */}
+          {card.hint && hintRevealed && (
+            <div className="mt-4 text-sm text-indigo-600 bg-indigo-50 rounded-lg p-4 flex items-start gap-2">
+              <Eye size={16} className="mt-0.5 flex-shrink-0" />
+              <span>
+                <span className="font-semibold">Indiciu (-20 XP):</span> {card.hint}
+              </span>
+            </div>
+          )}
+
+          {/* Hint Button (if hint available and not revealed and not answered) */}
+          {card.hint && !hintRevealed && !hasAnswered && (
+            <button
+              onClick={e => {
+                e.stopPropagation();
+                revealHint();
+              }}
+              className="mt-4 flex items-center gap-2 text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
+              title={sessionXP >= 20 ? 'Costă 20 XP' : 'XP insuficient'}
+            >
+              <Eye size={18} />
+              Arată indiciu (-20 XP)
+            </button>
           )}
         </div>
 
