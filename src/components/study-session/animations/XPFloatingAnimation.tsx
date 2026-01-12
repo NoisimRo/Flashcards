@@ -25,8 +25,8 @@ export const XPFloatingAnimation: React.FC<XPFloatingAnimationProps> = ({ xp, on
   if (!visible) return null;
 
   return (
-    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 pointer-events-none">
-      <div className="text-green-500 font-black text-2xl animate-float-xp whitespace-nowrap drop-shadow-lg">
+    <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] pointer-events-none">
+      <div className="text-green-500 font-black text-4xl animate-float-xp whitespace-nowrap drop-shadow-2xl">
         +{xp} XP
       </div>
     </div>

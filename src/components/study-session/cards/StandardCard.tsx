@@ -32,8 +32,10 @@ export const StandardCard: React.FC<StandardCardProps> = ({
           isCardFlipped ? 'bg-gradient-to-br from-indigo-50 to-purple-50' : ''
         }`}
         style={{
-          transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-          transform: isCardFlipped ? 'rotateY(360deg) scale(1.02)' : 'rotateY(0deg) scale(1)',
+          transition: 'all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+          transform: isCardFlipped
+            ? 'rotateY(180deg) scale(1.05)'
+            : 'rotateY(0deg) scale(1)',
           transformStyle: 'preserve-3d',
         }}
         onClick={flipCard}
