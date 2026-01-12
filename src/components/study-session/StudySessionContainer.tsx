@@ -43,6 +43,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     streak,
     sessionXP,
     answers,
+    sessionStartTime,
   } = useStudySessionsStore();
 
   // Animation state
@@ -96,19 +97,35 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     const correctCount = Object.values(answers).filter(a => a === 'correct').length;
     const incorrectCount = Object.values(answers).filter(a => a === 'incorrect').length;
     const skippedCount = Object.values(answers).filter(a => a === 'skipped').length;
+    const score = totalCards > 0 ? Math.round((correctCount / totalCards) * 100) : 0;
+
+    // Calculate session duration
+    const elapsedSeconds = Math.floor((Date.now() - sessionStartTime) / 1000);
+
+    // Build card progress updates
+    const cardProgressUpdates = currentSession.cards
+      ?.map(card => ({
+        cardId: card.id,
+        wasCorrect: answers[card.id] === 'correct',
+        timeSpentSeconds: 0, // We don't track per-card time in this simplified version
+      }))
+      .filter(update => answers[update.cardId] !== undefined) || [];
 
     try {
       const { completeSession } = useStudySessionsStore.getState();
       const result = await completeSession(currentSession.id, {
-        answers,
-        durationSeconds: Math.floor((Date.now() - Date.now()) / 1000), // Will be calculated properly by store
-        finalStreak: streak,
-        xpEarned: sessionXP,
+        score,
+        correctCount,
+        incorrectCount,
+        skippedCount,
+        durationSeconds: elapsedSeconds,
+        cardProgressUpdates,
       });
 
       // Check if user leveled up
-      if (result?.leveledUp && result?.newLevel && result?.oldLevel) {
-        setLevelUpData({ oldLevel: result.oldLevel, newLevel: result.newLevel });
+      if (result?.leveledUp && result?.newLevel) {
+        const oldLevel = result.newLevel - 1; // Calculate old level (simplistic approach)
+        setLevelUpData({ oldLevel, newLevel: result.newLevel });
         setShowLevelUp(true);
         // Wait for level up animation before going back
         setTimeout(() => {
