@@ -49,8 +49,15 @@ export const StandardCard: React.FC<StandardCardProps> = ({
   onEditCard,
   onDeleteCard,
 }) => {
-  const { isCardFlipped, flipCard, hintRevealed, revealHint, frontAction, setFrontAction, answers } =
-    useStudySessionsStore();
+  const {
+    isCardFlipped,
+    flipCard,
+    hintRevealed,
+    revealHint,
+    frontAction,
+    setFrontAction,
+    answers,
+  } = useStudySessionsStore();
 
   const cardAnswer = answers[card.id];
 

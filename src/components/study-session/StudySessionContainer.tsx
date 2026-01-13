@@ -150,6 +150,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
         ?.map(card => ({
           cardId: card.id,
           wasCorrect: answers[card.id] === 'correct',
+          timeSpentSeconds: 0, // We don't track per-card time in this simplified version
         }))
         .filter(update => answers[update.cardId] !== undefined) || [];
 
