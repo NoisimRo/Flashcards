@@ -32,7 +32,10 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
   const hasReviewableCards = incorrectCount + skippedCount > 0;
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+    <div
+      className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in"
+      onClick={onSaveAndExit}
+    >
       <div
         className={`rounded-3xl shadow-2xl max-w-md w-full p-8 animate-scale-up ${
           isPerfect
@@ -56,39 +59,14 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
 
         {/* Title */}
         <h2
-          className={`text-2xl font-bold text-center mb-2 ${
+          className={`text-2xl font-bold text-center mb-4 ${
             isPerfect ? 'text-yellow-900' : 'text-gray-900'
           }`}
         >
-          {isPerfect ? '🎉 Sesiune Perfectă! 🎉' : 'Sesiune Completată!'}
+          {isPerfect ? '🎉 Sesiune Perfectă! 🎉' : 'Final sesiune'}
         </h2>
 
-        {/* Score */}
-        <div className="text-center mb-6">
-          <div
-            className={`text-4xl font-black mb-2 ${
-              isPerfect ? 'text-yellow-600' : 'text-indigo-600'
-            }`}
-          >
-            {score}%
-          </div>
-          <div className={`text-sm ${isPerfect ? 'text-yellow-800' : 'text-gray-600'}`}>
-            {correctCount} corecte • {incorrectCount} greșite • {skippedCount} sărite
-          </div>
-        </div>
-
-        {/* Pie Chart Visualization */}
-        <div className="mb-6 flex justify-center">
-          <SessionStatsPieChart
-            correctCount={correctCount}
-            incorrectCount={incorrectCount}
-            skippedCount={skippedCount}
-            size="large"
-            showLegend={true}
-          />
-        </div>
-
-        {/* XP Earned */}
+        {/* XP Earned - Promoted after title */}
         {xpEarned > 0 && (
           <div
             className={`rounded-xl p-4 mb-6 text-center ${
@@ -107,6 +85,17 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
             <div className="text-3xl font-black text-yellow-600">+{xpEarned} XP</div>
           </div>
         )}
+
+        {/* Pie Chart Visualization - Reduced size */}
+        <div className="mb-6 flex justify-center">
+          <SessionStatsPieChart
+            correctCount={correctCount}
+            incorrectCount={incorrectCount}
+            skippedCount={skippedCount}
+            size="medium"
+            showLegend={true}
+          />
+        </div>
 
         {/* Perfect Score Message */}
         {isPerfect && (

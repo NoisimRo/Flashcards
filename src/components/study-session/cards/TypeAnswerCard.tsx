@@ -127,6 +127,27 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
               </div>
             )}
 
+            {/* Status Label (top-center) - Sticky */}
+            {cardAnswer && (
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
+                <span
+                  className={`px-3 py-1.5 rounded-lg text-sm font-bold shadow-md ${
+                    cardAnswer === 'correct'
+                      ? 'bg-green-100 text-green-700'
+                      : cardAnswer === 'incorrect'
+                        ? 'bg-red-100 text-red-700'
+                        : 'bg-yellow-100 text-yellow-700'
+                  }`}
+                >
+                  {cardAnswer === 'correct'
+                    ? 'Corect'
+                    : cardAnswer === 'incorrect'
+                      ? 'Greșit'
+                      : 'Sărit'}
+                </span>
+              </div>
+            )}
+
             {/* Card Actions Menu (top-right) */}
             <div className="absolute top-4 right-4 z-10">
               <CardActionsMenu
@@ -149,26 +170,8 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
 
             {/* Front Content */}
             <div className="mb-8">
-              <div className="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wide text-center flex items-center justify-center gap-2">
-                <span>Completează Răspunsul</span>
-                {/* Status Label */}
-                {cardAnswer && (
-                  <span
-                    className={`px-2 py-1 rounded-md text-xs font-bold ${
-                      cardAnswer === 'correct'
-                        ? 'bg-green-100 text-green-700'
-                        : cardAnswer === 'incorrect'
-                          ? 'bg-red-100 text-red-700'
-                          : 'bg-yellow-100 text-yellow-700'
-                    }`}
-                  >
-                    {cardAnswer === 'correct'
-                      ? 'Corect'
-                      : cardAnswer === 'incorrect'
-                        ? 'Greșit'
-                        : 'Sărit'}
-                  </span>
-                )}
+              <div className="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wide text-center">
+                Completează Răspunsul
               </div>
               <h2 className="text-2xl font-bold text-gray-900 text-center">{card.front}</h2>
             </div>
@@ -259,6 +262,27 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
               transform: 'rotateY(180deg)',
             }}
           >
+            {/* Status Label (top-center) - Sticky */}
+            {cardAnswer && (
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
+                <span
+                  className={`px-3 py-1.5 rounded-lg text-sm font-bold shadow-md ${
+                    cardAnswer === 'correct'
+                      ? 'bg-green-100 text-green-700'
+                      : cardAnswer === 'incorrect'
+                        ? 'bg-red-100 text-red-700'
+                        : 'bg-yellow-100 text-yellow-700'
+                  }`}
+                >
+                  {cardAnswer === 'correct'
+                    ? 'Corect'
+                    : cardAnswer === 'incorrect'
+                      ? 'Greșit'
+                      : 'Sărit'}
+                </span>
+              </div>
+            )}
+
             {/* Card Actions Menu (top-right) */}
             <div className="absolute top-4 right-4 z-10">
               <CardActionsMenu
@@ -271,26 +295,8 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
 
             {/* Back Content */}
             <div className="text-center">
-              <div className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide flex items-center justify-center gap-2">
-                <span>Răspuns</span>
-                {/* Status Label */}
-                {cardAnswer && (
-                  <span
-                    className={`px-2 py-1 rounded-md text-xs font-bold ${
-                      cardAnswer === 'correct'
-                        ? 'bg-green-100 text-green-700'
-                        : cardAnswer === 'incorrect'
-                          ? 'bg-red-100 text-red-700'
-                          : 'bg-yellow-100 text-yellow-700'
-                    }`}
-                  >
-                    {cardAnswer === 'correct'
-                      ? 'Corect'
-                      : cardAnswer === 'incorrect'
-                        ? 'Greșit'
-                        : 'Sărit'}
-                  </span>
-                )}
+              <div className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide">
+                Răspuns
               </div>
 
               {/* Result Status */}

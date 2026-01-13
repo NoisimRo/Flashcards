@@ -140,20 +140,35 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     const correctCount = Object.values(answers).filter(a => a === 'correct').length;
     const incorrectCount = Object.values(answers).filter(a => a === 'incorrect').length;
     const skippedCount = Object.values(answers).filter(a => a === 'skipped').length;
+
+    // CRITICAL FIX: Count unanswered cards as skipped for backend validation
+    const answeredCount = correctCount + incorrectCount + skippedCount;
+    const unansweredCount = totalCards - answeredCount;
+    const actualSkippedCount = skippedCount + unansweredCount;
+
     const score = totalCards > 0 ? Math.round((correctCount / totalCards) * 100) : 0;
 
     // Calculate session duration
     const elapsedSeconds = Math.floor((Date.now() - sessionStartTime) / 1000);
 
-    // Build card progress updates
+    // Build card progress updates - INCLUDE ALL CARDS
     const cardProgressUpdates =
-      currentSession.cards
-        ?.map(card => ({
+      currentSession.cards?.map(card => {
+        const answer = answers[card.id];
+        return {
           cardId: card.id,
-          wasCorrect: answers[card.id] === 'correct',
+          wasCorrect: answer === 'correct',
           timeSpentSeconds: 0, // We don't track per-card time in this simplified version
-        }))
-        .filter(update => answers[update.cardId] !== undefined) || [];
+        };
+      }) || [];
+
+    console.log('📊 Session completion data:', {
+      totalCards,
+      correctCount,
+      incorrectCount,
+      skippedCount: actualSkippedCount,
+      cardProgressUpdates: cardProgressUpdates.length,
+    });
 
     try {
       const { completeSession } = useStudySessionsStore.getState();
@@ -161,7 +176,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
         score,
         correctCount,
         incorrectCount,
-        skippedCount,
+        skippedCount: actualSkippedCount, // Include unanswered cards as skipped
         durationSeconds: elapsedSeconds,
         cardProgressUpdates,
       });
@@ -181,12 +196,17 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
         onFinish();
       }
     } catch (error: any) {
-      console.error('Error completing session:', error);
+      console.error('❌ Error completing session:', error);
+      console.error('Error details:', error?.response?.data);
+
       // If session was already completed, just proceed
       if (error?.response?.data?.error?.code === 'ALREADY_COMPLETED') {
+        console.warn('Session already completed, proceeding...');
         setShowCompletionModal(false);
         onFinish();
       } else {
+        // Show error to user but allow them to exit
+        alert('Eroare la finalizarea sesiunii. Te rugăm să încerci din nou.');
         setShowCompletionModal(false);
         onBack();
       }
