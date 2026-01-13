@@ -125,6 +125,27 @@ export const StandardCard: React.FC<StandardCardProps> = ({
               </div>
             )}
 
+            {/* Status Label (top-center) - Sticky */}
+            {cardAnswer && (
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
+                <span
+                  className={`px-3 py-1.5 rounded-lg text-sm font-bold shadow-md ${
+                    cardAnswer === 'correct'
+                      ? 'bg-green-100 text-green-700'
+                      : cardAnswer === 'incorrect'
+                        ? 'bg-red-100 text-red-700'
+                        : 'bg-yellow-100 text-yellow-700'
+                  }`}
+                >
+                  {cardAnswer === 'correct'
+                    ? 'Corect'
+                    : cardAnswer === 'incorrect'
+                      ? 'Greșit'
+                      : 'Sărit'}
+                </span>
+              </div>
+            )}
+
             {/* Card Actions Menu (top-right) */}
             <div className="absolute top-4 right-4 z-10" onClick={e => e.stopPropagation()}>
               <CardActionsMenu
@@ -147,26 +168,8 @@ export const StandardCard: React.FC<StandardCardProps> = ({
 
             {/* Front Content */}
             <div className="text-center px-4">
-              <div className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide flex items-center justify-center gap-2">
-                <span>Întrebare</span>
-                {/* Status Label */}
-                {cardAnswer && (
-                  <span
-                    className={`px-2 py-1 rounded-md text-xs font-bold ${
-                      cardAnswer === 'correct'
-                        ? 'bg-green-100 text-green-700'
-                        : cardAnswer === 'incorrect'
-                          ? 'bg-red-100 text-red-700'
-                          : 'bg-yellow-100 text-yellow-700'
-                    }`}
-                  >
-                    {cardAnswer === 'correct'
-                      ? 'Corect'
-                      : cardAnswer === 'incorrect'
-                        ? 'Greșit'
-                        : 'Sărit'}
-                  </span>
-                )}
+              <div className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide">
+                Întrebare
               </div>
               <div className="text-2xl font-bold text-gray-900">{card.front}</div>
             </div>
@@ -246,6 +249,27 @@ export const StandardCard: React.FC<StandardCardProps> = ({
               transform: 'rotateY(180deg)',
             }}
           >
+            {/* Status Label (top-center) - Sticky */}
+            {cardAnswer && (
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
+                <span
+                  className={`px-3 py-1.5 rounded-lg text-sm font-bold shadow-md ${
+                    cardAnswer === 'correct'
+                      ? 'bg-green-100 text-green-700'
+                      : cardAnswer === 'incorrect'
+                        ? 'bg-red-100 text-red-700'
+                        : 'bg-yellow-100 text-yellow-700'
+                  }`}
+                >
+                  {cardAnswer === 'correct'
+                    ? 'Corect'
+                    : cardAnswer === 'incorrect'
+                      ? 'Greșit'
+                      : 'Sărit'}
+                </span>
+              </div>
+            )}
+
             {/* Card Actions Menu (top-right) - mirrored compensation */}
             <div className="absolute top-4 right-4 z-10" onClick={e => e.stopPropagation()}>
               <CardActionsMenu
@@ -258,26 +282,8 @@ export const StandardCard: React.FC<StandardCardProps> = ({
 
             {/* Back Content */}
             <div className="text-center px-4">
-              <div className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide flex items-center justify-center gap-2">
-                <span>Răspuns</span>
-                {/* Status Label */}
-                {cardAnswer && (
-                  <span
-                    className={`px-2 py-1 rounded-md text-xs font-bold ${
-                      cardAnswer === 'correct'
-                        ? 'bg-green-100 text-green-700'
-                        : cardAnswer === 'incorrect'
-                          ? 'bg-red-100 text-red-700'
-                          : 'bg-yellow-100 text-yellow-700'
-                    }`}
-                  >
-                    {cardAnswer === 'correct'
-                      ? 'Corect'
-                      : cardAnswer === 'incorrect'
-                        ? 'Greșit'
-                        : 'Sărit'}
-                  </span>
-                )}
+              <div className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide">
+                Răspuns
               </div>
               <div className="text-2xl font-bold text-gray-900">{card.back}</div>
             </div>

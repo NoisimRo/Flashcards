@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useStudySessionsStore } from '../../store/studySessionsStore';
+import { useAuth } from '../../store/AuthContext';
 import { StandardCard } from './cards/StandardCard';
 import { QuizCard } from './cards/QuizCard';
 import { TypeAnswerCard } from './cards/TypeAnswerCard';
@@ -29,6 +30,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
   onFinish,
   onBack,
 }) => {
+  const { user } = useAuth();
   const {
     currentSession,
     loadSession,
@@ -140,20 +142,35 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     const correctCount = Object.values(answers).filter(a => a === 'correct').length;
     const incorrectCount = Object.values(answers).filter(a => a === 'incorrect').length;
     const skippedCount = Object.values(answers).filter(a => a === 'skipped').length;
+
+    // CRITICAL FIX: Count unanswered cards as skipped for backend validation
+    const answeredCount = correctCount + incorrectCount + skippedCount;
+    const unansweredCount = totalCards - answeredCount;
+    const actualSkippedCount = skippedCount + unansweredCount;
+
     const score = totalCards > 0 ? Math.round((correctCount / totalCards) * 100) : 0;
 
     // Calculate session duration
     const elapsedSeconds = Math.floor((Date.now() - sessionStartTime) / 1000);
 
-    // Build card progress updates
+    // Build card progress updates - INCLUDE ALL CARDS
     const cardProgressUpdates =
-      currentSession.cards
-        ?.map(card => ({
+      currentSession.cards?.map(card => {
+        const answer = answers[card.id];
+        return {
           cardId: card.id,
-          wasCorrect: answers[card.id] === 'correct',
+          wasCorrect: answer === 'correct',
           timeSpentSeconds: 0, // We don't track per-card time in this simplified version
-        }))
-        .filter(update => answers[update.cardId] !== undefined) || [];
+        };
+      }) || [];
+
+    console.log('📊 Session completion data:', {
+      totalCards,
+      correctCount,
+      incorrectCount,
+      skippedCount: actualSkippedCount,
+      cardProgressUpdates: cardProgressUpdates.length,
+    });
 
     try {
       const { completeSession } = useStudySessionsStore.getState();
@@ -161,7 +178,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
         score,
         correctCount,
         incorrectCount,
-        skippedCount,
+        skippedCount: actualSkippedCount, // Include unanswered cards as skipped
         durationSeconds: elapsedSeconds,
         cardProgressUpdates,
       });
@@ -181,12 +198,17 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
         onFinish();
       }
     } catch (error: any) {
-      console.error('Error completing session:', error);
+      console.error('❌ Error completing session:', error);
+      console.error('Error details:', error?.response?.data);
+
       // If session was already completed, just proceed
       if (error?.response?.data?.error?.code === 'ALREADY_COMPLETED') {
+        console.warn('Session already completed, proceeding...');
         setShowCompletionModal(false);
         onFinish();
       } else {
+        // Show error to user but allow them to exit
+        alert('Eroare la finalizarea sesiunii. Te rugăm să încerci din nou.');
         setShowCompletionModal(false);
         onBack();
       }
@@ -258,16 +280,20 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     }, 300);
   };
 
-  // Check for level up
+  // Check for level up during session
   const checkLevelUp = () => {
-    // TODO: Get user's current XP and next level XP from auth context
-    // For now, this is a placeholder - needs integration with user XP system
-    // const totalXP = user.currentXP + sessionXP;
-    // if (totalXP >= user.nextLevelXP && !showLevelUp) {
-    //   setLevelUpData({ oldLevel: user.level, newLevel: user.level + 1 });
-    //   setShowLevelUp(true);
-    //   setTimeout(() => setShowLevelUp(false), 3000);
-    // }
+    if (!user) return;
+
+    const totalXP = user.currentXP + sessionXP;
+
+    // Check if user has reached or exceeded next level threshold
+    if (totalXP >= user.nextLevelXP && !showLevelUp) {
+      setLevelUpData({ oldLevel: user.level, newLevel: user.level + 1 });
+      setShowLevelUp(true);
+
+      // Auto-hide after 3 seconds
+      setTimeout(() => setShowLevelUp(false), 3000);
+    }
   };
 
   // Loading state
@@ -336,7 +362,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
 
               <button
                 onClick={() => setShowCompletionModal(true)}
-                className="flex items-center gap-2 px-4 py-2 text-sm bg-green-600 text-white hover:bg-green-700 rounded-lg font-bold transition-all active:scale-95 shadow-md"
+                className="flex items-center gap-2 px-3 py-2 text-sm text-green-600 hover:bg-green-50 rounded-lg font-medium transition-all active:scale-95"
                 title="Finalizează sesiunea"
               >
                 <CheckCircle size={18} />
@@ -353,11 +379,10 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
 
             {/* Progress and Stats Row */}
             <div className="space-y-4">
-              <ProgressBar />
-
-              <div className="flex items-center justify-between flex-wrap gap-4">
-                {/* Left: Pie Chart + Stats */}
-                <div className="flex items-center gap-6">
+              {/* Main Layout: [Pie Chart] <--- [Progress Bar] ---> [Streak & XP] */}
+              <div className="flex items-center justify-between gap-6">
+                {/* Left: Pie Chart with Tooltips */}
+                <div className="flex-shrink-0 relative group">
                   <SessionStatsPieChart
                     correctCount={Object.values(answers).filter(a => a === 'correct').length}
                     incorrectCount={Object.values(answers).filter(a => a === 'incorrect').length}
@@ -365,14 +390,48 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
                     size="small"
                     showLegend={false}
                   />
-                  <SessionStats />
+                  {/* Tooltip */}
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-50">
+                    <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 whitespace-nowrap shadow-lg">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                        <span>
+                          {Object.values(answers).filter(a => a === 'correct').length} Știute
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                        <span>
+                          {Object.values(answers).filter(a => a === 'incorrect').length} Neștiute
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                        <span>
+                          {Object.values(answers).filter(a => a === 'skipped').length} Sărite
+                        </span>
+                      </div>
+                      {/* Arrow */}
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-gray-900"></div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Center: Progress Bar */}
+                <div className="flex-1 min-w-0">
+                  <ProgressBar />
                 </div>
 
                 {/* Right: Streak & XP */}
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-shrink-0">
                   <StreakIndicator />
                   <XPIndicator />
                 </div>
+              </div>
+
+              {/* Session Stats below */}
+              <div className="flex justify-center">
+                <SessionStats />
               </div>
             </div>
           </div>
