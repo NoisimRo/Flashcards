@@ -229,18 +229,20 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
 
     answerCard(currentCard.id, isCorrect);
 
-    // Trigger XP animation if correct (calculate XP earned)
-    if (isCorrect) {
-      // XP is calculated in the store, so we need to wait a tick to get the updated value
-      setTimeout(() => {
-        const xpEarned = sessionXP - previousXP;
-        if (xpEarned > 0) {
-          setEarnedXP(xpEarned);
-          setShowXPAnimation(true);
-        }
-      }, 10);
+    // Trigger XP animation for ANY XP change (positive or negative)
+    setTimeout(() => {
+      const xpChange = sessionXP - previousXP;
+      if (xpChange !== 0) {
+        setEarnedXP(xpChange);
+        setShowXPAnimation(true);
+      }
 
-      // Check for streak celebration (5, 10, 15, 20, etc.)
+      // Check for level up during session
+      checkLevelUp();
+    }, 10);
+
+    // Check for streak celebration (5, 10, 15, 20, etc.) - only if correct
+    if (isCorrect) {
       const newStreak = currentStreak + 1;
       if (newStreak % 5 === 0 && newStreak >= 5) {
         setCelebrationStreak(newStreak);
@@ -253,6 +255,18 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
       // Reset quiz option selection for next card
       setQuizOption(null);
     }, 300);
+  };
+
+  // Check for level up
+  const checkLevelUp = () => {
+    // TODO: Get user's current XP and next level XP from auth context
+    // For now, this is a placeholder - needs integration with user XP system
+    // const totalXP = user.currentXP + sessionXP;
+    // if (totalXP >= user.nextLevelXP && !showLevelUp) {
+    //   setLevelUpData({ oldLevel: user.level, newLevel: user.level + 1 });
+    //   setShowLevelUp(true);
+    //   setTimeout(() => setShowLevelUp(false), 3000);
+    // }
   };
 
   // Loading state
