@@ -127,6 +127,14 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
   const handleFinishAndExit = async () => {
     if (!currentSession) return;
 
+    // Prevent double-click / already completed
+    if (currentSession.status === 'completed') {
+      console.warn('Session already completed');
+      setShowCompletionModal(false);
+      onFinish();
+      return;
+    }
+
     const totalCards = currentSession.cards?.length || 0;
     const correctCount = Object.values(answers).filter(a => a === 'correct').length;
     const incorrectCount = Object.values(answers).filter(a => a === 'incorrect').length;
@@ -142,7 +150,6 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
         ?.map(card => ({
           cardId: card.id,
           wasCorrect: answers[card.id] === 'correct',
-          timeSpentSeconds: 0, // We don't track per-card time in this simplified version
         }))
         .filter(update => answers[update.cardId] !== undefined) || [];
 
@@ -171,10 +178,16 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
         setShowCompletionModal(false);
         onFinish();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error completing session:', error);
-      setShowCompletionModal(false);
-      onBack();
+      // If session was already completed, just proceed
+      if (error?.response?.data?.error?.code === 'ALREADY_COMPLETED') {
+        setShowCompletionModal(false);
+        onFinish();
+      } else {
+        setShowCompletionModal(false);
+        onBack();
+      }
     }
   };
 

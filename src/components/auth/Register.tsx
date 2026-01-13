@@ -214,9 +214,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-gray-400 text-sm mt-6">
-          Pregătire pentru Evaluarea Națională clasa a VIII-a
-        </p>
+        <p className="text-center text-gray-400 text-sm mt-6">Tu înveți. AI-ul face restul.</p>
       </div>
     </div>
   );
