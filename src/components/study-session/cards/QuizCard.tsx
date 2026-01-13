@@ -138,8 +138,26 @@ export const QuizCard: React.FC<QuizCardProps> = ({
         <div className="p-8 pb-24 flex-1 overflow-y-auto">
           {/* Question Header */}
           <div className="mb-8">
-            <div className="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wide text-center">
-              Întrebare cu Variante
+            <div className="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wide text-center flex items-center justify-center gap-2">
+              <span>Întrebare cu Variante</span>
+              {/* Status Label */}
+              {cardAnswer && (
+                <span
+                  className={`px-2 py-1 rounded-md text-xs font-bold ${
+                    cardAnswer === 'correct'
+                      ? 'bg-green-100 text-green-700'
+                      : cardAnswer === 'incorrect'
+                        ? 'bg-red-100 text-red-700'
+                        : 'bg-yellow-100 text-yellow-700'
+                  }`}
+                >
+                  {cardAnswer === 'correct'
+                    ? 'Corect'
+                    : cardAnswer === 'incorrect'
+                      ? 'Greșit'
+                      : 'Sărit'}
+                </span>
+              )}
             </div>
             <h2 className="text-2xl font-bold text-gray-900 text-center">{card.front}</h2>
           </div>

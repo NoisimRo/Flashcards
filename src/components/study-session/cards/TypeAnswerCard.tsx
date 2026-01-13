@@ -162,8 +162,26 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
 
             {/* Front Content */}
             <div className="mb-8">
-              <div className="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wide text-center">
-                Completează Răspunsul
+              <div className="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wide text-center flex items-center justify-center gap-2">
+                <span>Completează Răspunsul</span>
+                {/* Status Label */}
+                {cardAnswer && (
+                  <span
+                    className={`px-2 py-1 rounded-md text-xs font-bold ${
+                      cardAnswer === 'correct'
+                        ? 'bg-green-100 text-green-700'
+                        : cardAnswer === 'incorrect'
+                          ? 'bg-red-100 text-red-700'
+                          : 'bg-yellow-100 text-yellow-700'
+                    }`}
+                  >
+                    {cardAnswer === 'correct'
+                      ? 'Corect'
+                      : cardAnswer === 'incorrect'
+                        ? 'Greșit'
+                        : 'Sărit'}
+                  </span>
+                )}
               </div>
               <h2 className="text-2xl font-bold text-gray-900 text-center">{card.front}</h2>
             </div>
@@ -271,8 +289,26 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
 
             {/* Back Content */}
             <div className="text-center">
-              <div className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide">
-                Răspuns
+              <div className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide flex items-center justify-center gap-2">
+                <span>Răspuns</span>
+                {/* Status Label */}
+                {cardAnswer && (
+                  <span
+                    className={`px-2 py-1 rounded-md text-xs font-bold ${
+                      cardAnswer === 'correct'
+                        ? 'bg-green-100 text-green-700'
+                        : cardAnswer === 'incorrect'
+                          ? 'bg-red-100 text-red-700'
+                          : 'bg-yellow-100 text-yellow-700'
+                    }`}
+                  >
+                    {cardAnswer === 'correct'
+                      ? 'Corect'
+                      : cardAnswer === 'incorrect'
+                        ? 'Greșit'
+                        : 'Sărit'}
+                  </span>
+                )}
               </div>
 
               {/* Result Status */}
@@ -290,15 +326,25 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
                 )}
               </div>
 
-              {/* Correct Answer */}
-              <div className="text-2xl font-bold text-gray-900 mb-6">{card.back}</div>
-
-              {/* User's Answer (if wrong) */}
+              {/* User's Answer (if wrong) - PERSISTENT with red styling */}
               {!isCorrect && userAnswer && (
-                <div className="text-lg text-gray-600 bg-gray-100 rounded-lg p-4">
-                  <span className="font-semibold">Răspunsul tău:</span> {userAnswer}
+                <div className="mb-4 p-4 bg-red-50 border-2 border-red-300 rounded-lg">
+                  <div className="flex items-center justify-center gap-2 text-red-700 mb-2">
+                    <X size={20} />
+                    <span className="text-sm font-bold uppercase">Răspunsul tău</span>
+                  </div>
+                  <div className="text-xl font-bold text-red-700 text-center">{userAnswer}</div>
                 </div>
               )}
+
+              {/* Correct Answer */}
+              <div className="p-4 bg-green-50 border-2 border-green-300 rounded-lg">
+                <div className="flex items-center justify-center gap-2 text-green-700 mb-2">
+                  <Check size={20} />
+                  <span className="text-sm font-bold uppercase">Răspuns Corect</span>
+                </div>
+                <div className="text-xl font-bold text-green-700 text-center">{card.back}</div>
+              </div>
             </div>
           </div>
         </div>
