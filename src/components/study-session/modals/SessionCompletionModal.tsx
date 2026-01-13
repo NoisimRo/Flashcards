@@ -1,5 +1,6 @@
 import React from 'react';
 import { Trophy, Save, CheckCircle, RefreshCw } from 'lucide-react';
+import { SessionStatsPieChart } from '../progress/SessionStatsPieChart';
 import '../animations/animations.css';
 
 interface SessionCompletionModalProps {
@@ -74,6 +75,17 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
           <div className={`text-sm ${isPerfect ? 'text-yellow-800' : 'text-gray-600'}`}>
             {correctCount} corecte • {incorrectCount} greșite • {skippedCount} sărite
           </div>
+        </div>
+
+        {/* Pie Chart Visualization */}
+        <div className="mb-6 flex justify-center">
+          <SessionStatsPieChart
+            correctCount={correctCount}
+            incorrectCount={incorrectCount}
+            skippedCount={skippedCount}
+            size="large"
+            showLegend={true}
+          />
         </div>
 
         {/* XP Earned */}

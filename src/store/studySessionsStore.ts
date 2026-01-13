@@ -25,6 +25,7 @@ interface StudySessionsStore {
   isCardFlipped: boolean;
   hintRevealed: boolean;
   selectedQuizOption: number | null;
+  frontAction: 'know' | 'show' | null; // Track what user clicked on Standard card front
   isDirty: boolean;
   sessionStartTime: number;
   baselineDuration: number;
@@ -55,6 +56,7 @@ interface StudySessionsStore {
   undoLastAnswer: () => void;
   shuffleCards: () => void;
   restartSession: () => void;
+  setFrontAction: (action: 'know' | 'show' | null) => void;
   enableAutoSave: (intervalMs?: number) => void;
   disableAutoSave: () => void;
   syncProgress: () => Promise<void>;
@@ -100,6 +102,7 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
   isCardFlipped: false,
   hintRevealed: false,
   selectedQuizOption: null,
+  frontAction: null,
   isDirty: false,
   sessionStartTime: Date.now(),
   baselineDuration: 0,
@@ -415,6 +418,7 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
       isCardFlipped: false,
       hintRevealed: false,
       selectedQuizOption: null,
+      frontAction: null, // Reset front action for next card
     });
   },
 
@@ -435,6 +439,7 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
       isCardFlipped: false,
       hintRevealed: false,
       selectedQuizOption: null,
+      frontAction: null,
       isDirty: true,
     });
   },
@@ -459,6 +464,7 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
       isCardFlipped: false,
       hintRevealed: false,
       selectedQuizOption: null,
+      frontAction: null,
       // KEEP streak and sessionXP - user's progress is preserved
       isDirty: true,
     });
@@ -475,6 +481,7 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
       isCardFlipped: false,
       hintRevealed: false,
       selectedQuizOption: null,
+      frontAction: null,
       // KEEP streak and sessionXP - user's progress is preserved
       isDirty: true,
     });
@@ -483,6 +490,11 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
   // Set quiz option
   setQuizOption: (option: number | null) => {
     set({ selectedQuizOption: option });
+  },
+
+  // Set front action for Standard cards
+  setFrontAction: (action: 'know' | 'show' | null) => {
+    set({ frontAction: action });
   },
 
   // Enable auto-save
@@ -568,6 +580,7 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
       isCardFlipped: false,
       hintRevealed: false,
       selectedQuizOption: null,
+      frontAction: null,
       isDirty: false,
       sessionStartTime: Date.now(),
       baselineDuration: 0,

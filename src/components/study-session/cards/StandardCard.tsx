@@ -9,6 +9,7 @@ import {
   ChevronRight,
   SkipForward,
   CheckCircle,
+  X,
 } from 'lucide-react';
 import { CardActionsMenu } from '../menus/CardActionsMenu';
 import { HintOverlay } from '../shared/HintOverlay';
@@ -32,6 +33,7 @@ interface StandardCardProps {
 /**
  * StandardCard - Flip card component for standard flashcards
  * Displays front/back content with flip animation
+ * Implements anti-cheating flow with frontAction tracking
  */
 export const StandardCard: React.FC<StandardCardProps> = ({
   card,
@@ -47,18 +49,37 @@ export const StandardCard: React.FC<StandardCardProps> = ({
   onEditCard,
   onDeleteCard,
 }) => {
-  const { isCardFlipped, flipCard, hintRevealed, revealHint } = useStudySessionsStore();
+  const {
+    isCardFlipped,
+    flipCard,
+    hintRevealed,
+    revealHint,
+    frontAction,
+    setFrontAction,
+    answers,
+  } = useStudySessionsStore();
 
-  const handleKnow = () => {
-    flipCard();
+  const cardAnswer = answers[card.id];
+
+  // Handle "Știu" button - mark as correct, flip
+  const handleKnow = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setFrontAction('know');
     onAnswer(true);
-  };
-
-  const handleShow = () => {
     flipCard();
   };
 
-  const handleDontKnow = () => {
+  // Handle "Arată" button - mark as incorrect, flip
+  const handleShow = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setFrontAction('show');
+    onAnswer(false);
+    flipCard();
+  };
+
+  // Handle "Nu știu" button on back (change from correct to incorrect)
+  const handleDontKnow = (e: React.MouseEvent) => {
+    e.stopPropagation();
     onAnswer(false);
   };
 
@@ -104,22 +125,6 @@ export const StandardCard: React.FC<StandardCardProps> = ({
               </div>
             )}
 
-            {/* Manual Finish Button (top-right, for last card) */}
-            {isLastCard && onFinish && (
-              <div className="absolute top-4 right-16 z-10" onClick={e => e.stopPropagation()}>
-                <button
-                  onClick={e => {
-                    e.stopPropagation();
-                    onFinish();
-                  }}
-                  className="p-2 rounded-lg bg-green-100 hover:bg-green-200 text-green-700 transition-all active:scale-95 shadow-md"
-                  title="Finalizează sesiunea"
-                >
-                  <CheckCircle size={20} />
-                </button>
-              </div>
-            )}
-
             {/* Card Actions Menu (top-right) */}
             <div className="absolute top-4 right-4 z-10" onClick={e => e.stopPropagation()}>
               <CardActionsMenu
@@ -135,7 +140,6 @@ export const StandardCard: React.FC<StandardCardProps> = ({
               <HintOverlay
                 hint={card.context}
                 onDismiss={() => {
-                  // Re-enable hint button by resetting hintRevealed in store
                   useStudySessionsStore.setState({ hintRevealed: false });
                 }}
               />
@@ -143,8 +147,26 @@ export const StandardCard: React.FC<StandardCardProps> = ({
 
             {/* Front Content */}
             <div className="text-center px-4">
-              <div className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide">
-                Întrebare
+              <div className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide flex items-center justify-center gap-2">
+                <span>Întrebare</span>
+                {/* Status Label */}
+                {cardAnswer && (
+                  <span
+                    className={`px-2 py-1 rounded-md text-xs font-bold ${
+                      cardAnswer === 'correct'
+                        ? 'bg-green-100 text-green-700'
+                        : cardAnswer === 'incorrect'
+                          ? 'bg-red-100 text-red-700'
+                          : 'bg-yellow-100 text-yellow-700'
+                    }`}
+                  >
+                    {cardAnswer === 'correct'
+                      ? 'Corect'
+                      : cardAnswer === 'incorrect'
+                        ? 'Greșit'
+                        : 'Sărit'}
+                  </span>
+                )}
               </div>
               <div className="text-2xl font-bold text-gray-900">{card.front}</div>
             </div>
@@ -155,6 +177,7 @@ export const StandardCard: React.FC<StandardCardProps> = ({
               onClick={e => e.stopPropagation()}
             >
               <div className="flex items-center justify-between gap-2">
+                {/* Back button */}
                 <button
                   onClick={onUndo}
                   disabled={isFirstCard}
@@ -191,13 +214,25 @@ export const StandardCard: React.FC<StandardCardProps> = ({
                 {/* Spacer when answered */}
                 {hasAnswered && <div className="flex-1"></div>}
 
-                <button
-                  onClick={onSkip}
-                  className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-all active:scale-95"
-                  title="Sari peste"
-                >
-                  <SkipForward size={20} />
-                </button>
+                {/* Right side: Skip or Finish button */}
+                {isLastCard && onFinish ? (
+                  <button
+                    onClick={onFinish}
+                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all active:scale-95"
+                    title="Finalizează sesiunea"
+                  >
+                    <CheckCircle size={18} />
+                    <span className="hidden sm:inline">Finalizare</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={onSkip}
+                    className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-all active:scale-95"
+                    title="Sari peste"
+                  >
+                    <SkipForward size={20} />
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -211,22 +246,6 @@ export const StandardCard: React.FC<StandardCardProps> = ({
               transform: 'rotateY(180deg)',
             }}
           >
-            {/* Manual Finish Button (top-right, for last card) */}
-            {isLastCard && onFinish && (
-              <div className="absolute top-4 right-16 z-10" onClick={e => e.stopPropagation()}>
-                <button
-                  onClick={e => {
-                    e.stopPropagation();
-                    onFinish();
-                  }}
-                  className="p-2 rounded-lg bg-green-100 hover:bg-green-200 text-green-700 transition-all active:scale-95 shadow-md"
-                  title="Finalizează sesiunea"
-                >
-                  <CheckCircle size={20} />
-                </button>
-              </div>
-            )}
-
             {/* Card Actions Menu (top-right) - mirrored compensation */}
             <div className="absolute top-4 right-4 z-10" onClick={e => e.stopPropagation()}>
               <CardActionsMenu
@@ -239,39 +258,72 @@ export const StandardCard: React.FC<StandardCardProps> = ({
 
             {/* Back Content */}
             <div className="text-center px-4">
-              <div className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide">
-                Răspuns
+              <div className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide flex items-center justify-center gap-2">
+                <span>Răspuns</span>
+                {/* Status Label */}
+                {cardAnswer && (
+                  <span
+                    className={`px-2 py-1 rounded-md text-xs font-bold ${
+                      cardAnswer === 'correct'
+                        ? 'bg-green-100 text-green-700'
+                        : cardAnswer === 'incorrect'
+                          ? 'bg-red-100 text-red-700'
+                          : 'bg-yellow-100 text-yellow-700'
+                    }`}
+                  >
+                    {cardAnswer === 'correct'
+                      ? 'Corect'
+                      : cardAnswer === 'incorrect'
+                        ? 'Greșit'
+                        : 'Sărit'}
+                  </span>
+                )}
               </div>
               <div className="text-2xl font-bold text-gray-900">{card.back}</div>
             </div>
 
-            {/* Sticky Navigation Footer (back) - Always visible */}
+            {/* Sticky Navigation Footer (back) */}
             <div
               className="absolute bottom-0 left-0 right-0 p-4 border-t border-indigo-200 bg-indigo-50/90 backdrop-blur rounded-b-2xl"
               onClick={e => e.stopPropagation()}
             >
-              {!hasAnswered ? (
-                <div className="flex items-center justify-between gap-2">
-                  <button
-                    onClick={onUndo}
-                    disabled={isFirstCard}
-                    className={`p-2 rounded-lg transition-all ${
-                      isFirstCard
-                        ? 'text-gray-300 cursor-not-allowed'
-                        : 'text-gray-600 hover:bg-gray-100 active:scale-95'
-                    }`}
-                    title="Înapoi"
-                  >
-                    <ChevronLeft size={20} />
-                  </button>
+              <div className="flex items-center justify-between gap-2">
+                {/* Back button */}
+                <button
+                  onClick={onUndo}
+                  disabled={isFirstCard}
+                  className={`p-2 rounded-lg transition-all ${
+                    isFirstCard
+                      ? 'text-gray-300 cursor-not-allowed'
+                      : 'text-gray-600 hover:bg-gray-100 active:scale-95'
+                  }`}
+                  title="Înapoi"
+                >
+                  <ChevronLeft size={20} />
+                </button>
 
-                  <div className="flex gap-2 flex-1 justify-center">
+                <div className="flex gap-2 flex-1 justify-end">
+                  {/* Flow A: User clicked "Știu" - show "Nu știu" button */}
+                  {frontAction === 'know' && (
                     <button
                       onClick={handleDontKnow}
                       className="flex items-center gap-2 px-6 py-2 bg-red-100 text-red-700 rounded-lg font-semibold hover:bg-red-200 transition-all active:scale-95"
                     >
-                      ❌ Nu Știu
+                      <X size={18} />
+                      Nu știu
                     </button>
+                  )}
+
+                  {/* Next or Finish button */}
+                  {isLastCard && onFinish ? (
+                    <button
+                      onClick={onFinish}
+                      className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all active:scale-95"
+                    >
+                      <CheckCircle size={18} />
+                      Finalizare
+                    </button>
+                  ) : (
                     <button
                       onClick={onNext}
                       className="flex items-center gap-2 px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-all active:scale-95"
@@ -279,45 +331,9 @@ export const StandardCard: React.FC<StandardCardProps> = ({
                       Următorul
                       <ChevronRight size={18} />
                     </button>
-                  </div>
-
-                  <button
-                    onClick={onSkip}
-                    className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-all active:scale-95"
-                    title="Sari peste"
-                  >
-                    <SkipForward size={20} />
-                  </button>
+                  )}
                 </div>
-              ) : (
-                <div className="flex items-center justify-between gap-2">
-                  <button
-                    onClick={onUndo}
-                    disabled={isFirstCard}
-                    className={`p-2 rounded-lg transition-all ${
-                      isFirstCard
-                        ? 'text-gray-300 cursor-not-allowed'
-                        : 'text-gray-600 hover:bg-gray-100 active:scale-95'
-                    }`}
-                    title="Înapoi"
-                  >
-                    <ChevronLeft size={20} />
-                  </button>
-                  <button
-                    onClick={onNext}
-                    disabled={isLastCard}
-                    className={`flex items-center gap-2 px-6 py-2 rounded-lg font-semibold transition-all ${
-                      isLastCard
-                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                        : 'bg-indigo-600 text-white hover:bg-indigo-700 active:scale-95'
-                    }`}
-                  >
-                    Următorul
-                    <ChevronRight size={18} />
-                  </button>
-                  <div className="w-10"></div>
-                </div>
-              )}
+              </div>
             </div>
           </div>
         </div>

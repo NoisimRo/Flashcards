@@ -5,13 +5,14 @@ import { QuizCard } from './cards/QuizCard';
 import { TypeAnswerCard } from './cards/TypeAnswerCard';
 import { ProgressBar } from './progress/ProgressBar';
 import { SessionStats } from './progress/SessionStats';
+import { SessionStatsPieChart } from './progress/SessionStatsPieChart';
 import { StreakIndicator } from './feedback/StreakIndicator';
 import { XPIndicator } from './feedback/XPIndicator';
 import { XPFloatingAnimation } from './animations/XPFloatingAnimation';
 import { StreakCelebration } from './animations/StreakCelebration';
 import { LevelUpOverlay } from './animations/LevelUpOverlay';
 import { SessionCompletionModal } from './modals/SessionCompletionModal';
-import { ArrowLeft, Shuffle, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Shuffle, RotateCcw, CheckCircle } from 'lucide-react';
 
 interface StudySessionContainerProps {
   sessionId: string;
@@ -127,6 +128,14 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
   const handleFinishAndExit = async () => {
     if (!currentSession) return;
 
+    // Prevent double-click / already completed
+    if (currentSession.status === 'completed') {
+      console.warn('Session already completed');
+      setShowCompletionModal(false);
+      onFinish();
+      return;
+    }
+
     const totalCards = currentSession.cards?.length || 0;
     const correctCount = Object.values(answers).filter(a => a === 'correct').length;
     const incorrectCount = Object.values(answers).filter(a => a === 'incorrect').length;
@@ -171,10 +180,16 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
         setShowCompletionModal(false);
         onFinish();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error completing session:', error);
-      setShowCompletionModal(false);
-      onBack();
+      // If session was already completed, just proceed
+      if (error?.response?.data?.error?.code === 'ALREADY_COMPLETED') {
+        setShowCompletionModal(false);
+        onFinish();
+      } else {
+        setShowCompletionModal(false);
+        onBack();
+      }
     }
   };
 
@@ -215,18 +230,20 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
 
     answerCard(currentCard.id, isCorrect);
 
-    // Trigger XP animation if correct (calculate XP earned)
-    if (isCorrect) {
-      // XP is calculated in the store, so we need to wait a tick to get the updated value
-      setTimeout(() => {
-        const xpEarned = sessionXP - previousXP;
-        if (xpEarned > 0) {
-          setEarnedXP(xpEarned);
-          setShowXPAnimation(true);
-        }
-      }, 10);
+    // Trigger XP animation for ANY XP change (positive or negative)
+    setTimeout(() => {
+      const xpChange = sessionXP - previousXP;
+      if (xpChange !== 0) {
+        setEarnedXP(xpChange);
+        setShowXPAnimation(true);
+      }
 
-      // Check for streak celebration (5, 10, 15, 20, etc.)
+      // Check for level up during session
+      checkLevelUp();
+    }, 10);
+
+    // Check for streak celebration (5, 10, 15, 20, etc.) - only if correct
+    if (isCorrect) {
       const newStreak = currentStreak + 1;
       if (newStreak % 5 === 0 && newStreak >= 5) {
         setCelebrationStreak(newStreak);
@@ -239,6 +256,18 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
       // Reset quiz option selection for next card
       setQuizOption(null);
     }, 300);
+  };
+
+  // Check for level up
+  const checkLevelUp = () => {
+    // TODO: Get user's current XP and next level XP from auth context
+    // For now, this is a placeholder - needs integration with user XP system
+    // const totalXP = user.currentXP + sessionXP;
+    // if (totalXP >= user.nextLevelXP && !showLevelUp) {
+    //   setLevelUpData({ oldLevel: user.level, newLevel: user.level + 1 });
+    //   setShowLevelUp(true);
+    //   setTimeout(() => setShowLevelUp(false), 3000);
+    // }
   };
 
   // Loading state
@@ -285,7 +314,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
               Înapoi
             </button>
 
-            {/* Shuffle & Restart Buttons */}
+            {/* Shuffle, Restart & Finalizare Buttons */}
             <div className="flex items-center gap-2">
               <button
                 onClick={handleShuffle}
@@ -304,6 +333,15 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
                 <RotateCcw size={18} />
                 <span className="hidden sm:inline">Restart</span>
               </button>
+
+              <button
+                onClick={() => setShowCompletionModal(true)}
+                className="flex items-center gap-2 px-4 py-2 text-sm bg-green-600 text-white hover:bg-green-700 rounded-lg font-bold transition-all active:scale-95 shadow-md"
+                title="Finalizează sesiunea"
+              >
+                <CheckCircle size={18} />
+                <span className="hidden sm:inline">Finalizare</span>
+              </button>
             </div>
           </div>
 
@@ -318,7 +356,19 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
               <ProgressBar />
 
               <div className="flex items-center justify-between flex-wrap gap-4">
-                <SessionStats />
+                {/* Left: Pie Chart + Stats */}
+                <div className="flex items-center gap-6">
+                  <SessionStatsPieChart
+                    correctCount={Object.values(answers).filter(a => a === 'correct').length}
+                    incorrectCount={Object.values(answers).filter(a => a === 'incorrect').length}
+                    skippedCount={Object.values(answers).filter(a => a === 'skipped').length}
+                    size="small"
+                    showLegend={false}
+                  />
+                  <SessionStats />
+                </div>
+
+                {/* Right: Streak & XP */}
                 <div className="flex items-center gap-3">
                   <StreakIndicator />
                   <XPIndicator />
