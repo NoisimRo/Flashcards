@@ -1,8 +1,17 @@
 import React from 'react';
 import { useStudySessionsStore } from '../../../store/studySessionsStore';
 import { Card } from '../../../types/models';
-import { Lightbulb, Check, Eye, ChevronLeft, ChevronRight, SkipForward } from 'lucide-react';
+import {
+  Lightbulb,
+  Check,
+  Eye,
+  ChevronLeft,
+  ChevronRight,
+  SkipForward,
+  CheckCircle,
+} from 'lucide-react';
 import { CardActionsMenu } from '../menus/CardActionsMenu';
+import { HintOverlay } from '../shared/HintOverlay';
 import '../animations/animations.css';
 
 interface StandardCardProps {
@@ -11,6 +20,7 @@ interface StandardCardProps {
   onNext?: () => void;
   onSkip?: () => void;
   onUndo?: () => void;
+  onFinish?: () => void;
   isFirstCard?: boolean;
   isLastCard?: boolean;
   hasAnswered?: boolean;
@@ -29,6 +39,7 @@ export const StandardCard: React.FC<StandardCardProps> = ({
   onNext,
   onSkip,
   onUndo,
+  onFinish,
   isFirstCard = false,
   isLastCard = false,
   hasAnswered = false,
@@ -93,6 +104,22 @@ export const StandardCard: React.FC<StandardCardProps> = ({
               </div>
             )}
 
+            {/* Manual Finish Button (top-right, for last card) */}
+            {isLastCard && onFinish && (
+              <div className="absolute top-4 right-16 z-10" onClick={e => e.stopPropagation()}>
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    onFinish();
+                  }}
+                  className="p-2 rounded-lg bg-green-100 hover:bg-green-200 text-green-700 transition-all active:scale-95 shadow-md"
+                  title="Finalizează sesiunea"
+                >
+                  <CheckCircle size={20} />
+                </button>
+              </div>
+            )}
+
             {/* Card Actions Menu (top-right) */}
             <div className="absolute top-4 right-4 z-10" onClick={e => e.stopPropagation()}>
               <CardActionsMenu
@@ -105,17 +132,13 @@ export const StandardCard: React.FC<StandardCardProps> = ({
 
             {/* Glassmorphism Hint Overlay */}
             {card.context && hintRevealed && (
-              <div
-                className="absolute top-16 left-4 right-4 backdrop-blur-md bg-yellow-50/95 border border-yellow-300/50 shadow-xl rounded-xl p-4 z-20 animate-fade-in"
-                onClick={e => e.stopPropagation()}
-                style={{
-                  animation: 'fadeIn 0.3s ease-in-out',
+              <HintOverlay
+                hint={card.context}
+                onDismiss={() => {
+                  // Re-enable hint button by resetting hintRevealed in store
+                  useStudySessionsStore.setState({ hintRevealed: false });
                 }}
-              >
-                <div className="text-sm text-yellow-900">
-                  <span className="font-bold">💡 Context:</span> {card.context}
-                </div>
-              </div>
+              />
             )}
 
             {/* Front Content */}
@@ -126,26 +149,27 @@ export const StandardCard: React.FC<StandardCardProps> = ({
               <div className="text-2xl font-bold text-gray-900">{card.front}</div>
             </div>
 
-            {/* Sticky Navigation Footer (front) */}
-            {!hasAnswered && (
-              <div
-                className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white/90 backdrop-blur rounded-b-2xl"
-                onClick={e => e.stopPropagation()}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <button
-                    onClick={onUndo}
-                    disabled={isFirstCard}
-                    className={`p-2 rounded-lg transition-all ${
-                      isFirstCard
-                        ? 'text-gray-300 cursor-not-allowed'
-                        : 'text-gray-600 hover:bg-gray-100 active:scale-95'
-                    }`}
-                    title="Înapoi"
-                  >
-                    <ChevronLeft size={20} />
-                  </button>
+            {/* Sticky Navigation Footer (front) - Always visible */}
+            <div
+              className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white/90 backdrop-blur rounded-b-2xl"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <button
+                  onClick={onUndo}
+                  disabled={isFirstCard}
+                  className={`p-2 rounded-lg transition-all ${
+                    isFirstCard
+                      ? 'text-gray-300 cursor-not-allowed'
+                      : 'text-gray-600 hover:bg-gray-100 active:scale-95'
+                  }`}
+                  title="Înapoi"
+                >
+                  <ChevronLeft size={20} />
+                </button>
 
+                {/* Action buttons - only show if not answered */}
+                {!hasAnswered && (
                   <div className="flex gap-2 flex-1 justify-center">
                     <button
                       onClick={handleKnow}
@@ -162,17 +186,20 @@ export const StandardCard: React.FC<StandardCardProps> = ({
                       Arată
                     </button>
                   </div>
+                )}
 
-                  <button
-                    onClick={onSkip}
-                    className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-all active:scale-95"
-                    title="Sari peste"
-                  >
-                    <SkipForward size={20} />
-                  </button>
-                </div>
+                {/* Spacer when answered */}
+                {hasAnswered && <div className="flex-1"></div>}
+
+                <button
+                  onClick={onSkip}
+                  className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-all active:scale-95"
+                  title="Sari peste"
+                >
+                  <SkipForward size={20} />
+                </button>
               </div>
-            )}
+            </div>
           </div>
 
           {/* Back Face */}
@@ -184,6 +211,22 @@ export const StandardCard: React.FC<StandardCardProps> = ({
               transform: 'rotateY(180deg)',
             }}
           >
+            {/* Manual Finish Button (top-right, for last card) */}
+            {isLastCard && onFinish && (
+              <div className="absolute top-4 right-16 z-10" onClick={e => e.stopPropagation()}>
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    onFinish();
+                  }}
+                  className="p-2 rounded-lg bg-green-100 hover:bg-green-200 text-green-700 transition-all active:scale-95 shadow-md"
+                  title="Finalizează sesiunea"
+                >
+                  <CheckCircle size={20} />
+                </button>
+              </div>
+            )}
+
             {/* Card Actions Menu (top-right) - mirrored compensation */}
             <div className="absolute top-4 right-4 z-10" onClick={e => e.stopPropagation()}>
               <CardActionsMenu

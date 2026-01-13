@@ -39,6 +39,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     undoLastAnswer,
     skipCard,
     shuffleCards,
+    restartSession,
     currentCardIndex,
     isLoading,
     resetSessionState,
@@ -110,13 +111,12 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     // Close modal first
     setShowCompletionModal(false);
 
-    // Update the store with filtered cards and reset state completely
+    // Update the store with filtered cards - KEEP XP and streak
     useStudySessionsStore.setState({
       currentSession: currentSession ? { ...currentSession, cards: reviewCards } : null,
       currentCardIndex: 0,
       answers: {}, // CRITICAL: Clear all answers to prevent infinite loop
-      streak: 0,
-      sessionXP: 0,
+      // KEEP streak and sessionXP - user continues the session with a subset of cards
       isCardFlipped: false,
       hintRevealed: false,
       selectedQuizOption: null,
@@ -180,7 +180,11 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
 
   // Handle shuffle cards
   const handleShuffle = () => {
-    if (window.confirm('Sigur vrei să amesteci cardurile? Progresul actual nu va fi pierdut.')) {
+    if (
+      window.confirm(
+        'Sigur vrei să amesteci cardurile? Progresul (răspunsuri) va fi șters, dar XP-ul și streak-ul vor fi păstrate.'
+      )
+    ) {
       shuffleCards();
     }
   };
@@ -189,10 +193,10 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
   const handleRestart = () => {
     if (
       window.confirm(
-        'Sigur vrei să restartezi sesiunea? Vei pierde tot progresul actual și XP-ul câștigat.'
+        'Sigur vrei să restartezi sesiunea? Progresul (răspunsuri) va fi șters, dar XP-ul și streak-ul vor fi păstrate.'
       )
     ) {
-      resetSessionState();
+      restartSession();
       setShowCompletionModal(false);
       setShowXPAnimation(false);
       setShowStreakCelebration(false);
@@ -344,6 +348,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
                 }
               }}
               onUndo={undoLastAnswer}
+              onFinish={() => setShowCompletionModal(true)}
               isFirstCard={currentCardIndex === 0}
               isLastCard={currentCardIndex === (currentSession?.cards?.length || 0) - 1}
               hasAnswered={answers[currentCard.id] !== undefined}
@@ -376,6 +381,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
                 }
               }}
               onUndo={undoLastAnswer}
+              onFinish={() => setShowCompletionModal(true)}
               isFirstCard={currentCardIndex === 0}
               isLastCard={currentCardIndex === (currentSession?.cards?.length || 0) - 1}
               hasAnswered={answers[currentCard.id] !== undefined}
@@ -401,7 +407,9 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
                 }
               }}
               onUndo={undoLastAnswer}
+              onFinish={() => setShowCompletionModal(true)}
               isFirstCard={currentCardIndex === 0}
+              isLastCard={currentCardIndex === (currentSession?.cards?.length || 0) - 1}
               hasAnswered={answers[currentCard.id] !== undefined}
             />
           )}

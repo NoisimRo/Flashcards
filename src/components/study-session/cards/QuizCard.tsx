@@ -1,8 +1,17 @@
 import React from 'react';
 import { useStudySessionsStore } from '../../../store/studySessionsStore';
 import { Card } from '../../../types/models';
-import { Check, X, Lightbulb, ChevronLeft, ChevronRight, SkipForward } from 'lucide-react';
+import {
+  Check,
+  X,
+  Lightbulb,
+  ChevronLeft,
+  ChevronRight,
+  SkipForward,
+  CheckCircle,
+} from 'lucide-react';
 import { CardActionsMenu } from '../menus/CardActionsMenu';
+import { HintOverlay } from '../shared/HintOverlay';
 
 interface QuizCardProps {
   card: Card;
@@ -11,6 +20,7 @@ interface QuizCardProps {
   onUndo?: () => void;
   onSkip?: () => void;
   onNext?: () => void;
+  onFinish?: () => void;
   isFirstCard?: boolean;
   isLastCard?: boolean;
   hasAnswered?: boolean;
@@ -30,6 +40,7 @@ export const QuizCard: React.FC<QuizCardProps> = ({
   onUndo,
   onSkip,
   onNext,
+  onFinish,
   isFirstCard = false,
   isLastCard = false,
   hasAnswered: hasAnsweredProp = false,
@@ -87,6 +98,22 @@ export const QuizCard: React.FC<QuizCardProps> = ({
           </div>
         )}
 
+        {/* Manual Finish Button (top-right, for last card) */}
+        {isLastCard && onFinish && (
+          <div className="absolute top-4 right-16 z-10">
+            <button
+              onClick={e => {
+                e.stopPropagation();
+                onFinish();
+              }}
+              className="p-2 rounded-lg bg-green-100 hover:bg-green-200 text-green-700 transition-all active:scale-95 shadow-md"
+              title="Finalizează sesiunea"
+            >
+              <CheckCircle size={20} />
+            </button>
+          </div>
+        )}
+
         {/* Card Actions Menu (top-right) */}
         <div className="absolute top-4 right-4 z-10">
           <CardActionsMenu
@@ -99,16 +126,12 @@ export const QuizCard: React.FC<QuizCardProps> = ({
 
         {/* Glassmorphism Hint Overlay */}
         {card.context && hintRevealed && (
-          <div
-            className="absolute top-16 left-4 right-4 backdrop-blur-md bg-yellow-50/95 border border-yellow-300/50 shadow-xl rounded-xl p-4 z-20 animate-fade-in"
-            style={{
-              animation: 'fadeIn 0.3s ease-in-out',
+          <HintOverlay
+            hint={card.context}
+            onDismiss={() => {
+              useStudySessionsStore.setState({ hintRevealed: false });
             }}
-          >
-            <div className="text-sm text-yellow-900">
-              <span className="font-bold">💡 Context:</span> {card.context}
-            </div>
-          </div>
+          />
         )}
 
         {/* Content Area with padding for sticky footer */}
@@ -158,6 +181,7 @@ export const QuizCard: React.FC<QuizCardProps> = ({
         {/* Sticky Navigation Footer - Always visible */}
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white/90 backdrop-blur rounded-b-2xl">
           <div className="flex items-center justify-between gap-2">
+            {/* Left: Back Button */}
             <button
               onClick={onUndo}
               disabled={isFirstCard}
@@ -171,6 +195,10 @@ export const QuizCard: React.FC<QuizCardProps> = ({
               <ChevronLeft size={20} />
             </button>
 
+            {/* Spacer to push the next button to the right */}
+            <div className="flex-1"></div>
+
+            {/* Right: Next or Skip Button */}
             {hasAnswered ? (
               <button
                 onClick={onNext}
@@ -193,8 +221,6 @@ export const QuizCard: React.FC<QuizCardProps> = ({
                 <span className="hidden sm:inline">Sari</span>
               </button>
             )}
-
-            <div className="w-10"></div>
           </div>
         </div>
       </div>

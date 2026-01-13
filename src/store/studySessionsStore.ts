@@ -54,6 +54,7 @@ interface StudySessionsStore {
   nextCard: () => void;
   undoLastAnswer: () => void;
   shuffleCards: () => void;
+  restartSession: () => void;
   enableAutoSave: (intervalMs?: number) => void;
   disableAutoSave: () => void;
   syncProgress: () => Promise<void>;
@@ -438,7 +439,7 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
     });
   },
 
-  // Shuffle cards (Fisher-Yates algorithm)
+  // Shuffle cards (Fisher-Yates algorithm) - KEEPS XP and streak
   shuffleCards: () => {
     const state = get();
     if (!state.currentSession?.cards) return;
@@ -458,8 +459,23 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
       isCardFlipped: false,
       hintRevealed: false,
       selectedQuizOption: null,
-      streak: 0,
-      sessionXP: 0,
+      // KEEP streak and sessionXP - user's progress is preserved
+      isDirty: true,
+    });
+  },
+
+  // Restart session - KEEPS XP and streak, same order
+  restartSession: () => {
+    const state = get();
+    if (!state.currentSession?.cards) return;
+
+    set({
+      currentCardIndex: 0,
+      answers: {}, // Clear all answers
+      isCardFlipped: false,
+      hintRevealed: false,
+      selectedQuizOption: null,
+      // KEEP streak and sessionXP - user's progress is preserved
       isDirty: true,
     });
   },
