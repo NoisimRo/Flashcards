@@ -39,9 +39,7 @@ export const SessionStatsPieChart: React.FC<SessionStatsPieChartProps> = ({
             strokeWidth="8"
           />
         </svg>
-        {showLegend && (
-          <div className="text-xs text-gray-400 font-medium">Fără răspunsuri</div>
-        )}
+        {showLegend && <div className="text-xs text-gray-400 font-medium">Fără răspunsuri</div>}
       </div>
     );
   }
