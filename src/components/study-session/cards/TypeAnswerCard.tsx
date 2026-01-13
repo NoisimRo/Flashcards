@@ -43,6 +43,7 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
   const [hasAnswered, setHasAnswered] = React.useState(hasAnsweredProp);
   const [isCorrect, setIsCorrect] = React.useState<boolean | null>(null);
   const [showBack, setShowBack] = React.useState(false);
+  const [autoAdvanceTimer, setAutoAdvanceTimer] = React.useState<NodeJS.Timeout | null>(null);
 
   const cardAnswer = answers[card.id];
   // Anti-cheating: disable if already answered in store OR local state
@@ -80,11 +81,38 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
 
     // Auto-advance after 3 seconds (from back view)
     if (onAutoAdvance) {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         onAutoAdvance();
       }, 3500); // 500ms feedback + 3000ms on back = 3500ms total
+      setAutoAdvanceTimer(timer);
     }
   };
+
+  // Clear auto-advance timer on manual navigation
+  const handleManualNext = () => {
+    if (autoAdvanceTimer) {
+      clearTimeout(autoAdvanceTimer);
+      setAutoAdvanceTimer(null);
+    }
+    onNext?.();
+  };
+
+  const handleManualUndo = () => {
+    if (autoAdvanceTimer) {
+      clearTimeout(autoAdvanceTimer);
+      setAutoAdvanceTimer(null);
+    }
+    onUndo?.();
+  };
+
+  // Cleanup timer on unmount
+  React.useEffect(() => {
+    return () => {
+      if (autoAdvanceTimer) {
+        clearTimeout(autoAdvanceTimer);
+      }
+    };
+  }, [autoAdvanceTimer]);
 
   return (
     <div className="w-full max-w-2xl mx-auto">
@@ -187,7 +215,6 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
                     type="text"
                     value={userAnswer}
                     onChange={e => setUserAnswer(e.target.value)}
-                    disabled={isAnswered}
                     placeholder="Scrie răspunsul aici..."
                     className={`w-full px-5 py-4 pr-14 rounded-xl border-2 focus:outline-none focus:ring-2 transition-all text-base ${
                       showResult
@@ -195,7 +222,7 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
                           ? 'border-green-500 bg-green-50'
                           : 'border-red-500 bg-red-50'
                         : 'border-gray-300 focus:border-indigo-600 focus:ring-indigo-200'
-                    } ${isAnswered ? 'cursor-not-allowed' : ''}`}
+                    }`}
                     autoFocus
                   />
                   <button
@@ -213,25 +240,25 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
               </div>
             </form>
 
-            {/* Navigation Buttons (front) */}
-            {!isAnswered && (
-              <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white/90 backdrop-blur rounded-b-2xl">
-                <div className="flex items-center justify-between gap-2">
-                  <button
-                    onClick={onUndo}
-                    disabled={isFirstCard}
-                    className={`p-2 rounded-lg transition-all ${
-                      isFirstCard
-                        ? 'text-gray-300 cursor-not-allowed'
-                        : 'text-gray-600 hover:bg-gray-100 active:scale-95'
-                    }`}
-                    title="Înapoi"
-                  >
-                    <ChevronLeft size={20} />
-                  </button>
+            {/* Navigation Buttons (front) - Always visible */}
+            <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white/90 backdrop-blur rounded-b-2xl">
+              <div className="flex items-center justify-between gap-2">
+                <button
+                  onClick={handleManualUndo}
+                  disabled={isFirstCard}
+                  className={`p-2 rounded-lg transition-all ${
+                    isFirstCard
+                      ? 'text-gray-300 cursor-not-allowed'
+                      : 'text-gray-600 hover:bg-gray-100 active:scale-95'
+                  }`}
+                  title="Înapoi"
+                >
+                  <ChevronLeft size={20} />
+                </button>
 
-                  {/* Right: Finish or Skip button */}
-                  {isLastCard && onFinish ? (
+                {/* Right: Next, Finish or Skip button */}
+                {isAnswered ? (
+                  isLastCard && onFinish ? (
                     <button
                       onClick={onFinish}
                       className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all active:scale-95"
@@ -241,16 +268,32 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
                     </button>
                   ) : (
                     <button
-                      onClick={onSkip}
-                      className="flex items-center gap-2 px-4 py-2 text-yellow-700 hover:bg-yellow-50 rounded-lg transition-all active:scale-95"
+                      onClick={handleManualNext}
+                      className="flex items-center gap-2 px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-all active:scale-95"
                     >
-                      <SkipForward size={18} />
-                      <span className="hidden sm:inline">Sari</span>
+                      Următorul
+                      <ChevronRight size={18} />
                     </button>
-                  )}
-                </div>
+                  )
+                ) : isLastCard && onFinish ? (
+                  <button
+                    onClick={onFinish}
+                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all active:scale-95"
+                  >
+                    <CheckCircle size={18} />
+                    <span className="hidden sm:inline">Finalizare</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={onSkip}
+                    className="flex items-center gap-2 px-4 py-2 text-yellow-700 hover:bg-yellow-50 rounded-lg transition-all active:scale-95"
+                  >
+                    <SkipForward size={18} />
+                    <span className="hidden sm:inline">Sari</span>
+                  </button>
+                )}
               </div>
-            )}
+            </div>
           </div>
 
           {/* Back Face */}
@@ -332,6 +375,43 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
                   <span className="text-sm font-bold uppercase">Răspuns Corect</span>
                 </div>
                 <div className="text-xl font-bold text-green-700 text-center">{card.back}</div>
+              </div>
+            </div>
+
+            {/* Navigation Buttons (back) - Always visible */}
+            <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-indigo-200 bg-indigo-50/90 backdrop-blur rounded-b-2xl">
+              <div className="flex items-center justify-between gap-2">
+                <button
+                  onClick={handleManualUndo}
+                  disabled={isFirstCard}
+                  className={`p-2 rounded-lg transition-all ${
+                    isFirstCard
+                      ? 'text-gray-300 cursor-not-allowed'
+                      : 'text-gray-600 hover:bg-gray-100 active:scale-95'
+                  }`}
+                  title="Înapoi"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+
+                {/* Right: Next or Finish button */}
+                {isLastCard && onFinish ? (
+                  <button
+                    onClick={onFinish}
+                    className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all active:scale-95"
+                  >
+                    <CheckCircle size={18} />
+                    Finalizare
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleManualNext}
+                    className="flex items-center gap-2 px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-all active:scale-95"
+                  >
+                    Următorul
+                    <ChevronRight size={18} />
+                  </button>
+                )}
               </div>
             </div>
           </div>
