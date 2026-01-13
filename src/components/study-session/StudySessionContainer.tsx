@@ -11,7 +11,7 @@ import { XPFloatingAnimation } from './animations/XPFloatingAnimation';
 import { StreakCelebration } from './animations/StreakCelebration';
 import { LevelUpOverlay } from './animations/LevelUpOverlay';
 import { SessionCompletionModal } from './modals/SessionCompletionModal';
-import { ArrowLeft, Shuffle, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Shuffle, RotateCcw, CheckCircle } from 'lucide-react';
 
 interface StudySessionContainerProps {
   sessionId: string;
@@ -299,7 +299,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
               Înapoi
             </button>
 
-            {/* Shuffle & Restart Buttons */}
+            {/* Shuffle, Restart & Finalizare Buttons */}
             <div className="flex items-center gap-2">
               <button
                 onClick={handleShuffle}
@@ -317,6 +317,15 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
               >
                 <RotateCcw size={18} />
                 <span className="hidden sm:inline">Restart</span>
+              </button>
+
+              <button
+                onClick={() => setShowCompletionModal(true)}
+                className="flex items-center gap-2 px-4 py-2 text-sm bg-green-600 text-white hover:bg-green-700 rounded-lg font-bold transition-all active:scale-95 shadow-md"
+                title="Finalizează sesiunea"
+              >
+                <CheckCircle size={18} />
+                <span className="hidden sm:inline">Finalizare</span>
               </button>
             </div>
           </div>
