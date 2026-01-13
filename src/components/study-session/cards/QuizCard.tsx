@@ -54,10 +54,13 @@ export const QuizCard: React.FC<QuizCardProps> = ({
   const [isCorrect, setIsCorrect] = React.useState<boolean | null>(null);
 
   const cardAnswer = answers[card.id];
-  const showResult = hasAnswered || cardAnswer !== undefined;
+  // Anti-cheating: disable if already answered in store OR local state
+  const isAnswered = hasAnswered || cardAnswer !== undefined;
+  const showResult = isAnswered;
 
   const handleOptionClick = (index: number) => {
-    if (hasAnswered) return;
+    // Anti-cheating: prevent answer changes if already answered
+    if (isAnswered) return;
     setQuizOption(index);
 
     // Instant feedback - check if answer is correct immediately
@@ -83,7 +86,7 @@ export const QuizCard: React.FC<QuizCardProps> = ({
       {/* Card Container - use min-height for dynamic content */}
       <div className="relative bg-white rounded-2xl shadow-xl min-h-[500px] flex flex-col">
         {/* Lightbulb Hint Button (top-left) */}
-        {card.context && !hintRevealed && !hasAnswered && (
+        {card.context && !hintRevealed && !isAnswered && (
           <div className="absolute top-4 left-4 z-10">
             <button
               onClick={e => {
@@ -94,22 +97,6 @@ export const QuizCard: React.FC<QuizCardProps> = ({
               title="Arată context (-20 XP)"
             >
               <Lightbulb size={20} />
-            </button>
-          </div>
-        )}
-
-        {/* Manual Finish Button (top-right, for last card) */}
-        {isLastCard && onFinish && (
-          <div className="absolute top-4 right-16 z-10">
-            <button
-              onClick={e => {
-                e.stopPropagation();
-                onFinish();
-              }}
-              className="p-2 rounded-lg bg-green-100 hover:bg-green-200 text-green-700 transition-all active:scale-95 shadow-md"
-              title="Finalizează sesiunea"
-            >
-              <CheckCircle size={20} />
             </button>
           </div>
         )}
@@ -174,7 +161,7 @@ export const QuizCard: React.FC<QuizCardProps> = ({
                 <button
                   key={index}
                   onClick={() => handleOptionClick(index)}
-                  disabled={hasAnswered}
+                  disabled={isAnswered}
                   className={`w-full text-left p-4 rounded-xl border-2 transition-all font-medium ${
                     showCorrect
                       ? 'border-green-500 bg-green-50 text-green-900'
@@ -183,7 +170,7 @@ export const QuizCard: React.FC<QuizCardProps> = ({
                         : isSelected
                           ? 'border-indigo-600 bg-indigo-50 text-indigo-900'
                           : 'border-gray-200 hover:border-indigo-300 hover:bg-gray-50 text-gray-900'
-                  } ${hasAnswered ? 'cursor-not-allowed' : 'cursor-pointer active:scale-98'}`}
+                  } ${isAnswered ? 'cursor-not-allowed' : 'cursor-pointer active:scale-98'}`}
                 >
                   <div className="flex items-center justify-between">
                     <span>{option}</span>
@@ -216,19 +203,32 @@ export const QuizCard: React.FC<QuizCardProps> = ({
             {/* Spacer to push the next button to the right */}
             <div className="flex-1"></div>
 
-            {/* Right: Next or Skip Button */}
-            {hasAnswered ? (
+            {/* Right: Next, Finish, or Skip Button */}
+            {isAnswered ? (
+              isLastCard && onFinish ? (
+                <button
+                  onClick={onFinish}
+                  className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all active:scale-95"
+                >
+                  <CheckCircle size={18} />
+                  Finalizare
+                </button>
+              ) : (
+                <button
+                  onClick={onNext}
+                  className="flex items-center gap-2 px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-all active:scale-95"
+                >
+                  Următorul
+                  <ChevronRight size={18} />
+                </button>
+              )
+            ) : isLastCard && onFinish ? (
               <button
-                onClick={onNext}
-                disabled={isLastCard}
-                className={`flex items-center gap-2 px-6 py-2 rounded-lg font-semibold transition-all ${
-                  isLastCard
-                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                    : 'bg-indigo-600 text-white hover:bg-indigo-700 active:scale-95'
-                }`}
+                onClick={onFinish}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all active:scale-95"
               >
-                Următorul
-                <ChevronRight size={18} />
+                <CheckCircle size={18} />
+                <span className="hidden sm:inline">Finalizare</span>
               </button>
             ) : (
               <button

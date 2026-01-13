@@ -125,22 +125,6 @@ export const StandardCard: React.FC<StandardCardProps> = ({
               </div>
             )}
 
-            {/* Manual Finish Button (top-right, for last card) */}
-            {isLastCard && onFinish && (
-              <div className="absolute top-4 right-16 z-10" onClick={e => e.stopPropagation()}>
-                <button
-                  onClick={e => {
-                    e.stopPropagation();
-                    onFinish();
-                  }}
-                  className="p-2 rounded-lg bg-green-100 hover:bg-green-200 text-green-700 transition-all active:scale-95 shadow-md"
-                  title="Finalizează sesiunea"
-                >
-                  <CheckCircle size={20} />
-                </button>
-              </div>
-            )}
-
             {/* Card Actions Menu (top-right) */}
             <div className="absolute top-4 right-4 z-10" onClick={e => e.stopPropagation()}>
               <CardActionsMenu
@@ -230,14 +214,25 @@ export const StandardCard: React.FC<StandardCardProps> = ({
                 {/* Spacer when answered */}
                 {hasAnswered && <div className="flex-1"></div>}
 
-                {/* Skip button - only on front */}
-                <button
-                  onClick={onSkip}
-                  className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-all active:scale-95"
-                  title="Sari peste"
-                >
-                  <SkipForward size={20} />
-                </button>
+                {/* Right side: Skip or Finish button */}
+                {isLastCard && onFinish ? (
+                  <button
+                    onClick={onFinish}
+                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all active:scale-95"
+                    title="Finalizează sesiunea"
+                  >
+                    <CheckCircle size={18} />
+                    <span className="hidden sm:inline">Finalizare</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={onSkip}
+                    className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-all active:scale-95"
+                    title="Sari peste"
+                  >
+                    <SkipForward size={20} />
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -251,22 +246,6 @@ export const StandardCard: React.FC<StandardCardProps> = ({
               transform: 'rotateY(180deg)',
             }}
           >
-            {/* Manual Finish Button (top-right, for last card) */}
-            {isLastCard && onFinish && (
-              <div className="absolute top-4 right-16 z-10" onClick={e => e.stopPropagation()}>
-                <button
-                  onClick={e => {
-                    e.stopPropagation();
-                    onFinish();
-                  }}
-                  className="p-2 rounded-lg bg-green-100 hover:bg-green-200 text-green-700 transition-all active:scale-95 shadow-md"
-                  title="Finalizează sesiunea"
-                >
-                  <CheckCircle size={20} />
-                </button>
-              </div>
-            )}
-
             {/* Card Actions Menu (top-right) - mirrored compensation */}
             <div className="absolute top-4 right-4 z-10" onClick={e => e.stopPropagation()}>
               <CardActionsMenu
@@ -335,19 +314,24 @@ export const StandardCard: React.FC<StandardCardProps> = ({
                     </button>
                   )}
 
-                  {/* Next button - always visible on back */}
-                  <button
-                    onClick={onNext}
-                    disabled={isLastCard}
-                    className={`flex items-center gap-2 px-6 py-2 rounded-lg font-semibold transition-all ${
-                      isLastCard
-                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                        : 'bg-indigo-600 text-white hover:bg-indigo-700 active:scale-95'
-                    }`}
-                  >
-                    Următorul
-                    <ChevronRight size={18} />
-                  </button>
+                  {/* Next or Finish button */}
+                  {isLastCard && onFinish ? (
+                    <button
+                      onClick={onFinish}
+                      className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all active:scale-95"
+                    >
+                      <CheckCircle size={18} />
+                      Finalizare
+                    </button>
+                  ) : (
+                    <button
+                      onClick={onNext}
+                      className="flex items-center gap-2 px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-all active:scale-95"
+                    >
+                      Următorul
+                      <ChevronRight size={18} />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

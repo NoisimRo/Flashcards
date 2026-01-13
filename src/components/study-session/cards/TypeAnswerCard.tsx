@@ -45,7 +45,9 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
   const [showBack, setShowBack] = React.useState(false);
 
   const cardAnswer = answers[card.id];
-  const showResult = hasAnswered || cardAnswer !== undefined;
+  // Anti-cheating: disable if already answered in store OR local state
+  const isAnswered = hasAnswered || cardAnswer !== undefined;
+  const showResult = isAnswered;
 
   const normalizeAnswer = (text: string): string => {
     return text
@@ -57,7 +59,8 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userAnswer.trim() || hasAnswered) return;
+    // Anti-cheating: prevent answer changes if already answered
+    if (!userAnswer.trim() || isAnswered) return;
 
     const normalizedUser = normalizeAnswer(userAnswer);
     const normalizedCorrect = normalizeAnswer(card.back);
@@ -109,7 +112,7 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
             }}
           >
             {/* Lightbulb Hint Button (top-left) */}
-            {card.context && !hintRevealed && !hasAnswered && (
+            {card.context && !hintRevealed && !isAnswered && (
               <div className="absolute top-4 left-4 z-10">
                 <button
                   onClick={e => {
@@ -120,22 +123,6 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
                   title="Arată context (-20 XP)"
                 >
                   <Lightbulb size={20} />
-                </button>
-              </div>
-            )}
-
-            {/* Manual Finish Button (top-right, for last card) */}
-            {isLastCard && onFinish && (
-              <div className="absolute top-4 right-16 z-10">
-                <button
-                  onClick={e => {
-                    e.stopPropagation();
-                    onFinish();
-                  }}
-                  className="p-2 rounded-lg bg-green-100 hover:bg-green-200 text-green-700 transition-all active:scale-95 shadow-md"
-                  title="Finalizează sesiunea"
-                >
-                  <CheckCircle size={20} />
                 </button>
               </div>
             )}
@@ -197,7 +184,7 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
                     type="text"
                     value={userAnswer}
                     onChange={e => setUserAnswer(e.target.value)}
-                    disabled={hasAnswered}
+                    disabled={isAnswered}
                     placeholder="Scrie răspunsul aici..."
                     className={`w-full px-5 py-4 pr-14 rounded-xl border-2 focus:outline-none focus:ring-2 transition-all text-base ${
                       showResult
@@ -205,14 +192,14 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
                           ? 'border-green-500 bg-green-50'
                           : 'border-red-500 bg-red-50'
                         : 'border-gray-300 focus:border-indigo-600 focus:ring-indigo-200'
-                    } ${hasAnswered ? 'cursor-not-allowed' : ''}`}
+                    } ${isAnswered ? 'cursor-not-allowed' : ''}`}
                     autoFocus
                   />
                   <button
                     type="submit"
-                    disabled={hasAnswered || !userAnswer.trim()}
+                    disabled={isAnswered || !userAnswer.trim()}
                     className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all ${
-                      hasAnswered || !userAnswer.trim()
+                      isAnswered || !userAnswer.trim()
                         ? 'text-gray-400 cursor-not-allowed'
                         : 'text-indigo-600 hover:bg-indigo-50 active:scale-95'
                     }`}
@@ -224,7 +211,7 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
             </form>
 
             {/* Navigation Buttons (front) */}
-            {!hasAnswered && (
+            {!isAnswered && (
               <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white/90 backdrop-blur rounded-b-2xl">
                 <div className="flex items-center justify-between gap-2">
                   <button
@@ -240,13 +227,24 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
                     <ChevronLeft size={20} />
                   </button>
 
-                  <button
-                    onClick={onSkip}
-                    className="flex items-center gap-2 px-4 py-2 text-yellow-700 hover:bg-yellow-50 rounded-lg transition-all active:scale-95"
-                  >
-                    <SkipForward size={18} />
-                    <span className="hidden sm:inline">Sari</span>
-                  </button>
+                  {/* Right: Finish or Skip button */}
+                  {isLastCard && onFinish ? (
+                    <button
+                      onClick={onFinish}
+                      className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all active:scale-95"
+                    >
+                      <CheckCircle size={18} />
+                      <span className="hidden sm:inline">Finalizare</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={onSkip}
+                      className="flex items-center gap-2 px-4 py-2 text-yellow-700 hover:bg-yellow-50 rounded-lg transition-all active:scale-95"
+                    >
+                      <SkipForward size={18} />
+                      <span className="hidden sm:inline">Sari</span>
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -261,22 +259,6 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
               transform: 'rotateY(180deg)',
             }}
           >
-            {/* Manual Finish Button (top-right, for last card) */}
-            {isLastCard && onFinish && (
-              <div className="absolute top-4 right-16 z-10">
-                <button
-                  onClick={e => {
-                    e.stopPropagation();
-                    onFinish();
-                  }}
-                  className="p-2 rounded-lg bg-green-100 hover:bg-green-200 text-green-700 transition-all active:scale-95 shadow-md"
-                  title="Finalizează sesiunea"
-                >
-                  <CheckCircle size={20} />
-                </button>
-              </div>
-            )}
-
             {/* Card Actions Menu (top-right) */}
             <div className="absolute top-4 right-4 z-10">
               <CardActionsMenu

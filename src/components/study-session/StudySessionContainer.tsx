@@ -5,6 +5,7 @@ import { QuizCard } from './cards/QuizCard';
 import { TypeAnswerCard } from './cards/TypeAnswerCard';
 import { ProgressBar } from './progress/ProgressBar';
 import { SessionStats } from './progress/SessionStats';
+import { SessionStatsPieChart } from './progress/SessionStatsPieChart';
 import { StreakIndicator } from './feedback/StreakIndicator';
 import { XPIndicator } from './feedback/XPIndicator';
 import { XPFloatingAnimation } from './animations/XPFloatingAnimation';
@@ -355,7 +356,19 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
               <ProgressBar />
 
               <div className="flex items-center justify-between flex-wrap gap-4">
-                <SessionStats />
+                {/* Left: Pie Chart + Stats */}
+                <div className="flex items-center gap-6">
+                  <SessionStatsPieChart
+                    correctCount={Object.values(answers).filter(a => a === 'correct').length}
+                    incorrectCount={Object.values(answers).filter(a => a === 'incorrect').length}
+                    skippedCount={Object.values(answers).filter(a => a === 'skipped').length}
+                    size="small"
+                    showLegend={false}
+                  />
+                  <SessionStats />
+                </div>
+
+                {/* Right: Streak & XP */}
                 <div className="flex items-center gap-3">
                   <StreakIndicator />
                   <XPIndicator />
