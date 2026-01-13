@@ -1,15 +1,7 @@
 import React from 'react';
 import { useStudySessionsStore } from '../../../store/studySessionsStore';
 import { Card } from '../../../types/models';
-import {
-  Check,
-  X,
-  Send,
-  Lightbulb,
-  ChevronLeft,
-  SkipForward,
-  CheckCircle,
-} from 'lucide-react';
+import { Check, X, Send, Lightbulb, ChevronLeft, SkipForward, CheckCircle } from 'lucide-react';
 import { CardActionsMenu } from '../menus/CardActionsMenu';
 import { HintOverlay } from '../shared/HintOverlay';
 
