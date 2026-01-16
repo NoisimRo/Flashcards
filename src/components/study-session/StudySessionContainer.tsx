@@ -5,7 +5,6 @@ import { StandardCard } from './cards/StandardCard';
 import { QuizCard } from './cards/QuizCard';
 import { TypeAnswerCard } from './cards/TypeAnswerCard';
 import { ProgressBar } from './progress/ProgressBar';
-import { SessionStats } from './progress/SessionStats';
 import { SessionStatsPieChart } from './progress/SessionStatsPieChart';
 import { StreakIndicator } from './feedback/StreakIndicator';
 import { XPIndicator } from './feedback/XPIndicator';
@@ -84,10 +83,11 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     const answeredCards = Object.keys(answers).length;
 
     // Show completion modal when all cards are answered
+    // SINGLE SOURCE OF TRUTH - prevents double completion calls
     if (answeredCards === totalCards && totalCards > 0 && !showCompletionModal) {
       setTimeout(() => {
         setShowCompletionModal(true);
-      }, 500); // Small delay to show the last card feedback
+      }, 1500); // Increased delay to give user time to see last card answer
     }
   }, [answers, currentSession, showCompletionModal]);
 
@@ -341,7 +341,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
             </button>
 
             {/* Shuffle, Restart & Finalizare Buttons */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 mr-12 sm:mr-0">
               <button
                 onClick={handleShuffle}
                 className="flex items-center gap-2 px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg font-medium transition-all active:scale-95"
@@ -375,46 +375,27 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
           <div className="bg-white rounded-xl shadow-sm p-6">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">
               {currentSession.deck?.title || currentSession.title || 'Sesiune de studiu'}
+              {currentSession.deck?.difficulty && (
+                <span className="ml-2 text-lg font-semibold text-indigo-600">
+                  • {currentSession.deck.difficulty}
+                </span>
+              )}
             </h1>
 
             {/* Progress and Stats Row */}
             <div className="space-y-4">
               {/* Main Layout: [Pie Chart] <--- [Progress Bar] ---> [Streak & XP] */}
               <div className="flex items-center justify-between gap-6">
-                {/* Left: Pie Chart with Tooltips */}
-                <div className="flex-shrink-0 relative group">
+                {/* Left: Interactive Pie Chart */}
+                <div className="flex-shrink-0">
                   <SessionStatsPieChart
                     correctCount={Object.values(answers).filter(a => a === 'correct').length}
                     incorrectCount={Object.values(answers).filter(a => a === 'incorrect').length}
                     skippedCount={Object.values(answers).filter(a => a === 'skipped').length}
+                    totalCards={currentSession?.cards?.length || 0}
                     size="small"
                     showLegend={false}
                   />
-                  {/* Tooltip */}
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-50">
-                    <div className="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 whitespace-nowrap shadow-lg">
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                        <span>
-                          {Object.values(answers).filter(a => a === 'correct').length} Știute
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                        <span>
-                          {Object.values(answers).filter(a => a === 'incorrect').length} Neștiute
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
-                        <span>
-                          {Object.values(answers).filter(a => a === 'skipped').length} Sărite
-                        </span>
-                      </div>
-                      {/* Arrow */}
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-gray-900"></div>
-                    </div>
-                  </div>
                 </div>
 
                 {/* Center: Progress Bar */}
@@ -423,15 +404,10 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
                 </div>
 
                 {/* Right: Streak & XP */}
-                <div className="flex items-center gap-3 flex-shrink-0">
+                <div className="flex items-center gap-1 flex-shrink-0">
                   <StreakIndicator />
                   <XPIndicator />
                 </div>
-              </div>
-
-              {/* Session Stats below */}
-              <div className="flex justify-center">
-                <SessionStats />
               </div>
             </div>
           </div>
@@ -446,9 +422,8 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
               onNext={() => {
                 if (currentCardIndex < (currentSession?.cards?.length || 0) - 1) {
                   nextCard();
-                } else {
-                  setShowCompletionModal(true);
                 }
+                // Don't manually trigger modal - useEffect handles it
               }}
               onSkip={() => {
                 skipCard(currentCard.id);
@@ -472,16 +447,14 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
                 const totalCards = currentSession?.cards?.length || 0;
                 if (currentCardIndex < totalCards - 1) {
                   nextCard();
-                } else {
-                  setShowCompletionModal(true);
                 }
+                // Don't manually trigger modal - useEffect handles it
               }}
               onNext={() => {
                 if (currentCardIndex < (currentSession?.cards?.length || 0) - 1) {
                   nextCard();
-                } else {
-                  setShowCompletionModal(true);
                 }
+                // Don't manually trigger modal - useEffect handles it
               }}
               onSkip={() => {
                 skipCard(currentCard.id);
@@ -505,10 +478,10 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
                 const totalCards = currentSession?.cards?.length || 0;
                 if (currentCardIndex < totalCards - 1) {
                   nextCard();
-                } else {
-                  setShowCompletionModal(true);
                 }
+                // Don't manually trigger modal - useEffect handles it
               }}
+              onNext={nextCard}
               onSkip={() => {
                 skipCard(currentCard.id);
                 if (currentCardIndex < (currentSession?.cards?.length || 0) - 1) {
@@ -559,6 +532,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
             correctCount={Object.values(answers).filter(a => a === 'correct').length}
             incorrectCount={Object.values(answers).filter(a => a === 'incorrect').length}
             skippedCount={Object.values(answers).filter(a => a === 'skipped').length}
+            totalCards={currentSession.cards?.length || 0}
             xpEarned={sessionXP}
             onSaveAndExit={handleSaveAndExit}
             onFinishAndExit={handleFinishAndExit}

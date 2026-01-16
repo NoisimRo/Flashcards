@@ -8,6 +8,7 @@ interface SessionCompletionModalProps {
   correctCount: number;
   incorrectCount: number;
   skippedCount: number;
+  totalCards: number;
   xpEarned: number;
   onSaveAndExit: () => void;
   onFinishAndExit: () => void;
@@ -23,6 +24,7 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
   correctCount,
   incorrectCount,
   skippedCount,
+  totalCards,
   xpEarned,
   onSaveAndExit,
   onFinishAndExit,
@@ -92,6 +94,7 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
             correctCount={correctCount}
             incorrectCount={incorrectCount}
             skippedCount={skippedCount}
+            totalCards={totalCards}
             size="medium"
             showLegend={true}
           />
