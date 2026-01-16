@@ -129,6 +129,11 @@ export const SessionStatsPieChart: React.FC<SessionStatsPieChartProps> = ({
   // Calculate percentage for center display
   const percentage = total > 0 ? Math.round((correctCount / total) * 100) : 0;
 
+  // Calculate percentages for legend
+  const correctPercent = total > 0 ? (correctCount / total) * 100 : 0;
+  const incorrectPercent = total > 0 ? (incorrectCount / total) * 100 : 0;
+  const skippedPercent = total > 0 ? (skippedCount / total) * 100 : 0;
+
   return (
     <div className="flex flex-col items-center gap-3">
       {/* Pie Chart */}
