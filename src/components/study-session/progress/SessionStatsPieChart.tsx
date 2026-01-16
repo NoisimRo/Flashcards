@@ -1,26 +1,87 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Check, X, SkipForward } from 'lucide-react';
 
 interface SessionStatsPieChartProps {
   correctCount: number;
   incorrectCount: number;
   skippedCount: number;
+  totalCards?: number; // For calculating unanswered and percentage
   size?: 'small' | 'medium' | 'large';
   showLegend?: boolean;
 }
 
+type SegmentType = 'correct' | 'incorrect' | 'skipped' | 'unanswered' | null;
+
 /**
  * SessionStatsPieChart - Visualizes session answer distribution
- * Displays a pie chart with correct/incorrect/skipped segments
+ * Displays an interactive pie chart with 4 segments and individual tooltips
  */
 export const SessionStatsPieChart: React.FC<SessionStatsPieChartProps> = ({
   correctCount,
   incorrectCount,
   skippedCount,
+  totalCards,
   size = 'medium',
   showLegend = false,
 }) => {
-  const total = correctCount + incorrectCount + skippedCount;
+  const [activeTooltip, setActiveTooltip] = useState<SegmentType>(null);
+  const answered = correctCount + incorrectCount + skippedCount;
+  const total = totalCards || answered;
+  const unansweredCount = total - answered;
+
+  // Auto-dismiss tooltip after 3 seconds
+  useEffect(() => {
+    if (activeTooltip) {
+      const timer = setTimeout(() => setActiveTooltip(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [activeTooltip]);
+
+  // Handle segment click/tap
+  const handleSegmentClick = (segment: SegmentType) => {
+    if (activeTooltip === segment) {
+      setActiveTooltip(null); // Second tap dismisses
+    } else {
+      setActiveTooltip(segment);
+    }
+  };
+
+  // Helper: Create SVG path for pie segment
+  const createArc = (startAngle: number, endAngle: number, radius: number) => {
+    const start = polarToCartesian(radius, radius, radius - 4, endAngle);
+    const end = polarToCartesian(radius, radius, radius - 4, startAngle);
+    const largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1';
+    return [
+      'M',
+      start.x,
+      start.y,
+      'A',
+      radius - 4,
+      radius - 4,
+      0,
+      largeArcFlag,
+      0,
+      end.x,
+      end.y,
+      'L',
+      radius,
+      radius,
+      'Z',
+    ].join(' ');
+  };
+
+  const polarToCartesian = (
+    centerX: number,
+    centerY: number,
+    radius: number,
+    angleInDegrees: number
+  ) => {
+    const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180.0;
+    return {
+      x: centerX + radius * Math.cos(angleInRadians),
+      y: centerY + radius * Math.sin(angleInRadians),
+    };
+  };
 
   // If no answers yet, show empty state
   if (total === 0) {
@@ -44,107 +105,114 @@ export const SessionStatsPieChart: React.FC<SessionStatsPieChartProps> = ({
     );
   }
 
-  // Calculate percentages
-  const correctPercent = (correctCount / total) * 100;
-  const incorrectPercent = (incorrectCount / total) * 100;
-  const skippedPercent = (skippedCount / total) * 100;
-
-  // SVG circle parameters based on size
+  // SVG parameters based on size
   const radius = size === 'small' ? 30 : size === 'medium' ? 50 : 70;
   const svgSize = radius * 2;
-  const strokeWidth = size === 'small' ? 8 : size === 'medium' ? 12 : 16;
-  const normalizedRadius = radius - strokeWidth / 2;
-  const circumference = normalizedRadius * 2 * Math.PI;
 
-  // Calculate dash arrays for each segment
-  const correctDash = (correctPercent / 100) * circumference;
-  const incorrectDash = (incorrectPercent / 100) * circumference;
-  const skippedDash = (skippedPercent / 100) * circumference;
+  // Calculate angles for each segment (360 degrees total)
+  const correctAngle = (correctCount / total) * 360;
+  const incorrectAngle = (incorrectCount / total) * 360;
+  const skippedAngle = (skippedCount / total) * 360;
+  const unansweredAngle = (unansweredCount / total) * 360;
 
-  // Calculate offsets for stacking segments
-  const correctOffset = 0;
-  const incorrectOffset = -correctDash;
-  const skippedOffset = -(correctDash + incorrectDash);
+  // Calculate cumulative angles for positioning
+  let currentAngle = 0;
+  const correctStart = currentAngle;
+  const correctEnd = (currentAngle += correctAngle);
+  const incorrectStart = currentAngle;
+  const incorrectEnd = (currentAngle += incorrectAngle);
+  const skippedStart = currentAngle;
+  const skippedEnd = (currentAngle += skippedAngle);
+  const unansweredStart = currentAngle;
+  const unansweredEnd = (currentAngle += unansweredAngle);
+
+  // Calculate percentage for center display
+  const percentage = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+
+  // Calculate percentages for legend
+  const correctPercent = total > 0 ? (correctCount / total) * 100 : 0;
+  const incorrectPercent = total > 0 ? (incorrectCount / total) * 100 : 0;
+  const skippedPercent = total > 0 ? (skippedCount / total) * 100 : 0;
 
   return (
     <div className="flex flex-col items-center gap-3">
       {/* Pie Chart */}
       <div className="relative">
-        <svg width={svgSize} height={svgSize} className="transform -rotate-90">
-          {/* Background circle */}
-          <circle
-            cx={radius}
-            cy={radius}
-            r={normalizedRadius}
-            fill="none"
-            stroke="#F3F4F6"
-            strokeWidth={strokeWidth}
-          />
-
+        <svg width={svgSize} height={svgSize}>
           {/* Correct segment (green) */}
           {correctCount > 0 && (
-            <circle
-              cx={radius}
-              cy={radius}
-              r={normalizedRadius}
-              fill="none"
-              stroke="#10B981"
-              strokeWidth={strokeWidth}
-              strokeDasharray={`${correctDash} ${circumference - correctDash}`}
-              strokeDashoffset={correctOffset}
-              strokeLinecap="round"
-              className="transition-all duration-500"
+            <path
+              d={createArc(correctStart, correctEnd, radius)}
+              fill="#10B981"
+              className="cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => handleSegmentClick('correct')}
             />
           )}
 
           {/* Incorrect segment (red) */}
           {incorrectCount > 0 && (
-            <circle
-              cx={radius}
-              cy={radius}
-              r={normalizedRadius}
-              fill="none"
-              stroke="#EF4444"
-              strokeWidth={strokeWidth}
-              strokeDasharray={`${incorrectDash} ${circumference - incorrectDash}`}
-              strokeDashoffset={incorrectOffset}
-              strokeLinecap="round"
-              className="transition-all duration-500"
+            <path
+              d={createArc(incorrectStart, incorrectEnd, radius)}
+              fill="#EF4444"
+              className="cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => handleSegmentClick('incorrect')}
             />
           )}
 
           {/* Skipped segment (yellow) */}
           {skippedCount > 0 && (
-            <circle
-              cx={radius}
-              cy={radius}
-              r={normalizedRadius}
-              fill="none"
-              stroke="#F59E0B"
-              strokeWidth={strokeWidth}
-              strokeDasharray={`${skippedDash} ${circumference - skippedDash}`}
-              strokeDashoffset={skippedOffset}
-              strokeLinecap="round"
-              className="transition-all duration-500"
+            <path
+              d={createArc(skippedStart, skippedEnd, radius)}
+              fill="#F59E0B"
+              className="cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => handleSegmentClick('skipped')}
+            />
+          )}
+
+          {/* Unanswered segment (grey) */}
+          {unansweredCount > 0 && (
+            <path
+              d={createArc(unansweredStart, unansweredEnd, radius)}
+              fill="#E5E7EB"
+              className="cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => handleSegmentClick('unanswered')}
             />
           )}
         </svg>
 
-        {/* Center label with total */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
+        {/* Center label with percentage */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
           <div
             className={`font-bold text-gray-900 ${
               size === 'small' ? 'text-sm' : size === 'medium' ? 'text-xl' : 'text-3xl'
             }`}
           >
-            {total}
+            {percentage}%
           </div>
-          {size !== 'small' && (
-            <div className="text-xs text-gray-500 font-medium">
-              {total === 1 ? 'răspuns' : 'răspunsuri'}
-            </div>
-          )}
+          {size !== 'small' && <div className="text-xs text-gray-500 font-medium">corect</div>}
         </div>
+
+        {/* Tooltips */}
+        {activeTooltip === 'correct' && (
+          <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs rounded-lg py-1 px-3 whitespace-nowrap shadow-lg z-50">
+            ✓ {correctCount}
+          </div>
+        )}
+        {activeTooltip === 'incorrect' && (
+          <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs rounded-lg py-1 px-3 whitespace-nowrap shadow-lg z-50">
+            ✗ {incorrectCount}
+          </div>
+        )}
+        {activeTooltip === 'skipped' && (
+          <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs rounded-lg py-1 px-3 whitespace-nowrap shadow-lg z-50">
+            ⏭ {skippedCount}
+          </div>
+        )}
+        {activeTooltip === 'unanswered' && (
+          <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs rounded-lg py-1 px-3 whitespace-nowrap shadow-lg z-50">
+            - {unansweredCount}
+          </div>
+        )}
       </div>
 
       {/* Legend */}

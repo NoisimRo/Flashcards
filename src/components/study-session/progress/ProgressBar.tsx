@@ -30,7 +30,7 @@ export const ProgressBar: React.FC = () => {
 
       {/* Percentage */}
       <div className="text-right mt-1">
-        <span className="text-xs text-gray-500">{Math.round(percentage)}% completat</span>
+        <span className="text-xs text-gray-500">{Math.round(percentage)}% parcurs</span>
       </div>
     </div>
   );

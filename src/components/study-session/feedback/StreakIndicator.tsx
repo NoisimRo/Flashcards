@@ -14,23 +14,19 @@ export const StreakIndicator: React.FC = () => {
   if (streak === 0) return null;
 
   return (
-    <div
-      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all ${
-        isFireStreak
-          ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white animate-pulse'
-          : isHotStreak
-            ? 'bg-gradient-to-r from-orange-400 to-red-500 text-white'
-            : 'bg-orange-50 text-orange-700'
-      }`}
-    >
+    <div className="flex items-center gap-1 flex-shrink-0">
       <Flame
-        size={20}
-        className={isHotStreak ? 'animate-bounce' : ''}
+        size={18}
+        className={`${
+          isFireStreak
+            ? 'text-red-600 animate-bounce'
+            : isHotStreak
+              ? 'text-orange-500'
+              : 'text-orange-600'
+        }`}
         fill={isHotStreak ? 'currentColor' : 'none'}
       />
-      <span className="text-lg">{streak}</span>
-      {isFireStreak && <span className="text-sm">🔥 INCREDIBIL!</span>}
-      {isHotStreak && !isFireStreak && <span className="text-sm">În flăcări!</span>}
+      <span className="font-bold text-orange-700 text-sm">{streak}</span>
     </div>
   );
 };
