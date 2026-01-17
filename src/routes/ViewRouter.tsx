@@ -20,7 +20,7 @@ import Achievements from '../../components/Achievements';
 import Leaderboard from '../../components/Leaderboard';
 import Settings from '../../components/Settings';
 import ActiveSessionsList from '../components/sessions/ActiveSessionsList';
-import StudySessionPlayer from '../components/sessions/StudySessionPlayer';
+import { StudySessionContainer } from '../components/study-session/StudySessionContainer';
 import { ModerationDashboard } from '../components/moderation/ModerationDashboard';
 
 /**
@@ -124,9 +124,8 @@ export const ViewRouter: React.FC = () => {
 
     case 'session-player':
       return activeSessionId ? (
-        <StudySessionPlayer
+        <StudySessionContainer
           sessionId={activeSessionId}
-          user={user}
           onFinish={sessionManagement.handleCloseSession}
           onBack={sessionManagement.handleCloseSession}
         />
