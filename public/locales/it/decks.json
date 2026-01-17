@@ -1,0 +1,110 @@
+{
+  "header": {
+    "title": "I Miei Mazzi",
+    "subtitle": "Gestisci e organizza le tue collezioni di flashcard",
+    "newDeck": "Nuovo Mazzo"
+  },
+  "deckCard": {
+    "totalCards": "{{count}} carte",
+    "inStudy": "{{count}} in studio",
+    "mastered": "{{count}} masterizzate",
+    "generate": "Genera",
+    "createSession": "Crea sessione",
+    "addCardsFirst": "Aggiungi prima le carte"
+  },
+  "menu": {
+    "resetProgress": "Ripristina progresso",
+    "editDeck": "Modifica mazzo",
+    "editCards": "Modifica carte",
+    "leaveReview": "Lascia una recensione",
+    "reportDeck": "Segnala mazzo",
+    "deleteDeck": "Elimina mazzo",
+    "deleteConfirm": "Sei sicuro di voler eliminare il mazzo \"{{title}}\"?"
+  },
+  "difficulty": {
+    "A1": "Principiante",
+    "A2": "Elementare",
+    "B1": "Intermedio",
+    "B2": "Intermedio Superiore",
+    "C1": "Avanzato",
+    "C2": "Esperto"
+  },
+  "modal": {
+    "editDeck": "Modifica Mazzo",
+    "generateCards": "Genera Carte",
+    "newDeck": "Nuovo Mazzo",
+    "subject": "Materia",
+    "titleLabel": "Titolo / Argomento",
+    "titlePlaceholder": "es: Verbi Irregolari",
+    "difficultyLabel": "Difficoltà",
+    "numberOfCards": "Numero di Carte",
+    "numberOfCardsAI": "Numero di Carte (per AI)",
+    "cardsRecommendation": "Raccomandazione: 10-20 carte per sessioni efficaci",
+    "cardsFromFile": "Il numero di carte dipenderà dal file importato",
+    "creationMethod": "Metodo di Creazione",
+    "aiAuto": "AI Auto",
+    "import": "Importa",
+    "manual": "Manuale",
+    "cardTypes": "Tipi di Carte",
+    "standard": "Standard",
+    "standardDesc": "Carta tradizionale con domanda e risposta",
+    "quiz": "Quiz",
+    "quizDesc": "Domanda con scelta multipla",
+    "typeAnswer": "Risposta Scritta",
+    "typeAnswerDesc": "Scrivi la risposta (adatto per 1-2 parole)",
+    "deselectCardType": "Deseleziona il tipo di carta non desiderato",
+    "fileImport": "Formato supportato: CSV, TXT (Fronte, Retro)",
+    "cancel": "Annulla",
+    "save": "Salva",
+    "generateCardsBtn": "Genera Carte",
+    "createDeck": "Crea Mazzo"
+  },
+  "editCardsModal": {
+    "title": "Modifica Carte",
+    "subtitle": "{{title}} • {{count}} carte",
+    "noCards": "Nessuna carta in questo mazzo",
+    "addFirstCard": "Aggiungi la prima carta usando il pulsante qui sotto",
+    "cardNumber": "Carta #{{number}}",
+    "front": "Fronte (Domanda)",
+    "back": "Retro (Risposta)",
+    "context": "Contesto (Opzionale)",
+    "contextPlaceholder": "Es: frase di esempio",
+    "cardType": "Tipo di Carta",
+    "quizOptions": "Opzioni di Risposta (Quiz)",
+    "option": "Opzione {{number}}",
+    "selectCorrect": "Seleziona la risposta corretta (segno di spunta)",
+    "save": "Salva",
+    "saving": "Salvataggio...",
+    "cancel": "Annulla",
+    "edit": "Modifica",
+    "delete": "Elimina",
+    "deleteConfirm": "Sei sicuro di voler eliminare questa carta?",
+    "addNewCard": "Aggiungi Nuova Carta",
+    "question": "Domanda:",
+    "answer": "Risposta:",
+    "contextLabel": "Contesto:"
+  },
+  "loading": {
+    "message": "Generazione carte in corso..."
+  },
+  "toast": {
+    "cardUpdated": "Carta aggiornata con successo",
+    "cardUpdateError": "Errore nell'aggiornamento della carta",
+    "cardDeleted": "Carta eliminata con successo",
+    "cardDeleteError": "Errore nell'eliminazione della carta",
+    "cardAdded": "Carta aggiunta con successo",
+    "cardAddError": "Errore nell'aggiunta della carta",
+    "cardLoadError": "Errore nel caricamento delle carte",
+    "generationError": "Errore di generazione AI. Controlla la console."
+  },
+  "guestPrompt": {
+    "createDeck": {
+      "title": "Crea un account gratuito",
+      "message": "Per creare i tuoi mazzi e salvarli permanentemente, crea un account gratuito!"
+    },
+    "aiGeneration": {
+      "title": "Funzione Premium",
+      "message": "La generazione di carte con AI è disponibile solo per gli utenti con account. Crea un account gratuito per sbloccare questa funzione!"
+    }
+  }
+}

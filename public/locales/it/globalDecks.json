@@ -1,0 +1,45 @@
+{
+  "header": {
+    "title": "Mazzi Globali",
+    "subtitle": "Esplora e studia dalla libreria di mazzi creati dalla comunità"
+  },
+  "stats": {
+    "decksAvailable": "Mazzi disponibili",
+    "creators": "Creatori",
+    "subjects": "Materie"
+  },
+  "search": {
+    "placeholder": "Cerca per titolo, argomento o creatore...",
+    "allSubjects": "Tutte le Materie",
+    "allLevels": "Tutti i Livelli",
+    "level": "Livello {{level}}",
+    "showing": "Mostrando {{filtered}} di {{total}} mazzi",
+    "resetFilters": "Ripristina filtri"
+  },
+  "empty": {
+    "title": "Nessun mazzo trovato",
+    "subtitle": "Prova a modificare i filtri o cerca altre parole chiave"
+  },
+  "deckCard": {
+    "cards": "{{count}} carte",
+    "level": "Livello {{level}}",
+    "createdBy": "Creato da:",
+    "anonymous": "Anonimo",
+    "study": "Studia",
+    "copy": "Copia nella mia collezione",
+    "updated": "Aggiornato: {{date}}",
+    "deck": "mazzo",
+    "decks": "mazzi"
+  },
+  "menu": {
+    "leaveReview": "Lascia una recensione",
+    "report": "Segnala mazzo"
+  },
+  "toast": {
+    "deckCopied": "Il mazzo \"{{title}}\" è stato copiato nella tua collezione!",
+    "copyNotAvailable": "La funzione di copia non è al momento disponibile",
+    "loadError": "Impossibile caricare i mazzi pubblici",
+    "generalError": "Errore nel caricamento dei mazzi"
+  },
+  "loading": "Caricamento mazzi globali..."
+}

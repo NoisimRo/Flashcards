@@ -1,0 +1,110 @@
+{
+  "header": {
+    "title": "My Decks",
+    "subtitle": "Manage and organize your flashcard collections",
+    "newDeck": "New Deck"
+  },
+  "deckCard": {
+    "totalCards": "{{count}} cards",
+    "inStudy": "{{count}} in study",
+    "mastered": "{{count}} mastered",
+    "generate": "Generate",
+    "createSession": "Create session",
+    "addCardsFirst": "Add cards first"
+  },
+  "menu": {
+    "resetProgress": "Reset progress",
+    "editDeck": "Edit deck",
+    "editCards": "Edit cards",
+    "leaveReview": "Leave a review",
+    "reportDeck": "Report deck",
+    "deleteDeck": "Delete deck",
+    "deleteConfirm": "Are you sure you want to delete deck \"{{title}}\"?"
+  },
+  "difficulty": {
+    "A1": "Beginner",
+    "A2": "Elementary",
+    "B1": "Intermediate",
+    "B2": "Upper Intermediate",
+    "C1": "Advanced",
+    "C2": "Expert"
+  },
+  "modal": {
+    "editDeck": "Edit Deck",
+    "generateCards": "Generate Cards",
+    "newDeck": "New Deck",
+    "subject": "Subject",
+    "titleLabel": "Title / Topic",
+    "titlePlaceholder": "e.g., Irregular Verbs",
+    "difficultyLabel": "Difficulty",
+    "numberOfCards": "Number of Cards",
+    "numberOfCardsAI": "Number of Cards (for AI)",
+    "cardsRecommendation": "Recommendation: 10-20 cards for efficient sessions",
+    "cardsFromFile": "Number of cards will depend on the imported file",
+    "creationMethod": "Creation Method",
+    "aiAuto": "AI Auto",
+    "import": "Import",
+    "manual": "Manual",
+    "cardTypes": "Card Types",
+    "standard": "Standard",
+    "standardDesc": "Traditional card with question and answer",
+    "quiz": "Quiz",
+    "quizDesc": "Question with multiple choice answers",
+    "typeAnswer": "Type Answer",
+    "typeAnswerDesc": "Write the answer (suitable for 1-2 words)",
+    "deselectCardType": "Deselect unwanted card type",
+    "fileImport": "Supported format: CSV, TXT (Front, Back)",
+    "cancel": "Cancel",
+    "save": "Save",
+    "generateCardsBtn": "Generate Cards",
+    "createDeck": "Create Deck"
+  },
+  "editCardsModal": {
+    "title": "Edit Cards",
+    "subtitle": "{{title}} • {{count}} cards",
+    "noCards": "No cards in this deck",
+    "addFirstCard": "Add the first card using the button below",
+    "cardNumber": "Card #{{number}}",
+    "front": "Front (Question)",
+    "back": "Back (Answer)",
+    "context": "Context (Optional)",
+    "contextPlaceholder": "E.g., example sentence",
+    "cardType": "Card Type",
+    "quizOptions": "Answer Options (Quiz)",
+    "option": "Option {{number}}",
+    "selectCorrect": "Select correct answer (checkmark)",
+    "save": "Save",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleteConfirm": "Are you sure you want to delete this card?",
+    "addNewCard": "Add New Card",
+    "question": "Question:",
+    "answer": "Answer:",
+    "contextLabel": "Context:"
+  },
+  "loading": {
+    "message": "Generating cards..."
+  },
+  "toast": {
+    "cardUpdated": "Card updated successfully",
+    "cardUpdateError": "Error updating card",
+    "cardDeleted": "Card deleted successfully",
+    "cardDeleteError": "Error deleting card",
+    "cardAdded": "Card added successfully",
+    "cardAddError": "Error adding card",
+    "cardLoadError": "Error loading cards",
+    "generationError": "AI generation error. Check console."
+  },
+  "guestPrompt": {
+    "createDeck": {
+      "title": "Create a free account",
+      "message": "To create your own decks and save them permanently, create a free account!"
+    },
+    "aiGeneration": {
+      "title": "Premium Feature",
+      "message": "AI card generation is only available for users with an account. Create a free account to unlock this feature!"
+    }
+  }
+}

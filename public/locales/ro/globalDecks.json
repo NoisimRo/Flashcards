@@ -1,0 +1,45 @@
+{
+  "header": {
+    "title": "Deck-uri Globale",
+    "subtitle": "Explorează și studiază din biblioteca de deck-uri create de comunitate"
+  },
+  "stats": {
+    "decksAvailable": "Deck-uri disponibile",
+    "creators": "Creatori",
+    "subjects": "Discipline"
+  },
+  "search": {
+    "placeholder": "Caută după titlu, topic sau creator...",
+    "allSubjects": "Toate Disciplinele",
+    "allLevels": "Toate Nivelurile",
+    "level": "Nivel {{level}}",
+    "showing": "Afișare {{filtered}} din {{total}} deck-uri",
+    "resetFilters": "Resetează filtrele"
+  },
+  "empty": {
+    "title": "Niciun deck găsit",
+    "subtitle": "Încearcă să modifici filtrele sau caută după alte cuvinte cheie"
+  },
+  "deckCard": {
+    "cards": "{{count}} carduri",
+    "level": "Nivel {{level}}",
+    "createdBy": "Creat de:",
+    "anonymous": "Anonim",
+    "study": "Studiază",
+    "copy": "Copiază în colecția mea",
+    "updated": "Actualizat: {{date}}",
+    "deck": "deck",
+    "decks": "deck-uri"
+  },
+  "menu": {
+    "leaveReview": "Lasă o recenzie",
+    "report": "Raportează deck"
+  },
+  "toast": {
+    "deckCopied": "Deck-ul \"{{title}}\" a fost copiat în colecția ta!",
+    "copyNotAvailable": "Funcția de copiere nu este disponibilă momentan",
+    "loadError": "Nu s-au putut încărca deck-urile publice",
+    "generalError": "Eroare la încărcarea deck-urilor"
+  },
+  "loading": "Se încarcă deck-urile globale..."
+}

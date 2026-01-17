@@ -1,0 +1,64 @@
+{
+  "header": {
+    "welcome": "Bine ai revenit, {{name}}!",
+    "level": "Nivel {{level}}",
+    "totalXP": "{{xp}} XP total",
+    "xpProgress": "{{current}} XP",
+    "xpNext": "{{next}} XP",
+    "xpToNextLevel": "{{xp}} XP până la nivelul {{level}}",
+    "levelUp": "Level up!"
+  },
+  "buttons": {
+    "startSession": "Începe Sesiune",
+    "leaderboard": "Clasament",
+    "viewAll": "Vezi Toate",
+    "continueSession": "Continuă Sesiunea",
+    "viewAllAchievements": "Vezi Toate Realizările"
+  },
+  "stats": {
+    "streak": "Zile consecutive",
+    "streakDays": "{{days}} zile",
+    "streakRecord": "Record: {{days}} zile",
+    "activeSessions": "Sesiuni active",
+    "successRate": "Rata de succes",
+    "totalStudyTime": "Timp total studiu",
+    "correct": "corecte",
+    "completed": "parcurse",
+    "decksCreated": "Deck-uri create",
+    "cardsInStudy": "Carduri în studiu",
+    "minutes": "min.",
+    "hours": "{{hours}}h"
+  },
+  "dailyChallenges": {
+    "title": "Provocări Zilnice",
+    "complete": "Complet",
+    "reward": "+{{xp}} XP"
+  },
+  "activityCalendar": {
+    "title": "Activitate (28 zile)",
+    "less": "Mai puțin",
+    "more": "Mai mult",
+    "cardsLearned": "{{cards}} carduri în studiu",
+    "timeSpent": "{{minutes}} min studiate"
+  },
+  "continueLearning": {
+    "title": "Continuă Învățarea",
+    "activeSession": "Sesiune Activă",
+    "cardsRemaining": "{{cards}} carduri rămase",
+    "percentComplete": "{{percent}}% completat",
+    "noActiveSessions": "Nicio sesiune activă",
+    "noActiveSessionsDescription": "Începe o sesiune nouă pentru a continua învățarea!"
+  },
+  "recommendations": {
+    "title": "Recomandări de Studiu",
+    "cards": "{{total}} carduri",
+    "inStudy": "{{count}} în studiu",
+    "mastered": "{{count}} învățate",
+    "allUpToDate": "Toate deck-urile sunt la zi!"
+  },
+  "recentAchievements": {
+    "title": "Realizări Recente",
+    "unlockedRecently": "Deblocat recent",
+    "startStudying": "Începe să studiezi pentru realizări!"
+  }
+}

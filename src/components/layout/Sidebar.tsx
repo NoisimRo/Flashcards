@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard,
   BookOpen,
@@ -11,7 +12,8 @@ import {
   PlayCircle,
   Shield,
 } from 'lucide-react';
-import { User } from '../types';
+import { User } from '../../../types';
+import { LanguageSwitcher } from '../ui/LanguageSwitcher';
 
 interface SidebarProps {
   user: User & { email?: string };
@@ -24,7 +26,7 @@ interface SidebarProps {
   onRegisterClick?: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({
+export const Sidebar: React.FC<SidebarProps> = ({
   user,
   currentView,
   onChangeView,
@@ -34,21 +36,31 @@ const Sidebar: React.FC<SidebarProps> = ({
   onLoginClick,
   onRegisterClick,
 }) => {
+  const { t, i18n } = useTranslation('sidebar');
   const xpPercentage = Math.min((user.currentXP / user.nextLevelXP) * 100, 100);
 
   // Show moderation for admin and teacher roles
   const canModerate = user.role === 'admin' || user.role === 'teacher';
 
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'decks', label: 'Deck-urile Mele', icon: Layers },
-    { id: 'sessions', label: 'Sesiuni Active', icon: PlayCircle },
-    { id: 'study', label: 'Deck-uri Globale', icon: BookOpen },
-    { id: 'achievements', label: 'Realizări', icon: Trophy },
-    ...(canModerate ? [{ id: 'moderation', label: 'Moderare', icon: Shield }] : []),
-    { id: 'leaderboard', label: 'Clasament', icon: Users },
-    { id: 'settings', label: 'Setări', icon: Settings },
+    { id: 'dashboard', label: t('menu.dashboard'), icon: LayoutDashboard },
+    { id: 'decks', label: t('menu.myDecks'), icon: Layers },
+    { id: 'sessions', label: t('menu.activeSessions'), icon: PlayCircle },
+    { id: 'study', label: t('menu.globalDecks'), icon: BookOpen },
+    { id: 'achievements', label: t('menu.achievements'), icon: Trophy },
+    ...(canModerate ? [{ id: 'moderation', label: t('menu.moderation'), icon: Shield }] : []),
+    { id: 'leaderboard', label: t('menu.leaderboard'), icon: Users },
+    { id: 'settings', label: t('menu.settings'), icon: Settings },
   ];
+
+  const getRoleLabel = (role: string) => {
+    const roleMap: Record<string, string> = {
+      admin: t('roles.admin'),
+      teacher: t('roles.teacher'),
+      student: t('roles.student'),
+    };
+    return roleMap[role] || role;
+  };
 
   const sidebarClasses = `
     fixed inset-y-0 left-0 z-50 w-64 bg-[#F8F6F1] border-r border-[#E5E0D5] transform transition-transform duration-300 ease-in-out
@@ -74,14 +86,13 @@ const Sidebar: React.FC<SidebarProps> = ({
           <div>
             <h3 className="font-bold text-gray-900 leading-tight">{user.name}</h3>
             {isGuest ? (
-              <span className="text-sm text-orange-600 font-medium">Mod vizitator</span>
+              <span className="text-sm text-orange-600 font-medium">{t('roles.visitor')}</span>
             ) : (
               <>
-                <div className="text-sm text-gray-600 font-medium">
-                  {user.role === 'admin' ? 'Admin' : user.role === 'teacher' ? 'Profesor' : 'Elev'}
-                </div>
+                <div className="text-sm text-gray-600 font-medium">{getRoleLabel(user.role)}</div>
                 <span className="text-sm text-gray-500">
-                  Nivel {user.level} · {user.totalXP.toLocaleString()} XP total
+                  {t('xp.level', { level: user.level })} ·{' '}
+                  {t('xp.totalXP', { xp: user.totalXP.toLocaleString(i18n.language) })}
                 </span>
               </>
             )}
@@ -92,9 +103,12 @@ const Sidebar: React.FC<SidebarProps> = ({
         {!isGuest && (
           <div className="mb-8">
             <div className="flex justify-between text-xs font-semibold text-gray-600 mb-1">
-              <span>XP</span>
+              <span>{t('xp.label')}</span>
               <span>
-                {user.currentXP.toLocaleString()} / {user.nextLevelXP.toLocaleString()}
+                {t('xp.progress', {
+                  current: user.currentXP.toLocaleString(i18n.language),
+                  next: user.nextLevelXP.toLocaleString(i18n.language),
+                })}
               </span>
             </div>
             <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
@@ -109,23 +123,20 @@ const Sidebar: React.FC<SidebarProps> = ({
         {/* Guest CTA */}
         {isGuest && onRegisterClick && onLoginClick && (
           <div className="mb-6 bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-4 text-white space-y-3">
-            <p className="text-sm opacity-90">
-              Creează un cont <span className="font-bold">gratuit</span> pentru a salva progresul și
-              a debloca funcții avansate!
-            </p>
+            <p className="text-sm opacity-90">{t('guestCta.message')}</p>
             <button
               onClick={onRegisterClick}
               className="w-full bg-white text-gray-900 font-bold py-2 px-4 rounded-lg hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
             >
               <UserPlus size={18} />
-              Cont nou
+              {t('guestCta.createAccount')}
             </button>
             <button
               onClick={onLoginClick}
               className="w-full bg-transparent text-white font-bold py-2 px-4 rounded-lg border-2 border-white/30 hover:bg-white/10 transition-colors flex items-center justify-center gap-2"
             >
               <LogIn size={18} />
-              Autentificare
+              {t('guestCta.login')}
             </button>
           </div>
         )}
@@ -150,9 +161,12 @@ const Sidebar: React.FC<SidebarProps> = ({
             </button>
           ))}
         </nav>
+
+        {/* Language Switcher */}
+        <div className="pt-4 mt-4 border-t border-gray-200">
+          <LanguageSwitcher />
+        </div>
       </div>
     </div>
   );
 };
-
-export default Sidebar;

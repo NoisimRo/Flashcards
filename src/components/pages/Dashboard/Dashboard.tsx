@@ -1,15 +1,16 @@
 import React, { useMemo, useEffect, useState } from 'react';
-import { User, Deck } from '../types';
+import { useTranslation } from 'react-i18next';
+import { User, Deck } from '../../../../types';
 import {
   getTodaysChallenges,
   DailyChallenge,
   getActivityCalendar,
   ActivityDay,
-} from '../src/api/dailyChallenges';
-import { getAchievements, Achievement } from '../src/api/achievements';
-import { getUserCardStats, CardStats } from '../src/api/users';
-import { getStudySessions } from '../src/api/studySessions';
-import type { StudySession } from '../src/types/models';
+} from '../../../api/dailyChallenges';
+import { getAchievements, Achievement } from '../../../api/achievements';
+import { getUserCardStats, CardStats } from '../../../api/users';
+import { getStudySessions } from '../../../api/studySessions';
+import type { StudySession } from '../../../types/models';
 import {
   Flame,
   Clock,
@@ -46,13 +47,15 @@ interface DashboardProps {
   onResumeSession?: (sessionId: string) => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({
+export const Dashboard: React.FC<DashboardProps> = ({
   user,
   decks,
   onStartSession,
   onChangeView,
   onResumeSession,
 }) => {
+  const { t, i18n } = useTranslation('dashboard');
+
   // State for daily challenges
   const [dailyChallenges, setDailyChallenges] = useState<DailyChallenge[]>([]);
   const [challengesLoading, setChallengesLoading] = useState(true);
@@ -237,27 +240,9 @@ const Dashboard: React.FC<DashboardProps> = ({
     const last7Days = activityCalendar.slice(-7);
     const weeklyMinutes = last7Days.reduce((sum, day) => sum + (day.timeSpent || 0), 0);
 
-    // Romanian month abbreviations
-    const romanianMonths = [
-      'ian',
-      'feb',
-      'mar',
-      'apr',
-      'mai',
-      'iun',
-      'iul',
-      'aug',
-      'sep',
-      'oct',
-      'nov',
-      'dec',
-    ];
-
-    // Format dates with Romanian month abbreviations: DD.lun
+    // Format date using locale
     const formatDate = (date: Date) => {
-      const day = date.getDate();
-      const month = romanianMonths[date.getMonth()];
-      return `${day}.${month}`;
+      return date.toLocaleDateString(i18n.language, { day: 'numeric', month: 'short' });
     };
 
     const todayFormatted = formatDate(today);
@@ -274,7 +259,7 @@ const Dashboard: React.FC<DashboardProps> = ({
       weeklyMinutes,
       weekRange: `${weekStartFormatted}-${weekEndFormatted}`,
     };
-  }, [activityCalendar]);
+  }, [activityCalendar, i18n.language]);
 
   // Radial chart data for XP progress
   const radialData = [
@@ -303,16 +288,21 @@ const Dashboard: React.FC<DashboardProps> = ({
             </div>
             <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                Bine ai revenit, {user.name}!
+                {t('header.welcome', { name: user.name })}
               </h1>
               <p className="text-gray-600 font-medium mt-1">
-                Nivel {stats.level} · {stats.totalXP.toLocaleString()} XP total
+                {t('header.level', { level: stats.level })} ·{' '}
+                {t('header.totalXP', { xp: stats.totalXP.toLocaleString(i18n.language) })}
               </p>
               {/* XP Progress Bar */}
               <div className="mt-3 w-64">
                 <div className="flex justify-between items-center text-xs font-semibold mb-1">
-                  <span className="text-purple-600">{stats.currentXP} XP</span>
-                  <span className="text-gray-400">{stats.xpForNextLevel} XP</span>
+                  <span className="text-purple-600">
+                    {t('header.xpProgress', { current: stats.currentXP })}
+                  </span>
+                  <span className="text-gray-400">
+                    {t('header.xpNext', { next: stats.xpForNextLevel })}
+                  </span>
                 </div>
                 <div className="h-2 bg-gray-200 rounded-full overflow-hidden shadow-inner">
                   <div
@@ -322,8 +312,8 @@ const Dashboard: React.FC<DashboardProps> = ({
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
                   {stats.xpNeeded > 0
-                    ? `${stats.xpNeeded} XP până la nivelul ${stats.level + 1}`
-                    : 'Level up!'}
+                    ? t('header.xpToNextLevel', { xp: stats.xpNeeded, level: stats.level + 1 })
+                    : t('header.levelUp')}
                 </p>
               </div>
             </div>
@@ -348,14 +338,14 @@ const Dashboard: React.FC<DashboardProps> = ({
               className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
               <Brain size={20} />
-              Începe Sesiune
+              {t('buttons.startSession')}
             </button>
             <button
               onClick={() => onChangeView('leaderboard')}
               className="bg-white hover:bg-gray-50 text-gray-700 px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all shadow-md hover:shadow-lg border border-gray-200"
             >
               <Trophy size={20} className="text-yellow-500" />
-              Clasament
+              {t('buttons.leaderboard')}
             </button>
           </div>
         </div>
@@ -369,8 +359,10 @@ const Dashboard: React.FC<DashboardProps> = ({
             </div>
             <div className="relative z-10 flex flex-col">
               <div className="text-5xl font-bold mb-2">{stats.streak}</div>
-              <div className="text-base font-bold mb-1">Zile consecutive</div>
-              <div className="text-sm opacity-90">Record: {stats.longestStreak} zile</div>
+              <div className="text-base font-bold mb-1">{t('stats.streak')}</div>
+              <div className="text-sm opacity-90">
+                {t('stats.streakRecord', { days: stats.longestStreak })}
+              </div>
             </div>
           </div>
 
@@ -385,10 +377,12 @@ const Dashboard: React.FC<DashboardProps> = ({
                   ? cardStats.activeSessions
                   : activeSessions.length}
               </div>
-              <div className="text-base font-bold text-gray-700 mb-1">Sesiuni active</div>
+              <div className="text-base font-bold text-gray-700 mb-1">
+                {t('stats.activeSessions')}
+              </div>
               <div className="text-sm text-gray-500">
-                {cardStats?.totalDecks || stats.activeDecksCount} Deck-uri create |{' '}
-                {cardStats?.inStudy || 0} Carduri în studiu
+                {cardStats?.totalDecks || stats.activeDecksCount} {t('stats.decksCreated')} |{' '}
+                {cardStats?.inStudy || 0} {t('stats.cardsInStudy')}
               </div>
             </div>
           </div>
@@ -400,9 +394,10 @@ const Dashboard: React.FC<DashboardProps> = ({
             </div>
             <div className="relative z-10 flex flex-col">
               <div className="text-5xl font-bold text-gray-900 mb-2">{stats.successRate}</div>
-              <div className="text-base font-bold text-gray-700 mb-1">Rata de succes</div>
+              <div className="text-base font-bold text-gray-700 mb-1">{t('stats.successRate')}</div>
               <div className="text-sm text-gray-500">
-                {stats.totalCorrectAnswers} corecte | {stats.totalAnswers} parcurse
+                {stats.totalCorrectAnswers} {t('stats.correct')} | {stats.totalAnswers}{' '}
+                {t('stats.completed')}
               </div>
             </div>
           </div>
@@ -416,10 +411,12 @@ const Dashboard: React.FC<DashboardProps> = ({
               <div className="text-5xl font-bold text-gray-900 mb-2">
                 {stats.totalTimeSpentFormatted}
               </div>
-              <div className="text-base font-bold text-gray-700 mb-1">Timp total studiu</div>
+              <div className="text-base font-bold text-gray-700 mb-1">
+                {t('stats.totalStudyTime')}
+              </div>
               <div className="text-sm text-gray-500">
-                {studyTimeStats.todayMinutes} min. - {studyTimeStats.todayFormatted} |{' '}
-                {studyTimeStats.weeklyMinutes} min. - {studyTimeStats.weekRange}
+                {studyTimeStats.todayMinutes} {t('stats.minutes')} - {studyTimeStats.todayFormatted}{' '}
+                | {studyTimeStats.weeklyMinutes} {t('stats.minutes')} - {studyTimeStats.weekRange}
               </div>
             </div>
           </div>
@@ -432,7 +429,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
                 <Target className="text-indigo-600" size={24} />
-                <h2 className="text-xl font-bold text-gray-900">Provocări Zilnice</h2>
+                <h2 className="text-xl font-bold text-gray-900">{t('dailyChallenges.title')}</h2>
               </div>
               <Sparkles className="text-yellow-500" size={20} />
             </div>
@@ -458,14 +455,15 @@ const Dashboard: React.FC<DashboardProps> = ({
                         <div>
                           <h3 className="font-bold text-gray-900">{challenge.title}</h3>
                           <p className="text-xs text-gray-500">
-                            {challenge.progress}/{challenge.target} · +{challenge.reward} XP
+                            {challenge.progress}/{challenge.target} ·{' '}
+                            {t('dailyChallenges.reward', { xp: challenge.reward })}
                           </p>
                         </div>
                       </div>
                       {completed && (
                         <div className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
                           <Star size={12} fill="white" />
-                          Complet
+                          {t('dailyChallenges.complete')}
                         </div>
                       )}
                     </div>
@@ -485,7 +483,7 @@ const Dashboard: React.FC<DashboardProps> = ({
           <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
             <div className="flex items-center gap-2 mb-4">
               <Flame className="text-orange-500" size={20} />
-              <h2 className="text-lg font-bold text-gray-900">Activitate (28 zile)</h2>
+              <h2 className="text-lg font-bold text-gray-900">{t('activityCalendar.title')}</h2>
             </div>
             <div className="grid grid-cols-7 gap-1.5">
               {activityCalendar.map((day, idx) => {
@@ -496,7 +494,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                   'bg-green-600',
                 ];
                 const tooltipText = day.studied
-                  ? `${day.date}\n${day.cardsLearned} carduri în studiu\n${day.timeSpent} min studiate`
+                  ? `${day.date}\n${t('activityCalendar.cardsLearned', { cards: day.cardsLearned })}\n${t('activityCalendar.timeSpent', { minutes: day.timeSpent })}`
                   : day.date;
                 return (
                   <div
@@ -508,7 +506,7 @@ const Dashboard: React.FC<DashboardProps> = ({
               })}
             </div>
             <div className="flex items-center justify-between mt-4 text-xs text-gray-500">
-              <span>Mai puțin</span>
+              <span>{t('activityCalendar.less')}</span>
               <div className="flex gap-1">
                 {[0, 1, 2, 3].map(i => (
                   <div
@@ -517,7 +515,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                   />
                 ))}
               </div>
-              <span>Mai mult</span>
+              <span>{t('activityCalendar.more')}</span>
             </div>
           </div>
         </div>
@@ -525,13 +523,13 @@ const Dashboard: React.FC<DashboardProps> = ({
         {/* Continue Learning - Active Sessions Preview */}
         <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Continuă Învățarea</h2>
+            <h2 className="text-xl font-bold text-gray-900">{t('continueLearning.title')}</h2>
             {activeSessions.length > 3 && (
               <button
                 onClick={() => onChangeView('sessions')}
                 className="text-indigo-600 hover:text-indigo-700 font-semibold text-sm flex items-center gap-1"
               >
-                Vezi Toate
+                {t('buttons.viewAll')}
                 <ChevronRight size={16} />
               </button>
             )}
@@ -553,10 +551,11 @@ const Dashboard: React.FC<DashboardProps> = ({
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
                         <h3 className="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors mb-1">
-                          {session.deck?.title || 'Sesiune Activă'}
+                          {session.deck?.title || t('continueLearning.activeSession')}
                         </h3>
                         <p className="text-xs text-gray-500">
-                          {cardsRemaining} carduri rămase | {progress}% completat
+                          {t('continueLearning.cardsRemaining', { cards: cardsRemaining })} |{' '}
+                          {t('continueLearning.percentComplete', { percent: progress })}
                         </p>
                       </div>
                       <div className="relative w-14 h-14">
@@ -598,7 +597,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                       className="w-full mt-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-2 px-4 rounded-lg font-semibold text-sm transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
                     >
                       <Brain size={16} />
-                      Continuă Sesiunea
+                      {t('buttons.continueSession')}
                     </button>
                   </div>
                 );
@@ -607,16 +606,18 @@ const Dashboard: React.FC<DashboardProps> = ({
           ) : (
             <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-white rounded-xl border-2 border-dashed border-gray-200">
               <Brain size={48} className="mx-auto mb-4 text-gray-400" />
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Nicio sesiune activă</h3>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">
+                {t('continueLearning.noActiveSessions')}
+              </h3>
               <p className="text-sm text-gray-500 mb-4">
-                Începe o sesiune nouă pentru a continua învățarea!
+                {t('continueLearning.noActiveSessionsDescription')}
               </p>
               <button
                 onClick={() => onChangeView('decks')}
                 className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl flex items-center gap-2 mx-auto"
               >
                 <Brain size={20} />
-                Începe Sesiune
+                {t('buttons.startSession')}
               </button>
             </div>
           )}
@@ -628,7 +629,7 @@ const Dashboard: React.FC<DashboardProps> = ({
           <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-6 rounded-2xl shadow-xl text-white">
             <div className="flex items-center gap-2 mb-4">
               <Zap size={24} />
-              <h2 className="text-xl font-bold">Recomandări de Studiu</h2>
+              <h2 className="text-xl font-bold">{t('recommendations.title')}</h2>
             </div>
             <div className="space-y-3">
               {decksNeedingReview.length > 0 ? (
@@ -644,8 +645,11 @@ const Dashboard: React.FC<DashboardProps> = ({
                           {deck.title}
                         </h3>
                         <p className="text-sm text-white/80 mt-1">
-                          {deck.totalCards} carduri | {deck.totalCards - deck.masteredCards} în
-                          studiu | {deck.masteredCards} învățate
+                          {t('recommendations.cards', { total: deck.totalCards })} |{' '}
+                          {t('recommendations.inStudy', {
+                            count: deck.totalCards - deck.masteredCards,
+                          })}{' '}
+                          | {t('recommendations.mastered', { count: deck.masteredCards })}
                         </p>
                       </div>
                       <ChevronRight className="text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all" />
@@ -655,7 +659,7 @@ const Dashboard: React.FC<DashboardProps> = ({
               ) : (
                 <div className="text-center py-8 text-white/80">
                   <Brain size={32} className="mx-auto mb-2 opacity-60" />
-                  <p className="text-sm">Toate deck-urile sunt la zi!</p>
+                  <p className="text-sm">{t('recommendations.allUpToDate')}</p>
                 </div>
               )}
             </div>
@@ -665,7 +669,7 @@ const Dashboard: React.FC<DashboardProps> = ({
           <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
             <div className="flex items-center gap-2 mb-4">
               <Award className="text-yellow-500" size={24} />
-              <h2 className="text-xl font-bold text-gray-900">Realizări Recente</h2>
+              <h2 className="text-xl font-bold text-gray-900">{t('recentAchievements.title')}</h2>
             </div>
             <div className="space-y-3">
               {recentAchievements.length > 0 ? (
@@ -677,7 +681,9 @@ const Dashboard: React.FC<DashboardProps> = ({
                     <div className="text-3xl">{achievement.icon}</div>
                     <div className="flex-1">
                       <h3 className="font-bold text-gray-900">{achievement.title}</h3>
-                      <p className="text-xs text-gray-600">Deblocat recent</p>
+                      <p className="text-xs text-gray-600">
+                        {t('recentAchievements.unlockedRecently')}
+                      </p>
                     </div>
                     <Star className="text-yellow-500" size={20} fill="#EAB308" />
                   </div>
@@ -685,14 +691,14 @@ const Dashboard: React.FC<DashboardProps> = ({
               ) : (
                 <div className="text-center py-8 text-gray-400">
                   <Trophy size={32} className="mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">Începe să studiezi pentru realizări!</p>
+                  <p className="text-sm">{t('recentAchievements.startStudying')}</p>
                 </div>
               )}
               <button
                 onClick={() => onChangeView('achievements')}
                 className="w-full mt-4 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white py-3 rounded-xl font-bold transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
               >
-                Vezi Toate Realizările
+                {t('buttons.viewAllAchievements')}
                 <ChevronRight size={18} />
               </button>
             </div>
@@ -702,33 +708,3 @@ const Dashboard: React.FC<DashboardProps> = ({
     </div>
   );
 };
-
-// Helper function to calculate XP needed for a level
-function calculateXPForLevel(level: number): number {
-  // Base XP for level 1 is 100, increases by 20% per level
-  const baseXP = 100;
-  let totalXP = 0;
-  for (let i = 1; i < level; i++) {
-    totalXP += Math.floor(baseXP * Math.pow(1.2, i - 1));
-  }
-  return totalXP + Math.floor(baseXP * Math.pow(1.2, level - 1));
-}
-
-// Helper function to format time ago
-function getTimeAgo(dateString: string): string {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMins / 60);
-  const diffDays = Math.floor(diffHours / 24);
-
-  if (diffMins < 1) return 'Acum';
-  if (diffMins < 60) return `Acum ${diffMins} min`;
-  if (diffHours < 24) return `Acum ${diffHours} ore`;
-  if (diffDays === 1) return 'Ieri';
-  if (diffDays < 7) return `Acum ${diffDays} zile`;
-  return date.toLocaleDateString('ro-RO');
-}
-
-export default Dashboard;

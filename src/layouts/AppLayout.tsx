@@ -1,6 +1,6 @@
 import React from 'react';
 import { Menu, X } from 'lucide-react';
-import Sidebar from '../../components/Sidebar';
+import { Sidebar } from '../components/layout/Sidebar';
 import { GuestBanner } from './GuestBanner';
 import { useUIStore } from '../store/uiStore';
 import { useAuth } from '../store/AuthContext';

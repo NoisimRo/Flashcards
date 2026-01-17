@@ -26,7 +26,18 @@ i18n
 
     // Default namespace
     defaultNS: 'common',
-    ns: ['common', 'auth', 'session', 'decks', 'achievements'],
+    ns: [
+      'common',
+      'auth',
+      'session',
+      'sidebar',
+      'dashboard',
+      'decks',
+      'globalDecks',
+      'settings',
+      'achievements',
+      'leaderboard',
+    ],
   });
 
 export default i18n;

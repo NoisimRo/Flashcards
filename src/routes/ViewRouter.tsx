@@ -12,16 +12,16 @@ import { GUEST_USER } from '../utils/guestMode';
 import { MOCK_ACHIEVEMENTS, VISITOR_ACHIEVEMENTS } from '../../constants';
 
 // Component imports
-import Dashboard from '../../components/Dashboard';
-import DeckList from '../../components/DeckList';
-import StudySession from '../../components/StudySession';
-import GlobalDecks from '../../components/GlobalDecks';
-import Achievements from '../../components/Achievements';
-import Leaderboard from '../../components/Leaderboard';
-import Settings from '../../components/Settings';
 import ActiveSessionsList from '../components/sessions/ActiveSessionsList';
 import { StudySessionContainer } from '../components/study-session/StudySessionContainer';
 import { ModerationDashboard } from '../components/moderation/ModerationDashboard';
+// Refactored components
+import { Achievements } from '../components/pages/Achievements/Achievements';
+import { Dashboard } from '../components/pages/Dashboard/Dashboard';
+import { DeckList } from '../components/pages/DeckList/DeckList';
+import { GlobalDecks } from '../components/pages/GlobalDecks/GlobalDecks';
+import { Leaderboard } from '../components/pages/Leaderboard/Leaderboard';
+import { Settings } from '../components/pages/Settings/Settings';
 
 /**
  * View Router Component
@@ -29,7 +29,7 @@ import { ModerationDashboard } from '../components/moderation/ModerationDashboar
  * Replaces the large switch statement from App.tsx
  */
 export const ViewRouter: React.FC = () => {
-  const { currentView, activeSessionId, activeDeckId, setCurrentView } = useUIStore();
+  const { currentView, activeSessionId, setCurrentView } = useUIStore();
   const { decks: apiDecks, isLoading: isLoadingDecks } = useDecksStore();
   const { user: authUser, isAuthenticated } = useAuth();
   const decksManagement = useDecksManagement();
@@ -41,9 +41,6 @@ export const ViewRouter: React.FC = () => {
 
   // Adapt decks from API format to component format
   const decks = React.useMemo(() => apiDecks.map(adaptDeckFromAPI), [apiDecks]);
-
-  // Find active deck if specified
-  const activeDeck = activeDeckId ? decks.find(d => d.id === activeDeckId) : null;
 
   // Loading state
   if (isLoadingDecks && decks.length === 0) {
@@ -87,25 +84,7 @@ export const ViewRouter: React.FC = () => {
       );
 
     case 'study':
-      return activeDeck ? (
-        <StudySession
-          deck={activeDeck}
-          user={user}
-          onFinish={(score, totalCards, clearSession) => {
-            // Handle finish logic
-            setCurrentView('decks');
-          }}
-          onSaveProgress={(deckId, data) => {
-            // Save progress logic
-          }}
-          onUpdateUserXP={deltaXP => {
-            // Update XP logic
-          }}
-          onBack={() => setCurrentView('decks')}
-          onEditCard={card => decksManagement.handleEditCard(activeDeck.id, card)}
-          onDeleteCard={cardId => decksManagement.handleDeleteCard(activeDeck.id, cardId)}
-        />
-      ) : (
+      return (
         <GlobalDecks
           onStartSession={sessionManagement.handleStartSession}
           onImportDeck={decksManagement.handleAddDeck}

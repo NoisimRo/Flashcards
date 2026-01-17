@@ -1,5 +1,6 @@
 import React from 'react';
-import { Achievement, User } from '../types';
+import { useTranslation } from 'react-i18next';
+import { Achievement, User } from '../../../../types';
 import { Target, Star, Zap, Library, Flame, Diamond } from 'lucide-react';
 
 interface AchievementsProps {
@@ -7,7 +8,9 @@ interface AchievementsProps {
   user: User;
 }
 
-const Achievements: React.FC<AchievementsProps> = ({ achievements, user }) => {
+export const Achievements: React.FC<AchievementsProps> = ({ achievements, user }) => {
+  const { t, i18n } = useTranslation('achievements');
+
   // Map string icon names to components
   const getIcon = (name: string) => {
     switch (name) {
@@ -32,29 +35,32 @@ const Achievements: React.FC<AchievementsProps> = ({ achievements, user }) => {
 
   return (
     <div className="p-6 md:p-8 h-full overflow-y-auto">
-      <h1 className="text-3xl font-bold text-gray-900">Realizări & Badge-uri</h1>
-      <p className="text-gray-500 mb-8">Colecționează insigne și deblochează nivele noi</p>
+      <h1 className="text-3xl font-bold text-gray-900">{t('header.title')}</h1>
+      <p className="text-gray-500 mb-8">{t('header.subtitle')}</p>
 
       {/* Stats Summary */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
         <div className="bg-[#F8F6F1] p-6 rounded-2xl text-center">
-          <p className="text-gray-500 text-sm mb-2">Badge-uri Deblocate</p>
+          <p className="text-gray-500 text-sm mb-2">{t('stats.badgesUnlocked')}</p>
           <div className="text-4xl font-bold text-gray-900 mb-1">{unlockedCount}</div>
-          <p className="text-xs text-gray-400">din {achievements.length} disponibile</p>
+          <p className="text-xs text-gray-400">{t('stats.of', { total: achievements.length })}</p>
         </div>
         <div className="bg-[#F8F6F1] p-6 rounded-2xl text-center">
-          <p className="text-gray-500 text-sm mb-2">Nivel Curent</p>
+          <p className="text-gray-500 text-sm mb-2">{t('stats.currentLevel')}</p>
           <div className="text-4xl font-bold text-gray-900 mb-1">{user.level}</div>
           <p className="text-xs text-gray-400">
-            {user.nextLevelXP - user.currentXP} XP până la nivel {user.level + 1}
+            {t('stats.xpToNextLevel', {
+              xp: user.nextLevelXP - user.currentXP,
+              level: user.level + 1,
+            })}
           </p>
         </div>
         <div className="bg-[#F8F6F1] p-6 rounded-2xl text-center">
-          <p className="text-gray-500 text-sm mb-2">Puncte Totale</p>
+          <p className="text-gray-500 text-sm mb-2">{t('stats.totalPoints')}</p>
           <div className="text-4xl font-bold text-gray-900 mb-1">
-            {user.currentXP.toLocaleString()}
+            {user.currentXP.toLocaleString(i18n.language)}
           </div>
-          <p className="text-xs text-gray-400">XP acumulat</p>
+          <p className="text-xs text-gray-400">{t('stats.xpAccumulated')}</p>
         </div>
       </div>
 
@@ -84,7 +90,7 @@ const Achievements: React.FC<AchievementsProps> = ({ achievements, user }) => {
               <span
                 className={`text-xs font-bold px-3 py-1 rounded-full ${badge.unlocked ? 'bg-gray-900 text-white' : 'bg-gray-200 text-gray-500'}`}
               >
-                +{badge.xpReward} XP
+                {t('xpReward', { xp: badge.xpReward })}
               </span>
             </div>
           );
@@ -93,5 +99,3 @@ const Achievements: React.FC<AchievementsProps> = ({ achievements, user }) => {
     </div>
   );
 };
-
-export default Achievements;

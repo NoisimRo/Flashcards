@@ -1,0 +1,64 @@
+{
+  "header": {
+    "welcome": "Welcome back, {{name}}!",
+    "level": "Level {{level}}",
+    "totalXP": "{{xp}} total XP",
+    "xpProgress": "{{current}} XP",
+    "xpNext": "{{next}} XP",
+    "xpToNextLevel": "{{xp}} XP to level {{level}}",
+    "levelUp": "Level up!"
+  },
+  "buttons": {
+    "startSession": "Start Session",
+    "leaderboard": "Leaderboard",
+    "viewAll": "View All",
+    "continueSession": "Continue Session",
+    "viewAllAchievements": "View All Achievements"
+  },
+  "stats": {
+    "streak": "Consecutive days",
+    "streakDays": "{{days}} days",
+    "streakRecord": "Record: {{days}} days",
+    "activeSessions": "Active sessions",
+    "successRate": "Success rate",
+    "totalStudyTime": "Total study time",
+    "correct": "correct",
+    "completed": "completed",
+    "decksCreated": "Decks created",
+    "cardsInStudy": "Cards in study",
+    "minutes": "min.",
+    "hours": "{{hours}}h"
+  },
+  "dailyChallenges": {
+    "title": "Daily Challenges",
+    "complete": "Complete",
+    "reward": "+{{xp}} XP"
+  },
+  "activityCalendar": {
+    "title": "Activity (28 days)",
+    "less": "Less",
+    "more": "More",
+    "cardsLearned": "{{cards}} cards studied",
+    "timeSpent": "{{minutes}} min studied"
+  },
+  "continueLearning": {
+    "title": "Continue Learning",
+    "activeSession": "Active Session",
+    "cardsRemaining": "{{cards}} cards remaining",
+    "percentComplete": "{{percent}}% complete",
+    "noActiveSessions": "No active sessions",
+    "noActiveSessionsDescription": "Start a new session to continue learning!"
+  },
+  "recommendations": {
+    "title": "Study Recommendations",
+    "cards": "{{total}} cards",
+    "inStudy": "{{count}} in study",
+    "mastered": "{{count}} mastered",
+    "allUpToDate": "All decks are up to date!"
+  },
+  "recentAchievements": {
+    "title": "Recent Achievements",
+    "unlockedRecently": "Unlocked recently",
+    "startStudying": "Start studying for achievements!"
+  }
+}

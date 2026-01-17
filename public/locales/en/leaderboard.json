@@ -1,0 +1,30 @@
+{
+  "header": {
+    "title": "Global Leaderboard",
+    "subtitle": "Compare yourself with others and climb to the top"
+  },
+  "userStats": {
+    "yourPosition": "Your Position",
+    "registerPrompt": "Register to appear on the leaderboard",
+    "of": "of {{total}} users",
+    "totalXP": "Total XP",
+    "level": "Level {{level}}",
+    "toTop100": "To Top 100",
+    "currentStreak": "Current Streak",
+    "xpNeeded": "XP needed",
+    "consecutiveDays": "consecutive days"
+  },
+  "table": {
+    "position": "Position",
+    "user": "User",
+    "level": "Level",
+    "totalXP": "Total XP",
+    "streak": "Streak",
+    "you": "(You)"
+  },
+  "empty": {
+    "title": "Empty leaderboard",
+    "message": "No users on the leaderboard yet. Be the first!"
+  },
+  "footer": "Leaderboard updates in real-time"
+}
