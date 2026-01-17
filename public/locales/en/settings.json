@@ -1,0 +1,37 @@
+{
+  "header": {
+    "title": "Settings",
+    "subtitle": "Customize your learning experience"
+  },
+  "guestBanner": {
+    "title": "Create a free account",
+    "message": "To save your settings and progress, you need to create an account. It's free and takes only a few seconds!",
+    "createAccount": "Create account",
+    "hasAccount": "I already have an account"
+  },
+  "profile": {
+    "title": "Profile",
+    "requiresAccount": "(requires account)",
+    "nameLabel": "Full name",
+    "emailLabel": "Email",
+    "changePassword": "Change password"
+  },
+  "preferences": {
+    "title": "Learning preferences",
+    "focusMode": "Focus mode",
+    "focusModeDesc": "Hide notifications during study",
+    "shuffleCards": "Shuffle cards",
+    "shuffleCardsDesc": "Present cards in random order",
+    "newCardsPerDay": "New cards per day",
+    "cardsCount": "{{count}} cards"
+  },
+  "actions": {
+    "saveChanges": "Save changes",
+    "cancel": "Cancel"
+  },
+  "logout": {
+    "title": "Sign out",
+    "message": "You will be signed out and redirected to the login page.",
+    "button": "Sign out"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "header": {
+    "title": "Classifica Globale",
+    "subtitle": "Confrontati con gli altri e scala la vetta"
+  },
+  "userStats": {
+    "yourPosition": "La Tua Posizione",
+    "registerPrompt": "Registrati per apparire nella classifica",
+    "of": "di {{total}} utenti",
+    "totalXP": "XP Totali",
+    "level": "Livello {{level}}",
+    "toTop100": "Alla Top 100",
+    "currentStreak": "Streak Attuale",
+    "xpNeeded": "XP necessari",
+    "consecutiveDays": "giorni consecutivi"
+  },
+  "table": {
+    "position": "Posizione",
+    "user": "Utente",
+    "level": "Livello",
+    "totalXP": "XP Totali",
+    "streak": "Streak",
+    "you": "(Tu)"
+  },
+  "empty": {
+    "title": "Classifica vuota",
+    "message": "Ancora nessun utente nella classifica. Sii il primo!"
+  },
+  "footer": "La classifica si aggiorna in tempo reale"
+}

@@ -1,0 +1,50 @@
+{
+  "header": {
+    "welcome": "Bentornato, {{name}}!",
+    "level": "Livello {{level}}",
+    "totalXP": "{{xp}} XP totali",
+    "xpProgress": "{{current}} XP",
+    "xpNext": "{{next}} XP",
+    "xpToNextLevel": "{{xp}} XP al livello {{level}}"
+  },
+  "buttons": {
+    "startSession": "Inizia Sessione",
+    "leaderboard": "Classifica",
+    "viewAll": "Vedi Tutti",
+    "continueSession": "Continua Sessione",
+    "viewAllAchievements": "Vedi Tutti i Risultati"
+  },
+  "stats": {
+    "streak": "Giorni consecutivi",
+    "streakDays": "{{days}} giorni",
+    "streakRecord": "Record: {{days}} giorni",
+    "activeSessions": "Sessioni attive",
+    "successRate": "Tasso di successo",
+    "totalStudyTime": "Tempo totale di studio",
+    "correct": "corrette",
+    "completed": "completate",
+    "decksCreated": "Mazzi creati",
+    "cardsInStudy": "Carte in studio",
+    "minutes": "min.",
+    "hours": "{{hours}}h"
+  },
+  "continueLearning": {
+    "title": "Continua l'Apprendimento",
+    "cardsRemaining": "{{cards}} carte rimanenti",
+    "percentComplete": "{{percent}}% completato",
+    "noActiveSessions": "Nessuna sessione attiva",
+    "noActiveSessionsDescription": "Inizia una nuova sessione per continuare ad imparare!"
+  },
+  "recommendations": {
+    "title": "Raccomandazioni di Studio",
+    "cards": "{{total}} carte",
+    "inStudy": "{{count}} in studio",
+    "mastered": "{{count}} masterizzate",
+    "allUpToDate": "Tutti i mazzi sono aggiornati!"
+  },
+  "recentAchievements": {
+    "title": "Risultati Recenti",
+    "unlockedRecently": "Sbloccato di recente",
+    "startStudying": "Inizia a studiare per i risultati!"
+  }
+}

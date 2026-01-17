@@ -1,0 +1,29 @@
+{
+  "menu": {
+    "dashboard": "Dashboard",
+    "myDecks": "Deck-urile Mele",
+    "activeSessions": "Sesiuni Active",
+    "globalDecks": "Deck-uri Globale",
+    "achievements": "Realizări",
+    "moderation": "Moderare",
+    "leaderboard": "Clasament",
+    "settings": "Setări"
+  },
+  "roles": {
+    "admin": "Admin",
+    "teacher": "Profesor",
+    "student": "Elev",
+    "visitor": "Mod vizitator"
+  },
+  "xp": {
+    "label": "XP",
+    "level": "Nivel {{level}}",
+    "totalXP": "{{xp}} XP total",
+    "progress": "{{current}} / {{next}}"
+  },
+  "guestCta": {
+    "message": "Creează un cont <1>gratuit</1> pentru a salva progresul și a debloca funcții avansate!",
+    "createAccount": "Cont nou",
+    "login": "Autentificare"
+  }
+}

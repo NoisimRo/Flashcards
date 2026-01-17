@@ -1,0 +1,37 @@
+{
+  "header": {
+    "title": "Setări",
+    "subtitle": "Personalizează-ți experiența de învățare"
+  },
+  "guestBanner": {
+    "title": "Creează un cont gratuit",
+    "message": "Pentru a salva setările și progresul tău, trebuie să îți creezi un cont. Este gratuit și durează doar câteva secunde!",
+    "createAccount": "Creează cont",
+    "hasAccount": "Am deja cont"
+  },
+  "profile": {
+    "title": "Profil",
+    "requiresAccount": "(necesită cont)",
+    "nameLabel": "Nume complet",
+    "emailLabel": "Email",
+    "changePassword": "Schimbă parola"
+  },
+  "preferences": {
+    "title": "Preferințe de învățare",
+    "focusMode": "Mod concentrare",
+    "focusModeDesc": "Ascunde notificările în timpul studiului",
+    "shuffleCards": "Amestecă cardurile",
+    "shuffleCardsDesc": "Prezintă cardurile în ordine aleatorie",
+    "newCardsPerDay": "Carduri noi pe zi",
+    "cardsCount": "{{count}} carduri"
+  },
+  "actions": {
+    "saveChanges": "Salvează modificările",
+    "cancel": "Anulează"
+  },
+  "logout": {
+    "title": "Deconectare",
+    "message": "Te vei deconecta din cont și vei fi redirecționat către pagina de autentificare.",
+    "button": "Deconectează-te"
+  }
+}

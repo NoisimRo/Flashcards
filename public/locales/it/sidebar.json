@@ -1,0 +1,29 @@
+{
+  "menu": {
+    "dashboard": "Dashboard",
+    "myDecks": "I Miei Mazzi",
+    "activeSessions": "Sessioni Attive",
+    "globalDecks": "Mazzi Globali",
+    "achievements": "Risultati",
+    "moderation": "Moderazione",
+    "leaderboard": "Classifica",
+    "settings": "Impostazioni"
+  },
+  "roles": {
+    "admin": "Admin",
+    "teacher": "Insegnante",
+    "student": "Studente",
+    "visitor": "Modalità visitatore"
+  },
+  "xp": {
+    "label": "XP",
+    "level": "Livello {{level}}",
+    "totalXP": "{{xp}} XP totali",
+    "progress": "{{current}} / {{next}}"
+  },
+  "guestCta": {
+    "message": "Crea un account <1>gratuito</1> per salvare i progressi e sbloccare funzionalità avanzate!",
+    "createAccount": "Nuovo Account",
+    "login": "Accedi"
+  }
+}

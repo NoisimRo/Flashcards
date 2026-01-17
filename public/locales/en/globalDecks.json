@@ -1,0 +1,45 @@
+{
+  "header": {
+    "title": "Global Decks",
+    "subtitle": "Explore and study from the community-created deck library"
+  },
+  "stats": {
+    "decksAvailable": "Decks available",
+    "creators": "Creators",
+    "subjects": "Subjects"
+  },
+  "search": {
+    "placeholder": "Search by title, topic, or creator...",
+    "allSubjects": "All Subjects",
+    "allLevels": "All Levels",
+    "level": "Level {{level}}",
+    "showing": "Showing {{filtered}} of {{total}} decks",
+    "resetFilters": "Reset filters"
+  },
+  "empty": {
+    "title": "No decks found",
+    "subtitle": "Try modifying filters or searching for other keywords"
+  },
+  "deckCard": {
+    "cards": "{{count}} cards",
+    "level": "Level {{level}}",
+    "createdBy": "Created by:",
+    "anonymous": "Anonymous",
+    "study": "Study",
+    "copy": "Copy to my collection",
+    "updated": "Updated: {{date}}",
+    "deck": "deck",
+    "decks": "decks"
+  },
+  "menu": {
+    "leaveReview": "Leave a review",
+    "report": "Report deck"
+  },
+  "toast": {
+    "deckCopied": "Deck \"{{title}}\" has been copied to your collection!",
+    "copyNotAvailable": "Copy function is not currently available",
+    "loadError": "Could not load public decks",
+    "generalError": "Error loading decks"
+  },
+  "loading": "Loading global decks..."
+}

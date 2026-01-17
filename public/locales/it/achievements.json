@@ -1,0 +1,15 @@
+{
+  "header": {
+    "title": "Risultati e Badge",
+    "subtitle": "Raccogli badge e sblocca nuovi livelli"
+  },
+  "stats": {
+    "badgesUnlocked": "Badge Sbloccati",
+    "of": "di {{total}} disponibili",
+    "currentLevel": "Livello Attuale",
+    "xpToNextLevel": "{{xp}} XP per il livello {{level}}",
+    "totalPoints": "Punti Totali",
+    "xpAccumulated": "XP accumulati"
+  },
+  "xpReward": "+{{xp}} XP"
+}

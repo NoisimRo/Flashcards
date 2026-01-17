@@ -1,0 +1,15 @@
+{
+  "header": {
+    "title": "Realizări & Badge-uri",
+    "subtitle": "Colecționează insigne și deblochează nivele noi"
+  },
+  "stats": {
+    "badgesUnlocked": "Badge-uri Deblocate",
+    "of": "din {{total}} disponibile",
+    "currentLevel": "Nivel Curent",
+    "xpToNextLevel": "{{xp}} XP până la nivel {{level}}",
+    "totalPoints": "Puncte Totale",
+    "xpAccumulated": "XP acumulat"
+  },
+  "xpReward": "+{{xp}} XP"
+}

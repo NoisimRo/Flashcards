@@ -1,0 +1,110 @@
+{
+  "header": {
+    "title": "Deck-urile Mele",
+    "subtitle": "Gestionează și organizează colecțiile tale de flashcard-uri",
+    "newDeck": "Deck Nou"
+  },
+  "deckCard": {
+    "totalCards": "{{count}} carduri",
+    "inStudy": "{{count}} în studiu",
+    "mastered": "{{count}} învățate",
+    "generate": "Generează",
+    "createSession": "Creează sesiune",
+    "addCardsFirst": "Adaugă carduri mai întâi"
+  },
+  "menu": {
+    "resetProgress": "Resetează progresul",
+    "editDeck": "Editează deck",
+    "editCards": "Editează carduri",
+    "leaveReview": "Lasă o recenzie",
+    "reportDeck": "Raportează deck",
+    "deleteDeck": "Șterge deck",
+    "deleteConfirm": "Sigur vrei să ștergi deck-ul \"{{title}}\"?"
+  },
+  "difficulty": {
+    "A1": "Începător",
+    "A2": "Elementar",
+    "B1": "Intermediar",
+    "B2": "Intermediar Avansat",
+    "C1": "Avansat",
+    "C2": "Expert"
+  },
+  "modal": {
+    "editDeck": "Editează Deck",
+    "generateCards": "Generează Carduri",
+    "newDeck": "Deck Nou",
+    "subject": "Subiect",
+    "titleLabel": "Titlu / Tematică",
+    "titlePlaceholder": "ex: Verbe Neregulate",
+    "difficultyLabel": "Dificultate",
+    "numberOfCards": "Număr de Carduri",
+    "numberOfCardsAI": "Număr de Carduri (pentru AI)",
+    "cardsRecommendation": "Recomandare: 10-20 carduri pentru sesiuni eficiente",
+    "cardsFromFile": "Numărul de carduri va depinde de fișierul importat",
+    "creationMethod": "Metodă Creare",
+    "aiAuto": "AI Auto",
+    "import": "Import",
+    "manual": "Manual",
+    "cardTypes": "Tipuri Carduri",
+    "standard": "Standard",
+    "standardDesc": "Card tradițional cu întrebare și răspuns",
+    "quiz": "Quiz",
+    "quizDesc": "Întrebare cu variante multiple de răspuns",
+    "typeAnswer": "Răspuns Scris",
+    "typeAnswerDesc": "Scrie răspunsul (potrivit pentru 1-2 cuvinte)",
+    "deselectCardType": "Deselectează tipul de card nedorit",
+    "fileImport": "Format suportat: CSV, TXT (Front, Back)",
+    "cancel": "Anulează",
+    "save": "Salvează",
+    "generateCardsBtn": "Generează Carduri",
+    "createDeck": "Creează Deck"
+  },
+  "editCardsModal": {
+    "title": "Modifică Carduri",
+    "subtitle": "{{title}} • {{count}} carduri",
+    "noCards": "Niciun card în acest deck",
+    "addFirstCard": "Adaugă primul card folosind butonul de mai jos",
+    "cardNumber": "Card #{{number}}",
+    "front": "Față (Întrebare)",
+    "back": "Spate (Răspuns)",
+    "context": "Context (Opțional)",
+    "contextPlaceholder": "Ex: propoziție exemplu",
+    "cardType": "Tip Card",
+    "quizOptions": "Variante de Răspuns (Quiz)",
+    "option": "Opțiunea {{number}}",
+    "selectCorrect": "Selectează varianta corectă (bifă)",
+    "save": "Salvează",
+    "saving": "Se salvează...",
+    "cancel": "Anulează",
+    "edit": "Editează",
+    "delete": "Șterge",
+    "deleteConfirm": "Sigur vrei să ștergi acest card?",
+    "addNewCard": "Adaugă Card Nou",
+    "question": "Întrebare:",
+    "answer": "Răspuns:",
+    "contextLabel": "Context:"
+  },
+  "loading": {
+    "message": "Se generează carduri..."
+  },
+  "toast": {
+    "cardUpdated": "Card actualizat cu succes",
+    "cardUpdateError": "Eroare la actualizarea cardului",
+    "cardDeleted": "Card șters cu succes",
+    "cardDeleteError": "Eroare la ștergerea cardului",
+    "cardAdded": "Card adăugat cu succes",
+    "cardAddError": "Eroare la adăugarea cardului",
+    "cardLoadError": "Eroare la încărcarea cardurilor",
+    "generationError": "Eroare la generarea AI. Verifică consola."
+  },
+  "guestPrompt": {
+    "createDeck": {
+      "title": "Creează un cont gratuit",
+      "message": "Pentru a crea propriile deck-uri și a le salva permanent, creează un cont gratuit!"
+    },
+    "aiGeneration": {
+      "title": "Funcție Premium",
+      "message": "Generarea de carduri cu AI este disponibilă doar pentru utilizatorii cu cont. Creează un cont gratuit pentru a debloca această funcție!"
+    }
+  }
+}

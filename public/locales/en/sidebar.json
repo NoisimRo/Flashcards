@@ -1,0 +1,29 @@
+{
+  "menu": {
+    "dashboard": "Dashboard",
+    "myDecks": "My Decks",
+    "activeSessions": "Active Sessions",
+    "globalDecks": "Global Decks",
+    "achievements": "Achievements",
+    "moderation": "Moderation",
+    "leaderboard": "Leaderboard",
+    "settings": "Settings"
+  },
+  "roles": {
+    "admin": "Admin",
+    "teacher": "Teacher",
+    "student": "Student",
+    "visitor": "Visitor mode"
+  },
+  "xp": {
+    "label": "XP",
+    "level": "Level {{level}}",
+    "totalXP": "{{xp}} total XP",
+    "progress": "{{current}} / {{next}}"
+  },
+  "guestCta": {
+    "message": "Create a <1>free</1> account to save progress and unlock advanced features!",
+    "createAccount": "New Account",
+    "login": "Sign In"
+  }
+}

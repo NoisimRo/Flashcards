@@ -1,0 +1,37 @@
+{
+  "header": {
+    "title": "Impostazioni",
+    "subtitle": "Personalizza la tua esperienza di apprendimento"
+  },
+  "guestBanner": {
+    "title": "Crea un account gratuito",
+    "message": "Per salvare le tue impostazioni e i tuoi progressi, devi creare un account. È gratuito e richiede solo pochi secondi!",
+    "createAccount": "Crea account",
+    "hasAccount": "Ho già un account"
+  },
+  "profile": {
+    "title": "Profilo",
+    "requiresAccount": "(richiede account)",
+    "nameLabel": "Nome completo",
+    "emailLabel": "Email",
+    "changePassword": "Cambia password"
+  },
+  "preferences": {
+    "title": "Preferenze di apprendimento",
+    "focusMode": "Modalità concentrazione",
+    "focusModeDesc": "Nascondi le notifiche durante lo studio",
+    "shuffleCards": "Mescola le carte",
+    "shuffleCardsDesc": "Presenta le carte in ordine casuale",
+    "newCardsPerDay": "Nuove carte al giorno",
+    "cardsCount": "{{count}} carte"
+  },
+  "actions": {
+    "saveChanges": "Salva modifiche",
+    "cancel": "Annulla"
+  },
+  "logout": {
+    "title": "Disconnetti",
+    "message": "Verrai disconnesso e reindirizzato alla pagina di accesso.",
+    "button": "Disconnetti"
+  }
+}
