@@ -5,7 +5,8 @@
     "totalXP": "{{xp}} XP totali",
     "xpProgress": "{{current}} XP",
     "xpNext": "{{next}} XP",
-    "xpToNextLevel": "{{xp}} XP al livello {{level}}"
+    "xpToNextLevel": "{{xp}} XP al livello {{level}}",
+    "levelUp": "Livello su!"
   },
   "buttons": {
     "startSession": "Inizia Sessione",
@@ -28,8 +29,21 @@
     "minutes": "min.",
     "hours": "{{hours}}h"
   },
+  "dailyChallenges": {
+    "title": "Sfide Giornaliere",
+    "complete": "Completo",
+    "reward": "+{{xp}} XP"
+  },
+  "activityCalendar": {
+    "title": "Attività (28 giorni)",
+    "less": "Meno",
+    "more": "Più",
+    "cardsLearned": "{{cards}} carte studiate",
+    "timeSpent": "{{minutes}} min studiati"
+  },
   "continueLearning": {
     "title": "Continua l'Apprendimento",
+    "activeSession": "Sessione Attiva",
     "cardsRemaining": "{{cards}} carte rimanenti",
     "percentComplete": "{{percent}}% completato",
     "noActiveSessions": "Nessuna sessione attiva",

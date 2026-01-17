@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { LeaderboardEntry, User } from '../types';
+import { useTranslation } from 'react-i18next';
+import { LeaderboardEntry, User } from '../../../types';
 import { Flame, Medal, Users } from 'lucide-react';
 
 interface LeaderboardProps {
@@ -8,8 +9,14 @@ interface LeaderboardProps {
   onRegisterClick?: () => void;
 }
 
-const Leaderboard: React.FC<LeaderboardProps> = ({ entries, currentUser, onRegisterClick }) => {
+export const Leaderboard: React.FC<LeaderboardProps> = ({
+  entries,
+  currentUser,
+  onRegisterClick,
+}) => {
+  const { t, i18n } = useTranslation('leaderboard');
   const isVisitor = currentUser?.id === 'guest';
+
   // Find current user in entries or create from currentUser prop
   const currentUserEntry = useMemo(() => {
     const fromEntries = entries.find(e => e.isCurrentUser);
@@ -78,53 +85,55 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ entries, currentUser, onRegis
     return (
       <div className="p-6 md:p-8 h-full flex flex-col items-center justify-center">
         <Users size={64} className="text-gray-300 mb-4" />
-        <h2 className="text-xl font-bold text-gray-600 mb-2">Clasament gol</h2>
-        <p className="text-gray-400 text-center max-w-md">
-          Încă nu există utilizatori în clasament. Fii primul!
-        </p>
+        <h2 className="text-xl font-bold text-gray-600 mb-2">{t('empty.title')}</h2>
+        <p className="text-gray-400 text-center max-w-md">{t('empty.message')}</p>
       </div>
     );
   }
 
   return (
     <div className="p-6 md:p-8 h-full overflow-y-auto">
-      <h1 className="text-3xl font-bold text-gray-900">Clasament Global</h1>
-      <p className="text-gray-500 mb-8">Compară-te cu ceilalți și urcă în top</p>
+      <h1 className="text-3xl font-bold text-gray-900">{t('header.title')}</h1>
+      <p className="text-gray-500 mb-8">{t('header.subtitle')}</p>
 
       {/* Top Cards - User Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-[#F8F6F1] p-6 rounded-2xl flex flex-col items-center justify-center text-center">
-          <h3 className="text-gray-500 mb-2">Poziția Ta</h3>
+          <h3 className="text-gray-500 mb-2">{t('userStats.yourPosition')}</h3>
           <div className="text-4xl font-bold text-gray-900">{userStats.position}</div>
           {isVisitor ? (
             <button
               onClick={onRegisterClick}
               className="text-xs text-indigo-600 font-bold mt-2 hover:text-indigo-700 transition-colors"
             >
-              Înregistrează-te pentru a apărea în clasament
+              {t('userStats.registerPrompt')}
             </button>
           ) : (
             <p className="text-xs text-gray-400 mt-1">
-              din {userStats.totalUsers.toLocaleString()} utilizatori
+              {t('userStats.of', { total: userStats.totalUsers.toLocaleString(i18n.language) })}
             </p>
           )}
         </div>
         <div className="bg-[#F8F6F1] p-6 rounded-2xl flex flex-col items-center justify-center text-center">
-          <h3 className="text-gray-500 mb-2">XP Total</h3>
+          <h3 className="text-gray-500 mb-2">{t('userStats.totalXP')}</h3>
           <div className="text-4xl font-bold text-gray-900">
-            {userStats.xpTotal.toLocaleString()}
+            {userStats.xpTotal.toLocaleString(i18n.language)}
           </div>
-          <p className="text-xs text-green-500 font-bold mt-1">Nivel {userStats.level}</p>
+          <p className="text-xs text-green-500 font-bold mt-1">
+            {t('userStats.level', { level: userStats.level })}
+          </p>
         </div>
         <div className="bg-[#F8F6F1] p-6 rounded-2xl flex flex-col items-center justify-center text-center">
           <h3 className="text-gray-500 mb-2">
-            {userStats.xpToTop100 > 0 ? 'Până la Top 100' : 'Streak Curent'}
+            {userStats.xpToTop100 > 0 ? t('userStats.toTop100') : t('userStats.currentStreak')}
           </h3>
           <div className="text-4xl font-bold text-gray-900">
-            {userStats.xpToTop100 > 0 ? userStats.xpToTop100.toLocaleString() : userStats.streak}
+            {userStats.xpToTop100 > 0
+              ? userStats.xpToTop100.toLocaleString(i18n.language)
+              : userStats.streak}
           </div>
           <p className="text-xs text-gray-400 mt-1">
-            {userStats.xpToTop100 > 0 ? 'XP necesare' : 'zile consecutive'}
+            {userStats.xpToTop100 > 0 ? t('userStats.xpNeeded') : t('userStats.consecutiveDays')}
           </p>
         </div>
       </div>
@@ -132,11 +141,11 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ entries, currentUser, onRegis
       {/* Leaderboard Table */}
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         <div className="grid grid-cols-12 gap-4 p-4 border-b bg-gray-50 text-gray-500 font-bold text-sm">
-          <div className="col-span-2 md:col-span-1 text-center">Poziție</div>
-          <div className="col-span-6 md:col-span-5">Utilizator</div>
-          <div className="col-span-2 text-center hidden md:block">Nivel</div>
-          <div className="col-span-2 text-center">XP Total</div>
-          <div className="col-span-2 text-center hidden md:block">Streak</div>
+          <div className="col-span-2 md:col-span-1 text-center">{t('table.position')}</div>
+          <div className="col-span-6 md:col-span-5">{t('table.user')}</div>
+          <div className="col-span-2 text-center hidden md:block">{t('table.level')}</div>
+          <div className="col-span-2 text-center">{t('table.totalXP')}</div>
+          <div className="col-span-2 text-center hidden md:block">{t('table.streak')}</div>
         </div>
 
         {displayEntries.map(entry => (
@@ -167,7 +176,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ entries, currentUser, onRegis
                 <p
                   className={`font-bold ${entry.isCurrentUser ? 'text-gray-900' : 'text-gray-700'}`}
                 >
-                  {entry.name} {entry.isCurrentUser && '(Tu)'}
+                  {entry.name} {entry.isCurrentUser && t('table.you')}
                 </p>
               </div>
             </div>
@@ -178,12 +187,12 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ entries, currentUser, onRegis
                   entry.position <= 3 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
                 }`}
               >
-                Nivel {entry.level}
+                {t('userStats.level', { level: entry.level })}
               </span>
             </div>
 
             <div className="col-span-2 text-center font-bold text-gray-900">
-              {entry.xpTotal.toLocaleString()}
+              {entry.xpTotal.toLocaleString(i18n.language)}
             </div>
 
             <div className="col-span-2 text-center hidden md:flex items-center justify-center gap-1 text-orange-500 font-bold">
@@ -194,11 +203,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ entries, currentUser, onRegis
       </div>
 
       {/* Footer note */}
-      <p className="text-center text-gray-400 text-sm mt-6">
-        Clasamentul se actualizează în timp real
-      </p>
+      <p className="text-center text-gray-400 text-sm mt-6">{t('footer')}</p>
     </div>
   );
 };
-
-export default Leaderboard;

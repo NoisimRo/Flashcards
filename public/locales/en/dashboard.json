@@ -5,7 +5,8 @@
     "totalXP": "{{xp}} total XP",
     "xpProgress": "{{current}} XP",
     "xpNext": "{{next}} XP",
-    "xpToNextLevel": "{{xp}} XP to level {{level}}"
+    "xpToNextLevel": "{{xp}} XP to level {{level}}",
+    "levelUp": "Level up!"
   },
   "buttons": {
     "startSession": "Start Session",
@@ -28,8 +29,21 @@
     "minutes": "min.",
     "hours": "{{hours}}h"
   },
+  "dailyChallenges": {
+    "title": "Daily Challenges",
+    "complete": "Complete",
+    "reward": "+{{xp}} XP"
+  },
+  "activityCalendar": {
+    "title": "Activity (28 days)",
+    "less": "Less",
+    "more": "More",
+    "cardsLearned": "{{cards}} cards studied",
+    "timeSpent": "{{minutes}} min studied"
+  },
   "continueLearning": {
     "title": "Continue Learning",
+    "activeSession": "Active Session",
     "cardsRemaining": "{{cards}} cards remaining",
     "percentComplete": "{{percent}}% complete",
     "noActiveSessions": "No active sessions",

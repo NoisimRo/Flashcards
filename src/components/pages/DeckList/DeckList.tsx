@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Deck, Difficulty, Card } from '../types';
+import { useTranslation } from 'react-i18next';
+import { Deck, Difficulty, Card } from '../../../../types';
 import {
   Plus,
   MoreVertical,
@@ -18,11 +19,11 @@ import {
   Flag,
   ThumbsUp,
 } from 'lucide-react';
-import { generateDeckWithAI, getDeck } from '../src/api/decks';
-import { createCard, updateCard, deleteCard as deleteCardAPI } from '../src/api/cards';
-import { useToast } from '../src/components/ui/Toast';
-import { ReviewModal } from '../src/components/reviews/ReviewModal';
-import { FlagModal } from '../src/components/flags/FlagModal';
+import { generateDeckWithAI, getDeck } from '../../../api/decks';
+import { createCard, updateCard, deleteCard as deleteCardAPI } from '../../../api/cards';
+import { useToast } from '../../ui/Toast';
+import { ReviewModal } from '../../reviews/ReviewModal';
+import { FlagModal } from '../../flags/FlagModal';
 
 interface DeckListProps {
   decks: Deck[];
@@ -35,7 +36,7 @@ interface DeckListProps {
   onLoginPrompt?: (title: string, message: string) => void;
 }
 
-const DeckList: React.FC<DeckListProps> = ({
+export const DeckList: React.FC<DeckListProps> = ({
   decks,
   onAddDeck,
   onEditDeck,
@@ -45,6 +46,7 @@ const DeckList: React.FC<DeckListProps> = ({
   isGuest = false,
   onLoginPrompt,
 }) => {
+  const { t } = useTranslation('decks');
   const toast = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -81,15 +83,7 @@ const DeckList: React.FC<DeckListProps> = ({
   const [selectedDeckForReview, setSelectedDeckForReview] = useState<Deck | null>(null);
 
   // Loading messages for "The Dealer's Table" loading state
-  const dealerMessages = [
-    'Dealerul nostru AI amestecă pachetul. Sperăm că ai un as în mânecă!',
-    'Se împart cărțile! Miza de azi? Viitorul tău de geniu.',
-    'Pregătim masa de joc. Fără cacealmele, doar cunoștințe pure!',
-    'Jonglăm cu informațiile până obținem pachetul câștigător.',
-    'Ce se întâmplă în sesiune, rămâne în sesiune... dar te ajută la examen!',
-    'All-in pe învățare? Cărțile sunt aproape gata de servit.',
-    'Dealerul AI calculează cotele. Ai șanse 100% să devii mai deștept.',
-  ];
+  const dealerMessages = t('loading.dealerMessages', { returnObjects: true }) as string[];
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
 
   // Rotate loading messages every 3 seconds
@@ -106,10 +100,7 @@ const DeckList: React.FC<DeckListProps> = ({
   const openCreateModal = () => {
     // Guard: Visitors must register to create decks
     if (isGuest && onLoginPrompt) {
-      onLoginPrompt(
-        'Creează un cont gratuit',
-        'Pentru a crea propriile deck-uri și a le salva permanent, creează un cont gratuit!'
-      );
+      onLoginPrompt(t('guestPrompt.createDeck.title'), t('guestPrompt.createDeck.message'));
       return;
     }
 
@@ -137,10 +128,7 @@ const DeckList: React.FC<DeckListProps> = ({
   const openGenerateCardsModal = (deck: Deck) => {
     // Guard: Visitors must register to use AI generation
     if (isGuest && onLoginPrompt) {
-      onLoginPrompt(
-        'Funcție Premium',
-        'Generarea de carduri cu AI este disponibilă doar pentru utilizatorii cu cont. Creează un cont gratuit pentru a debloca această funcție!'
-      );
+      onLoginPrompt(t('guestPrompt.aiGeneration.title'), t('guestPrompt.aiGeneration.message'));
       return;
     }
 
@@ -193,7 +181,7 @@ const DeckList: React.FC<DeckListProps> = ({
       }
     } catch (error) {
       console.error('Error loading deck cards:', error);
-      toast.error('Eroare la încărcarea cardurilor');
+      toast.error(t('toast.cardLoadError'));
     }
   };
 
@@ -268,13 +256,13 @@ const DeckList: React.FC<DeckListProps> = ({
         onEditDeck(updatedDeck);
         setEditCardsModalDeck(updatedDeck);
         cancelEditCard();
-        toast.success('Card actualizat cu succes');
+        toast.success(t('toast.cardUpdated'));
       } else {
-        toast.error(response.error?.message || 'Eroare la actualizarea cardului');
+        toast.error(response.error?.message || t('toast.cardUpdateError'));
       }
     } catch (error) {
       console.error('Error updating card:', error);
-      toast.error('A apărut o eroare la actualizarea cardului');
+      toast.error(t('toast.cardUpdateError'));
     } finally {
       setIsSavingCard(false);
     }
@@ -282,7 +270,7 @@ const DeckList: React.FC<DeckListProps> = ({
 
   const deleteCard = async (cardId: string) => {
     if (!editCardsModalDeck) return;
-    if (!confirm('Sigur vrei să ștergi acest card?')) return;
+    if (!confirm(t('editCardsModal.deleteConfirm'))) return;
 
     try {
       const response = await deleteCardAPI(editCardsModalDeck.id, cardId);
@@ -296,13 +284,13 @@ const DeckList: React.FC<DeckListProps> = ({
         };
         onEditDeck(updatedDeck);
         setEditCardsModalDeck(updatedDeck);
-        toast.success('Card șters cu succes');
+        toast.success(t('toast.cardDeleted'));
       } else {
-        toast.error(response.error?.message || 'Eroare la ștergerea cardului');
+        toast.error(response.error?.message || t('toast.cardDeleteError'));
       }
     } catch (error) {
       console.error('Error deleting card:', error);
-      toast.error('A apărut o eroare la ștergerea cardului');
+      toast.error(t('toast.cardDeleteError'));
     }
   };
 
@@ -312,8 +300,8 @@ const DeckList: React.FC<DeckListProps> = ({
     try {
       const response = await createCard({
         deckId: editCardsModalDeck.id,
-        front: 'Întrebare nouă',
-        back: 'Răspuns nou',
+        front: t('editCardsModal.newQuestion'),
+        back: t('editCardsModal.newAnswer'),
         context: '',
         type: 'standard',
       });
@@ -337,13 +325,13 @@ const DeckList: React.FC<DeckListProps> = ({
         onEditDeck(updatedDeck);
         setEditCardsModalDeck(updatedDeck);
         startEditCard(newCard);
-        toast.success('Card adăugat cu succes');
+        toast.success(t('toast.cardAdded'));
       } else {
-        toast.error(response.error?.message || 'Eroare la adăugarea cardului');
+        toast.error(response.error?.message || t('toast.cardAddError'));
       }
     } catch (error) {
       console.error('Error creating card:', error);
-      toast.error('A apărut o eroare la adăugarea cardului');
+      toast.error(t('toast.cardAddError'));
     }
   };
 
@@ -397,13 +385,13 @@ const DeckList: React.FC<DeckListProps> = ({
               }))
             );
           } else {
-            alert(response.error?.message || 'Eroare la generarea AI. Verifică consola.');
+            alert(response.error?.message || t('toast.generationError'));
             setIsGenerating(false);
             return;
           }
         } catch (error) {
           console.error('Error generating cards:', error);
-          alert('Eroare la generarea AI. Verifică consola.');
+          alert(t('toast.generationError'));
           setIsGenerating(false);
           return;
         }
@@ -453,13 +441,13 @@ const DeckList: React.FC<DeckListProps> = ({
               }))
             );
           } else {
-            alert(response.error?.message || 'Eroare la generarea AI. Verifică consola.');
+            alert(response.error?.message || t('toast.generationError'));
             setIsGenerating(false);
             return;
           }
         } catch (error) {
           console.error('Error generating cards:', error);
-          alert('Eroare la generarea AI. Verifică consola.');
+          alert(t('toast.generationError'));
           setIsGenerating(false);
           return;
         }
@@ -495,20 +483,22 @@ const DeckList: React.FC<DeckListProps> = ({
     return () => document.removeEventListener('click', closeMenu);
   }, []);
 
+  const getDifficultyLabel = (level: Difficulty): string => {
+    return t(`difficulty.${level}`);
+  };
+
   return (
     <div className="p-6 md:p-8 space-y-8 h-full overflow-y-auto">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Deck-urile Mele</h1>
-          <p className="text-gray-500">
-            Gestionează și organizează colecțiile tale de flashcard-uri
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('header.title')}</h1>
+          <p className="text-gray-500">{t('header.subtitle')}</p>
         </div>
         <button
           onClick={openCreateModal}
           className="bg-gray-900 hover:bg-gray-800 text-white px-5 py-3 rounded-xl flex items-center gap-2 font-bold shadow-lg transition-all hover:-translate-y-1"
         >
-          <Plus size={20} /> Deck Nou
+          <Plus size={20} /> {t('header.newDeck')}
         </button>
       </div>
 
@@ -521,9 +511,9 @@ const DeckList: React.FC<DeckListProps> = ({
           <div className="w-16 h-16 bg-[#F8F6F1] rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
             <Plus className="text-gray-400 group-hover:text-gray-900" size={32} />
           </div>
-          <h3 className="font-bold text-gray-900 text-lg">Creează un deck nou</h3>
+          <h3 className="font-bold text-gray-900 text-lg">{t('header.newDeck')}</h3>
           <p className="text-center text-gray-500 text-sm mt-2">
-            Importă din CSV/TXT sau generează cu AI
+            {t('modal.import')} CSV/TXT sau {t('modal.aiAuto')}
           </p>
         </div>
 
@@ -574,7 +564,7 @@ const DeckList: React.FC<DeckListProps> = ({
                           }}
                           className="w-full text-left px-3 py-2 text-sm text-orange-600 hover:bg-orange-50 rounded-lg flex items-center gap-2 font-medium"
                         >
-                          <RotateCcw size={16} /> Resetează progresul
+                          <RotateCcw size={16} /> {t('menu.resetProgress')}
                         </button>
                       )}
                       {/* Editează deck */}
@@ -585,7 +575,7 @@ const DeckList: React.FC<DeckListProps> = ({
                         }}
                         className="w-full text-left px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg flex items-center gap-2 font-medium"
                       >
-                        <Edit size={16} /> Editează deck
+                        <Edit size={16} /> {t('menu.editDeck')}
                       </button>
                       {/* Editează carduri - Show if deck has at least 1 card */}
                       {deck.totalCards > 0 && (
@@ -596,7 +586,7 @@ const DeckList: React.FC<DeckListProps> = ({
                           }}
                           className="w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg flex items-center gap-2 font-medium"
                         >
-                          <List size={16} /> Editează carduri
+                          <List size={16} /> {t('menu.editCards')}
                         </button>
                       )}
                       {/* Lasă o recenzie - Only for public decks, not owner */}
@@ -610,7 +600,7 @@ const DeckList: React.FC<DeckListProps> = ({
                           }}
                           className="w-full text-left px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg flex items-center gap-2 font-medium"
                         >
-                          <ThumbsUp size={16} /> Lasă o recenzie
+                          <ThumbsUp size={16} /> {t('menu.leaveReview')}
                         </button>
                       )}
                       {/* Raportează deck - Only for decks not owned by current user */}
@@ -624,21 +614,21 @@ const DeckList: React.FC<DeckListProps> = ({
                           }}
                           className="w-full text-left px-3 py-2 text-sm text-orange-600 hover:bg-orange-50 rounded-lg flex items-center gap-2 font-medium"
                         >
-                          <Flag size={16} /> Raportează deck
+                          <Flag size={16} /> {t('menu.reportDeck')}
                         </button>
                       )}
                       {/* Șterge deck with confirmation */}
                       <button
                         onClick={e => {
                           e.stopPropagation();
-                          if (confirm(`Sigur vrei să ștergi deck-ul "${deck.title}"?`)) {
+                          if (confirm(t('menu.deleteConfirm', { title: deck.title }))) {
                             onDeleteDeck(deck.id);
                           }
                           setActiveMenuId(null);
                         }}
                         className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2 font-medium border-t border-gray-100 mt-1 pt-2"
                       >
-                        <Trash2 size={16} /> Șterge deck
+                        <Trash2 size={16} /> {t('menu.deleteDeck')}
                       </button>
                     </div>
                   )}
@@ -663,24 +653,15 @@ const DeckList: React.FC<DeckListProps> = ({
                   {deck.subject}
                 </span>
                 <span className="px-3 py-1 rounded-full text-xs font-medium text-gray-600 bg-gray-200">
-                  {deck.difficulty} -{' '}
-                  {deck.difficulty === 'A1'
-                    ? 'Începător'
-                    : deck.difficulty === 'A2'
-                      ? 'Elementar'
-                      : deck.difficulty === 'B1'
-                        ? 'Intermediar'
-                        : deck.difficulty === 'B2'
-                          ? 'Intermediar Avansat'
-                          : deck.difficulty === 'C1'
-                            ? 'Avansat'
-                            : 'Expert'}
+                  {deck.difficulty} - {getDifficultyLabel(deck.difficulty)}
                 </span>
               </div>
 
               {/* Footer Stats: Total | In Study | Mastered */}
               <div className="text-sm text-gray-600 mb-4 font-medium">
-                {deck.totalCards} carduri | {inStudy} în studiu | {deck.masteredCards} învățate
+                {t('deckCard.totalCards', { count: deck.totalCards })} |{' '}
+                {t('deckCard.inStudy', { count: inStudy })} |{' '}
+                {t('deckCard.mastered', { count: deck.masteredCards })}
               </div>
 
               {/* Progress Bar */}
@@ -700,9 +681,9 @@ const DeckList: React.FC<DeckListProps> = ({
                     openGenerateCardsModal(deck);
                   }}
                   className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 text-sm"
-                  title="Generează carduri cu AI"
+                  title={t('deckCard.generate')}
                 >
-                  <Sparkles size={18} /> Generează
+                  <Sparkles size={18} /> {t('deckCard.generate')}
                 </button>
 
                 {/* 2. Create Session */}
@@ -713,9 +694,11 @@ const DeckList: React.FC<DeckListProps> = ({
                   }}
                   className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={deck.totalCards === 0}
-                  title={deck.totalCards > 0 ? 'Creează sesiune' : 'Adaugă carduri mai întâi'}
+                  title={
+                    deck.totalCards > 0 ? t('deckCard.createSession') : t('deckCard.addCardsFirst')
+                  }
                 >
-                  <Play size={18} fill="currentColor" /> Creează sesiune
+                  <Play size={18} fill="currentColor" /> {t('deckCard.createSession')}
                 </button>
               </div>
             </div>
@@ -763,15 +746,17 @@ const DeckList: React.FC<DeckListProps> = ({
 
             <h2 className="text-2xl font-bold mb-6 text-gray-900">
               {editingDeckId
-                ? 'Editează Deck'
+                ? t('modal.editDeck')
                 : generatingForDeckId
-                  ? 'Generează Carduri'
-                  : 'Deck Nou'}
+                  ? t('modal.generateCards')
+                  : t('modal.newDeck')}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Form fields same as previous */}
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Subiect</label>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  {t('modal.subject')}
+                </label>
                 <select
                   className="w-full border-2 border-gray-100 bg-gray-50 rounded-xl p-3 font-medium outline-none focus:border-indigo-500 transition-colors"
                   value={subject}
@@ -786,29 +771,31 @@ const DeckList: React.FC<DeckListProps> = ({
               </div>
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
-                  Titlu / Tematică
+                  {t('modal.titleLabel')}
                 </label>
                 <input
                   type="text"
                   className="w-full border-2 border-gray-100 bg-gray-50 rounded-xl p-3 font-medium outline-none focus:border-indigo-500 transition-colors"
-                  placeholder="ex: Verbe Neregulate"
+                  placeholder={t('modal.titlePlaceholder')}
                   value={title}
                   onChange={e => setTitle(e.target.value)}
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Dificultate</label>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  {t('modal.difficultyLabel')}
+                </label>
                 <select
                   className="w-full border-2 border-gray-100 bg-gray-50 rounded-xl p-3 font-medium outline-none focus:border-indigo-500 transition-colors"
                   value={difficulty}
                   onChange={e => setDifficulty(e.target.value as Difficulty)}
                 >
-                  <option value="A1">A1 - Începător</option>
-                  <option value="A2">A2 - Elementar</option>
-                  <option value="B1">B1 - Intermediar</option>
-                  <option value="B2">B2 - Intermediar Avansat</option>
-                  <option value="C1">C1 - Avansat</option>
+                  <option value="A1">A1 - {t('difficulty.A1')}</option>
+                  <option value="A2">A2 - {t('difficulty.A2')}</option>
+                  <option value="B1">B1 - {t('difficulty.B1')}</option>
+                  <option value="B2">B2 - {t('difficulty.B2')}</option>
+                  <option value="C1">C1 - {t('difficulty.C1')}</option>
                 </select>
               </div>
 
@@ -816,7 +803,7 @@ const DeckList: React.FC<DeckListProps> = ({
                 <>
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">
-                      Număr de Carduri {importMode === 'ai' && '(pentru AI)'}
+                      {importMode === 'ai' ? t('modal.numberOfCardsAI') : t('modal.numberOfCards')}
                     </label>
                     <input
                       type="number"
@@ -829,14 +816,14 @@ const DeckList: React.FC<DeckListProps> = ({
                     />
                     <p className="text-xs text-gray-500 mt-1">
                       {importMode === 'ai'
-                        ? 'Recomandare: 10-20 carduri pentru sesiuni eficiente'
-                        : 'Numărul de carduri va depinde de fișierul importat'}
+                        ? t('modal.cardsRecommendation')
+                        : t('modal.cardsFromFile')}
                     </p>
                   </div>
 
                   <div className="pt-2">
                     <label className="block text-sm font-bold text-gray-700 mb-2">
-                      Metodă Creare
+                      {t('modal.creationMethod')}
                     </label>
                     <div className="grid grid-cols-3 gap-3">
                       <button
@@ -844,21 +831,21 @@ const DeckList: React.FC<DeckListProps> = ({
                         onClick={() => setImportMode('ai')}
                         className={`p-3 rounded-xl border-2 text-sm flex flex-col items-center gap-1 font-bold transition-all ${importMode === 'ai' ? 'bg-indigo-50 border-indigo-500 text-indigo-700' : 'border-gray-100 text-gray-500 hover:bg-gray-50'}`}
                       >
-                        <Sparkles size={20} /> AI Auto
+                        <Sparkles size={20} /> {t('modal.aiAuto')}
                       </button>
                       <button
                         type="button"
                         onClick={() => setImportMode('file')}
                         className={`p-3 rounded-xl border-2 text-sm flex flex-col items-center gap-1 font-bold transition-all ${importMode === 'file' ? 'bg-indigo-50 border-indigo-500 text-indigo-700' : 'border-gray-100 text-gray-500 hover:bg-gray-50'}`}
                       >
-                        <Upload size={20} /> Import
+                        <Upload size={20} /> {t('modal.import')}
                       </button>
                       <button
                         type="button"
                         onClick={() => setImportMode('manual')}
                         className={`p-3 rounded-xl border-2 text-sm flex flex-col items-center gap-1 font-bold transition-all ${importMode === 'manual' ? 'bg-indigo-50 border-indigo-500 text-indigo-700' : 'border-gray-100 text-gray-500 hover:bg-gray-50'}`}
                       >
-                        <Plus size={20} /> Manual
+                        <Plus size={20} /> {t('modal.manual')}
                       </button>
                     </div>
                   </div>
@@ -866,7 +853,7 @@ const DeckList: React.FC<DeckListProps> = ({
                   {importMode === 'ai' && (
                     <div>
                       <label className="block text-sm font-bold text-gray-700 mb-3">
-                        Tipuri Carduri
+                        {t('modal.cardTypes')}
                       </label>
                       <div className="space-y-2">
                         <label className="flex items-center gap-3 cursor-pointer p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
@@ -877,10 +864,10 @@ const DeckList: React.FC<DeckListProps> = ({
                             className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                           />
                           <div className="flex-1">
-                            <span className="font-semibold text-gray-900">Standard</span>
-                            <p className="text-xs text-gray-600">
-                              Card tradițional cu întrebare și răspuns
-                            </p>
+                            <span className="font-semibold text-gray-900">
+                              {t('modal.standard')}
+                            </span>
+                            <p className="text-xs text-gray-600">{t('modal.standardDesc')}</p>
                           </div>
                         </label>
 
@@ -892,10 +879,8 @@ const DeckList: React.FC<DeckListProps> = ({
                             className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                           />
                           <div className="flex-1">
-                            <span className="font-semibold text-gray-900">Quiz</span>
-                            <p className="text-xs text-gray-600">
-                              Întrebare cu variante multiple de răspuns
-                            </p>
+                            <span className="font-semibold text-gray-900">{t('modal.quiz')}</span>
+                            <p className="text-xs text-gray-600">{t('modal.quizDesc')}</p>
                           </div>
                         </label>
 
@@ -907,16 +892,14 @@ const DeckList: React.FC<DeckListProps> = ({
                             className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                           />
                           <div className="flex-1">
-                            <span className="font-semibold text-gray-900">Răspuns Scris</span>
-                            <p className="text-xs text-gray-600">
-                              Scrie răspunsul (potrivit pentru 1-2 cuvinte)
-                            </p>
+                            <span className="font-semibold text-gray-900">
+                              {t('modal.typeAnswer')}
+                            </span>
+                            <p className="text-xs text-gray-600">{t('modal.typeAnswerDesc')}</p>
                           </div>
                         </label>
                       </div>
-                      <p className="text-xs text-gray-500 mt-2">
-                        Deselectează tipul de card nedorit
-                      </p>
+                      <p className="text-xs text-gray-500 mt-2">{t('modal.deselectCardType')}</p>
                     </div>
                   )}
                 </>
@@ -926,7 +909,7 @@ const DeckList: React.FC<DeckListProps> = ({
                 <>
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">
-                      Număr de Carduri (pentru AI)
+                      {t('modal.numberOfCardsAI')}
                     </label>
                     <input
                       type="number"
@@ -936,14 +919,12 @@ const DeckList: React.FC<DeckListProps> = ({
                       onChange={e => setNumberOfCards(parseInt(e.target.value) || 10)}
                       className="w-full border-2 border-gray-100 bg-gray-50 rounded-xl p-3 font-medium outline-none focus:border-indigo-500 transition-colors"
                     />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Recomandare: 10-20 carduri pentru sesiuni eficiente
-                    </p>
+                    <p className="text-xs text-gray-500 mt-1">{t('modal.cardsRecommendation')}</p>
                   </div>
 
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-3">
-                      Tipuri Carduri
+                      {t('modal.cardTypes')}
                     </label>
                     <div className="space-y-2">
                       <label className="flex items-center gap-3 cursor-pointer p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
@@ -954,10 +935,8 @@ const DeckList: React.FC<DeckListProps> = ({
                           className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                         />
                         <div className="flex-1">
-                          <span className="font-semibold text-gray-900">Standard</span>
-                          <p className="text-xs text-gray-600">
-                            Card tradițional cu întrebare și răspuns
-                          </p>
+                          <span className="font-semibold text-gray-900">{t('modal.standard')}</span>
+                          <p className="text-xs text-gray-600">{t('modal.standardDesc')}</p>
                         </div>
                       </label>
 
@@ -969,10 +948,8 @@ const DeckList: React.FC<DeckListProps> = ({
                           className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                         />
                         <div className="flex-1">
-                          <span className="font-semibold text-gray-900">Quiz</span>
-                          <p className="text-xs text-gray-600">
-                            Întrebare cu variante multiple de răspuns
-                          </p>
+                          <span className="font-semibold text-gray-900">{t('modal.quiz')}</span>
+                          <p className="text-xs text-gray-600">{t('modal.quizDesc')}</p>
                         </div>
                       </label>
 
@@ -984,14 +961,14 @@ const DeckList: React.FC<DeckListProps> = ({
                           className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                         />
                         <div className="flex-1">
-                          <span className="font-semibold text-gray-900">Răspuns Scris</span>
-                          <p className="text-xs text-gray-600">
-                            Scrie răspunsul (potrivit pentru 1-2 cuvinte)
-                          </p>
+                          <span className="font-semibold text-gray-900">
+                            {t('modal.typeAnswer')}
+                          </span>
+                          <p className="text-xs text-gray-600">{t('modal.typeAnswerDesc')}</p>
                         </div>
                       </label>
                     </div>
-                    <p className="text-xs text-gray-500 mt-2">Deselectează tipul de card nedorit</p>
+                    <p className="text-xs text-gray-500 mt-2">{t('modal.deselectCardType')}</p>
                   </div>
                 </>
               )}
@@ -999,9 +976,7 @@ const DeckList: React.FC<DeckListProps> = ({
               {importMode === 'file' && !editingDeckId && !generatingForDeckId && (
                 <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center bg-gray-50">
                   <input type="file" accept=".txt,.csv" className="w-full text-sm text-gray-500" />
-                  <p className="text-xs text-gray-400 mt-2 font-medium">
-                    Format suportat: CSV, TXT (Front, Back)
-                  </p>
+                  <p className="text-xs text-gray-400 mt-2 font-medium">{t('modal.fileImport')}</p>
                 </div>
               )}
 
@@ -1011,7 +986,7 @@ const DeckList: React.FC<DeckListProps> = ({
                   onClick={() => setIsModalOpen(false)}
                   className="flex-1 bg-white border-2 border-gray-200 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-50 transition-colors"
                 >
-                  Anulează
+                  {t('modal.cancel')}
                 </button>
                 <button
                   type="submit"
@@ -1021,11 +996,11 @@ const DeckList: React.FC<DeckListProps> = ({
                   {isGenerating ? (
                     <Loader2 className="animate-spin" />
                   ) : editingDeckId ? (
-                    'Salvează'
+                    t('modal.save')
                   ) : generatingForDeckId ? (
-                    'Generează Carduri'
+                    t('modal.generateCardsBtn')
                   ) : (
-                    'Creează Deck'
+                    t('modal.createDeck')
                   )}
                 </button>
               </div>
@@ -1047,9 +1022,12 @@ const DeckList: React.FC<DeckListProps> = ({
             {/* Header */}
             <div className="p-6 border-b border-gray-100 flex justify-between items-center">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">Modifică Carduri</h2>
+                <h2 className="text-2xl font-bold text-gray-900">{t('editCardsModal.title')}</h2>
                 <p className="text-sm text-gray-500 mt-1">
-                  {editCardsModalDeck.title} • {editCardsModalDeck.cards.length} carduri
+                  {t('editCardsModal.subtitle', {
+                    title: editCardsModalDeck.title,
+                    count: editCardsModalDeck.cards.length,
+                  })}
                 </p>
               </div>
               <button
@@ -1064,8 +1042,8 @@ const DeckList: React.FC<DeckListProps> = ({
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
               {editCardsModalDeck.cards.length === 0 ? (
                 <div className="text-center py-12 text-gray-400">
-                  <p className="font-medium">Niciun card în acest deck</p>
-                  <p className="text-sm mt-1">Adaugă primul card folosind butonul de mai jos</p>
+                  <p className="font-medium">{t('editCardsModal.noCards')}</p>
+                  <p className="text-sm mt-1">{t('editCardsModal.addFirstCard')}</p>
                 </div>
               ) : (
                 editCardsModalDeck.cards.map((card, index) => (
@@ -1078,7 +1056,7 @@ const DeckList: React.FC<DeckListProps> = ({
                       <div className="space-y-3">
                         <div>
                           <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-                            Față (Întrebare)
+                            {t('editCardsModal.front')}
                           </label>
                           <input
                             type="text"
@@ -1089,7 +1067,7 @@ const DeckList: React.FC<DeckListProps> = ({
                         </div>
                         <div>
                           <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-                            Spate (Răspuns)
+                            {t('editCardsModal.back')}
                           </label>
                           <input
                             type="text"
@@ -1100,21 +1078,21 @@ const DeckList: React.FC<DeckListProps> = ({
                         </div>
                         <div>
                           <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-                            Context (Opțional)
+                            {t('editCardsModal.context')}
                           </label>
                           <input
                             type="text"
                             className="w-full border-2 border-gray-200 bg-white rounded-lg p-2 font-medium focus:border-indigo-500 outline-none"
                             value={editCardContext}
                             onChange={e => setEditCardContext(e.target.value)}
-                            placeholder="Ex: propoziție exemplu"
+                            placeholder={t('editCardsModal.contextPlaceholder')}
                           />
                         </div>
 
                         {/* Card Type Selection */}
                         <div>
                           <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-                            Tip Card
+                            {t('editCardsModal.cardType')}
                           </label>
                           <select
                             className="w-full border-2 border-gray-200 bg-white rounded-lg p-2 font-medium focus:border-indigo-500 outline-none"
@@ -1123,9 +1101,9 @@ const DeckList: React.FC<DeckListProps> = ({
                               setEditCardType(e.target.value as 'standard' | 'type-answer' | 'quiz')
                             }
                           >
-                            <option value="standard">Standard</option>
-                            <option value="type-answer">Răspuns Scris</option>
-                            <option value="quiz">Quiz</option>
+                            <option value="standard">{t('modal.standard')}</option>
+                            <option value="type-answer">{t('modal.typeAnswer')}</option>
+                            <option value="quiz">{t('modal.quiz')}</option>
                           </select>
                         </div>
 
@@ -1133,7 +1111,7 @@ const DeckList: React.FC<DeckListProps> = ({
                         {editCardType === 'quiz' && (
                           <div className="space-y-2">
                             <label className="block text-xs font-bold text-gray-500 uppercase">
-                              Variante de Răspuns (Quiz)
+                              {t('editCardsModal.quizOptions')}
                             </label>
                             {editCardOptions.map((option, idx) => (
                               <div key={idx} className="flex items-center gap-2">
@@ -1153,12 +1131,12 @@ const DeckList: React.FC<DeckListProps> = ({
                                     newOptions[idx] = e.target.value;
                                     setEditCardOptions(newOptions);
                                   }}
-                                  placeholder={`Opțiunea ${idx + 1}`}
+                                  placeholder={t('editCardsModal.option', { number: idx + 1 })}
                                 />
                               </div>
                             ))}
                             <p className="text-xs text-gray-500">
-                              Selectează varianta corectă (bifă)
+                              {t('editCardsModal.selectCorrect')}
                             </p>
                           </div>
                         )}
@@ -1169,13 +1147,14 @@ const DeckList: React.FC<DeckListProps> = ({
                             disabled={isSavingCard}
                             className="flex-1 bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                           >
-                            <Save size={16} /> {isSavingCard ? 'Se salvează...' : 'Salvează'}
+                            <Save size={16} />{' '}
+                            {isSavingCard ? t('editCardsModal.saving') : t('editCardsModal.save')}
                           </button>
                           <button
                             onClick={cancelEditCard}
                             className="flex-1 bg-white border-2 border-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
                           >
-                            Anulează
+                            {t('editCardsModal.cancel')}
                           </button>
                         </div>
                       </div>
@@ -1184,20 +1163,20 @@ const DeckList: React.FC<DeckListProps> = ({
                       <div>
                         <div className="flex justify-between items-start mb-2">
                           <span className="text-xs font-bold text-gray-400 uppercase">
-                            Card #{index + 1}
+                            {t('editCardsModal.cardNumber', { number: index + 1 })}
                           </span>
                           <div className="flex gap-2">
                             <button
                               onClick={() => startEditCard(card)}
                               className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                              title="Editează"
+                              title={t('editCardsModal.edit')}
                             >
                               <Edit size={16} />
                             </button>
                             <button
                               onClick={() => deleteCard(card.id)}
                               className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Șterge"
+                              title={t('editCardsModal.delete')}
                             >
                               <Trash2 size={16} />
                             </button>
@@ -1205,16 +1184,22 @@ const DeckList: React.FC<DeckListProps> = ({
                         </div>
                         <div className="space-y-2">
                           <div>
-                            <p className="text-xs font-bold text-gray-500">Întrebare:</p>
+                            <p className="text-xs font-bold text-gray-500">
+                              {t('editCardsModal.question')}
+                            </p>
                             <p className="text-sm font-medium text-gray-900">{card.front}</p>
                           </div>
                           <div>
-                            <p className="text-xs font-bold text-gray-500">Răspuns:</p>
+                            <p className="text-xs font-bold text-gray-500">
+                              {t('editCardsModal.answer')}
+                            </p>
                             <p className="text-sm font-medium text-gray-900">{card.back}</p>
                           </div>
                           {card.context && (
                             <div>
-                              <p className="text-xs font-bold text-gray-500">Context:</p>
+                              <p className="text-xs font-bold text-gray-500">
+                                {t('editCardsModal.contextLabel')}
+                              </p>
                               <p className="text-sm text-gray-600 italic">{card.context}</p>
                             </div>
                           )}
@@ -1232,7 +1217,7 @@ const DeckList: React.FC<DeckListProps> = ({
                 onClick={addNewCard}
                 className="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
               >
-                <Plus size={20} /> Adaugă Card Nou
+                <Plus size={20} /> {t('editCardsModal.addNewCard')}
               </button>
             </div>
           </div>
@@ -1273,5 +1258,3 @@ const DeckList: React.FC<DeckListProps> = ({
     </div>
   );
 };
-
-export default DeckList;

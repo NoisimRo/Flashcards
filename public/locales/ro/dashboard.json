@@ -5,7 +5,8 @@
     "totalXP": "{{xp}} XP total",
     "xpProgress": "{{current}} XP",
     "xpNext": "{{next}} XP",
-    "xpToNextLevel": "{{xp}} XP până la nivelul {{level}}"
+    "xpToNextLevel": "{{xp}} XP până la nivelul {{level}}",
+    "levelUp": "Level up!"
   },
   "buttons": {
     "startSession": "Începe Sesiune",
@@ -28,8 +29,21 @@
     "minutes": "min.",
     "hours": "{{hours}}h"
   },
+  "dailyChallenges": {
+    "title": "Provocări Zilnice",
+    "complete": "Complet",
+    "reward": "+{{xp}} XP"
+  },
+  "activityCalendar": {
+    "title": "Activitate (28 zile)",
+    "less": "Mai puțin",
+    "more": "Mai mult",
+    "cardsLearned": "{{cards}} carduri în studiu",
+    "timeSpent": "{{minutes}} min studiate"
+  },
   "continueLearning": {
     "title": "Continuă Învățarea",
+    "activeSession": "Sesiune Activă",
     "cardsRemaining": "{{cards}} carduri rămase",
     "percentComplete": "{{percent}}% completat",
     "noActiveSessions": "Nicio sesiune activă",

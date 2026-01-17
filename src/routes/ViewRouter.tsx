@@ -12,15 +12,15 @@ import { GUEST_USER } from '../utils/guestMode';
 import { MOCK_ACHIEVEMENTS, VISITOR_ACHIEVEMENTS } from '../../constants';
 
 // Component imports
-import Dashboard from '../../components/Dashboard';
-import DeckList from '../../components/DeckList';
-import GlobalDecks from '../../components/GlobalDecks';
-import Leaderboard from '../../components/Leaderboard';
 import ActiveSessionsList from '../components/sessions/ActiveSessionsList';
 import { StudySessionContainer } from '../components/study-session/StudySessionContainer';
 import { ModerationDashboard } from '../components/moderation/ModerationDashboard';
 // Refactored components
 import { Achievements } from '../components/pages/Achievements/Achievements';
+import { Dashboard } from '../components/pages/Dashboard/Dashboard';
+import { DeckList } from '../components/pages/DeckList/DeckList';
+import { GlobalDecks } from '../components/pages/GlobalDecks/GlobalDecks';
+import { Leaderboard } from '../components/pages/Leaderboard/Leaderboard';
 import { Settings } from '../components/pages/Settings/Settings';
 
 /**

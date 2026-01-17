@@ -82,10 +82,21 @@
     "addNewCard": "Adaugă Card Nou",
     "question": "Întrebare:",
     "answer": "Răspuns:",
-    "contextLabel": "Context:"
+    "contextLabel": "Context:",
+    "newQuestion": "Întrebare nouă",
+    "newAnswer": "Răspuns nou"
   },
   "loading": {
-    "message": "Se generează carduri..."
+    "message": "Se generează carduri...",
+    "dealerMessages": [
+      "Dealerul nostru AI amestecă pachetul. Sperăm că ai un as în mânecă!",
+      "Se împart cărțile! Miza de azi? Viitorul tău de geniu.",
+      "Pregătim masa de joc. Fără cacealmele, doar cunoștințe pure!",
+      "Jonglăm cu informațiile până obținem pachetul câștigător.",
+      "Ce se întâmplă în sesiune, rămâne în sesiune... dar te ajută la examen!",
+      "All-in pe învățare? Cărțile sunt aproape gata de servit.",
+      "Dealerul AI calculează cotele. Ai șanse 100% să devii mai deștept."
+    ]
   },
   "toast": {
     "cardUpdated": "Card actualizat cu succes",
