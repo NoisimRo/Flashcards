@@ -15,7 +15,7 @@ import {
   Flag,
 } from 'lucide-react';
 import { getDecks } from '../../../api/decks';
-import type { DeckWithCards as APIDeck } from '../../../types';
+import type { DeckWithCards as APIDeck } from '../../../../types';
 import type { Deck } from '../../../../types';
 import { useToast } from '../../ui/Toast';
 import { getSubjectDisplayName } from '../../../constants/subjects';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Achievement, User } from '../../../types';
+import { Achievement, User } from '../../../../types';
 import { Target, Star, Zap, Library, Flame, Diamond } from 'lucide-react';
 
 interface AchievementsProps {
