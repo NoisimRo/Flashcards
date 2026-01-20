@@ -81,7 +81,6 @@ _None - all critical blockers resolved!_
   - `App.tsx` (540 lines) → Extract routing, user state management
   - `StudySession.tsx` (1000 lines) → Extract card display, input handling, results
 
-
 - [ ] **Consolidate type definitions**
   - Merge `/types.ts` with `/src/types/models.ts`
   - Remove duplicates
@@ -132,7 +131,6 @@ _None - all critical blockers resolved!_
 ## Low Priority (P3)
 
 ### Nice to Have Features
-
 
 - [ ] **Dark mode**
   - Theme toggle in settings
