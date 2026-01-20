@@ -7,28 +7,34 @@ import type { User } from '../types';
 
 export const GUEST_USER: User = {
   id: 'guest',
+  email: 'guest@flashcards.app',
   name: 'Vizitator',
+  role: 'student',
+  avatar: undefined,
+  // Gamification
   level: 1,
   currentXP: 0,
   nextLevelXP: 100,
   totalXP: 0,
+  // Stats
   streak: 0,
   longestStreak: 0,
+  lastActiveDate: undefined,
   totalTimeSpent: 0,
   totalCardsLearned: 0,
   totalDecksCompleted: 0,
-  totalCorrectAnswers: 0,
-  totalAnswers: 0,
-  email: '',
-  role: 'student' as const,
-  avatar: undefined,
+  // Preferences
   preferences: {
     dailyGoal: 20,
     soundEnabled: true,
     animationsEnabled: true,
-    theme: 'light' as const,
+    theme: 'light',
     language: 'ro',
   },
+  // Metadata
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+  lastLoginAt: undefined,
 };
 
 export interface LoginPromptContext {

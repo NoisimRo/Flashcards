@@ -9,7 +9,6 @@ import { useLeaderboard } from '../hooks/useLeaderboard';
 import { adaptUserFromAPI } from '../adapters/userAdapter';
 import { adaptDeckFromAPI } from '../adapters/deckAdapter';
 import { GUEST_USER } from '../utils/guestMode';
-import { MOCK_ACHIEVEMENTS, VISITOR_ACHIEVEMENTS } from '../../constants';
 
 // Component imports
 import ActiveSessionsList from '../components/sessions/ActiveSessionsList';
@@ -118,12 +117,7 @@ export const ViewRouter: React.FC = () => {
       );
 
     case 'achievements':
-      return (
-        <Achievements
-          achievements={isGuest ? VISITOR_ACHIEVEMENTS : MOCK_ACHIEVEMENTS}
-          user={user}
-        />
-      );
+      return <Achievements user={user} />;
 
     case 'leaderboard':
       return (

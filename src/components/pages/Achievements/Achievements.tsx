@@ -1,16 +1,36 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { User } from '../../../types';
-import { Achievement } from '../../../api/achievements';
-import { Target, Star, Zap, Library, Flame, Diamond } from 'lucide-react';
+import { Achievement, getAchievements } from '../../../api/achievements';
+import { Target, Star, Zap, Library, Flame, Diamond, Loader2 } from 'lucide-react';
 
 interface AchievementsProps {
-  achievements: Achievement[];
   user: User;
 }
 
-export const Achievements: React.FC<AchievementsProps> = ({ achievements, user }) => {
+export const Achievements: React.FC<AchievementsProps> = ({ user }) => {
   const { t, i18n } = useTranslation('achievements');
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch achievements on mount
+  useEffect(() => {
+    const fetchAchievements = async () => {
+      setLoading(true);
+      try {
+        const response = await getAchievements();
+        if (response.success && response.data) {
+          setAchievements(response.data.achievements);
+        }
+      } catch (error) {
+        console.error('Error fetching achievements:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAchievements();
+  }, []);
 
   // Map string icon names to components
   const getIcon = (name: string) => {
@@ -33,6 +53,14 @@ export const Achievements: React.FC<AchievementsProps> = ({ achievements, user }
   };
 
   const unlockedCount = achievements.filter(a => a.unlocked).length;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 md:p-8 h-full overflow-y-auto">
