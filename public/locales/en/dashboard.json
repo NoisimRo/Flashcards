@@ -34,6 +34,18 @@
     "complete": "Complete",
     "reward": "+{{xp}} XP"
   },
+  "challenges": {
+    "cards": {
+      "title": "Answer correctly {{count}} cards"
+    },
+    "time": {
+      "title": "Study for {{count}} minutes"
+    },
+    "streak": {
+      "title": "Maintain streak",
+      "description": "Study for at least 10 minutes OR answer correctly 20 cards today to keep your streak!"
+    }
+  },
   "activityCalendar": {
     "title": "Activity (28 days)",
     "less": "Less",

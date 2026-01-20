@@ -1,5 +1,57 @@
 {
-  "create": "Crea Sessione",
+  "create": {
+    "title": "Nuova Sessione",
+    "method": {
+      "label": "Metodo di Selezione Carte",
+      "random": {
+        "title": "Casuale",
+        "description": "Seleziona carte casuali dalla collezione"
+      },
+      "smart": {
+        "title": "Revisione Intelligente",
+        "description": "Prioritizza le carte che necessitano di revisione"
+      },
+      "manual": {
+        "title": "Manuale",
+        "description": "Seleziona le carte che vuoi studiare"
+      },
+      "all": {
+        "title": "Tutte",
+        "description": "Includi tutte le carte della collezione"
+      }
+    },
+    "cardCount": {
+      "label": "Numero di carte",
+      "min": "5 carte",
+      "max": "{{count}} carte",
+      "available": "{{count}} disponibili"
+    },
+    "options": {
+      "excludeMastered": {
+        "label": "Escludi carte masterizzate",
+        "description": "Non includere carte con stato \"mastered\""
+      }
+    },
+    "manual": {
+      "title": "Seleziona Carte ({{count}} selezionate)",
+      "selectAll": "Seleziona tutto",
+      "deselectAll": "Deseleziona tutto",
+      "loading": "Caricamento carte...",
+      "noCards": "Nessuna carta disponibile",
+      "cardNumber": "Carta #{{number}}"
+    },
+    "buttons": {
+      "cancel": "Annulla",
+      "start": "Inizia Sessione",
+      "creating": "Creazione..."
+    },
+    "success": "Sessione creata: {{cards}} carte selezionate!",
+    "errors": {
+      "loadingCards": "Errore nel caricamento delle carte",
+      "selectAtLeastOne": "Seleziona almeno una carta",
+      "creating": "Errore nella creazione della sessione"
+    }
+  },
   "continue": "Continua",
   "finish": "Termina",
   "skip": "Salta",

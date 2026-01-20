@@ -2,8 +2,10 @@ import { api } from './client';
 
 export interface Achievement {
   id: string;
-  title: string;
-  description: string;
+  title: string; // Deprecated: kept for backward compatibility
+  description: string; // Deprecated: kept for backward compatibility
+  titleKey?: string; // i18n translation key
+  descriptionKey?: string; // i18n translation key
   icon: string;
   color: string;
   xpReward: number;

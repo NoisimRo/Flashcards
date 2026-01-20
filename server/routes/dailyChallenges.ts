@@ -70,14 +70,15 @@ router.get('/today', authenticateToken, async (req, res) => {
     const userResult = await query('SELECT streak FROM users WHERE id = $1', [userId]);
     const currentStreak = userResult.rows[0]?.streak || 0;
 
-    // Build response
+    // Build response - using i18n keys instead of hardcoded strings
     const response = {
       success: true,
       data: {
         challenges: [
           {
             id: 'cards',
-            title: `Răspunde corect la ${challenge.cards_target} carduri`,
+            titleKey: 'challenges.cards.title',
+            titleParams: { count: challenge.cards_target },
             progress: todayProgress.correct_answers,
             target: challenge.cards_target,
             completed: todayProgress.correct_answers >= challenge.cards_target,
@@ -88,7 +89,8 @@ router.get('/today', authenticateToken, async (req, res) => {
           },
           {
             id: 'time',
-            title: `Studiază ${challenge.time_target} de minute`,
+            titleKey: 'challenges.time.title',
+            titleParams: { count: challenge.time_target },
             progress: todayProgress.time_spent_minutes,
             target: challenge.time_target,
             completed: todayProgress.time_spent_minutes >= challenge.time_target,
@@ -99,7 +101,9 @@ router.get('/today', authenticateToken, async (req, res) => {
           },
           {
             id: 'streak',
-            title: 'Menține streak-ul',
+            titleKey: 'challenges.streak.title',
+            titleParams: {},
+            descriptionKey: 'challenges.streak.description',
             progress: currentStreak >= 1 ? 1 : 0,
             target: 1,
             completed: currentStreak >= 1,

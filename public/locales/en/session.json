@@ -1,5 +1,57 @@
 {
-  "create": "Create Session",
+  "create": {
+    "title": "New Session",
+    "method": {
+      "label": "Card Selection Method",
+      "random": {
+        "title": "Random",
+        "description": "Select random cards from collection"
+      },
+      "smart": {
+        "title": "Smart Review",
+        "description": "Prioritize cards that need review"
+      },
+      "manual": {
+        "title": "Manual",
+        "description": "Check cards you want to study"
+      },
+      "all": {
+        "title": "All",
+        "description": "Include all cards from collection"
+      }
+    },
+    "cardCount": {
+      "label": "Card count",
+      "min": "5 cards",
+      "max": "{{count}} cards",
+      "available": "{{count}} available"
+    },
+    "options": {
+      "excludeMastered": {
+        "label": "Exclude mastered cards",
+        "description": "Don't include cards with \"mastered\" status"
+      }
+    },
+    "manual": {
+      "title": "Select Cards ({{count}} selected)",
+      "selectAll": "Select all",
+      "deselectAll": "Deselect all",
+      "loading": "Loading cards...",
+      "noCards": "No cards available",
+      "cardNumber": "Card #{{number}}"
+    },
+    "buttons": {
+      "cancel": "Cancel",
+      "start": "Start Session",
+      "creating": "Creating..."
+    },
+    "success": "Session created: {{cards}} cards selected!",
+    "errors": {
+      "loadingCards": "Error loading cards",
+      "selectAtLeastOne": "Select at least one card",
+      "creating": "Error creating session"
+    }
+  },
   "continue": "Continue",
   "finish": "Finish",
   "skip": "Skip",

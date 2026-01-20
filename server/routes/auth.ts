@@ -230,12 +230,47 @@ router.post('/login', async (req: Request, res: Response) => {
       const daysDiff = Math.floor(
         (new Date(today).getTime() - new Date(lastActive).getTime()) / (1000 * 60 * 60 * 24)
       );
-      if (daysDiff > 1) {
-        newStreak = 1; // Reset streak if more than 1 day gap
-      } else if (daysDiff === 1) {
-        newStreak = user.streak + 1; // Increment streak
+
+      // Streak maintenance logic: Check if user met conditions for previous day(s)
+      if (daysDiff >= 1) {
+        // Check yesterday's activity to determine if streak should be maintained
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+        // Get yesterday's stats from study_sessions
+        const yesterdayStatsResult = await query(
+          `SELECT
+             SUM(correct_count) as total_correct,
+             SUM(duration_seconds) as total_seconds
+           FROM study_sessions
+           WHERE user_id = $1
+             AND DATE(started_at) = $2`,
+          [user.id, yesterdayStr]
+        );
+
+        const yesterdayStats = yesterdayStatsResult.rows[0];
+        const yesterdayCorrect = yesterdayStats?.total_correct || 0;
+        const yesterdayMinutes = Math.floor((yesterdayStats?.total_seconds || 0) / 60);
+
+        // Streak is maintained if user met ONE of these conditions:
+        // 1. Studied for at least 10 minutes
+        // 2. Answered correctly at least 20 cards
+        const streakConditionMet = yesterdayMinutes >= 10 || yesterdayCorrect >= 20;
+
+        if (daysDiff > 1) {
+          // More than 1 day gap - reset streak
+          newStreak = 1;
+        } else if (daysDiff === 1) {
+          // Exactly 1 day gap - check if yesterday's conditions were met
+          if (streakConditionMet) {
+            newStreak = user.streak + 1; // Maintain and increment streak
+          } else {
+            newStreak = 1; // Reset streak - conditions not met
+          }
+        }
+        // daysDiff === 0 means same day, keep streak
       }
-      // daysDiff === 0 means same day, keep streak
     } else {
       newStreak = 1; // First login
     }

@@ -34,6 +34,18 @@
     "complete": "Complet",
     "reward": "+{{xp}} XP"
   },
+  "challenges": {
+    "cards": {
+      "title": "Răspunde corect la {{count}} carduri"
+    },
+    "time": {
+      "title": "Studiază {{count}} minute"
+    },
+    "streak": {
+      "title": "Menține streak-ul",
+      "description": "Studiază cel puțin 10 minute SAU răspunde corect la 20 de carduri astăzi pentru a-ți menține seria!"
+    }
+  },
   "activityCalendar": {
     "title": "Activitate (28 zile)",
     "less": "Mai puțin",

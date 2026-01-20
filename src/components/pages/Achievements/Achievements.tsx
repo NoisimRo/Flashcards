@@ -84,8 +84,12 @@ export const Achievements: React.FC<AchievementsProps> = ({ achievements, user }
               >
                 <Icon size={32} />
               </div>
-              <h3 className="font-bold text-gray-900 text-lg mb-1">{badge.title}</h3>
-              <p className="text-sm text-gray-500 mb-4">{badge.description}</p>
+              <h3 className="font-bold text-gray-900 text-lg mb-1">
+                {badge.titleKey ? t(badge.titleKey) : badge.title}
+              </h3>
+              <p className="text-sm text-gray-500 mb-4">
+                {badge.descriptionKey ? t(badge.descriptionKey) : badge.description}
+              </p>
 
               <span
                 className={`text-xs font-bold px-3 py-1 rounded-full ${badge.unlocked ? 'bg-gray-900 text-white' : 'bg-gray-200 text-gray-500'}`}
