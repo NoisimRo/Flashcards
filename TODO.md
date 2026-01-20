@@ -20,6 +20,29 @@ _None - all critical blockers resolved!_
 
 ---
 
+## Recently Completed ✅
+
+### January 2026
+
+- [x] **Internationalization (i18n)** - Complete i18n implementation
+  - ✅ Added react-i18next with 3 languages (Română, English, Italiano)
+  - ✅ Created 21 translation files (7 namespaces × 3 languages)
+  - ✅ Refactored all page components with i18n support
+  - ✅ Added language switcher in Settings page with flag emojis
+  - ✅ Locale-aware number and date formatting
+
+- [x] **Component consolidation** - Atomic Design refactoring
+  - ✅ Moved all components from `/components/` to `/src/components/`
+  - ✅ Organized into atomic design structure (layout, pages, ui)
+  - ✅ Changed to named exports for consistency
+  - ✅ Updated all imports across the codebase
+
+- [x] **Bug fixes**
+  - ✅ Fixed TypeAnswer card navigation bug (flipped state persisting)
+  - ✅ Fixed type import paths (DeckWithCards, Achievement, LeaderboardEntry)
+
+---
+
 ## High Priority (P1)
 
 ### Features
@@ -58,10 +81,6 @@ _None - all critical blockers resolved!_
   - `App.tsx` (540 lines) → Extract routing, user state management
   - `StudySession.tsx` (1000 lines) → Extract card display, input handling, results
 
-- [ ] **Consolidate component locations**
-  - Move `/components/` into `/src/components/`
-  - Update all imports
-  - Single source of truth
 
 - [ ] **Consolidate type definitions**
   - Merge `/types.ts` with `/src/types/models.ts`
@@ -114,10 +133,6 @@ _None - all critical blockers resolved!_
 
 ### Nice to Have Features
 
-- [ ] **Internationalization (i18n)**
-  - Extract Romanian strings
-  - Add English support
-  - Language switcher
 
 - [ ] **Dark mode**
   - Theme toggle in settings

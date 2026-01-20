@@ -4,19 +4,23 @@ Aplicatie interactiva de flashcards pentru elevi si profesori, optimizata pentru
 
 ## Caracteristici
 
+- **Multilingvă (i18n)**: Suport complet pentru Română, English, Italian
 - **Sesiuni de Studiu Inteligente**: 4 metode de selectare (Random, Smart, Manual, All)
 - **Separare Bibliotecă vs Sesiune**: Deck-uri permanente + sesiuni de studiu independente
 - **Sistem de învățare cu repetitie spațiată (SM-2)**: Progres per utilizator
-- **Gamificare**: XP, nivele, achievements, streak-uri
+- **Gamificare**: XP, nivele, achievements, streak-uri, leaderboard
 - **Generare automată de flashcards cu AI** (Gemini)
 - **Auto-save progres**: Salvare automată la fiecare 30 secunde
 - **Statistici detaliate** și progres per card
 - **Import/Export** deck-uri (JSON, CSV, Anki)
 - **Sistem de autentificare JWT** cu refresh tokens
+- **Guest Mode**: Functionalitate completă fără cont (date salvate local)
 
 ## Tehnologii
 
 - **Frontend**: React 19, TypeScript, Vite, TailwindCSS
+- **I18n**: react-i18next (Română, English, Italiano)
+- **State Management**: Zustand
 - **Backend**: Node.js, Express 5, TypeScript
 - **Database**: PostgreSQL 16
 - **AI**: Google Gemini API
@@ -92,14 +96,24 @@ gcloud run deploy flashcards \
 
 ```
 flashcards/
-├── src/                    # Cod sursa React
-├── components/             # Componente React
-├── services/               # Servicii (API calls)
+├── src/                    # Cod sursa frontend
+│   ├── components/        # Componente React (Atomic Design)
+│   │   ├── layout/        # Layout components (Sidebar)
+│   │   ├── pages/         # Page components (Dashboard, Settings, etc.)
+│   │   ├── ui/            # UI components (Toast, LanguageSwitcher)
+│   │   └── study-session/ # Study session components
+│   ├── api/               # Client API calls
+│   ├── store/             # Zustand stores
+│   ├── i18n/              # Internationalization config
+│   ├── routes/            # React routes
+│   └── types/             # TypeScript types
+├── public/locales/        # Translation files (ro, en, it)
 ├── server/                 # Backend Express
 │   ├── config/            # Configurare server
 │   ├── db/                # Schema PostgreSQL
 │   ├── middleware/        # Middleware Express
 │   └── routes/            # API routes
+├── types.ts               # Shared TypeScript types
 ├── Dockerfile             # Container image
 ├── docker-compose.yml     # Production compose
 ├── docker-compose.dev.yml # Development compose
