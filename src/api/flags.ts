@@ -1,54 +1,8 @@
 import { api } from './client';
+import type { CardFlag, DeckFlag, FlagStatus, FlagReason } from '../types';
 
-export type FlagStatus = 'pending' | 'under_review' | 'resolved' | 'dismissed';
+// Union type for flags (combines card and deck flags with type discriminator)
 export type FlagType = 'card' | 'deck';
-export type FlagReason = 'inappropriate' | 'incorrect_information' | 'duplicate' | 'spam' | 'other';
-
-export interface CardFlag {
-  id: string;
-  cardId: string;
-  deckId: string;
-  flaggedByUserId: string;
-  flaggedByName?: string;
-  flaggedByEmail?: string;
-  comment?: string;
-  status: FlagStatus;
-  reviewedByUserId?: string;
-  reviewedByName?: string;
-  reviewedAt?: string;
-  reviewNotes?: string;
-  createdAt: string;
-  updatedAt: string;
-  // Populated fields
-  cardFront?: string;
-  cardBack?: string;
-  cardContext?: string;
-  cardType?: string;
-  deckTitle?: string;
-  deckTopic?: string;
-}
-
-export interface DeckFlag {
-  id: string;
-  deckId: string;
-  flaggedByUserId: string;
-  flaggedByName?: string;
-  flaggedByEmail?: string;
-  reason?: FlagReason;
-  comment?: string;
-  status: FlagStatus;
-  reviewedByUserId?: string;
-  reviewedByName?: string;
-  reviewedAt?: string;
-  reviewNotes?: string;
-  createdAt: string;
-  updatedAt: string;
-  // Populated fields
-  deckTitle?: string;
-  deckTopic?: string;
-  totalCards?: number;
-}
-
 export type Flag = (CardFlag | DeckFlag) & { type: FlagType };
 
 export interface CreateCardFlagRequest {
