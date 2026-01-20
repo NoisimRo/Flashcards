@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Deck, Difficulty, Card } from '../../../../types';
+import { Deck, DeckWithCards, Difficulty, Card } from '../../../types';
 import {
   Plus,
   MoreVertical,
@@ -27,8 +27,8 @@ import { FlagModal } from '../../flags/FlagModal';
 
 interface DeckListProps {
   decks: Deck[];
-  onAddDeck: (deck: Deck) => void;
-  onEditDeck: (deck: Deck) => void;
+  onAddDeck: (deck: DeckWithCards) => void;
+  onEditDeck: (deck: DeckWithCards) => void;
   onDeleteDeck: (deckId: string) => void;
   onStartSession: (deck: Deck) => void;
   onResetDeck?: (deckId: string) => void;
@@ -66,7 +66,7 @@ export const DeckList: React.FC<DeckListProps> = ({
 
   // Edit Cards Modal State
   const [editCardsModalOpen, setEditCardsModalOpen] = useState(false);
-  const [editCardsModalDeck, setEditCardsModalDeck] = useState<Deck | null>(null);
+  const [editCardsModalDeck, setEditCardsModalDeck] = useState<DeckWithCards | null>(null);
   const [editingCardId, setEditingCardId] = useState<string | null>(null);
   const [editCardFront, setEditCardFront] = useState('');
   const [editCardBack, setEditCardBack] = useState('');
@@ -163,15 +163,11 @@ export const DeckList: React.FC<DeckListProps> = ({
       const response = await getDeck(deck.id);
 
       if (response.success && response.data) {
-        // Adapt DeckWithCards to Deck type expected by modal
-        const deckWithCards: Deck = {
+        const deckWithCards: DeckWithCards = {
           ...response.data,
           subject: response.data.subjectName || response.data.subject,
           masteredCards: deck.masteredCards || 0, // Preserve from original deck
-          cards: response.data.cards.map(card => ({
-            ...card,
-            status: 'new' as const, // Default status for modal
-          })),
+          cards: response.data.cards,
         };
         setEditCardsModalDeck(deckWithCards);
         setEditCardsModalOpen(true);
@@ -307,14 +303,7 @@ export const DeckList: React.FC<DeckListProps> = ({
       });
 
       if (response.success && response.data) {
-        const newCard: Card = {
-          id: response.data.id,
-          front: response.data.front,
-          back: response.data.back,
-          context: response.data.context,
-          type: response.data.type as 'standard' | 'type-answer' | 'quiz',
-          status: 'new',
-        };
+        const newCard: Card = response.data;
 
         const updatedCards = [...editCardsModalDeck.cards, newCard];
         const updatedDeck = {
@@ -340,29 +329,21 @@ export const DeckList: React.FC<DeckListProps> = ({
     setIsGenerating(true);
 
     if (editingDeckId) {
-      // EDIT MODE
+      // EDIT MODE (metadata only - no cards)
       const existingDeck = decks.find(d => d.id === editingDeckId);
       if (existingDeck) {
-        const updatedDeck: Deck = {
+        const updatedDeck: DeckWithCards = {
           ...existingDeck,
           title,
           subject,
           difficulty,
+          cards: [], // Empty array - we're only updating metadata
         };
         onEditDeck(updatedDeck);
       }
     } else if (generatingForDeckId) {
       // GENERATE CARDS FOR EXISTING EMPTY DECK
-      const newCards: Array<{
-        id: string;
-        front: string;
-        back: string;
-        context?: string;
-        type: 'standard' | 'type-answer' | 'quiz';
-        status: 'new' | 'learning' | 'mastered';
-        options?: string[];
-        correctOptionIndex?: number;
-      }> = [];
+      const newCards: Card[] = [];
       if (importMode === 'ai') {
         try {
           const response = await generateDeckWithAI(
@@ -377,11 +358,10 @@ export const DeckList: React.FC<DeckListProps> = ({
               ...response.data.map((card, index) => ({
                 ...card,
                 id: `ai-${Date.now()}-${index}`,
-                status: 'new' as const,
-                // Preserve all card type fields
-                type: card.type || 'standard',
-                options: card.options || undefined,
-                correctOptionIndex: card.correctOptionIndex ?? undefined,
+                deckId: generatingForDeckId || `d-${Date.now()}`,
+                position: index,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
               }))
             );
           } else {
@@ -399,7 +379,7 @@ export const DeckList: React.FC<DeckListProps> = ({
 
       const existingDeck = decks.find(d => d.id === generatingForDeckId);
       if (existingDeck) {
-        const updatedDeck: Deck = {
+        const updatedDeck: DeckWithCards = {
           ...existingDeck,
           cards: newCards,
           totalCards: newCards.length,
@@ -409,16 +389,7 @@ export const DeckList: React.FC<DeckListProps> = ({
       }
     } else {
       // CREATE MODE
-      const newCards: Array<{
-        id: string;
-        front: string;
-        back: string;
-        context?: string;
-        type: 'standard' | 'type-answer' | 'quiz';
-        status: 'new' | 'learning' | 'mastered';
-        options?: string[];
-        correctOptionIndex?: number;
-      }> = [];
+      const newCards: Card[] = [];
       if (importMode === 'ai') {
         try {
           const response = await generateDeckWithAI(
@@ -433,11 +404,10 @@ export const DeckList: React.FC<DeckListProps> = ({
               ...response.data.map((card, index) => ({
                 ...card,
                 id: `ai-${Date.now()}-${index}`,
-                status: 'new' as const,
-                // Preserve all card type fields
-                type: card.type || 'standard',
-                options: card.options || undefined,
-                correctOptionIndex: card.correctOptionIndex ?? undefined,
+                deckId: generatingForDeckId || `d-${Date.now()}`,
+                position: index,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
               }))
             );
           } else {
@@ -453,15 +423,20 @@ export const DeckList: React.FC<DeckListProps> = ({
         }
       }
 
-      const newDeck: Deck = {
+      const newDeck: DeckWithCards = {
         id: `d-${Date.now()}`,
+        ownerId: '', // Will be set by backend
         title,
         subject,
         topic: title, // Simplified
         difficulty,
+        isPublic: false,
+        tags: [],
         cards: newCards,
         totalCards: newCards.length,
         masteredCards: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
       onAddDeck(newDeck);
     }
@@ -521,9 +496,7 @@ export const DeckList: React.FC<DeckListProps> = ({
         {decks.map(deck => {
           const percentage =
             deck.totalCards > 0 ? Math.round((deck.masteredCards / deck.totalCards) * 100) : 0;
-          const hasProgress =
-            percentage > 0 ||
-            (deck.sessionData && Object.keys(deck.sessionData.answers).length > 0);
+          const hasProgress = deck.masteredCards > 0;
           const inStudy = deck.totalCards - deck.masteredCards;
 
           return (

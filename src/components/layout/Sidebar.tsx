@@ -12,7 +12,7 @@ import {
   PlayCircle,
   Shield,
 } from 'lucide-react';
-import { User } from '../../../types';
+import { User } from '../../types';
 import { LanguageSwitcher } from '../ui/LanguageSwitcher';
 
 interface SidebarProps {

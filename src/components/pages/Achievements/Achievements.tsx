@@ -1,15 +1,36 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Achievement, User } from '../../../../types';
-import { Target, Star, Zap, Library, Flame, Diamond } from 'lucide-react';
+import { User } from '../../../types';
+import { Achievement, getAchievements } from '../../../api/achievements';
+import { Target, Star, Zap, Library, Flame, Diamond, Loader2 } from 'lucide-react';
 
 interface AchievementsProps {
-  achievements: Achievement[];
   user: User;
 }
 
-export const Achievements: React.FC<AchievementsProps> = ({ achievements, user }) => {
+export const Achievements: React.FC<AchievementsProps> = ({ user }) => {
   const { t, i18n } = useTranslation('achievements');
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch achievements on mount
+  useEffect(() => {
+    const fetchAchievements = async () => {
+      setLoading(true);
+      try {
+        const response = await getAchievements();
+        if (response.success && response.data) {
+          setAchievements(response.data.achievements);
+        }
+      } catch (error) {
+        console.error('Error fetching achievements:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAchievements();
+  }, []);
 
   // Map string icon names to components
   const getIcon = (name: string) => {
@@ -32,6 +53,14 @@ export const Achievements: React.FC<AchievementsProps> = ({ achievements, user }
   };
 
   const unlockedCount = achievements.filter(a => a.unlocked).length;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 md:p-8 h-full overflow-y-auto">
@@ -84,8 +113,12 @@ export const Achievements: React.FC<AchievementsProps> = ({ achievements, user }
               >
                 <Icon size={32} />
               </div>
-              <h3 className="font-bold text-gray-900 text-lg mb-1">{badge.title}</h3>
-              <p className="text-sm text-gray-500 mb-4">{badge.description}</p>
+              <h3 className="font-bold text-gray-900 text-lg mb-1">
+                {badge.titleKey ? String(t(badge.titleKey)) : badge.title}
+              </h3>
+              <p className="text-sm text-gray-500 mb-4">
+                {badge.descriptionKey ? String(t(badge.descriptionKey)) : badge.description}
+              </p>
 
               <span
                 className={`text-xs font-bold px-3 py-1 rounded-full ${badge.unlocked ? 'bg-gray-900 text-white' : 'bg-gray-200 text-gray-500'}`}

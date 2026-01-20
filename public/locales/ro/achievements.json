@@ -11,5 +11,39 @@
     "totalPoints": "Puncte Totale",
     "xpAccumulated": "XP acumulat"
   },
-  "xpReward": "+{{xp}} XP"
+  "xpReward": "+{{xp}} XP",
+  "items": {
+    "a1": {
+      "title": "Primul Pas",
+      "description": "Completat primul deck"
+    },
+    "a2": {
+      "title": "Stea Strălucitoare",
+      "description": "5 zile consecutive"
+    },
+    "a3": {
+      "title": "Rapid ca Fulgerul",
+      "description": "10 carduri în 1 minut"
+    },
+    "a4": {
+      "title": "Bibliotecar",
+      "description": "Creat 3 deck-uri"
+    },
+    "a5": {
+      "title": "Flacără Vie",
+      "description": "Streak de 7 zile"
+    },
+    "a6": {
+      "title": "Diamant",
+      "description": "100 carduri memorate"
+    },
+    "a7": {
+      "title": "Maestru",
+      "description": "Nivel 10 atins"
+    },
+    "a8": {
+      "title": "Dedicat",
+      "description": "30 zile consecutive"
+    }
+  }
 }

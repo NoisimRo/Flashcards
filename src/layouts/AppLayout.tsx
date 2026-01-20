@@ -5,8 +5,8 @@ import { GuestBanner } from './GuestBanner';
 import { useUIStore } from '../store/uiStore';
 import { useAuth } from '../store/AuthContext';
 import { useAuthActions } from '../hooks/useAuthActions';
-import { adaptUserFromAPI } from '../adapters/userAdapter';
 import { GUEST_USER } from '../utils/guestMode';
+import type { User } from '../types';
 
 /**
  * Main application layout
@@ -17,7 +17,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
   const { isMobileMenuOpen, currentView, setMobileMenuOpen, setCurrentView } = useUIStore();
   const { handleLoginClick, handleRegisterClick } = useAuthActions();
 
-  const user = isAuthenticated && authUser ? adaptUserFromAPI(authUser) : GUEST_USER;
+  const user: User = isAuthenticated && authUser ? authUser : GUEST_USER;
   const isGuest = !isAuthenticated;
 
   return (

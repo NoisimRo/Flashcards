@@ -2,7 +2,10 @@ import { api } from './client';
 
 export interface DailyChallenge {
   id: string;
-  title: string;
+  title: string; // Deprecated: kept for backward compatibility
+  titleKey?: string; // i18n translation key
+  titleParams?: Record<string, any>; // i18n translation parameters
+  descriptionKey?: string; // i18n translation key for description/tooltip
   progress: number;
   target: number;
   completed: boolean;

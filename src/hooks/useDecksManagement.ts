@@ -3,7 +3,7 @@ import { useDecksStore } from '../store/decksStore';
 import { useUIStore } from '../store/uiStore';
 import { useAuth } from '../store/AuthContext';
 import { shouldPromptLogin } from '../utils/guestMode';
-import type { Deck, Card } from '../../types';
+import type { Deck, DeckWithCards, Card } from '../types';
 import * as decksApi from '../api/decks';
 import { getSubjectId } from '../constants/subjects';
 
@@ -19,7 +19,7 @@ export function useDecksManagement() {
   const isGuest = !isAuthenticated;
 
   const handleAddDeck = useCallback(
-    async (newDeck: Deck) => {
+    async (newDeck: DeckWithCards) => {
       if (isGuest) {
         const prompt = shouldPromptLogin('create-deck', true);
         if (prompt) {
@@ -56,7 +56,7 @@ export function useDecksManagement() {
   );
 
   const handleEditDeck = useCallback(
-    async (updatedDeck: Deck) => {
+    async (updatedDeck: DeckWithCards) => {
       if (isGuest) return;
 
       try {

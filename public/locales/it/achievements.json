@@ -11,5 +11,39 @@
     "totalPoints": "Punti Totali",
     "xpAccumulated": "XP accumulati"
   },
-  "xpReward": "+{{xp}} XP"
+  "xpReward": "+{{xp}} XP",
+  "items": {
+    "a1": {
+      "title": "Primo Passo",
+      "description": "Completato il primo mazzo"
+    },
+    "a2": {
+      "title": "Stella Brillante",
+      "description": "5 giorni consecutivi"
+    },
+    "a3": {
+      "title": "Veloce come un Fulmine",
+      "description": "10 carte in 1 minuto"
+    },
+    "a4": {
+      "title": "Bibliotecario",
+      "description": "Creati 3 mazzi"
+    },
+    "a5": {
+      "title": "Fiamma Viva",
+      "description": "Serie di 7 giorni"
+    },
+    "a6": {
+      "title": "Diamante",
+      "description": "100 carte masterizzate"
+    },
+    "a7": {
+      "title": "Maestro",
+      "description": "Raggiunto livello 10"
+    },
+    "a8": {
+      "title": "Dedicato",
+      "description": "30 giorni consecutivi"
+    }
+  }
 }

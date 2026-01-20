@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { LeaderboardEntry, User } from '../../../../types';
+import { User } from '../../../types';
+import { LeaderboardEntry } from '../../../api/users';
 import { Flame, Medal, Users } from 'lucide-react';
 
 interface LeaderboardProps {

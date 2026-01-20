@@ -25,19 +25,33 @@ router.get('/', authenticateToken, async (req, res) => {
       [userId]
     );
 
-    const achievements = achievementsResult.rows.map(row => ({
-      id: row.id,
-      title: row.title,
-      description: row.description,
-      icon: row.icon,
-      color: row.color,
-      xpReward: row.xp_reward,
-      unlocked: row.unlocked,
-      unlockedAt: row.unlocked_at,
-      conditionType: row.condition_type,
-      conditionValue: row.condition_value,
-      tier: row.tier,
-    }));
+    // Map achievement IDs to i18n keys
+    const getAchievementKeys = (achievementId: string) => {
+      // Use achievement ID to create consistent translation keys
+      return {
+        titleKey: `items.${achievementId}.title`,
+        descriptionKey: `items.${achievementId}.description`,
+      };
+    };
+
+    const achievements = achievementsResult.rows.map((row: any) => {
+      const { titleKey, descriptionKey } = getAchievementKeys(row.id);
+      return {
+        id: row.id,
+        title: row.title, // Keep for backward compatibility
+        description: row.description, // Keep for backward compatibility
+        titleKey,
+        descriptionKey,
+        icon: row.icon,
+        color: row.color,
+        xpReward: row.xp_reward,
+        unlocked: row.unlocked,
+        unlockedAt: row.unlocked_at,
+        conditionType: row.condition_type,
+        conditionValue: row.condition_value,
+        tier: row.tier,
+      };
+    });
 
     res.json({
       success: true,

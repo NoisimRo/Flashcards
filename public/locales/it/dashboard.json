@@ -34,6 +34,18 @@
     "complete": "Completo",
     "reward": "+{{xp}} XP"
   },
+  "challenges": {
+    "cards": {
+      "title": "Rispondi correttamente a {{count}} carte"
+    },
+    "time": {
+      "title": "Studia per {{count}} minuti"
+    },
+    "streak": {
+      "title": "Mantieni la serie",
+      "description": "Studia per almeno 10 minuti O rispondi correttamente a 20 carte oggi per mantenere la tua serie!"
+    }
+  },
   "activityCalendar": {
     "title": "Attività (28 giorni)",
     "less": "Meno",

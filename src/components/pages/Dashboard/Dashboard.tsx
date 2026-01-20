@@ -1,6 +1,6 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { User, Deck } from '../../../../types';
+import { User, Deck } from '../../../types';
 import {
   getTodaysChallenges,
   DailyChallenge,
@@ -453,7 +453,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           <ChallengeIcon size={20} className="text-white" />
                         </div>
                         <div>
-                          <h3 className="font-bold text-gray-900">{challenge.title}</h3>
+                          <h3
+                            className="font-bold text-gray-900"
+                            title={
+                              challenge.descriptionKey
+                                ? String(t(challenge.descriptionKey))
+                                : undefined
+                            }
+                          >
+                            {challenge.titleKey
+                              ? String(t(challenge.titleKey, challenge.titleParams || {}))
+                              : challenge.title}
+                          </h3>
                           <p className="text-xs text-gray-500">
                             {challenge.progress}/{challenge.target} ·{' '}
                             {t('dailyChallenges.reward', { xp: challenge.reward })}

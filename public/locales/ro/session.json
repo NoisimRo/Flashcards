@@ -1,5 +1,57 @@
 {
-  "create": "Creează Sesiune",
+  "create": {
+    "title": "Sesiune Nouă",
+    "method": {
+      "label": "Metodă Selecție Carduri",
+      "random": {
+        "title": "Random",
+        "description": "Selectează carduri aleatorii din colecție"
+      },
+      "smart": {
+        "title": "Smart Review",
+        "description": "Prioritizează carduri care necesită reluare"
+      },
+      "manual": {
+        "title": "Manual",
+        "description": "Bifează ce carduri vrei să studiezi"
+      },
+      "all": {
+        "title": "Toate",
+        "description": "Include toate cardurile din colecție"
+      }
+    },
+    "cardCount": {
+      "label": "Nr. carduri",
+      "min": "5 carduri",
+      "max": "{{count}} carduri",
+      "available": "{{count}} disponibile"
+    },
+    "options": {
+      "excludeMastered": {
+        "label": "Exclude carduri învățate",
+        "description": "Nu include carduri cu status \"mastered\""
+      }
+    },
+    "manual": {
+      "title": "Selectează Carduri ({{count}} selectate)",
+      "selectAll": "Selectează tot",
+      "deselectAll": "Deselectează tot",
+      "loading": "Se încarcă cardurile...",
+      "noCards": "Nu există carduri disponibile",
+      "cardNumber": "Card #{{number}}"
+    },
+    "buttons": {
+      "cancel": "Anulează",
+      "start": "Începe Sesiunea",
+      "creating": "Se creează..."
+    },
+    "success": "Sesiune creată: {{cards}} carduri selectate!",
+    "errors": {
+      "loadingCards": "Eroare la încărcarea cardurilor",
+      "selectAtLeastOne": "Selectează cel puțin un card",
+      "creating": "Eroare la crearea sesiunii"
+    }
+  },
   "continue": "Continuă",
   "finish": "Finalizează",
   "skip": "Sari peste",

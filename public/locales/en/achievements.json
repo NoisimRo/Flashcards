@@ -11,5 +11,39 @@
     "totalPoints": "Total Points",
     "xpAccumulated": "XP accumulated"
   },
-  "xpReward": "+{{xp}} XP"
+  "xpReward": "+{{xp}} XP",
+  "items": {
+    "a1": {
+      "title": "First Step",
+      "description": "Completed first deck"
+    },
+    "a2": {
+      "title": "Shining Star",
+      "description": "5 consecutive days"
+    },
+    "a3": {
+      "title": "Lightning Fast",
+      "description": "10 cards in 1 minute"
+    },
+    "a4": {
+      "title": "Librarian",
+      "description": "Created 3 decks"
+    },
+    "a5": {
+      "title": "Living Flame",
+      "description": "7 day streak"
+    },
+    "a6": {
+      "title": "Diamond",
+      "description": "100 cards mastered"
+    },
+    "a7": {
+      "title": "Master",
+      "description": "Reached level 10"
+    },
+    "a8": {
+      "title": "Dedicated",
+      "description": "30 consecutive days"
+    }
+  }
 }

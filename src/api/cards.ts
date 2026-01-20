@@ -1,5 +1,5 @@
 import { api } from './client';
-import type { Card as LocalCard } from '../../types';
+import type { Card as LocalCard } from '../types';
 
 export interface CreateCardRequest {
   deckId: string;
@@ -26,10 +26,15 @@ export interface CardResponse {
   front: string;
   back: string;
   context?: string;
+  hint?: string;
   type: 'standard' | 'type-answer' | 'quiz';
   options?: string[];
   correctOptionIndex?: number;
   flagCount?: number;
+  position: number;
+  createdAt: string;
+  updatedAt: string;
+  createdBy?: string;
 }
 
 export async function createCard(data: CreateCardRequest) {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Play, Shuffle, Brain, CheckSquare, List } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { CreateStudySessionRequest } from '../../types/api';
 import { useStudySessionsStore } from '../../store/studySessionsStore';
 import { useToast } from '../ui/Toast';
@@ -20,6 +21,7 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
   onClose,
   onSessionCreated,
 }) => {
+  const { t } = useTranslation('session');
   const toast = useToast();
   const createSession = useStudySessionsStore(state => state.createSession);
   const isLoading = useStudySessionsStore(state => state.isLoading);
@@ -33,7 +35,7 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
   const [selectedCardIds, setSelectedCardIds] = useState<string[]>([]);
   const [loadingCards, setLoadingCards] = useState(false);
 
-  const availableCards = deck.totalCards; // In real app, would subtract mastered
+  const availableCards = deck?.totalCards || 0; // Safe fallback to prevent NaN
 
   // Fetch deck cards when manual mode is selected
   useEffect(() => {
@@ -47,11 +49,11 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
         })
         .catch(err => {
           console.error('Error loading deck cards:', err);
-          toast.error('Eroare la încărcarea cardurilor');
+          toast.error(t('create.errors.loadingCards'));
         })
         .finally(() => setLoadingCards(false));
     }
-  }, [selectionMethod, deck.id, deckCards.length, toast]);
+  }, [selectionMethod, deck.id, deckCards.length, toast, t]);
 
   const toggleCardSelection = (cardId: string) => {
     setSelectedCardIds(prev =>
@@ -62,7 +64,7 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
   const handleCreate = async () => {
     // Validate manual selection
     if (selectionMethod === 'manual' && selectedCardIds.length === 0) {
-      toast.error('Selectează cel puțin un card');
+      toast.error(t('create.errors.selectAtLeastOne'));
       return;
     }
 
@@ -83,10 +85,10 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
     const session = await createSession(request);
 
     if (session) {
-      toast.success(`Sesiune creată: ${session.totalCards} carduri selectate!`);
+      toast.success(t('create.success', { cards: session.totalCards }));
       onSessionCreated(session.id);
     } else {
-      toast.error('Eroare la crearea sesiunii');
+      toast.error(t('create.errors.creating'));
     }
   };
 
@@ -96,7 +98,7 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
         {/* Header */}
         <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Sesiune Nouă</h2>
+            <h2 className="text-2xl font-bold text-gray-900">{t('create.title')}</h2>
             <p className="text-sm text-gray-600 mt-1">{deck.title}</p>
           </div>
           <button
@@ -112,7 +114,7 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
           {/* Selection Method */}
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-3">
-              Metodă Selecție Carduri
+              {t('create.method.label')}
             </label>
             <div className="grid grid-cols-2 gap-3">
               <button
@@ -125,9 +127,9 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                 }`}
               >
                 <Shuffle size={24} />
-                <span className="font-semibold text-sm">Random</span>
+                <span className="font-semibold text-sm">{t('create.method.random.title')}</span>
                 <p className="text-xs text-center text-gray-500 mt-1 leading-tight">
-                  Selectează carduri aleatorii din colecție
+                  {t('create.method.random.description')}
                 </p>
               </button>
 
@@ -141,9 +143,9 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                 }`}
               >
                 <Brain size={24} />
-                <span className="font-semibold text-sm">Smart Review</span>
+                <span className="font-semibold text-sm">{t('create.method.smart.title')}</span>
                 <p className="text-xs text-center text-gray-500 mt-1 leading-tight">
-                  Prioritizează carduri care necesită reluare
+                  {t('create.method.smart.description')}
                 </p>
               </button>
 
@@ -157,9 +159,9 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                 }`}
               >
                 <CheckSquare size={24} />
-                <span className="font-semibold text-sm">Manual</span>
+                <span className="font-semibold text-sm">{t('create.method.manual.title')}</span>
                 <p className="text-xs text-center text-gray-500 mt-1 leading-tight">
-                  Bifează ce carduri vrei să studiezi
+                  {t('create.method.manual.description')}
                 </p>
               </button>
 
@@ -173,9 +175,9 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                 }`}
               >
                 <List size={24} />
-                <span className="font-semibold text-sm">Toate</span>
+                <span className="font-semibold text-sm">{t('create.method.all.title')}</span>
                 <p className="text-xs text-center text-gray-500 mt-1 leading-tight">
-                  Include toate cardurile din colecție
+                  {t('create.method.all.description')}
                 </p>
               </button>
             </div>
@@ -185,22 +187,22 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
           {(selectionMethod === 'random' || selectionMethod === 'smart') && (
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">
-                Număr Carduri: {cardCount}
+                {t('create.cardCount.label')}: {cardCount}
               </label>
               <input
                 type="range"
                 min="5"
-                max={Math.min(50, availableCards)}
+                max={Math.max(5, Math.min(50, availableCards))}
                 value={cardCount}
                 onChange={e => setCardCount(parseInt(e.target.value))}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
               />
               <div className="flex justify-between text-xs text-gray-500 mt-1">
-                <span>5 carduri</span>
-                <span>{Math.min(50, availableCards)} carduri</span>
+                <span>{t('create.cardCount.min')}</span>
+                <span>{t('create.cardCount.max', { count: Math.min(50, availableCards) })}</span>
               </div>
               <p className="text-sm text-gray-600 mt-2">
-                {availableCards} carduri disponibile în deck
+                {t('create.cardCount.available', { count: availableCards })}
               </p>
             </div>
           )}
@@ -215,9 +217,11 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                 className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
               />
               <div className="flex-1">
-                <span className="font-semibold text-gray-900">Exclude carduri învățate</span>
+                <span className="font-semibold text-gray-900">
+                  {t('create.options.excludeMastered.label')}
+                </span>
                 <p className="text-xs text-gray-600">
-                  Nu include carduri cu status &quot;mastered&quot;
+                  {t('create.options.excludeMastered.description')}
                 </p>
               </div>
             </label>
@@ -228,7 +232,7 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
             <div className="border-2 border-indigo-200 rounded-xl p-4 bg-indigo-50">
               <div className="flex justify-between items-center mb-3">
                 <h4 className="font-semibold text-gray-900">
-                  Selectează Carduri ({selectedCardIds.length} selectate)
+                  {t('create.manual.title', { count: selectedCardIds.length })}
                 </h4>
                 {deckCards.length > 0 && (
                   <button
@@ -241,17 +245,19 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                     className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
                   >
                     {selectedCardIds.length === deckCards.length
-                      ? 'Deselectează tot'
-                      : 'Selectează tot'}
+                      ? t('create.manual.deselectAll')
+                      : t('create.manual.selectAll')}
                   </button>
                 )}
               </div>
 
               {loadingCards ? (
-                <p className="text-sm text-gray-600 text-center py-4">Se încarcă cardurile...</p>
+                <p className="text-sm text-gray-600 text-center py-4">
+                  {t('create.manual.loading')}
+                </p>
               ) : deckCards.length === 0 ? (
                 <p className="text-sm text-gray-600 text-center py-4">
-                  Nu există carduri disponibile
+                  {t('create.manual.noCards')}
                 </p>
               ) : (
                 <div className="max-h-64 overflow-y-auto space-y-2">
@@ -268,7 +274,7 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                       />
                       <div className="flex-1 min-w-0">
                         <span className="text-xs font-semibold text-gray-500">
-                          Card #{index + 1}
+                          {t('create.manual.cardNumber', { number: index + 1 })}
                         </span>
                         <p className="text-sm text-gray-900 truncate">{card.front}</p>
                       </div>
@@ -287,7 +293,7 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
             className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors"
             disabled={isLoading}
           >
-            Anulează
+            {t('create.buttons.cancel')}
           </button>
           <button
             onClick={handleCreate}
@@ -295,7 +301,7 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
             className="flex-1 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
           >
             <Play size={20} />
-            {isLoading ? 'Se creează...' : 'Începe Sesiunea'}
+            {isLoading ? t('create.buttons.creating') : t('create.buttons.start')}
           </button>
         </div>
       </div>
