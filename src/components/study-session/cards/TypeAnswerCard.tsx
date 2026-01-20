@@ -116,6 +116,20 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
     onUndo?.();
   };
 
+  // Reset state when card changes (fixes navigation bug)
+  React.useEffect(() => {
+    setShowBack(false);
+    setUserAnswer('');
+    setHasAnswered(hasAnsweredProp);
+    setIsCorrect(null);
+
+    // Clear any pending auto-advance timer
+    if (autoAdvanceTimer) {
+      clearTimeout(autoAdvanceTimer);
+      setAutoAdvanceTimer(null);
+    }
+  }, [card.id]); // Reset when card ID changes
+
   // Cleanup timer on unmount
   React.useEffect(() => {
     return () => {
