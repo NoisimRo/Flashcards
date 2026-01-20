@@ -18,12 +18,19 @@
   },
   "preferences": {
     "title": "Preferințe de învățare",
+    "language": "Limba aplicației",
+    "languageDesc": "Alege limba în care vrei să vezi aplicația",
     "focusMode": "Mod concentrare",
     "focusModeDesc": "Ascunde notificările în timpul studiului",
     "shuffleCards": "Amestecă cardurile",
     "shuffleCardsDesc": "Prezintă cardurile în ordine aleatorie",
     "newCardsPerDay": "Carduri noi pe zi",
     "cardsCount": "{{count}} carduri"
+  },
+  "languages": {
+    "ro": "Română",
+    "en": "English",
+    "it": "Italiano"
   },
   "actions": {
     "saveChanges": "Salvează modificările",

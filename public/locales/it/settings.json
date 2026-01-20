@@ -18,12 +18,19 @@
   },
   "preferences": {
     "title": "Preferenze di apprendimento",
+    "language": "Lingua dell'app",
+    "languageDesc": "Scegli la lingua in cui vuoi vedere l'app",
     "focusMode": "Modalità concentrazione",
     "focusModeDesc": "Nascondi le notifiche durante lo studio",
     "shuffleCards": "Mescola le carte",
     "shuffleCardsDesc": "Presenta le carte in ordine casuale",
     "newCardsPerDay": "Nuove carte al giorno",
     "cardsCount": "{{count}} carte"
+  },
+  "languages": {
+    "ro": "Română",
+    "en": "English",
+    "it": "Italiano"
   },
   "actions": {
     "saveChanges": "Salva modifiche",

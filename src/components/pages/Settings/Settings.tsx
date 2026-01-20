@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { User } from '../../../../types';
-import { User as UserIcon, Moon, Check, Save, LogOut, LogIn, UserPlus } from 'lucide-react';
+import { User as UserIcon, Moon, Check, Save, LogOut, LogIn, UserPlus, Globe } from 'lucide-react';
 
 interface SettingsProps {
   user: User & { email?: string };
@@ -18,11 +18,23 @@ export const Settings: React.FC<SettingsProps> = ({
   isGuest = false,
   onLogin,
 }) => {
-  const { t } = useTranslation('settings');
+  const { t, i18n } = useTranslation('settings');
   const [formData, setFormData] = useState({
     name: user.name,
     email: user.email || 'email@exemplu.ro',
   });
+
+  const languages = [
+    { code: 'ro', name: t('languages.ro'), flag: '🇷🇴' },
+    { code: 'en', name: t('languages.en'), flag: '🇬🇧' },
+    { code: 'it', name: t('languages.it'), flag: '🇮🇹' },
+  ];
+
+  const handleLanguageChange = (languageCode: string) => {
+    i18n.changeLanguage(languageCode);
+    // Persist to localStorage
+    localStorage.setItem('preferredLanguage', languageCode);
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -123,6 +135,30 @@ export const Settings: React.FC<SettingsProps> = ({
         </h3>
 
         <div className="space-y-6">
+          <div>
+            <h4 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
+              <Globe size={18} className="text-indigo-600" />
+              {t('preferences.language')}
+            </h4>
+            <p className="text-gray-500 text-sm mb-3">{t('preferences.languageDesc')}</p>
+            <div className="grid grid-cols-3 gap-3">
+              {languages.map(lang => (
+                <button
+                  key={lang.code}
+                  onClick={() => handleLanguageChange(lang.code)}
+                  className={`p-3 rounded-xl border-2 transition-all ${
+                    i18n.language === lang.code
+                      ? 'border-indigo-600 bg-indigo-50'
+                      : 'border-gray-200 hover:border-gray-300 bg-white'
+                  }`}
+                >
+                  <div className="text-2xl mb-1">{lang.flag}</div>
+                  <div className="text-sm font-semibold text-gray-900">{lang.name}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="flex items-start gap-4 cursor-pointer group">
             <div className="mt-1 w-6 h-6 bg-gray-900 rounded-full flex items-center justify-center text-white shadow-sm group-hover:bg-indigo-600 transition-colors">
               <Check size={14} />

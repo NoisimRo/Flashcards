@@ -18,12 +18,19 @@
   },
   "preferences": {
     "title": "Learning preferences",
+    "language": "App language",
+    "languageDesc": "Choose the language you want to see the app in",
     "focusMode": "Focus mode",
     "focusModeDesc": "Hide notifications during study",
     "shuffleCards": "Shuffle cards",
     "shuffleCardsDesc": "Present cards in random order",
     "newCardsPerDay": "New cards per day",
     "cardsCount": "{{count}} cards"
+  },
+  "languages": {
+    "ro": "Română",
+    "en": "English",
+    "it": "Italiano"
   },
   "actions": {
     "saveChanges": "Save changes",
