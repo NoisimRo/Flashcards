@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { Card, Deck, User, Achievement } from '../../types';
+import type { Card, Deck, User, Achievement } from '../../src/types';
 
 // Helper function to validate card structure
 function isValidCard(card: Card): boolean {

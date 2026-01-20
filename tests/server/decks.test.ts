@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { Card, Deck } from '../../types';
+import type { Card, Deck } from '../../src/types';
 
 // Spaced repetition algorithm tests
 describe('Spaced Repetition Algorithm', () => {

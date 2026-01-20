@@ -1,4 +1,4 @@
-import { User, Achievement, Deck, LeaderboardEntry, Card } from './types';
+import { User, Achievement, Deck, LeaderboardEntry, Card } from './src/types';
 
 export const MOCK_USER: User = {
   id: 'u1',

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MoreVertical, Edit, Trash2, Flag } from 'lucide-react';
 import { useAuth } from '../../store/AuthContext';
-import type { Card } from '../../../types';
+import type { Card } from '../../types';
 
 interface CardViewProps {
   card: Card;

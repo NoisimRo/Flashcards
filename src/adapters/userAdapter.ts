@@ -1,4 +1,4 @@
-import type { User } from '../../types';
+import type { User } from '../types';
 
 /**
  * Adapter to convert API User format to local User format

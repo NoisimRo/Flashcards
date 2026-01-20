@@ -3,7 +3,7 @@ import { useDecksStore } from '../store/decksStore';
 import { useUIStore } from '../store/uiStore';
 import { useAuth } from '../store/AuthContext';
 import { shouldPromptLogin } from '../utils/guestMode';
-import type { Deck, Card } from '../../types';
+import type { Deck, Card } from '../types';
 import * as decksApi from '../api/decks';
 import { getSubjectId } from '../constants/subjects';
 

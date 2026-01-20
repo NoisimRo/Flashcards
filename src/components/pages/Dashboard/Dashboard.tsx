@@ -1,6 +1,6 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { User, Deck } from '../../../../types';
+import { User, Deck } from '../../../types';
 import {
   getTodaysChallenges,
   DailyChallenge,

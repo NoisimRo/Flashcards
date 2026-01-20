@@ -1,4 +1,4 @@
-import type { Deck, Card } from '../../types';
+import type { Deck, Card } from '../types';
 import { getSubjectDisplayName } from '../constants/subjects';
 
 /**
