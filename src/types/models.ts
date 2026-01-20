@@ -319,20 +319,9 @@ export interface SyncConflict {
 }
 
 // ============================================
-// REVIEWS & FLAGS
+// FLAGS
 // ============================================
-
-export interface DeckReview {
-  id: string;
-  deckId: string;
-  userId: string;
-  userName?: string;
-  userAvatar?: string;
-  rating: number; // 1-5
-  comment?: string;
-  createdAt: string;
-  updatedAt: string;
-}
+// Note: Review types are defined in src/api/reviews.ts (API response types)
 
 export type FlagStatus = 'pending' | 'under_review' | 'resolved' | 'dismissed';
 export type FlagReason = 'inappropriate' | 'incorrect_information' | 'duplicate' | 'spam' | 'other';
