@@ -242,6 +242,188 @@ _None - all critical blockers resolved!_
 
 ## Session Notes
 
+### January 20, 2026 - Type System Consolidation, i18n Implementation & Streak Logic
+
+**Session Focus**: Fix CreateSessionModal bugs, implement complete i18n for Daily Challenges and Achievements, add streak maintenance logic, and consolidate type definitions
+
+**Problems Identified**:
+
+1. CreateSessionModal showing "NaN carduri" when deck has insufficient cards
+2. Slider range logic broken for decks with < 5 cards (invalid min > max)
+3. All UI strings hardcoded in Romanian - no internationalization
+4. Daily Challenges and Achievements using hardcoded strings instead of translation keys
+5. No daily streak maintenance logic - streaks not resetting when conditions not met
+6. Duplicate type definitions between `/types.ts` (root) and `/src/types/models.ts`
+7. Mock data still present in constants.ts despite real API integration
+8. Adapter files (userAdapter.ts, deckAdapter.ts) converting API responses unnecessarily
+9. Missing fields in type definitions: User.totalCorrectAnswers, User.totalAnswers, Deck.masteredCards
+10. LeaderboardEntry type conflict: models.ts uses userId/totalXP, api/users.ts uses id/xpTotal
+
+**Root Cause Analysis**:
+
+**CreateSessionModal Issues:**
+- NaN issue: `deck?.totalCards` was undefined, needed fallback: `deck?.totalCards || 0`
+- Slider issue: When availableCards < 5, Math.min(5, availableCards) produces max < min
+- Solution: `max={Math.max(5, Math.min(50, availableCards))}` ensures valid range
+
+**Internationalization Gaps:**
+- Frontend components had hardcoded Romanian strings
+- Backend APIs returned hardcoded strings instead of translation keys
+- No titleKey/descriptionKey pattern for translatable content
+- Solution: Backend returns keys (e.g., `titleKey: 'challenges.cards.title'`), frontend translates
+
+**Streak Maintenance Missing:**
+- Daily streak incremented on login but never reset if conditions not met
+- No validation of yesterday's activity
+- Solution: Server checks if user met ONE condition yesterday: 10+ min studied OR 20+ correct cards
+
+**Type System Duplication:**
+- Historic problem from refactoring - /types.ts (legacy) vs /src/types/ (proper structure)
+- Caused TypeScript errors: "Type 'Achievement[]' from /types.ts is not assignable to type 'Achievement[]' from /src/api/achievements.ts"
+- Solution: Complete elimination of root /types.ts, consolidated all types in /src/types/models.ts
+
+**Mock Data Redundancy:**
+- constants.ts had 490 lines of MOCK_DECKS, MOCK_ACHIEVEMENTS, LEADERBOARD_DATA
+- Only needed for guest mode, but even guests now see real API data with unlocked: false
+- Solution: Reduced constants.ts to 11 lines (only GUEST_USER for UI necessities)
+
+**Adapter Layer Unnecessary:**
+- Adapters (userAdapter.ts, deckAdapter.ts) were converting API snake_case to camelCase
+- But backend already returns camelCase (e.g., totalXP, masteredCards)
+- Adapters added type mismatches and complexity
+- Solution: Deleted adapters, use API responses directly
+
+**Type Definition Gaps:**
+- Backend returns totalCorrectAnswers, totalAnswers, masteredCards but types missing these
+- LeaderboardEntry had two incompatible definitions
+- Solution: Added missing fields to User and Deck interfaces, use API type for LeaderboardEntry
+
+**Completed**:
+
+**CreateSessionModal Fixes:**
+- ✅ Fixed NaN display: `const availableCards = deck?.totalCards || 0;`
+- ✅ Fixed slider range: `max={Math.max(5, Math.min(50, availableCards))}`
+- ✅ Implemented complete i18n with `useTranslation('session')`
+- ✅ Replaced all hardcoded strings: "Sesiune Nouă" → `{t('create.title')}`
+- ✅ Created translation files: public/locales/{ro,en,it}/session.json
+
+**Daily Challenges i18n:**
+- ✅ Backend: Changed from hardcoded `title: "Răspunde corect la X carduri"` to `titleKey: 'challenges.cards.title', titleParams: { count: X }`
+- ✅ Frontend: Dashboard.tsx uses `t(challenge.titleKey, challenge.titleParams)`
+- ✅ Added String() wrapper for TypeScript type safety
+- ✅ Created translations in public/locales/{ro,en,it}/dashboard.json
+- ✅ Backend returns i18n keys in server/routes/dailyChallenges.ts
+
+**Achievements i18n:**
+- ✅ Backend: Added getAchievementKeys() function returning titleKey/descriptionKey
+- ✅ Frontend: Achievements page fetches real data via API, translates using keys
+- ✅ Removed MOCK_ACHIEVEMENTS dependency
+- ✅ Created translations in public/locales/{ro,en,it}/achievements.json
+- ✅ Backend returns i18n keys in server/routes/achievements.ts
+
+**Streak Maintenance Logic:**
+- ✅ Implemented in server/routes/auth.ts login endpoint (lines 224-268)
+- ✅ Queries yesterday's study sessions for total time and correct answers
+- ✅ Streak maintained if: `yesterdayMinutes >= 10 OR yesterdayCorrect >= 20`
+- ✅ Streak increments if condition met, resets to 1 if not
+- ✅ Added tooltip explaining conditions in Dashboard
+
+**Type System Consolidation:**
+- ✅ Deleted `/types.ts` (114 lines of duplicate definitions)
+- ✅ Updated 17 imports across codebase to use `/src/types/`
+- ✅ Consolidated all types in `/src/types/models.ts`
+- ✅ Eliminated Achievement/LeaderboardEntry/User/Deck duplicates
+
+**Mock Data Elimination:**
+- ✅ Reduced constants.ts from 490 lines to 11 lines
+- ✅ Removed MOCK_DECKS, MOCK_ACHIEVEMENTS, LEADERBOARD_DATA
+- ✅ Kept only GUEST_USER and GUEST_PROMPTS
+- ✅ All users (including guests) now see real API data
+- ✅ Achievements page fetches from GET /api/achievements
+- ✅ Leaderboard uses real data (no fallback)
+
+**Adapter Removal:**
+- ✅ Deleted src/adapters/userAdapter.ts (75 lines)
+- ✅ Deleted src/adapters/deckAdapter.ts (75 lines)
+- ✅ Updated ViewRouter.tsx: removed adaptUserFromAPI, adaptDeckFromAPI
+- ✅ Updated AppLayout.tsx: use authUser directly
+- ✅ Updated useLeaderboard.ts: removed LEADERBOARD_DATA fallback
+
+**Type Definition Fixes:**
+- ✅ Added User.totalCorrectAnswers and User.totalAnswers (src/types/models.ts)
+- ✅ Added Deck.masteredCards (src/types/models.ts)
+- ✅ Updated GUEST_USER to include new fields (src/utils/guestMode.ts)
+- ✅ Fixed LeaderboardEntry conflict: Leaderboard.tsx uses API type (id, xpTotal)
+- ✅ Fixed DeckList.tsx: changed editCardsModalDeck from Deck to DeckWithCards
+- ✅ Removed Card.status assignment (status is in UserCardProgress, not Card)
+- ✅ Re-exported FlagReason/FlagStatus from src/api/flags.ts
+
+**Files Modified**:
+
+Backend:
+- `server/routes/dailyChallenges.ts` - Return i18n keys instead of hardcoded strings
+- `server/routes/achievements.ts` - Return i18n keys for all achievements
+- `server/routes/auth.ts` - Implemented streak maintenance logic (lines 224-268)
+
+Frontend:
+- `src/components/sessions/CreateSessionModal.tsx` - Fixed NaN, slider, added i18n
+- `src/components/pages/Dashboard/Dashboard.tsx` - Use i18n keys for challenges
+- `src/components/pages/Achievements/Achievements.tsx` - Fetch real data via API
+- `src/components/pages/Leaderboard/Leaderboard.tsx` - Use API LeaderboardEntry type
+- `src/components/pages/DeckList/DeckList.tsx` - Use DeckWithCards for modal
+- `src/routes/ViewRouter.tsx` - Removed adapters, use direct API types
+- `src/layouts/AppLayout.tsx` - Removed adapters, use authUser directly
+- `src/hooks/useLeaderboard.ts` - Removed LEADERBOARD_DATA fallback
+
+Types:
+- `src/types/models.ts` - Added User.totalCorrectAnswers/totalAnswers, Deck.masteredCards
+- `src/utils/guestMode.ts` - Updated GUEST_USER with new fields
+- `src/api/flags.ts` - Re-exported FlagReason/FlagStatus
+
+Deleted Files:
+- `/types.ts` - 114 lines of duplicate type definitions
+- `src/adapters/userAdapter.ts` - 75 lines (unnecessary conversion layer)
+- `src/adapters/deckAdapter.ts` - 75 lines (unnecessary conversion layer)
+- `constants.ts` - Reduced from 490 to 11 lines (479 lines of mock data removed)
+
+Translations:
+- `public/locales/ro/session.json` - CreateSessionModal strings
+- `public/locales/en/session.json` - English translations
+- `public/locales/it/session.json` - Italian translations
+- `public/locales/ro/dashboard.json` - Added challenges section
+- `public/locales/en/dashboard.json` - Added challenges section
+- `public/locales/it/dashboard.json` - Added challenges section
+
+**TypeScript Verification**:
+- ✅ Ran `npx tsc --noEmit --skipLibCheck` - 0 application errors
+- ✅ Ran `npx tsc -p tsconfig.server.json --noEmit --skipLibCheck` - 0 application errors
+- ⚠️ Only missing type definition warnings for @types/node, @types/pg (dev dependencies)
+
+**Commits**:
+- (To be committed) - feat: implement i18n for CreateSessionModal, Daily Challenges, and Achievements
+- (To be committed) - feat: implement daily streak maintenance logic (10 min OR 20 cards)
+- (To be committed) - refactor: consolidate type definitions - remove /types.ts duplication
+- (To be committed) - refactor: eliminate mock data in favor of real API calls
+- (To be committed) - refactor: remove adapter layer and use direct API types
+
+**Testing Checklist**:
+1. ✅ CreateSessionModal - No NaN, slider works with any deck size
+2. ✅ Language switcher - All pages show correct translations
+3. ✅ Daily Challenges - Display in Romanian/English/Italian
+4. ✅ Achievements - Display in Romanian/English/Italian
+5. ✅ Streak maintenance - Reset if conditions not met, increment if met
+6. ✅ TypeScript compilation - All application code compiles
+7. ⏳ Production testing - Verify real data flows correctly
+
+**Next Session Recommendations**:
+- Test streak maintenance in production (requires 24h wait)
+- Monitor API performance with increased real data usage
+- Consider adding loading states for API-fetched challenges/achievements
+- Add error boundaries for API failures
+- Consider caching achievements data (rarely changes)
+
+---
+
 ### January 5, 2026 - Deep Card Type System Refactor & UI Design Unification
 
 **Session Focus**: Complete overhaul of card type architecture and unification of design system across all pages

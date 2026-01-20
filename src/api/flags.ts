@@ -1,6 +1,9 @@
 import { api } from './client';
 import type { CardFlag, DeckFlag, FlagStatus, FlagReason } from '../types';
 
+// Re-export types from models for convenience
+export type { FlagStatus, FlagReason, CardFlag, DeckFlag } from '../types';
+
 // Union type for flags (combines card and deck flags with type discriminator)
 export type FlagType = 'card' | 'deck';
 export type Flag = (CardFlag | DeckFlag) & { type: FlagType };

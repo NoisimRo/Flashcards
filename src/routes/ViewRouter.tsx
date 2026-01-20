@@ -6,9 +6,8 @@ import { useAuth } from '../store/AuthContext';
 import { useDecksManagement } from '../hooks/useDecksManagement';
 import { useSessionManagement } from '../hooks/useSessionManagement';
 import { useLeaderboard } from '../hooks/useLeaderboard';
-import { adaptUserFromAPI } from '../adapters/userAdapter';
-import { adaptDeckFromAPI } from '../adapters/deckAdapter';
 import { GUEST_USER } from '../utils/guestMode';
+import type { User } from '../types';
 
 // Component imports
 import ActiveSessionsList from '../components/sessions/ActiveSessionsList';
@@ -35,11 +34,9 @@ export const ViewRouter: React.FC = () => {
   const sessionManagement = useSessionManagement();
   const { leaderboardEntries } = useLeaderboard();
 
-  const user = isAuthenticated && authUser ? adaptUserFromAPI(authUser) : GUEST_USER;
+  const user: User = isAuthenticated && authUser ? authUser : GUEST_USER;
   const isGuest = !isAuthenticated;
-
-  // Adapt decks from API format to component format
-  const decks = React.useMemo(() => apiDecks.map(adaptDeckFromAPI), [apiDecks]);
+  const decks = apiDecks;
 
   // Loading state
   if (isLoadingDecks && decks.length === 0) {

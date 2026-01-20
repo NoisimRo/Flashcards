@@ -1,16 +1,14 @@
 import { useState, useCallback, useEffect } from 'react';
 import type { LeaderboardEntry } from '../api/users';
 import * as usersApi from '../api/users';
-import { LEADERBOARD_DATA } from '../../constants';
 
 /**
  * Custom hook for leaderboard data management
- * Fetches and caches leaderboard data
+ * Fetches and caches leaderboard data from API
  */
 export function useLeaderboard() {
-  const [leaderboardEntries, setLeaderboardEntries] =
-    useState<LeaderboardEntry[]>(LEADERBOARD_DATA);
-  const [isLoading, setIsLoading] = useState(false);
+  const [leaderboardEntries, setLeaderboardEntries] = useState<LeaderboardEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchLeaderboard = useCallback(async () => {
@@ -22,14 +20,12 @@ export function useLeaderboard() {
         setLeaderboardEntries(response.data.leaderboard);
       } else {
         setError(response.error?.message || 'Failed to fetch leaderboard');
-        // Keep using mock data on error
-        setLeaderboardEntries(LEADERBOARD_DATA);
+        setLeaderboardEntries([]);
       }
     } catch (error) {
       console.error('Error fetching leaderboard:', error);
       setError('Network error');
-      // Keep using mock data on error
-      setLeaderboardEntries(LEADERBOARD_DATA);
+      setLeaderboardEntries([]);
     } finally {
       setIsLoading(false);
     }

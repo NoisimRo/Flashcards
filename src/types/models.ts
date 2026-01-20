@@ -93,6 +93,7 @@ export interface Deck {
   tags: string[];
   // Stats (denormalized for performance)
   totalCards: number;
+  masteredCards: number;
   // Reviews & Flags
   averageRating?: number;
   reviewCount?: number;
@@ -190,6 +191,8 @@ export interface User {
   totalTimeSpent: number; // Minutes
   totalCardsLearned: number;
   totalDecksCompleted: number;
+  totalCorrectAnswers: number;
+  totalAnswers: number;
   // Preferences
   preferences: UserPreferences;
   // Metadata

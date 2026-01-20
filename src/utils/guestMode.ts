@@ -23,6 +23,8 @@ export const GUEST_USER: User = {
   totalTimeSpent: 0,
   totalCardsLearned: 0,
   totalDecksCompleted: 0,
+  totalCorrectAnswers: 0,
+  totalAnswers: 0,
   // Preferences
   preferences: {
     dailyGoal: 20,

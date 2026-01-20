@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Deck, Difficulty, Card } from '../../../types';
+import { Deck, DeckWithCards, Difficulty, Card } from '../../../types';
 import {
   Plus,
   MoreVertical,
@@ -66,7 +66,7 @@ export const DeckList: React.FC<DeckListProps> = ({
 
   // Edit Cards Modal State
   const [editCardsModalOpen, setEditCardsModalOpen] = useState(false);
-  const [editCardsModalDeck, setEditCardsModalDeck] = useState<Deck | null>(null);
+  const [editCardsModalDeck, setEditCardsModalDeck] = useState<DeckWithCards | null>(null);
   const [editingCardId, setEditingCardId] = useState<string | null>(null);
   const [editCardFront, setEditCardFront] = useState('');
   const [editCardBack, setEditCardBack] = useState('');
@@ -163,15 +163,11 @@ export const DeckList: React.FC<DeckListProps> = ({
       const response = await getDeck(deck.id);
 
       if (response.success && response.data) {
-        // Adapt DeckWithCards to Deck type expected by modal
-        const deckWithCards: Deck = {
+        const deckWithCards: DeckWithCards = {
           ...response.data,
           subject: response.data.subjectName || response.data.subject,
           masteredCards: deck.masteredCards || 0, // Preserve from original deck
-          cards: response.data.cards.map(card => ({
-            ...card,
-            status: 'new' as const, // Default status for modal
-          })),
+          cards: response.data.cards,
         };
         setEditCardsModalDeck(deckWithCards);
         setEditCardsModalOpen(true);
