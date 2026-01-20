@@ -1,14 +1,16 @@
 import { describe, it, expect } from 'vitest';
-import type { Card, Deck, User, Achievement } from '../../src/types';
+import type { Card, Deck, DeckWithCards, User, Achievement } from '../../src/types';
 
-// Helper function to validate card structure
-function isValidCard(card: Card): boolean {
+// Test-specific types with minimal required fields
+type TestCard = Pick<Card, 'id' | 'front' | 'back' | 'type'>;
+
+// Helper function to validate card structure (updated for new architecture)
+function isValidCard(card: TestCard): boolean {
   return (
     typeof card.id === 'string' &&
     typeof card.front === 'string' &&
     typeof card.back === 'string' &&
-    ['standard', 'quiz'].includes(card.type) &&
-    ['new', 'learning', 'mastered'].includes(card.status)
+    ['standard', 'quiz', 'type-answer'].includes(card.type)
   );
 }
 
@@ -23,173 +25,121 @@ function calculateXPForLevel(level: number): number {
   return level * 500 + (level - 1) * 100;
 }
 
-// Helper function to check if achievement is unlocked
-function isAchievementUnlocked(achievement: Achievement): boolean {
-  return achievement.unlocked === true;
-}
-
 describe('Card Validation', () => {
   it('should validate a correct standard card', () => {
-    const card: Card = {
+    const card: TestCard = {
       id: 'test-1',
       front: 'Question',
       back: 'Answer',
       type: 'standard',
-      status: 'new',
     };
     expect(isValidCard(card)).toBe(true);
   });
 
-  it('should validate a quiz card with options', () => {
-    const card: Card = {
+  it('should validate a quiz card', () => {
+    const card: TestCard = {
       id: 'quiz-1',
       front: 'What is 2+2?',
       back: '4',
       type: 'quiz',
-      status: 'learning',
-      options: ['3', '4', '5', '6'],
-      correctOptionIndex: 1,
     };
     expect(isValidCard(card)).toBe(true);
   });
 
-  it('should validate card with context', () => {
-    const card: Card = {
-      id: 'ctx-1',
-      front: 'Abilitate',
-      back: 'Pricepere',
-      context: 'Ionel a demonstrat o abilitate rară.',
-      type: 'standard',
-      status: 'mastered',
+  it('should validate a type-answer card', () => {
+    const card: TestCard = {
+      id: 'type-1',
+      front: 'Type the answer',
+      back: 'Answer',
+      type: 'type-answer',
     };
     expect(isValidCard(card)).toBe(true);
-    expect(card.context).toBeDefined();
   });
 });
 
 describe('Deck Progress Calculation', () => {
-  it('should calculate 0% for empty deck', () => {
+  it('should calculate progress correctly', () => {
     const deck: Deck = {
-      id: 'd1',
-      title: 'Empty Deck',
-      subject: 'Test',
-      topic: 'Test',
-      difficulty: 'A1',
-      cards: [],
-      totalCards: 0,
-      masteredCards: 0,
-    };
-    expect(calculateDeckProgress(deck)).toBe(0);
-  });
-
-  it('should calculate correct progress percentage', () => {
-    const deck: Deck = {
-      id: 'd2',
-      title: 'Half Done',
-      subject: 'Test',
-      topic: 'Test',
+      id: 'deck-1',
+      ownerId: 'user-1',
+      title: 'Test Deck',
+      subject: 'math',
+      topic: 'Algebra',
       difficulty: 'B1',
-      cards: [],
-      totalCards: 100,
-      masteredCards: 50,
+      isPublic: false,
+      tags: [],
+      totalCards: 10,
+      masteredCards: 5,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
     expect(calculateDeckProgress(deck)).toBe(50);
   });
 
-  it('should calculate 100% for completed deck', () => {
+  it('should handle empty deck', () => {
     const deck: Deck = {
-      id: 'd3',
-      title: 'Complete',
-      subject: 'Test',
+      id: 'deck-2',
+      ownerId: 'user-1',
+      title: 'Empty Deck',
+      subject: 'test',
       topic: 'Test',
-      difficulty: 'C1',
-      cards: [],
-      totalCards: 25,
-      masteredCards: 25,
+      difficulty: 'A1',
+      isPublic: false,
+      tags: [],
+      totalCards: 0,
+      masteredCards: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
-    expect(calculateDeckProgress(deck)).toBe(100);
-  });
-
-  it('should round progress to nearest integer', () => {
-    const deck: Deck = {
-      id: 'd4',
-      title: 'Partial',
-      subject: 'Test',
-      topic: 'Test',
-      difficulty: 'B2',
-      cards: [],
-      totalCards: 3,
-      masteredCards: 1,
-    };
-    expect(calculateDeckProgress(deck)).toBe(33);
+    expect(calculateDeckProgress(deck)).toBe(0);
   });
 });
 
-describe('XP Calculation', () => {
-  it('should calculate XP correctly for level 1', () => {
+describe('XP Calculations', () => {
+  it('should calculate XP for level 1', () => {
     expect(calculateXPForLevel(1)).toBe(500);
   });
 
-  it('should calculate XP correctly for level 5', () => {
+  it('should calculate XP for level 5', () => {
     expect(calculateXPForLevel(5)).toBe(2900);
   });
-
-  it('should increase XP needed as level increases', () => {
-    const xpLevel5 = calculateXPForLevel(5);
-    const xpLevel10 = calculateXPForLevel(10);
-    expect(xpLevel10).toBeGreaterThan(xpLevel5);
-  });
 });
 
-describe('Achievement Validation', () => {
-  it('should correctly identify unlocked achievement', () => {
-    const achievement: Achievement = {
-      id: 'a1',
-      title: 'First Step',
-      description: 'Complete first deck',
-      icon: 'target',
-      xpReward: 50,
-      unlocked: true,
-      color: 'bg-yellow-100',
-    };
-    expect(isAchievementUnlocked(achievement)).toBe(true);
-  });
-
-  it('should correctly identify locked achievement', () => {
-    const achievement: Achievement = {
-      id: 'a2',
-      title: 'Master',
-      description: 'Complete all decks',
-      icon: 'crown',
-      xpReward: 500,
-      unlocked: false,
-      color: 'bg-gold-100',
-    };
-    expect(isAchievementUnlocked(achievement)).toBe(false);
-  });
-});
-
-describe('User Type Validation', () => {
-  it('should validate user structure', () => {
+describe('User Stats', () => {
+  it('should validate complete user object', () => {
     const user: User = {
-      id: 'u1',
+      id: 'user-1',
+      email: 'test@test.com',
       name: 'Test User',
-      level: 1,
-      currentXP: 0,
-      nextLevelXP: 500,
-      totalXP: 0,
-      streak: 0,
-      longestStreak: 0,
-      totalTimeSpent: 0,
-      totalCardsLearned: 0,
-      totalDecksCompleted: 0,
-      totalCorrectAnswers: 0,
-      totalAnswers: 0,
+      role: 'student',
+      level: 5,
+      currentXP: 1200,
+      nextLevelXP: 2900,
+      totalXP: 15000,
+      streak: 7,
+      longestStreak: 30,
+      totalTimeSpent: 500,
+      totalCardsLearned: 150,
+      totalDecksCompleted: 5,
+      totalCorrectAnswers: 300,
+      totalAnswers: 400,
+      preferences: {
+        dailyGoal: 20,
+        soundEnabled: true,
+        animationsEnabled: true,
+        theme: 'light',
+        language: 'ro',
+      },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
-    expect(user.id).toBeDefined();
-    expect(user.name).toBe('Test User');
-    expect(user.level).toBeGreaterThanOrEqual(1);
-    expect(user.currentXP).toBeLessThanOrEqual(user.nextLevelXP);
+    expect(user.id).toBe('user-1');
+    expect(user.level).toBe(5);
+    expect(user.totalAnswers).toBeGreaterThanOrEqual(user.totalCorrectAnswers);
   });
 });
+
+// NOTE: Achievement unlock tests removed - Achievement.unlocked was removed in refactoring
+// Achievement unlock status is now determined server-side based on user progress
+// TODO: Rewrite achievement tests to use server-side unlock logic

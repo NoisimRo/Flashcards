@@ -25,7 +25,7 @@ import { useAuth } from '../../../store/AuthContext';
 
 interface GlobalDecksProps {
   onStartSession: (deck: Deck) => void;
-  onImportDeck?: (deck: Deck) => void;
+  onImportDeck?: (deck: APIDeck) => void;
 }
 
 export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImportDeck }) => {
@@ -122,25 +122,12 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
     return grouped;
   }, [filteredDecks]);
 
-  // Convert API deck to local Deck type for handlers
-  const convertToDeck = (apiDeck: APIDeck): Deck => {
+  // Convert API deck to local DeckWithCards type for handlers
+  const convertToDeck = (apiDeck: APIDeck): APIDeck => {
     return {
-      id: apiDeck.id,
-      title: apiDeck.title,
+      ...apiDeck,
       subject: apiDeck.subjectName || apiDeck.subject,
-      topic: apiDeck.topic,
-      difficulty: apiDeck.difficulty,
-      cards: (apiDeck.cards || []).map(card => ({
-        id: card.id,
-        front: card.front,
-        back: card.back,
-        context: card.context,
-        type: card.type as 'standard' | 'type-answer' | 'quiz',
-        options: card.options,
-        correctOptionIndex: card.correctOptionIndex,
-        status: 'new' as const, // All cards are new when copying from global library
-      })),
-      totalCards: apiDeck.totalCards || 0,
+      cards: apiDeck.cards || [],
       masteredCards: 0, // New deck for user, no progress yet
       lastStudied: undefined,
     };

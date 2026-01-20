@@ -1,5 +1,5 @@
 import { api } from './client';
-import type { Card as LocalCard } from '../../types';
+import type { Card as LocalCard } from '../types';
 
 export interface CreateCardRequest {
   deckId: string;
