@@ -329,14 +329,15 @@ export const DeckList: React.FC<DeckListProps> = ({
     setIsGenerating(true);
 
     if (editingDeckId) {
-      // EDIT MODE
+      // EDIT MODE (metadata only - no cards)
       const existingDeck = decks.find(d => d.id === editingDeckId);
       if (existingDeck) {
-        const updatedDeck: Deck = {
+        const updatedDeck: DeckWithCards = {
           ...existingDeck,
           title,
           subject,
           difficulty,
+          cards: [], // Empty array - we're only updating metadata
         };
         onEditDeck(updatedDeck);
       }
