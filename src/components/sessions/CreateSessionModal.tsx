@@ -3,6 +3,7 @@ import { X, Play, Shuffle, Brain, CheckSquare, List } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { CreateStudySessionRequest } from '../../types/api';
 import { useStudySessionsStore } from '../../store/studySessionsStore';
+import { useAuth } from '../../store/AuthContext';
 import { useToast } from '../ui/Toast';
 import { getDeck } from '../../api/decks';
 
@@ -23,8 +24,12 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
 }) => {
   const { t } = useTranslation('session');
   const toast = useToast();
+  const { isAuthenticated } = useAuth();
   const createSession = useStudySessionsStore(state => state.createSession);
+  const createGuestSession = useStudySessionsStore(state => state.createGuestSession);
   const isLoading = useStudySessionsStore(state => state.isLoading);
+
+  const isGuest = !isAuthenticated;
 
   const [selectionMethod, setSelectionMethod] = useState<'random' | 'smart' | 'manual' | 'all'>(
     'random'
@@ -68,6 +73,23 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
       return;
     }
 
+    // Guest users: simplified session creation
+    if (isGuest) {
+      // For guests, we only support 'all' selection method (study all cards)
+      // This creates a guest session via the special guest endpoint
+      await createGuestSession(deck.id);
+      const currentSession = useStudySessionsStore.getState().currentSession;
+
+      if (currentSession) {
+        toast.success(t('create.success', { cards: currentSession.totalCards || 0 }));
+        onSessionCreated(currentSession.id);
+      } else {
+        toast.error(t('create.errors.creating'));
+      }
+      return;
+    }
+
+    // Authenticated users: full session creation with options
     const request: CreateStudySessionRequest = {
       deckId: deck.id,
       selectionMethod,

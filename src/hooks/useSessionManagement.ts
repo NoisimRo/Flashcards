@@ -19,50 +19,26 @@ export function useSessionManagement() {
 
   const handleStartSession = useCallback(
     (deck: Deck) => {
-      // Visitor mode: use demo session (deck id 'd1')
-      if (isGuest && deck.id === 'd1') {
-        // Create guest session via store
-        createGuestSession(deck.id);
-        setActiveSessionId(deck.id);
-        setCurrentView('session-player');
-        return;
-      }
-
-      // Guest trying to create session for non-demo deck
-      if (isGuest) {
-        const prompt = shouldPromptLogin('create-session', true);
-        if (prompt) {
-          setShowLoginPrompt(true, prompt);
-        }
-        return;
-      }
-
-      // Authenticated: open create session modal
-      setShowCreateSessionModal(true, deck.id);
+      // For guests: open create session modal directly (allow studying any public deck)
+      // The modal and backend will handle guest session creation
+      setShowCreateSessionModal(true, {
+        id: deck.id,
+        title: deck.title,
+        totalCards: deck.totalCards,
+      });
     },
-    [
-      isGuest,
-      createGuestSession,
-      setActiveSessionId,
-      setCurrentView,
-      setShowCreateSessionModal,
-      setShowLoginPrompt,
-    ]
+    [setShowCreateSessionModal]
   );
 
   const handleCreateSession = useCallback(
     (deck: Deck) => {
-      if (isGuest) {
-        const prompt = shouldPromptLogin('create-session', true);
-        if (prompt) {
-          setShowLoginPrompt(true, prompt);
-        }
-        return;
-      }
-
-      setShowCreateSessionModal(true, deck.id);
+      setShowCreateSessionModal(true, {
+        id: deck.id,
+        title: deck.title,
+        totalCards: deck.totalCards,
+      });
     },
-    [isGuest, setShowCreateSessionModal, setShowLoginPrompt]
+    [setShowCreateSessionModal]
   );
 
   const handleSessionCreated = useCallback(
