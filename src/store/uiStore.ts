@@ -37,7 +37,7 @@ interface UIStore {
 
   // Session modals
   showCreateSessionModal: boolean;
-  selectedDeckForSession: string | null; // deck ID
+  selectedDeckForSession: { id: string; title?: string; totalCards: number } | null; // Full deck data for modal
   activeSessionId: string | null;
   activeDeckId: string | null;
 
@@ -51,7 +51,10 @@ interface UIStore {
   setShowLoginPrompt: (show: boolean, context?: LoginPromptContext) => void;
 
   // Actions - Session modals
-  setShowCreateSessionModal: (show: boolean, deckId?: string) => void;
+  setShowCreateSessionModal: (
+    show: boolean,
+    deckData?: { id: string; title?: string; totalCards: number }
+  ) => void;
   setActiveSessionId: (id: string | null) => void;
   setActiveDeckId: (id: string | null) => void;
 
@@ -94,10 +97,10 @@ export const useUIStore = create<UIStore>(set => ({
     }),
 
   // Session modals
-  setShowCreateSessionModal: (show, deckId) =>
+  setShowCreateSessionModal: (show, deckData) =>
     set({
       showCreateSessionModal: show,
-      selectedDeckForSession: deckId || null,
+      selectedDeckForSession: deckData || null,
     }),
   setActiveSessionId: id => set({ activeSessionId: id }),
   setActiveDeckId: id => set({ activeDeckId: id }),
