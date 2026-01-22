@@ -23,7 +23,7 @@ import { clearGuestToken } from './src/utils/guestMode';
 function AppContent() {
   const { t } = useTranslation();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const { fetchDecks } = useDecksStore();
+  const { fetchDecks, decks } = useDecksStore();
   const {
     showAuthPage,
     showLoginPrompt,
@@ -86,15 +86,24 @@ function AppContent() {
     );
   }
 
+  // Find the selected deck for the modal
+  const selectedDeck = selectedDeckForSession
+    ? decks.find(d => d.id === selectedDeckForSession)
+    : null;
+
   // Main app
   return (
     <AppLayout>
       <ViewRouter />
 
       {/* Modals */}
-      {showCreateSessionModal && selectedDeckForSession && (
+      {showCreateSessionModal && selectedDeck && (
         <CreateSessionModal
-          deck={{ id: selectedDeckForSession } as any}
+          deck={{
+            id: selectedDeck.id,
+            title: selectedDeck.title,
+            totalCards: selectedDeck.totalCards,
+          }}
           onClose={() => setShowCreateSessionModal(false)}
           onSessionCreated={handleSessionCreated}
         />
