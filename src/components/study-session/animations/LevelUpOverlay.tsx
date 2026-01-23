@@ -25,13 +25,13 @@ export const LevelUpOverlay: React.FC<LevelUpOverlayProps> = ({
   }, [onComplete]);
 
   return (
-    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center pointer-events-none bg-black/20 backdrop-blur-sm">
-      <div className="animate-level-up flex flex-col items-center">
-        <div className="text-6xl mb-2">🎉</div>
-        <h2 className="text-5xl font-black text-indigo-600 tracking-tighter drop-shadow-2xl bg-white/90 backdrop-blur px-8 py-4 rounded-3xl border-4 border-indigo-300 shadow-2xl">
+    <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none">
+      <div className="animate-level-up flex flex-col items-center gap-4">
+        <div className="text-7xl">🎉</div>
+        <h2 className="text-6xl font-black text-indigo-600 tracking-tighter drop-shadow-2xl bg-white/95 backdrop-blur px-10 py-6 rounded-3xl border-4 border-indigo-400 shadow-2xl">
           LEVEL {newLevel}
         </h2>
-        <p className="text-xl font-bold text-gray-700 mt-4 bg-white/80 px-4 py-2 rounded-xl shadow-lg">
+        <p className="text-lg font-semibold text-white/90 bg-indigo-600/80 px-6 py-2 rounded-xl shadow-lg">
           Nivel {oldLevel} → {newLevel}
         </p>
       </div>

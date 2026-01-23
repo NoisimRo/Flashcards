@@ -57,9 +57,10 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
   const [autoAdvanceTimer, setAutoAdvanceTimer] = React.useState<NodeJS.Timeout | null>(null);
 
   const cardAnswer = answers[card.id];
-  // Anti-cheating: disable if already answered in store OR local state
-  const isAnswered = hasAnswered || cardAnswer !== undefined;
-  const showResult = isAnswered;
+  // Show result if card was answered in store
+  const showResult = cardAnswer !== undefined || hasAnswered;
+  // Practice mode: card already answered in store, allow re-trying without XP
+  const isPracticeMode = cardAnswer !== undefined;
 
   const normalizeAnswer = (text: string): string => {
     return text
@@ -71,8 +72,7 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Anti-cheating: prevent answer changes if already answered
-    if (!userAnswer.trim() || isAnswered) return;
+    if (!userAnswer.trim()) return;
 
     const normalizedUser = normalizeAnswer(userAnswer);
     const normalizedCorrect = normalizeAnswer(card.back);
@@ -83,7 +83,11 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
 
     setIsCorrect(correct);
     setHasAnswered(true);
-    onAnswer(correct);
+
+    // CRITICAL: Only call onAnswer if NOT in practice mode (prevents XP double-counting)
+    if (!isPracticeMode) {
+      onAnswer(correct);
+    }
 
     // Flip to back after brief feedback display (500ms)
     setTimeout(() => {
@@ -165,7 +169,7 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
             }}
           >
             {/* Lightbulb Hint Button (top-left) */}
-            {card.context && !hintRevealed && !isAnswered && (
+            {card.context && !hintRevealed && !showResult && (
               <div className="absolute top-4 left-4 z-10">
                 <button
                   onClick={e => {
@@ -252,12 +256,15 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
                   />
                   <button
                     type="submit"
-                    disabled={isAnswered || !userAnswer.trim()}
+                    disabled={!userAnswer.trim()}
                     className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all ${
-                      isAnswered || !userAnswer.trim()
+                      !userAnswer.trim()
                         ? 'text-gray-400 cursor-not-allowed'
-                        : 'text-indigo-600 hover:bg-indigo-50 active:scale-95'
+                        : isPracticeMode
+                          ? 'text-green-600 hover:bg-green-50 active:scale-95'
+                          : 'text-indigo-600 hover:bg-indigo-50 active:scale-95'
                     }`}
+                    title={isPracticeMode ? 'Practică (fără XP)' : 'Trimite răspunsul'}
                   >
                     <Send size={20} />
                   </button>
@@ -282,7 +289,7 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
                 </button>
 
                 {/* Right: Next, Finish or Skip button */}
-                {isAnswered ? (
+                {showResult ? (
                   isLastCard && onFinish ? (
                     <button
                       onClick={onFinish}

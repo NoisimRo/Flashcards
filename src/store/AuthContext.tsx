@@ -146,6 +146,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, []);
 
+  const updateUser = useCallback(async (updates: Partial<User>) => {
+    setUser(prevUser => {
+      if (!prevUser) return null;
+      const updatedUser = { ...prevUser, ...updates };
+      saveUser(updatedUser).catch(() => {
+        // Ignore offline storage errors
+      });
+      return updatedUser;
+    });
+  }, []);
+
   const checkPermission = useCallback(
     (permission: Permission): boolean => {
       if (!user) return false;
@@ -197,6 +208,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     register,
     logout,
     refreshSession,
+    updateUser,
     hasPermission: checkPermission,
     hasAnyPermission: checkAnyPermission,
     hasAllPermissions: checkAllPermissions,

@@ -29,7 +29,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
   onFinish,
   onBack,
 }) => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const {
     currentSession,
     loadSession,
@@ -290,7 +290,28 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
 
     // Check if user has reached or exceeded next level threshold
     if (totalXP >= user.nextLevelXP && !showLevelUp) {
-      setLevelUpData({ oldLevel: user.level, newLevel: user.level + 1 });
+      const oldLevel = user.level;
+      let newLevel = oldLevel;
+      let remainingXP = totalXP;
+      let nextLevelXP = user.nextLevelXP;
+
+      // Calculate new level(s) - user might level up multiple times
+      while (remainingXP >= nextLevelXP) {
+        remainingXP -= nextLevelXP;
+        newLevel++;
+        // Each level requires 20% more XP (exponential growth)
+        nextLevelXP = Math.floor(nextLevelXP * 1.2);
+      }
+
+      // CRITICAL: Update user object locally to prevent animation loop
+      updateUser({
+        level: newLevel,
+        currentXP: remainingXP,
+        nextLevelXP: nextLevelXP,
+        totalXP: user.totalXP + sessionXP,
+      });
+
+      setLevelUpData({ oldLevel, newLevel });
       setShowLevelUp(true);
 
       // Auto-hide after 3 seconds

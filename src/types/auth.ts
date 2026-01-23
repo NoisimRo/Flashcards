@@ -142,6 +142,7 @@ export interface AuthContextType extends AuthState {
   ) => Promise<void>;
   logout: () => void;
   refreshSession: () => Promise<void>;
+  updateUser: (updates: Partial<import('./models').User>) => Promise<void>;
   hasPermission: (permission: Permission) => boolean;
   hasAnyPermission: (permissions: Permission[]) => boolean;
   hasAllPermissions: (permissions: Permission[]) => boolean;
