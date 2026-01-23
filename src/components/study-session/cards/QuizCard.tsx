@@ -53,13 +53,20 @@ export const QuizCard: React.FC<QuizCardProps> = ({
   const [hasAnswered, setHasAnswered] = React.useState(hasAnsweredProp);
   const [isCorrect, setIsCorrect] = React.useState<boolean | null>(null);
 
+  // Reset local state when card changes (enables re-visit practice)
+  React.useEffect(() => {
+    setHasAnswered(false);
+    setIsCorrect(null);
+    setQuizOption(null);
+  }, [card.id, setQuizOption]);
+
   const cardAnswer = answers[card.id];
-  // Anti-cheating: disable if already answered in store OR local state
-  const isAnswered = hasAnswered || cardAnswer !== undefined;
+  // Anti-cheating: disable if already answered in local state (during current visit)
+  const isAnswered = hasAnswered;
   const showResult = isAnswered;
 
   const handleOptionClick = (index: number) => {
-    // Anti-cheating: prevent answer changes if already answered
+    // Prevent spam-clicking during current visit
     if (isAnswered) return;
     setQuizOption(index);
 

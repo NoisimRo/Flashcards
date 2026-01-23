@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import './animations.css';
 
 interface XPFloatingAnimationProps {
@@ -8,7 +9,8 @@ interface XPFloatingAnimationProps {
 
 /**
  * XPFloatingAnimation - Floating +XP text animation
- * Shows when user earns XP from answering correctly
+ * Shows when user earns XP from answering correctly or loses XP from hints
+ * Uses React Portal to ensure visibility regardless of parent positioning
  */
 export const XPFloatingAnimation: React.FC<XPFloatingAnimationProps> = ({ xp, onAnimationEnd }) => {
   const [visible, setVisible] = useState(true);
@@ -24,11 +26,22 @@ export const XPFloatingAnimation: React.FC<XPFloatingAnimationProps> = ({ xp, on
 
   if (!visible) return null;
 
-  return (
+  const isPositive = xp > 0;
+  const displayValue = Math.abs(xp);
+  const sign = isPositive ? '+' : '-';
+  const color = isPositive ? 'text-green-500' : 'text-red-500';
+
+  const animation = (
     <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] pointer-events-none">
-      <div className="text-green-500 font-black text-4xl animate-float-xp whitespace-nowrap drop-shadow-2xl">
-        +{xp} XP
+      <div
+        className={`${color} font-black text-5xl animate-float-xp whitespace-nowrap drop-shadow-2xl`}
+      >
+        {sign}
+        {displayValue} XP
       </div>
     </div>
   );
+
+  // Use portal to render at body level to avoid parent transform/positioning issues
+  return createPortal(animation, document.body);
 };
