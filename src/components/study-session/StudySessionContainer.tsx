@@ -248,32 +248,40 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     const currentCard = getCurrentCard();
     if (!currentCard) return;
 
+    // ANTI-CHEATING: Check if card was already answered
+    const previousStatus = answers[currentCard.id];
+
     // Get current values before answering
     const currentStreak = streak;
     const previousXP = sessionXP;
 
-    answerCard(currentCard.id, isCorrect);
+    // Scenario A: First time or previously skipped → Update stats
+    if (previousStatus === undefined || previousStatus === 'skipped') {
+      answerCard(currentCard.id, isCorrect);
 
-    // Trigger XP animation for ANY XP change (positive or negative)
-    setTimeout(() => {
-      const xpChange = sessionXP - previousXP;
-      if (xpChange !== 0) {
-        setEarnedXP(xpChange);
-        setShowXPAnimation(true);
-      }
+      // Trigger XP animation only if XP actually changed
+      setTimeout(() => {
+        const xpChange = sessionXP - previousXP;
+        if (xpChange !== 0) {
+          setEarnedXP(xpChange);
+          setShowXPAnimation(true);
+        }
 
-      // Check for level up during session
-      checkLevelUp();
-    }, 10);
+        // Check for level up during session
+        checkLevelUp();
+      }, 10);
 
-    // Check for streak celebration (5, 10, 15, 20, etc.) - only if correct
-    if (isCorrect) {
-      const newStreak = currentStreak + 1;
-      if (newStreak % 5 === 0 && newStreak >= 5) {
-        setCelebrationStreak(newStreak);
-        setShowStreakCelebration(true);
+      // Check for streak celebration (5, 10, 15, 20, etc.) - only if correct
+      if (isCorrect) {
+        const newStreak = streak; // Get updated streak from store
+        if (newStreak % 5 === 0 && newStreak >= 5 && newStreak > currentStreak) {
+          setCelebrationStreak(newStreak);
+          setShowStreakCelebration(true);
+        }
       }
     }
+    // Scenario B: Already answered (correct/incorrect) → Skip answerCard
+    // Local UI feedback in QuizCard will still show, but no XP/streak update
 
     // Auto-advance to next card after a short delay
     setTimeout(() => {

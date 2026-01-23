@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import './animations.css';
 
 interface LevelUpOverlayProps {
@@ -10,6 +11,7 @@ interface LevelUpOverlayProps {
 /**
  * LevelUpOverlay - Celebration animation when user levels up
  * Shows the new level with a celebratory animation
+ * Uses React Portal to ensure proper centering regardless of parent positioning
  */
 export const LevelUpOverlay: React.FC<LevelUpOverlayProps> = ({
   newLevel,
@@ -24,8 +26,8 @@ export const LevelUpOverlay: React.FC<LevelUpOverlayProps> = ({
     return () => clearTimeout(timer);
   }, [onComplete]);
 
-  return (
-    <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none">
+  const overlay = (
+    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none">
       <div className="animate-level-up flex flex-col items-center gap-4">
         <div className="text-7xl">🎉</div>
         <h2 className="text-6xl font-black text-indigo-600 tracking-tighter drop-shadow-2xl bg-white/95 backdrop-blur px-10 py-6 rounded-3xl border-4 border-indigo-400 shadow-2xl">
@@ -37,4 +39,7 @@ export const LevelUpOverlay: React.FC<LevelUpOverlayProps> = ({
       </div>
     </div>
   );
+
+  // Use portal to render at body level to avoid parent transform/positioning issues
+  return createPortal(overlay, document.body);
 };
