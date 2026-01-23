@@ -384,12 +384,22 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
     const currentCard = state.getCurrentCard();
     if (!currentCard) return;
 
+    // Check if card was already answered
+    const existingAnswer = state.answers[cardId];
+    const wasAlreadyAnswered = existingAnswer === 'correct' || existingAnswer === 'incorrect';
+
+    // CRITICAL FIX: Prevent XP double-counting
+    // Only award XP and update streak if:
+    // 1. Card was not answered before (existingAnswer is undefined)
+    // 2. Card was only skipped (existingAnswer === 'skipped')
+    const shouldAwardXP = !wasAlreadyAnswered;
+
     const difficulty = (state.currentSession?.deck?.difficulty || 'A2') as Difficulty;
-    const xpEarned = calculateXP(isCorrect, state.streak, difficulty);
+    const xpEarned = shouldAwardXP ? calculateXP(isCorrect, state.streak, difficulty) : 0;
 
     set({
       answers: { ...state.answers, [cardId]: isCorrect ? 'correct' : 'incorrect' },
-      streak: isCorrect ? state.streak + 1 : 0,
+      streak: shouldAwardXP ? (isCorrect ? state.streak + 1 : 0) : state.streak,
       sessionXP: state.sessionXP + xpEarned,
       isDirty: true,
     });
@@ -430,12 +440,12 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
     const previousCard = state.currentSession?.cards?.[state.currentCardIndex - 1];
     if (!previousCard) return;
 
-    const updatedAnswers = { ...state.answers };
-    delete updatedAnswers[previousCard.id];
-
+    // CRITICAL FIX: Do NOT delete the answer - just go back
+    // This preserves the pie chart progress while allowing navigation back
+    // If the card was skipped, user can re-answer it
+    // If it was correct/incorrect, the answer remains visible
     set({
       currentCardIndex: state.currentCardIndex - 1,
-      answers: updatedAnswers,
       isCardFlipped: false,
       hintRevealed: false,
       selectedQuizOption: null,
