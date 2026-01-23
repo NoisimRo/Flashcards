@@ -66,6 +66,8 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
 
   // Load session and enable auto-save on mount
   useEffect(() => {
+    // CRITICAL: Reset state BEFORE loading to prevent answers from previous session
+    resetSessionState();
     loadSession(sessionId);
     enableAutoSave();
 
