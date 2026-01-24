@@ -167,7 +167,10 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
       finalTotalActiveSeconds += cappedTime;
     }
 
-    const durationSeconds = Math.floor(finalTotalActiveSeconds);
+    // CRITICAL BUG FIX: Include baselineDuration (time from previous session loads)
+    // Without this, completing a session would RESET duration instead of adding to it
+    const { baselineDuration } = useStudySessionsStore.getState();
+    const durationSeconds = Math.floor(baselineDuration + finalTotalActiveSeconds);
 
     // Build card progress updates - INCLUDE PER-CARD TIME
     const cardProgressUpdates =
