@@ -117,9 +117,13 @@ router.get('/today', authenticateToken, async (req, res) => {
             titleKey: 'challenges.streak.title',
             titleParams: {},
             descriptionKey: 'challenges.streak.description',
-            progress: currentStreak >= 1 ? 1 : 0,
+            // CRITICAL FIX: Check if TODAY's activity meets streak conditions
+            // Streak is maintained if: time >= 10 minutes OR correct answers >= 20
+            progress:
+              todayProgress.time_spent_minutes >= 10 || todayProgress.correct_answers >= 20 ? 1 : 0,
             target: 1,
-            completed: currentStreak >= 1,
+            completed:
+              todayProgress.time_spent_minutes >= 10 || todayProgress.correct_answers >= 20,
             rewardClaimed: challenge.streak_reward_claimed,
             reward: 100,
             icon: 'Flame',
@@ -301,6 +305,28 @@ router.get('/activity-calendar', authenticateToken, async (req, res) => {
       [userId]
     );
 
+    // CRITICAL FIX: Get today's active sessions to include their time (not yet in daily_progress)
+    const todayStr = new Date().toISOString().split('T')[0];
+    const activeSessionsResult = await query(
+      `SELECT status, duration_seconds, answers
+       FROM study_sessions
+       WHERE user_id = $1
+         AND DATE(started_at) = $2
+         AND status = 'active'`,
+      [userId, todayStr]
+    );
+
+    // Calculate time and cards from active sessions
+    let activeTodayMinutes = 0;
+    let activeTodayCards = 0;
+    for (const session of activeSessionsResult.rows) {
+      activeTodayMinutes += Math.floor((session.duration_seconds || 0) / 60);
+      const answers = session.answers || {};
+      activeTodayCards += Object.values(answers).filter(
+        (answer: any) => answer === 'correct'
+      ).length;
+    }
+
     // Create calendar for last 28 days
     const calendar = [];
     const today = new Date();
@@ -328,12 +354,18 @@ router.get('/activity-calendar', authenticateToken, async (req, res) => {
         else if (combinedScore > 0) intensity = 1;
       }
 
+      // CRITICAL FIX: Add active session time/cards to today's entry
+      const isToday = dateStr === todayStr;
+      const finalCardsLearned = (activity?.cards_learned || 0) + (isToday ? activeTodayCards : 0);
+      const finalTimeSpent =
+        (activity?.time_spent_minutes || 0) + (isToday ? activeTodayMinutes : 0);
+
       calendar.push({
         date: dateStr,
         studied,
         intensity,
-        cardsLearned: activity?.cards_learned || 0,
-        timeSpent: activity?.time_spent_minutes || 0,
+        cardsLearned: finalCardsLearned,
+        timeSpent: finalTimeSpent,
       });
     }
 
