@@ -3,6 +3,7 @@ import { query, withTransaction } from '../db/index.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { selectCardsForSession, calculateSM2Update } from '../services/cardSelectionService.js';
 import { checkAndUnlockAchievements } from './achievements.js';
+import { calculateStreakFromDailyProgress } from './auth.js';
 
 const router = Router();
 
@@ -521,35 +522,11 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
       }
     }
 
-    // Handle incremental time tracking
+    // SIMPLIFIED: Just update duration_seconds in session (no incremental user/daily_progress updates)
+    // Time is aggregated on session completion only, preventing double-counting
     if (durationSeconds !== undefined) {
       updateFields.push(`duration_seconds = $${paramIndex++}`);
       params.push(durationSeconds);
-
-      // Calculate incremental time (new duration - old duration)
-      const oldDurationSeconds = session.duration_seconds || 0;
-      const incrementalSeconds = Math.max(0, durationSeconds - oldDurationSeconds);
-      const incrementalMinutes = Math.floor(incrementalSeconds / 60);
-
-      // Update user's total time spent if there's incremental time
-      if (incrementalMinutes > 0) {
-        await query(
-          'UPDATE users SET total_time_spent = total_time_spent + $1, updated_at = NOW() WHERE id = $2',
-          [incrementalMinutes, req.user!.id]
-        );
-
-        // Update daily progress for daily challenges
-        const today = new Date().toISOString().split('T')[0];
-        await query(
-          `INSERT INTO daily_progress
-             (user_id, date, cards_learned, time_spent_minutes, xp_earned, sessions_completed)
-           VALUES ($1, $2, 0, $3, 0, 0)
-           ON CONFLICT (user_id, date)
-           DO UPDATE SET
-             time_spent_minutes = daily_progress.time_spent_minutes + $3`,
-          [req.user!.id, today, incrementalMinutes]
-        );
-      }
     }
 
     updateFields.push(`last_activity_at = NOW()`);
@@ -612,10 +589,9 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
         throw new Error('ALREADY_COMPLETED');
       }
 
-      // Calculate incremental time (to avoid double-counting with PUT updates)
-      const oldDurationSeconds = session.duration_seconds || 0;
-      const incrementalSeconds = Math.max(0, (durationSeconds || 0) - oldDurationSeconds);
-      const incrementalMinutes = Math.floor(incrementalSeconds / 60);
+      // SIMPLIFIED: Use full duration (no incremental calculation needed)
+      // Since PUT endpoint no longer updates time incrementally, we can safely use total duration
+      const totalMinutes = Math.floor((durationSeconds || 0) / 60);
 
       // Update session
       const updatedSession = await client.query(
@@ -790,7 +766,7 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
           newCurrentXP,
           newLevel,
           newNextLevelXP,
-          incrementalMinutes,
+          totalMinutes,
           req.user!.id,
         ]
       );
@@ -807,11 +783,23 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
            time_spent_minutes = daily_progress.time_spent_minutes + $4,
            xp_earned = daily_progress.xp_earned + $5,
            sessions_completed = daily_progress.sessions_completed + 1`,
-        [req.user!.id, today, cardsLearned, incrementalMinutes, sessionXP]
+        [req.user!.id, today, cardsLearned, totalMinutes, sessionXP]
       );
 
       // Check and unlock achievements
       const newAchievements = await checkAndUnlockAchievements(client, req.user!.id);
+
+      // CRITICAL FIX: Recalculate streak from daily_progress after session completion
+      const { currentStreak, longestStreak } = await calculateStreakFromDailyProgress(req.user!.id);
+
+      // Update user's streak
+      await client.query(
+        `UPDATE users
+         SET streak = $1,
+             longest_streak = $2
+         WHERE id = $3`,
+        [currentStreak, longestStreak, req.user!.id]
+      );
 
       return {
         session: updatedSession.rows[0],
@@ -821,6 +809,8 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
         oldLevel: currentUser.level,
         newLevel,
         newAchievements,
+        newStreak: currentStreak,
+        streakUpdated: true,
       };
     });
 
@@ -833,8 +823,8 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
         oldLevel: result.oldLevel,
         newLevel: result.newLevel,
         newAchievements: result.newAchievements || [],
-        streakUpdated: false,
-        newStreak: 0,
+        streakUpdated: result.streakUpdated,
+        newStreak: result.newStreak,
         cardsLearned: result.cardsLearned,
       },
     });

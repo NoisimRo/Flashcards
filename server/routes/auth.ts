@@ -12,6 +12,108 @@ import { config } from '../config/index.js';
 
 const router = Router();
 
+/**
+ * Calculate user's current streak from daily_progress table
+ * Single source of truth for streak calculation
+ * Streak is maintained if user met ONE of these conditions:
+ * 1. Studied for at least 10 minutes
+ * 2. Learned at least 20 cards (cards_learned, not just correct answers)
+ */
+export async function calculateStreakFromDailyProgress(userId: string): Promise<{
+  currentStreak: number;
+  longestStreak: number;
+}> {
+  // Get last 60 days of activity for longest streak calculation
+  const progressResult = await query(
+    `SELECT date, time_spent_minutes, cards_learned
+     FROM daily_progress
+     WHERE user_id = $1
+       AND date >= CURRENT_DATE - INTERVAL '60 days'
+     ORDER BY date DESC`,
+    [userId]
+  );
+
+  if (progressResult.rows.length === 0) {
+    return { currentStreak: 0, longestStreak: 0 };
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+  let currentStreak = 0;
+  let longestStreak = 0;
+
+  // Calculate current streak (from today/yesterday going backwards)
+  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  let checkDate = new Date();
+
+  // Start from today, or yesterday if no activity today
+  const todayActivity = progressResult.rows.find(
+    row => row.date.toISOString().split('T')[0] === today
+  );
+
+  if (!todayActivity) {
+    // No activity today, check from yesterday
+    checkDate.setDate(checkDate.getDate() - 1);
+  }
+
+  // Count backwards from most recent activity
+  for (let i = 0; i < 60; i++) {
+    const checkDateStr = checkDate.toISOString().split('T')[0];
+    const dayActivity = progressResult.rows.find(
+      row => row.date.toISOString().split('T')[0] === checkDateStr
+    );
+
+    if (dayActivity) {
+      const timeCondition = dayActivity.time_spent_minutes >= 10;
+      const cardsCondition = dayActivity.cards_learned >= 20;
+
+      if (timeCondition || cardsCondition) {
+        currentStreak++;
+        longestStreak = Math.max(longestStreak, currentStreak);
+        checkDate.setDate(checkDate.getDate() - 1);
+        continue;
+      }
+    }
+
+    // No activity or conditions not met - streak broken
+    break;
+  }
+
+  // Calculate longest streak from all historical data
+  let tempStreak = 0;
+  const sortedByDate = [...progressResult.rows].reverse(); // Oldest to newest
+
+  for (let i = 0; i < sortedByDate.length; i++) {
+    const row = sortedByDate[i];
+    const timeCondition = row.time_spent_minutes >= 10;
+    const cardsCondition = row.cards_learned >= 20;
+
+    if (timeCondition || cardsCondition) {
+      // Check if this day is consecutive with previous
+      if (i === 0) {
+        tempStreak = 1;
+      } else {
+        const prevDate = new Date(sortedByDate[i - 1].date);
+        const currDate = new Date(row.date);
+        const daysDiff = Math.floor(
+          (currDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24)
+        );
+
+        if (daysDiff === 1) {
+          tempStreak++;
+        } else {
+          tempStreak = 1;
+        }
+      }
+
+      longestStreak = Math.max(longestStreak, tempStreak);
+    } else {
+      tempStreak = 0;
+    }
+  }
+
+  return { currentStreak, longestStreak };
+}
+
 // ============================================
 // POST /api/auth/register
 // ============================================
@@ -221,61 +323,10 @@ router.post('/login', async (req: Request, res: Response) => {
       });
     }
 
-    // Update last login and check streak
+    // CRITICAL FIX: Calculate streak from daily_progress (single source of truth)
+    const { currentStreak, longestStreak } = await calculateStreakFromDailyProgress(user.id);
+
     const today = new Date().toISOString().split('T')[0];
-    const lastActive = user.last_active_date?.toISOString().split('T')[0];
-
-    let newStreak = user.streak;
-    if (lastActive) {
-      const daysDiff = Math.floor(
-        (new Date(today).getTime() - new Date(lastActive).getTime()) / (1000 * 60 * 60 * 24)
-      );
-
-      // Streak maintenance logic: Check if user met conditions for previous day(s)
-      if (daysDiff >= 1) {
-        // Check yesterday's activity to determine if streak should be maintained
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayStr = yesterday.toISOString().split('T')[0];
-
-        // Get yesterday's stats from study_sessions
-        const yesterdayStatsResult = await query(
-          `SELECT
-             SUM(correct_count) as total_correct,
-             SUM(duration_seconds) as total_seconds
-           FROM study_sessions
-           WHERE user_id = $1
-             AND DATE(started_at) = $2`,
-          [user.id, yesterdayStr]
-        );
-
-        const yesterdayStats = yesterdayStatsResult.rows[0];
-        const yesterdayCorrect = yesterdayStats?.total_correct || 0;
-        const yesterdayMinutes = Math.floor((yesterdayStats?.total_seconds || 0) / 60);
-
-        // Streak is maintained if user met ONE of these conditions:
-        // 1. Studied for at least 10 minutes
-        // 2. Answered correctly at least 20 cards
-        const streakConditionMet = yesterdayMinutes >= 10 || yesterdayCorrect >= 20;
-
-        if (daysDiff > 1) {
-          // More than 1 day gap - reset streak
-          newStreak = 1;
-        } else if (daysDiff === 1) {
-          // Exactly 1 day gap - check if yesterday's conditions were met
-          if (streakConditionMet) {
-            newStreak = user.streak + 1; // Maintain and increment streak
-          } else {
-            newStreak = 1; // Reset streak - conditions not met
-          }
-        }
-        // daysDiff === 0 means same day, keep streak
-      }
-    } else {
-      newStreak = 1; // First login
-    }
-
-    const longestStreak = Math.max(user.longest_streak, newStreak);
 
     await query(
       `UPDATE users SET
@@ -284,10 +335,10 @@ router.post('/login', async (req: Request, res: Response) => {
         streak = $2,
         longest_streak = $3
        WHERE id = $4`,
-      [today, newStreak, longestStreak, user.id]
+      [today, currentStreak, longestStreak, user.id]
     );
 
-    user.streak = newStreak;
+    user.streak = currentStreak;
     user.longest_streak = longestStreak;
 
     // Generate tokens
