@@ -127,30 +127,28 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, deckId, deckTi
           {/* Format Preview */}
           <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
             <p className="text-sm font-bold text-gray-700 mb-2">{t('exportModal.previewTitle')}</p>
-            <div className="bg-white border border-gray-200 rounded-lg p-3 font-mono text-xs text-gray-600 overflow-x-auto">
+            <div className="bg-white border border-gray-200 rounded-lg p-3 font-mono text-xs text-gray-600 overflow-x-auto whitespace-nowrap">
               {selectedFormat === 'csv' ? (
-                <div>
+                <div className="space-y-1">
                   <div className="text-gray-400">
                     {includeProgress
-                      ? 'Front,Back,Context,Status,Ease Factor,Interval'
-                      : 'Front,Back,Context'}
+                      ? 'Front,Back,Context,Type,Options,CorrectOptionIndex,Status,EaseFactor,Interval'
+                      : 'Front,Back,Context,Type,Options,CorrectOptionIndex'}
                   </div>
-                  <div>
-                    &quot;Ce este un verb?&quot;,&quot;O parte de vorbire&quot;,&quot;Exemplu: a
-                    merge&quot;
+                  <div className="text-green-700">
+                    &quot;Ce este un verb?&quot;,&quot;O parte de vorbire&quot;,,standard,,
                   </div>
-                  <div>
-                    &quot;Ce este un substantiv?&quot;,&quot;Un cuvânt care
-                    denumește&quot;,&quot;Exemplu: masă&quot;
+                  <div className="text-blue-700">
+                    &quot;Câte litere are cheag?&quot;,&quot;5&quot;,,quiz,&quot;4|5|6|7&quot;,1
                   </div>
                 </div>
               ) : (
-                <div>
-                  <div>
-                    Ce este un verb?{'\t'}O parte de vorbire{'\t'}Exemplu: a merge
+                <div className="space-y-1">
+                  <div className="text-green-700">
+                    Ce este un verb?{'  →  '}O parte de vorbire{'  →  '}context{'  →  '}standard
                   </div>
-                  <div>
-                    Ce este un substantiv?{'\t'}Un cuvânt care denumește{'\t'}Exemplu: masă
+                  <div className="text-blue-700">
+                    Câte litere?{'  →  '}5{'  →  '}context{'  →  '}quiz{'  →  '}4|5|6|7{'  →  '}1
                   </div>
                 </div>
               )}
