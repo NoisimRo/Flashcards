@@ -70,6 +70,7 @@ export async function exportDeck(
     fileName: string;
     content: string;
     mimeType: string;
+    cardsCount: number;
   }>(`/export/deck/${id}?format=${format}&includeProgress=${includeProgress}`);
 }
 

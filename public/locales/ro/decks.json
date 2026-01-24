@@ -16,6 +16,7 @@
     "resetProgress": "Resetează progresul",
     "editDeck": "Editează deck",
     "editCards": "Editează carduri",
+    "exportDeck": "Exportă carduri",
     "leaveReview": "Lasă o recenzie",
     "reportDeck": "Raportează deck",
     "deleteDeck": "Șterge deck",
@@ -54,6 +55,10 @@
     "typeAnswerDesc": "Scrie răspunsul (potrivit pentru 1-2 cuvinte)",
     "deselectCardType": "Deselectează tipul de card nedorit",
     "fileImport": "Format suportat: CSV, TXT (Front, Back)",
+    "fileSelected": "Selectat: {{name}}",
+    "importFormatTitle": "Formate Suportate",
+    "importFormatCSV": "Front,Back,Context (separate prin virgulă)",
+    "importFormatTXT": "Front[TAB]Back[TAB]Context (separate prin tab sau punct și virgulă)",
     "cancel": "Anulează",
     "save": "Salvează",
     "generateCardsBtn": "Generează Carduri",
@@ -102,6 +107,18 @@
       "Dealerul AI calculează cotele. Ai șanse 100% să devii mai deștept."
     ]
   },
+  "exportModal": {
+    "title": "Exportă Carduri",
+    "subtitle": "Exportă \"{{title}}\"",
+    "selectFormat": "Selectează Format",
+    "csvDesc": "Compatibil cu Excel",
+    "txtDesc": "Text separat cu tab",
+    "includeProgress": "Include datele de progres",
+    "includeProgressDesc": "Exportă starea învățării, intervalele și factorii de dificultate",
+    "previewTitle": "Previzualizare Format",
+    "previewNote": "Așa va arăta fișierul tău exportat",
+    "exportBtn": "Exportă"
+  },
   "toast": {
     "cardUpdated": "Card actualizat cu succes",
     "cardUpdateError": "Eroare la actualizarea cardului",
@@ -110,7 +127,12 @@
     "cardAdded": "Card adăugat cu succes",
     "cardAddError": "Eroare la adăugarea cardului",
     "cardLoadError": "Eroare la încărcarea cardurilor",
-    "generationError": "Eroare la generarea AI. Verifică consola."
+    "generationError": "Eroare la generarea AI. Verifică consola.",
+    "exportSuccess": "{{count}} carduri exportate cu succes",
+    "exportError": "Eroare la exportarea cardurilor",
+    "importSuccess": "{{count}} carduri importate cu succes",
+    "importError": "Eroare la importarea cardurilor",
+    "fileReadError": "Eroare la citirea fișierului"
   },
   "guestPrompt": {
     "createDeck": {
