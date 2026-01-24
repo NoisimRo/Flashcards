@@ -57,7 +57,11 @@
     "cancel": "Cancel",
     "save": "Save",
     "generateCardsBtn": "Generate Cards",
-    "createDeck": "Create Deck"
+    "createDeck": "Create Deck",
+    "language": "Language",
+    "extraContext": "Extra Context / Examples (Optional)",
+    "extraContextPlaceholder": "Paste a paragraph from a manual, examples of specific questions you want to mirror, or keywords the AI should prioritize...",
+    "extraContextHelper": "Provide context to help the AI generate more relevant and accurate cards"
   },
   "editCardsModal": {
     "title": "Edit Cards",

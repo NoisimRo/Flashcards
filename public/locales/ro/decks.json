@@ -57,7 +57,11 @@
     "cancel": "Anulează",
     "save": "Salvează",
     "generateCardsBtn": "Generează Carduri",
-    "createDeck": "Creează Deck"
+    "createDeck": "Creează Deck",
+    "language": "Limbă",
+    "extraContext": "Context Suplimentar / Exemple (Opțional)",
+    "extraContextPlaceholder": "Lipește un paragraf dintr-un manual, exemple de întrebări specifice pe care vrei să le reproduci, sau cuvinte cheie pe care AI-ul să le prioritizeze...",
+    "extraContextHelper": "Oferă context pentru a ajuta AI-ul să genereze carduri mai relevante și precise"
   },
   "editCardsModal": {
     "title": "Modifică Carduri",

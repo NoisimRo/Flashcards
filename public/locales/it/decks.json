@@ -57,7 +57,11 @@
     "cancel": "Annulla",
     "save": "Salva",
     "generateCardsBtn": "Genera Carte",
-    "createDeck": "Crea Mazzo"
+    "createDeck": "Crea Mazzo",
+    "language": "Lingua",
+    "extraContext": "Contesto Extra / Esempi (Opzionale)",
+    "extraContextPlaceholder": "Incolla un paragrafo da un manuale, esempi di domande specifiche che vuoi replicare, o parole chiave che l'AI dovrebbe prioritizzare...",
+    "extraContextHelper": "Fornisci contesto per aiutare l'AI a generare carte più rilevanti e precise"
   },
   "editCardsModal": {
     "title": "Modifica Carte",

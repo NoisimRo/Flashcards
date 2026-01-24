@@ -437,7 +437,15 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
 // ============================================
 router.post('/generate', authenticateToken, async (req: Request, res: Response) => {
   try {
-    const { subject, topic, difficulty = 'A2', numberOfCards = 10, cardTypes } = req.body;
+    const {
+      subject,
+      topic,
+      difficulty = 'A2',
+      numberOfCards = 10,
+      cardTypes,
+      language = 'ro',
+      extraContext,
+    } = req.body;
 
     if (!topic) {
       return res.status(400).json({
@@ -455,13 +463,22 @@ router.post('/generate', authenticateToken, async (req: Request, res: Response) 
         ? cardTypes.filter((t: string) => ['standard', 'quiz', 'type-answer'].includes(t))
         : ['standard', 'quiz'];
 
+    // Validate language (only allow supported languages)
+    const validLanguages = ['ro', 'en', 'it'];
+    const validLanguage = validLanguages.includes(language) ? language : 'ro';
+
+    // Sanitize extra context (limit length to prevent abuse)
+    const sanitizedExtraContext = extraContext?.slice(0, 2000);
+
     // Generate cards with AI
     const generatedCards = await generateDeckWithAI(
       subject || 'Limba Română',
       topic,
       difficulty,
       numberOfCards,
-      validCardTypes
+      validCardTypes,
+      validLanguage,
+      sanitizedExtraContext
     );
 
     res.json({

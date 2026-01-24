@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Deck, DeckWithCards, Difficulty, Card } from '../../../types';
 import {
@@ -46,7 +46,7 @@ export const DeckList: React.FC<DeckListProps> = ({
   isGuest = false,
   onLoginPrompt,
 }) => {
-  const { t } = useTranslation('decks');
+  const { t, i18n } = useTranslation('decks');
   const toast = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -63,6 +63,18 @@ export const DeckList: React.FC<DeckListProps> = ({
   const [selectedCardTypes, setSelectedCardTypes] = useState<
     Array<'standard' | 'quiz' | 'type-answer'>
   >(['standard', 'quiz', 'type-answer']);
+  const [selectedLanguage, setSelectedLanguage] = useState('ro');
+  const [extraContext, setExtraContext] = useState('');
+
+  // Available languages with flags
+  const languages = useMemo(
+    () => [
+      { code: 'ro', name: 'Română', flag: '🇷🇴' },
+      { code: 'en', name: 'English', flag: '🇬🇧' },
+      { code: 'it', name: 'Italiano', flag: '🇮🇹' },
+    ],
+    []
+  );
 
   // Edit Cards Modal State
   const [editCardsModalOpen, setEditCardsModalOpen] = useState(false);
@@ -112,6 +124,10 @@ export const DeckList: React.FC<DeckListProps> = ({
     setImportMode('ai');
     setNumberOfCards(10);
     setSelectedCardTypes(['standard', 'quiz', 'type-answer']);
+    // Default to current app language
+    const currentLang = i18n.language?.split('-')[0] || 'ro';
+    setSelectedLanguage(['ro', 'en', 'it'].includes(currentLang) ? currentLang : 'ro');
+    setExtraContext('');
     setIsModalOpen(true);
   };
 
@@ -140,6 +156,10 @@ export const DeckList: React.FC<DeckListProps> = ({
     setImportMode('ai');
     setNumberOfCards(10);
     setSelectedCardTypes(['standard', 'quiz', 'type-answer']);
+    // Default to current app language
+    const currentLang = i18n.language?.split('-')[0] || 'ro';
+    setSelectedLanguage(['ro', 'en', 'it'].includes(currentLang) ? currentLang : 'ro');
+    setExtraContext('');
     setIsModalOpen(true);
     setActiveMenuId(null);
   };
@@ -351,7 +371,9 @@ export const DeckList: React.FC<DeckListProps> = ({
             title,
             difficulty,
             numberOfCards,
-            selectedCardTypes
+            selectedCardTypes,
+            selectedLanguage,
+            extraContext || undefined
           );
           if (response.success && response.data) {
             newCards.push(
@@ -397,7 +419,9 @@ export const DeckList: React.FC<DeckListProps> = ({
             title,
             difficulty,
             numberOfCards,
-            selectedCardTypes
+            selectedCardTypes,
+            selectedLanguage,
+            extraContext || undefined
           );
           if (response.success && response.data) {
             newCards.push(
@@ -724,24 +748,44 @@ export const DeckList: React.FC<DeckListProps> = ({
                   ? t('modal.generateCards')
                   : t('modal.newDeck')}
             </h2>
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Form fields same as previous */}
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
-                  {t('modal.subject')}
-                </label>
-                <select
-                  className="w-full border-2 border-gray-100 bg-gray-50 rounded-xl p-3 font-medium outline-none focus:border-indigo-500 transition-colors"
-                  value={subject}
-                  onChange={e => setSubject(e.target.value)}
-                >
-                  <option>Limba Română</option>
-                  <option>Matematică</option>
-                  <option>Istorie</option>
-                  <option>Geografie</option>
-                  <option>Engleză</option>
-                </select>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Row 1: Subject (2/3) + Language (1/3) */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    {t('modal.subject')}
+                  </label>
+                  <select
+                    className="w-full border-2 border-gray-100 bg-gray-50 rounded-xl p-3 font-medium outline-none focus:border-indigo-500 transition-colors"
+                    value={subject}
+                    onChange={e => setSubject(e.target.value)}
+                  >
+                    <option>Limba Română</option>
+                    <option>Matematică</option>
+                    <option>Istorie</option>
+                    <option>Geografie</option>
+                    <option>Engleză</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    {t('modal.language')}
+                  </label>
+                  <select
+                    className="w-full border-2 border-gray-100 bg-gray-50 rounded-xl p-3 font-medium outline-none focus:border-indigo-500 transition-colors"
+                    value={selectedLanguage}
+                    onChange={e => setSelectedLanguage(e.target.value)}
+                  >
+                    {languages.map(lang => (
+                      <option key={lang.code} value={lang.code}>
+                        {lang.flag} {lang.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
+
+              {/* Row 2: Title/Topic (full width) */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
                   {t('modal.titleLabel')}
@@ -755,43 +799,48 @@ export const DeckList: React.FC<DeckListProps> = ({
                   required
                 />
               </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
-                  {t('modal.difficultyLabel')}
-                </label>
-                <select
-                  className="w-full border-2 border-gray-100 bg-gray-50 rounded-xl p-3 font-medium outline-none focus:border-indigo-500 transition-colors"
-                  value={difficulty}
-                  onChange={e => setDifficulty(e.target.value as Difficulty)}
-                >
-                  <option value="A1">A1 - {t('difficulty.A1')}</option>
-                  <option value="A2">A2 - {t('difficulty.A2')}</option>
-                  <option value="B1">B1 - {t('difficulty.B1')}</option>
-                  <option value="B2">B2 - {t('difficulty.B2')}</option>
-                  <option value="C1">C1 - {t('difficulty.C1')}</option>
-                </select>
-              </div>
 
               {!editingDeckId && !generatingForDeckId && (
                 <>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">
-                      {importMode === 'ai' ? t('modal.numberOfCardsAI') : t('modal.numberOfCards')}
-                    </label>
-                    <input
-                      type="number"
-                      min="5"
-                      max="50"
-                      value={numberOfCards}
-                      onChange={e => setNumberOfCards(parseInt(e.target.value) || 10)}
-                      className="w-full border-2 border-gray-100 bg-gray-50 rounded-xl p-3 font-medium outline-none focus:border-indigo-500 transition-colors disabled:opacity-50"
-                      disabled={importMode !== 'ai'}
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      {importMode === 'ai'
-                        ? t('modal.cardsRecommendation')
-                        : t('modal.cardsFromFile')}
-                    </p>
+                  {/* Row 3: Number of Cards (50%) + Difficulty (50%) */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">
+                        {importMode === 'ai'
+                          ? t('modal.numberOfCardsAI')
+                          : t('modal.numberOfCards')}
+                      </label>
+                      <input
+                        type="number"
+                        min="5"
+                        max="50"
+                        value={numberOfCards}
+                        onChange={e => setNumberOfCards(parseInt(e.target.value) || 10)}
+                        className="w-full border-2 border-gray-100 bg-gray-50 rounded-xl p-3 font-medium outline-none focus:border-indigo-500 transition-colors disabled:opacity-50"
+                        disabled={importMode !== 'ai'}
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        {importMode === 'ai'
+                          ? t('modal.cardsRecommendation')
+                          : t('modal.cardsFromFile')}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">
+                        {t('modal.difficultyLabel')}
+                      </label>
+                      <select
+                        className="w-full border-2 border-gray-100 bg-gray-50 rounded-xl p-3 font-medium outline-none focus:border-indigo-500 transition-colors"
+                        value={difficulty}
+                        onChange={e => setDifficulty(e.target.value as Difficulty)}
+                      >
+                        <option value="A1">A1 - {t('difficulty.A1')}</option>
+                        <option value="A2">A2 - {t('difficulty.A2')}</option>
+                        <option value="B1">B1 - {t('difficulty.B1')}</option>
+                        <option value="B2">B2 - {t('difficulty.B2')}</option>
+                        <option value="C1">C1 - {t('difficulty.C1')}</option>
+                      </select>
+                    </div>
                   </div>
 
                   <div className="pt-2">
@@ -824,75 +873,113 @@ export const DeckList: React.FC<DeckListProps> = ({
                   </div>
 
                   {importMode === 'ai' && (
-                    <div>
-                      <label className="block text-sm font-bold text-gray-700 mb-3">
-                        {t('modal.cardTypes')}
-                      </label>
-                      <div className="space-y-2">
-                        <label className="flex items-center gap-3 cursor-pointer p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-                          <input
-                            type="checkbox"
-                            checked={selectedCardTypes.includes('standard')}
-                            onChange={() => toggleCardType('standard')}
-                            className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                          />
-                          <div className="flex-1">
-                            <span className="font-semibold text-gray-900">
-                              {t('modal.standard')}
-                            </span>
-                            <p className="text-xs text-gray-600">{t('modal.standardDesc')}</p>
-                          </div>
+                    <>
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-3">
+                          {t('modal.cardTypes')}
                         </label>
+                        <div className="space-y-2">
+                          <label className="flex items-center gap-3 cursor-pointer p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={selectedCardTypes.includes('standard')}
+                              onChange={() => toggleCardType('standard')}
+                              className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                            <div className="flex-1">
+                              <span className="font-semibold text-gray-900">
+                                {t('modal.standard')}
+                              </span>
+                              <p className="text-xs text-gray-600">{t('modal.standardDesc')}</p>
+                            </div>
+                          </label>
 
-                        <label className="flex items-center gap-3 cursor-pointer p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-                          <input
-                            type="checkbox"
-                            checked={selectedCardTypes.includes('quiz')}
-                            onChange={() => toggleCardType('quiz')}
-                            className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                          />
-                          <div className="flex-1">
-                            <span className="font-semibold text-gray-900">{t('modal.quiz')}</span>
-                            <p className="text-xs text-gray-600">{t('modal.quizDesc')}</p>
-                          </div>
-                        </label>
+                          <label className="flex items-center gap-3 cursor-pointer p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={selectedCardTypes.includes('quiz')}
+                              onChange={() => toggleCardType('quiz')}
+                              className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                            <div className="flex-1">
+                              <span className="font-semibold text-gray-900">{t('modal.quiz')}</span>
+                              <p className="text-xs text-gray-600">{t('modal.quizDesc')}</p>
+                            </div>
+                          </label>
 
-                        <label className="flex items-center gap-3 cursor-pointer p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-                          <input
-                            type="checkbox"
-                            checked={selectedCardTypes.includes('type-answer')}
-                            onChange={() => toggleCardType('type-answer')}
-                            className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                          />
-                          <div className="flex-1">
-                            <span className="font-semibold text-gray-900">
-                              {t('modal.typeAnswer')}
-                            </span>
-                            <p className="text-xs text-gray-600">{t('modal.typeAnswerDesc')}</p>
-                          </div>
-                        </label>
+                          <label className="flex items-center gap-3 cursor-pointer p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={selectedCardTypes.includes('type-answer')}
+                              onChange={() => toggleCardType('type-answer')}
+                              className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                            <div className="flex-1">
+                              <span className="font-semibold text-gray-900">
+                                {t('modal.typeAnswer')}
+                              </span>
+                              <p className="text-xs text-gray-600">{t('modal.typeAnswerDesc')}</p>
+                            </div>
+                          </label>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2">{t('modal.deselectCardType')}</p>
                       </div>
-                      <p className="text-xs text-gray-500 mt-2">{t('modal.deselectCardType')}</p>
-                    </div>
+
+                      {/* Extra Context textarea */}
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-2">
+                          {t('modal.extraContext')}
+                        </label>
+                        <textarea
+                          className="w-full border-2 border-gray-100 bg-gray-50 rounded-xl p-3 font-medium outline-none focus:border-indigo-500 transition-colors min-h-[120px] resize-y"
+                          placeholder={t('modal.extraContextPlaceholder')}
+                          value={extraContext}
+                          onChange={e => setExtraContext(e.target.value)}
+                          maxLength={2000}
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          {t('modal.extraContextHelper')}
+                        </p>
+                      </div>
+                    </>
                   )}
                 </>
               )}
 
               {generatingForDeckId && (
                 <>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">
-                      {t('modal.numberOfCardsAI')}
-                    </label>
-                    <input
-                      type="number"
-                      min="5"
-                      max="50"
-                      value={numberOfCards}
-                      onChange={e => setNumberOfCards(parseInt(e.target.value) || 10)}
-                      className="w-full border-2 border-gray-100 bg-gray-50 rounded-xl p-3 font-medium outline-none focus:border-indigo-500 transition-colors"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">{t('modal.cardsRecommendation')}</p>
+                  {/* Row 3: Number of Cards (50%) + Difficulty (50%) */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">
+                        {t('modal.numberOfCardsAI')}
+                      </label>
+                      <input
+                        type="number"
+                        min="5"
+                        max="50"
+                        value={numberOfCards}
+                        onChange={e => setNumberOfCards(parseInt(e.target.value) || 10)}
+                        className="w-full border-2 border-gray-100 bg-gray-50 rounded-xl p-3 font-medium outline-none focus:border-indigo-500 transition-colors"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">{t('modal.cardsRecommendation')}</p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">
+                        {t('modal.difficultyLabel')}
+                      </label>
+                      <select
+                        className="w-full border-2 border-gray-100 bg-gray-50 rounded-xl p-3 font-medium outline-none focus:border-indigo-500 transition-colors"
+                        value={difficulty}
+                        onChange={e => setDifficulty(e.target.value as Difficulty)}
+                      >
+                        <option value="A1">A1 - {t('difficulty.A1')}</option>
+                        <option value="A2">A2 - {t('difficulty.A2')}</option>
+                        <option value="B1">B1 - {t('difficulty.B1')}</option>
+                        <option value="B2">B2 - {t('difficulty.B2')}</option>
+                        <option value="C1">C1 - {t('difficulty.C1')}</option>
+                      </select>
+                    </div>
                   </div>
 
                   <div>
@@ -942,6 +1029,21 @@ export const DeckList: React.FC<DeckListProps> = ({
                       </label>
                     </div>
                     <p className="text-xs text-gray-500 mt-2">{t('modal.deselectCardType')}</p>
+                  </div>
+
+                  {/* Extra Context textarea */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      {t('modal.extraContext')}
+                    </label>
+                    <textarea
+                      className="w-full border-2 border-gray-100 bg-gray-50 rounded-xl p-3 font-medium outline-none focus:border-indigo-500 transition-colors min-h-[120px] resize-y"
+                      placeholder={t('modal.extraContextPlaceholder')}
+                      value={extraContext}
+                      onChange={e => setExtraContext(e.target.value)}
+                      maxLength={2000}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">{t('modal.extraContextHelper')}</p>
                   </div>
                 </>
               )}

@@ -79,7 +79,9 @@ export async function generateDeckWithAI(
   topic: string,
   difficulty: string,
   numberOfCards: number = 10,
-  cardTypes?: Array<'standard' | 'quiz' | 'type-answer'>
+  cardTypes?: Array<'standard' | 'quiz' | 'type-answer'>,
+  language?: string,
+  extraContext?: string
 ) {
   return api.post<
     Array<{
@@ -90,7 +92,15 @@ export async function generateDeckWithAI(
       options?: string[];
       correctOptionIndex?: number;
     }>
-  >('/decks/generate', { subject, topic, difficulty, numberOfCards, cardTypes });
+  >('/decks/generate', {
+    subject,
+    topic,
+    difficulty,
+    numberOfCards,
+    cardTypes,
+    language,
+    extraContext,
+  });
 }
 
 // Helper to download exported file
