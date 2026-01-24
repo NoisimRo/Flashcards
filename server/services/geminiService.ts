@@ -15,7 +15,9 @@ export const generateDeckWithAI = async (
   topic: string,
   difficulty: string,
   numberOfCards: number = 10,
-  cardTypes: Array<'standard' | 'quiz' | 'type-answer'> = ['standard', 'quiz']
+  cardTypes: Array<'standard' | 'quiz' | 'type-answer'> = ['standard', 'quiz'],
+  language: string = 'ro',
+  extraContext?: string
 ): Promise<GeneratedCard[]> => {
   const apiKey = config.geminiApiKey;
 
@@ -85,19 +87,45 @@ export const generateDeckWithAI = async (
   const percentagePerType = Math.floor(100 / cardTypes.length);
   const typeDistribution = cardTypes.map(type => `${percentagePerType}% "${type}"`).join(', ');
 
+  // Get language name for prompt
+  const getLanguageName = (code: string): string => {
+    const languageMap: Record<string, string> = {
+      ro: 'Romanian',
+      en: 'English',
+      it: 'Italian',
+    };
+    return languageMap[code] || 'Romanian';
+  };
+
+  const languageName = getLanguageName(language);
+
+  // Build extra context section if provided
+  const extraContextSection = extraContext?.trim()
+    ? `
+    === USER-PROVIDED CONTEXT ===
+    The user has provided additional context, examples, or guidelines to help shape the cards:
+
+    ${extraContext.trim()}
+
+    Please carefully consider this input when generating the cards. If examples are provided, mirror their style, complexity, and format.
+    === END CONTEXT ===
+    `
+    : '';
+
   const prompt = `
     Create ${numberOfCards} flashcards for 8th grade students preparing for the National Evaluation.
     Subject: ${subject}
     Topic: ${topic}
     Difficulty: ${difficulty}
-
+    Language: ${languageName}
+    ${extraContextSection}
     Generate an even mix of these card types (${typeDistribution}):
     ${cardTypeDescriptions.join('\n    ')}
 
     For each card, return a JSON object with:
     - front: The question or word
     - back: The definition, answer, or correct answer
-    - context: A clear, eloquent sentence using the concept from "front" to demonstrate its meaning. The sentence should be in Romanian.
+    - context: A hint that helps the user to discover the correct answer. Use the concept from "front" but do not revele it directly. 
     - type: One of: ${cardTypes.map(t => `"${t}"`).join(', ')}
 
     STRICT CONSTRAINT FOR QUESTIONS:
@@ -107,15 +135,17 @@ export const generateDeckWithAI = async (
 
     Type-specific requirements:
     - For "quiz" cards:
-      * Include "options" (array of 4 answers in Romanian) and "correctOptionIndex" (0-3)
+      * Include "options" (array of 4 answers) and "correctOptionIndex" (0-3)
       * When contextually relevant, generate these quiz sub-types:
-        - Cloze Deletion (Fill-in-the-blanks): Sentences with hidden key terms using context to help recall
+        - Cloze Deletion (Fill-in-the-blanks): Sentences with hidden key terms using context to help recall. the hidden term is replaced with ____
         - True/False: Rapid-fire statements for quick conceptual validation
       * Use standard multiple choice format when above sub-types don't fit
     - For "type-answer" cards: Keep "back" short (1-2 words), no options needed
     - For "standard" cards: No options needed
 
-    Make sure all content is appropriate for Romanian 8th grade students and uses proper Romanian language.
+    LANGUAGE REQUIREMENT:
+    All content (questions, answers, options, and context sentences) must be written in ${languageName}.
+    Ensure all content is appropriate for 8th grade students.
   `;
 
   try {
