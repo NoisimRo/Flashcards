@@ -192,14 +192,25 @@ router.post('/claim-reward', authenticateToken, async (req, res) => {
     let rewardXP = 0;
 
     if (challengeId === 'cards') {
-      // Count correct answers from all sessions today
+      // CRITICAL FIX: Include both completed AND active sessions (match /today logic)
+      // Active sessions have correct_count = NULL but have answers in JSON field
       const sessionsResult = await query(
-        'SELECT correct_count FROM study_sessions WHERE user_id = $1 AND DATE(started_at) = $2',
+        'SELECT status, correct_count, answers FROM study_sessions WHERE user_id = $1 AND DATE(started_at) = $2',
         [userId, today]
       );
       let totalCorrectAnswers = 0;
       for (const session of sessionsResult.rows) {
-        totalCorrectAnswers += session.correct_count || 0;
+        if (session.status === 'completed') {
+          // Completed sessions have correct_count populated
+          totalCorrectAnswers += session.correct_count || 0;
+        } else {
+          // Active sessions: count correct answers from answers JSON
+          const answers = session.answers || {};
+          const correctInSession = Object.values(answers).filter(
+            (answer: any) => answer === 'correct'
+          ).length;
+          totalCorrectAnswers += correctInSession;
+        }
       }
       isCompleted = totalCorrectAnswers >= challenge.cards_target;
       rewardXP = 50;
@@ -216,9 +227,37 @@ router.post('/claim-reward', authenticateToken, async (req, res) => {
       isCompleted = totalTimeMinutes >= challenge.time_target;
       rewardXP = 30;
     } else if (challengeId === 'streak') {
-      const userResult = await query('SELECT streak FROM users WHERE id = $1', [userId]);
-      const currentStreak = userResult.rows[0]?.streak || 0;
-      isCompleted = currentStreak >= 1;
+      // CRITICAL FIX: Check if TODAY's activity meets streak conditions (match /today logic)
+      // Streak is maintained if: time >= 10 minutes OR correct answers >= 20
+      // User's streak value is only updated after session completion, but we need to check
+      // if TODAY's activity meets the requirement (even from active sessions)
+      const sessionsResult = await query(
+        'SELECT status, correct_count, duration_seconds, answers FROM study_sessions WHERE user_id = $1 AND DATE(started_at) = $2',
+        [userId, today]
+      );
+
+      let totalCorrectAnswers = 0;
+      let totalTimeMinutes = 0;
+
+      for (const session of sessionsResult.rows) {
+        if (session.status === 'completed') {
+          // Completed sessions have correct_count populated
+          totalCorrectAnswers += session.correct_count || 0;
+        } else {
+          // Active sessions: count correct answers from answers JSON
+          const answers = session.answers || {};
+          const correctInSession = Object.values(answers).filter(
+            (answer: any) => answer === 'correct'
+          ).length;
+          totalCorrectAnswers += correctInSession;
+        }
+
+        // Time is tracked in duration_seconds for both active and completed sessions
+        totalTimeMinutes += Math.floor((session.duration_seconds || 0) / 60);
+      }
+
+      // Streak requirement: 10+ minutes OR 20+ correct answers
+      isCompleted = totalTimeMinutes >= 10 || totalCorrectAnswers >= 20;
       rewardXP = 100;
     }
 
