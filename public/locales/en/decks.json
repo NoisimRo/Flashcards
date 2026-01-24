@@ -16,6 +16,7 @@
     "resetProgress": "Reset progress",
     "editDeck": "Edit deck",
     "editCards": "Edit cards",
+    "exportDeck": "Export cards",
     "leaveReview": "Leave a review",
     "reportDeck": "Report deck",
     "deleteDeck": "Delete deck",
@@ -54,6 +55,10 @@
     "typeAnswerDesc": "Write the answer (suitable for 1-2 words)",
     "deselectCardType": "Deselect unwanted card type",
     "fileImport": "Supported format: CSV, TXT (Front, Back)",
+    "fileSelected": "Selected: {{name}}",
+    "importFormatTitle": "Supported Formats",
+    "importFormatCSV": "Front,Back,Context (comma-separated)",
+    "importFormatTXT": "Front[TAB]Back[TAB]Context (tab or semicolon-separated)",
     "cancel": "Cancel",
     "save": "Save",
     "generateCardsBtn": "Generate Cards",
@@ -91,6 +96,18 @@
   "loading": {
     "message": "Generating cards..."
   },
+  "exportModal": {
+    "title": "Export Cards",
+    "subtitle": "Export \"{{title}}\"",
+    "selectFormat": "Select Format",
+    "csvDesc": "Spreadsheet compatible",
+    "txtDesc": "Tab-separated text",
+    "includeProgress": "Include progress data",
+    "includeProgressDesc": "Export learning status, intervals and ease factors",
+    "previewTitle": "Format Preview",
+    "previewNote": "This is how your exported file will look",
+    "exportBtn": "Export"
+  },
   "toast": {
     "cardUpdated": "Card updated successfully",
     "cardUpdateError": "Error updating card",
@@ -99,7 +116,12 @@
     "cardAdded": "Card added successfully",
     "cardAddError": "Error adding card",
     "cardLoadError": "Error loading cards",
-    "generationError": "AI generation error. Check console."
+    "generationError": "AI generation error. Check console.",
+    "exportSuccess": "Exported {{count}} cards successfully",
+    "exportError": "Error exporting cards",
+    "importSuccess": "Imported {{count}} cards successfully",
+    "importError": "Error importing cards",
+    "fileReadError": "Error reading file"
   },
   "guestPrompt": {
     "createDeck": {

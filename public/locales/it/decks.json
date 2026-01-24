@@ -16,6 +16,7 @@
     "resetProgress": "Ripristina progresso",
     "editDeck": "Modifica mazzo",
     "editCards": "Modifica carte",
+    "exportDeck": "Esporta carte",
     "leaveReview": "Lascia una recensione",
     "reportDeck": "Segnala mazzo",
     "deleteDeck": "Elimina mazzo",
@@ -54,6 +55,10 @@
     "typeAnswerDesc": "Scrivi la risposta (adatto per 1-2 parole)",
     "deselectCardType": "Deseleziona il tipo di carta non desiderato",
     "fileImport": "Formato supportato: CSV, TXT (Fronte, Retro)",
+    "fileSelected": "Selezionato: {{name}}",
+    "importFormatTitle": "Formati Supportati",
+    "importFormatCSV": "Fronte,Retro,Contesto (separati da virgola)",
+    "importFormatTXT": "Fronte[TAB]Retro[TAB]Contesto (separati da tab o punto e virgola)",
     "cancel": "Annulla",
     "save": "Salva",
     "generateCardsBtn": "Genera Carte",
@@ -91,6 +96,18 @@
   "loading": {
     "message": "Generazione carte in corso..."
   },
+  "exportModal": {
+    "title": "Esporta Carte",
+    "subtitle": "Esporta \"{{title}}\"",
+    "selectFormat": "Seleziona Formato",
+    "csvDesc": "Compatibile con Excel",
+    "txtDesc": "Testo separato da tab",
+    "includeProgress": "Includi dati di progresso",
+    "includeProgressDesc": "Esporta stato di apprendimento, intervalli e fattori di difficoltà",
+    "previewTitle": "Anteprima Formato",
+    "previewNote": "Ecco come apparirà il tuo file esportato",
+    "exportBtn": "Esporta"
+  },
   "toast": {
     "cardUpdated": "Carta aggiornata con successo",
     "cardUpdateError": "Errore nell'aggiornamento della carta",
@@ -99,7 +116,12 @@
     "cardAdded": "Carta aggiunta con successo",
     "cardAddError": "Errore nell'aggiunta della carta",
     "cardLoadError": "Errore nel caricamento delle carte",
-    "generationError": "Errore di generazione AI. Controlla la console."
+    "generationError": "Errore di generazione AI. Controlla la console.",
+    "exportSuccess": "{{count}} carte esportate con successo",
+    "exportError": "Errore nell'esportazione delle carte",
+    "importSuccess": "{{count}} carte importate con successo",
+    "importError": "Errore nell'importazione delle carte",
+    "fileReadError": "Errore nella lettura del file"
   },
   "guestPrompt": {
     "createDeck": {
