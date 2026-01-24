@@ -125,7 +125,7 @@ export const generateDeckWithAI = async (
     For each card, return a JSON object with:
     - front: The question or word
     - back: The definition, answer, or correct answer
-    - context: A clear, eloquent sentence using the concept from "front" to demonstrate its meaning.
+    - context: A hint that helps the user to discover the correct answer. Use the concept from "front" but do not revele it directly. 
     - type: One of: ${cardTypes.map(t => `"${t}"`).join(', ')}
 
     STRICT CONSTRAINT FOR QUESTIONS:
@@ -137,7 +137,7 @@ export const generateDeckWithAI = async (
     - For "quiz" cards:
       * Include "options" (array of 4 answers) and "correctOptionIndex" (0-3)
       * When contextually relevant, generate these quiz sub-types:
-        - Cloze Deletion (Fill-in-the-blanks): Sentences with hidden key terms using context to help recall
+        - Cloze Deletion (Fill-in-the-blanks): Sentences with hidden key terms using context to help recall. the hidden term is replaced with ____
         - True/False: Rapid-fire statements for quick conceptual validation
       * Use standard multiple choice format when above sub-types don't fit
     - For "type-answer" cards: Keep "back" short (1-2 words), no options needed
