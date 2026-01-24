@@ -50,6 +50,8 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     sessionXP,
     answers,
     sessionStartTime,
+    totalActiveSeconds,
+    perCardTimes,
   } = useStudySessionsStore();
 
   // Animation state
@@ -152,17 +154,30 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
 
     const score = totalCards > 0 ? Math.round((correctCount / totalCards) * 100) : 0;
 
-    // Calculate session duration
-    const elapsedSeconds = Math.floor((Date.now() - sessionStartTime) / 1000);
+    // CRITICAL FIX: Calculate accurate active study time using per-card tracking
+    // Record time for the current card being viewed
+    const currentCard = getCurrentCard();
+    let finalTotalActiveSeconds = totalActiveSeconds;
 
-    // Build card progress updates - INCLUDE ALL CARDS
+    if (currentCard) {
+      const now = Date.now();
+      const { currentCardStartTime } = useStudySessionsStore.getState();
+      const timeOnCurrentCard = (now - currentCardStartTime) / 1000;
+      const cappedTime = Math.min(timeOnCurrentCard, 300); // Cap at 5 minutes
+      finalTotalActiveSeconds += cappedTime;
+    }
+
+    const durationSeconds = Math.floor(finalTotalActiveSeconds);
+
+    // Build card progress updates - INCLUDE PER-CARD TIME
     const cardProgressUpdates =
       currentSession.cards?.map(card => {
         const answer = answers[card.id];
+        const cardTime = perCardTimes[card.id] || 0;
         return {
           cardId: card.id,
           wasCorrect: answer === 'correct',
-          timeSpentSeconds: 0, // We don't track per-card time in this simplified version
+          timeSpentSeconds: Math.floor(cardTime), // Actual time spent on this card
         };
       }) || [];
 
@@ -171,7 +186,9 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
       correctCount,
       incorrectCount,
       skippedCount: actualSkippedCount,
+      durationSeconds,
       cardProgressUpdates: cardProgressUpdates.length,
+      perCardTimesTracked: Object.keys(perCardTimes).length,
     });
 
     try {
@@ -181,7 +198,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
         correctCount,
         incorrectCount,
         skippedCount: actualSkippedCount, // Include unanswered cards as skipped
-        durationSeconds: elapsedSeconds,
+        durationSeconds, // Accurate active time from per-card tracking
         cardProgressUpdates,
       });
 

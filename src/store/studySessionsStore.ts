@@ -29,6 +29,9 @@ interface StudySessionsStore {
   isDirty: boolean;
   sessionStartTime: number;
   baselineDuration: number;
+  currentCardStartTime: number; // Track when current card was shown
+  perCardTimes: Record<string, number>; // Track accumulated time per card ID
+  totalActiveSeconds: number; // Sum of all per-card times
 
   // Guest mode state
   guestToken: string | null;
@@ -87,6 +90,30 @@ const getOrCreateGuestToken = (): string => {
   return token;
 };
 
+// Helper function to record time spent on current card (Option B - count every viewing)
+const recordCardTime = (state: StudySessionsStore) => {
+  const currentCard = state.getCurrentCard();
+  if (!currentCard)
+    return { perCardTimes: state.perCardTimes, totalActiveSeconds: state.totalActiveSeconds };
+
+  const now = Date.now();
+  const timeOnCard = (now - state.currentCardStartTime) / 1000; // seconds
+
+  // Cap at 5 minutes (300 seconds) per viewing to prevent idle inflation
+  const cappedTime = Math.min(timeOnCard, 300);
+
+  // Option B: Count every time card is shown (even re-visits)
+  const previousTime = state.perCardTimes[currentCard.id] || 0;
+  const newPerCardTimes = {
+    ...state.perCardTimes,
+    [currentCard.id]: previousTime + cappedTime,
+  };
+
+  const newTotalActiveSeconds = state.totalActiveSeconds + cappedTime;
+
+  return { perCardTimes: newPerCardTimes, totalActiveSeconds: newTotalActiveSeconds };
+};
+
 export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
   // Initial state
   activeSessions: [],
@@ -106,6 +133,9 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
   isDirty: false,
   sessionStartTime: Date.now(),
   baselineDuration: 0,
+  currentCardStartTime: Date.now(),
+  perCardTimes: {},
+  totalActiveSeconds: 0,
 
   // Guest mode state
   guestToken: null,
@@ -176,6 +206,9 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
           isDirty: false,
           sessionStartTime: Date.now(),
           baselineDuration: session.durationSeconds || 0,
+          currentCardStartTime: Date.now(), // Start timing current card
+          perCardTimes: {}, // Reset per-card times for new session viewing
+          totalActiveSeconds: 0, // Will accumulate as user progresses
           isLoading: false,
         });
       } else {
@@ -302,6 +335,9 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
           isDirty: false,
           sessionStartTime: Date.now(),
           baselineDuration: session.durationSeconds || 0,
+          currentCardStartTime: Date.now(),
+          perCardTimes: {},
+          totalActiveSeconds: 0,
           isLoading: false,
         });
 
@@ -347,6 +383,9 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
           isDirty: false,
           sessionStartTime: Date.now(),
           baselineDuration: session.durationSeconds || 0,
+          currentCardStartTime: Date.now(),
+          perCardTimes: {},
+          totalActiveSeconds: 0,
           isLoading: false,
         });
 
@@ -384,6 +423,9 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
     const currentCard = state.getCurrentCard();
     if (!currentCard) return;
 
+    // Record time spent on this card before answering
+    const { perCardTimes, totalActiveSeconds } = recordCardTime(state);
+
     // Check if card was already answered
     const existingAnswer = state.answers[cardId];
     const wasAlreadyAnswered = existingAnswer === 'correct' || existingAnswer === 'incorrect';
@@ -401,6 +443,8 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
       answers: { ...state.answers, [cardId]: isCorrect ? 'correct' : 'incorrect' },
       streak: shouldAwardXP ? (isCorrect ? state.streak + 1 : 0) : state.streak,
       sessionXP: state.sessionXP + xpEarned,
+      perCardTimes,
+      totalActiveSeconds,
       isDirty: true,
     });
 
@@ -411,8 +455,14 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
   // Skip card
   skipCard: (cardId: string) => {
     const state = get();
+
+    // Record time spent on this card before skipping
+    const { perCardTimes, totalActiveSeconds } = recordCardTime(state);
+
     set({
       answers: { ...state.answers, [cardId]: 'skipped' },
+      perCardTimes,
+      totalActiveSeconds,
       isDirty: true,
     });
     state.syncProgress();
@@ -423,12 +473,18 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
     const state = get();
     const totalCards = state.currentSession?.cards?.length || 0;
 
+    // Record time on current card before moving to next
+    const { perCardTimes, totalActiveSeconds } = recordCardTime(state);
+
     set({
       currentCardIndex: Math.min(state.currentCardIndex + 1, totalCards - 1),
       isCardFlipped: false,
       hintRevealed: false,
       selectedQuizOption: null,
       frontAction: null, // Reset front action for next card
+      currentCardStartTime: Date.now(), // Start timing the next card
+      perCardTimes,
+      totalActiveSeconds,
     });
   },
 
@@ -440,6 +496,9 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
     const previousCard = state.currentSession?.cards?.[state.currentCardIndex - 1];
     if (!previousCard) return;
 
+    // Record time on current card before going back
+    const { perCardTimes, totalActiveSeconds } = recordCardTime(state);
+
     // CRITICAL FIX: Do NOT delete the answer - just go back
     // This preserves the pie chart progress while allowing navigation back
     // If the card was skipped, user can re-answer it
@@ -450,6 +509,9 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
       hintRevealed: false,
       selectedQuizOption: null,
       frontAction: null,
+      currentCardStartTime: Date.now(), // Start timing the previous card
+      perCardTimes,
+      totalActiveSeconds,
       isDirty: true,
     });
   },
@@ -458,6 +520,9 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
   shuffleCards: () => {
     const state = get();
     if (!state.currentSession?.cards) return;
+
+    // Record time on current card before shuffling
+    const { perCardTimes, totalActiveSeconds } = recordCardTime(state);
 
     const shuffledCards = [...state.currentSession.cards];
     for (let i = shuffledCards.length - 1; i > 0; i--) {
@@ -475,6 +540,9 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
       hintRevealed: false,
       selectedQuizOption: null,
       frontAction: null,
+      currentCardStartTime: Date.now(), // Start timing first card after shuffle
+      perCardTimes: {}, // Reset per-card times for shuffled deck
+      totalActiveSeconds, // KEEP accumulated time
       // KEEP streak and sessionXP - user's progress is preserved
       isDirty: true,
     });
@@ -485,6 +553,9 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
     const state = get();
     if (!state.currentSession?.cards) return;
 
+    // Record time on current card before restarting
+    const { perCardTimes, totalActiveSeconds } = recordCardTime(state);
+
     set({
       currentCardIndex: 0,
       answers: {}, // Clear all answers
@@ -492,6 +563,9 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
       hintRevealed: false,
       selectedQuizOption: null,
       frontAction: null,
+      currentCardStartTime: Date.now(), // Start timing first card
+      perCardTimes: {}, // Reset per-card times for restart
+      totalActiveSeconds, // KEEP accumulated time
       // KEEP streak and sessionXP - user's progress is preserved
       isDirty: true,
     });
@@ -532,7 +606,9 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
     const state = get();
     if (!state.currentSession) return;
 
-    const elapsedSeconds = Math.floor((Date.now() - state.sessionStartTime) / 1000);
+    // CRITICAL FIX: Use totalActiveSeconds (accumulated per-card time) instead of elapsed wall-clock time
+    // This prevents the 834-minute bug caused by idle browser tabs
+    const totalDurationSeconds = Math.floor(state.baselineDuration + state.totalActiveSeconds);
 
     try {
       // Guest mode: use guest endpoint
@@ -546,7 +622,7 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
             answers: state.answers,
             streak: state.streak,
             sessionXP: state.sessionXP,
-            durationSeconds: state.baselineDuration + elapsedSeconds,
+            durationSeconds: totalDurationSeconds,
           }),
         });
 
@@ -560,7 +636,7 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
           answers: state.answers,
           streak: state.streak,
           sessionXP: state.sessionXP,
-          durationSeconds: state.baselineDuration + elapsedSeconds,
+          durationSeconds: totalDurationSeconds,
         });
 
         set({ isDirty: false });
@@ -594,6 +670,9 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
       isDirty: false,
       sessionStartTime: Date.now(),
       baselineDuration: 0,
+      currentCardStartTime: Date.now(),
+      perCardTimes: {},
+      totalActiveSeconds: 0,
     });
   },
 }));

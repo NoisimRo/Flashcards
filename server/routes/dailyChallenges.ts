@@ -43,9 +43,10 @@ router.get('/today', authenticateToken, async (req, res) => {
 
     const challenge = challenges.rows[0];
 
-    // Get today's actual progress from study_sessions table (aggregate all sessions from today)
+    // CRITICAL FIX: Include both completed AND active sessions
+    // Active sessions store progress in answers JSON field, not in correct_count
     const sessionsResult = await query(
-      `SELECT correct_count, duration_seconds
+      `SELECT status, correct_count, duration_seconds, answers
        FROM study_sessions
        WHERE user_id = $1
          AND DATE(started_at) = $2`,
@@ -57,7 +58,19 @@ router.get('/today', authenticateToken, async (req, res) => {
     let totalTimeMinutes = 0;
 
     for (const session of sessionsResult.rows) {
-      totalCorrectAnswers += session.correct_count || 0;
+      if (session.status === 'completed') {
+        // Completed sessions have correct_count populated
+        totalCorrectAnswers += session.correct_count || 0;
+      } else {
+        // Active sessions: count correct answers from answers JSON
+        const answers = session.answers || {};
+        const correctInSession = Object.values(answers).filter(
+          (answer: any) => answer === 'correct'
+        ).length;
+        totalCorrectAnswers += correctInSession;
+      }
+
+      // Time is tracked in duration_seconds for both active and completed sessions
       totalTimeMinutes += Math.floor((session.duration_seconds || 0) / 60);
     }
 
