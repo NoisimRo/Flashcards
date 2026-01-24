@@ -106,7 +106,18 @@ export async function generateDeckWithAI(
 
 // Helper to download exported file
 export function downloadExportedDeck(fileName: string, content: string, mimeType: string) {
-  const blob = new Blob([atob(content)], { type: mimeType });
+  // Decode base64 to binary, then convert to UTF-8 properly
+  const binaryString = atob(content);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  const decoder = new TextDecoder('utf-8');
+  const decodedContent = decoder.decode(bytes);
+
+  // Add BOM for UTF-8 to ensure Excel and other apps recognize encoding
+  const bom = '\uFEFF';
+  const blob = new Blob([bom + decodedContent], { type: `${mimeType};charset=utf-8` });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
