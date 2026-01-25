@@ -113,11 +113,13 @@ router.post('/deck', authenticateToken, async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Import error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Eroare necunoscută la import';
     res.status(500).json({
       success: false,
       error: {
         code: 'SERVER_ERROR',
-        message: 'Eroare la import',
+        message: `Eroare la import: ${errorMessage}`,
+        details: error instanceof Error ? error.stack : undefined,
       },
     });
   }
@@ -320,7 +322,13 @@ function parseCSVLine(line: string): string[] {
   for (let i = 0; i < line.length; i++) {
     const char = line[i];
     if (char === '"') {
-      inQuotes = !inQuotes;
+      // Check for escaped quote ("" inside quoted string)
+      if (inQuotes && line[i + 1] === '"') {
+        current += '"'; // Add literal quote
+        i++; // Skip the next quote
+      } else {
+        inQuotes = !inQuotes;
+      }
     } else if ((char === ',' || char === ';') && !inQuotes) {
       result.push(current);
       current = '';
