@@ -265,8 +265,10 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
 
           if (response.success && response.data) {
             toast.success(t('toast.importSuccess', { count: response.data.cardsImported }));
-            // Reload to get the new deck
-            window.location.reload();
+            // Wait for user to see the success message before reloading
+            setTimeout(() => {
+              window.location.reload();
+            }, 1500);
             return;
           } else {
             // Show detailed error message
@@ -309,8 +311,14 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
-      <div className="bg-white rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto p-8 shadow-2xl animate-scale-up relative">
+    <div
+      className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto p-8 shadow-2xl animate-scale-up relative"
+        onClick={e => e.stopPropagation()}
+      >
         {/* "The Dealer's Table" Loading Overlay */}
         {isGenerating && (
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/95 to-purple-900/95 rounded-3xl flex flex-col items-center justify-center z-50 backdrop-blur-sm">
