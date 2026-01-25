@@ -65,13 +65,22 @@ router.post('/deck', authenticateToken, async (req: Request, res: Response) => {
 
     // Create deck with cards
     const result = await withTransaction(async client => {
+      // Validate subject if provided - check if it exists in subjects table
+      let validSubjectId = null;
+      if (subject) {
+        const subjectCheck = await client.query('SELECT id FROM subjects WHERE id = $1', [subject]);
+        if (subjectCheck.rows.length > 0) {
+          validSubjectId = subject;
+        }
+      }
+
       const deckResult = await client.query(
         `INSERT INTO decks (title, subject_id, topic, difficulty, is_public, owner_id)
          VALUES ($1, $2, $3, $4, $5, $6)
          RETURNING *`,
         [
           title || `Import ${new Date().toLocaleDateString('ro-RO')}`,
-          subject || 'romana',
+          validSubjectId,
           title,
           difficulty,
           true,
