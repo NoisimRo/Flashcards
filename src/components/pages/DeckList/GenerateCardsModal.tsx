@@ -268,7 +268,10 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
             window.location.reload();
             return;
           } else {
-            toast.error(response.error?.message || t('toast.importError'));
+            // Show detailed error message
+            const errorMessage = response.error?.message || t('toast.importError');
+            console.error('Import error:', response.error);
+            toast.error(errorMessage);
             setIsGenerating(false);
             return;
           }
