@@ -9,7 +9,10 @@
     "inStudy": "{{count}} în studiu",
     "mastered": "{{count}} învățate",
     "generate": "Generează",
+    "generateShort": "Generează AI",
+    "addCards": "Adaugă",
     "createSession": "Creează sesiune",
+    "session": "Sesiune",
     "addCardsFirst": "Adaugă carduri mai întâi"
   },
   "menu": {
@@ -33,6 +36,7 @@
   "modal": {
     "editDeck": "Editează Deck",
     "generateCards": "Generează Carduri",
+    "addCards": "Adaugă Carduri",
     "newDeck": "Deck Nou",
     "subject": "Subiect",
     "titleLabel": "Titlu / Tematică",
@@ -43,6 +47,7 @@
     "cardsRecommendation": "Recomandare: 10-20 carduri pentru sesiuni eficiente",
     "cardsFromFile": "Numărul de carduri va depinde de fișierul importat",
     "creationMethod": "Metodă Creare",
+    "addMethod": "Metodă Adăugare",
     "aiAuto": "AI Auto",
     "import": "Import",
     "manual": "Manual",
@@ -62,6 +67,7 @@
     "cancel": "Anulează",
     "save": "Salvează",
     "generateCardsBtn": "Generează Carduri",
+    "addCardsBtn": "Adaugă Carduri",
     "createDeck": "Creează Deck",
     "language": "Limbă",
     "extraContext": "Context Suplimentar / Exemple (Opțional)",
@@ -132,7 +138,9 @@
     "exportError": "Eroare la exportarea cardurilor",
     "importSuccess": "{{count}} carduri importate cu succes",
     "importError": "Eroare la importarea cardurilor",
-    "fileReadError": "Eroare la citirea fișierului"
+    "fileReadError": "Eroare la citirea fișierului",
+    "cardsAdded": "{{count}} carduri adăugate cu succes",
+    "openEditCards": "Se deschide editorul de carduri..."
   },
   "guestPrompt": {
     "createDeck": {
@@ -142,6 +150,10 @@
     "aiGeneration": {
       "title": "Funcție Premium",
       "message": "Generarea de carduri cu AI este disponibilă doar pentru utilizatorii cu cont. Creează un cont gratuit pentru a debloca această funcție!"
+    },
+    "addCards": {
+      "title": "Creează un cont gratuit",
+      "message": "Pentru a adăuga carduri la deck-uri, creează un cont gratuit!"
     }
   }
 }

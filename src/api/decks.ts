@@ -56,6 +56,7 @@ export async function importDeck(data: {
   title?: string;
   subject?: string;
   difficulty?: string;
+  deckId?: string; // If provided, adds cards to existing deck
 }) {
   return api.post<{ deckId: string; cardsImported: number }>('/import/deck', data);
 }

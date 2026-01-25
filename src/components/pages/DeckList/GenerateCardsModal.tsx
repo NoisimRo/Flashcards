@@ -9,7 +9,7 @@ import { getSubjectId } from '../../../constants/subjects';
 interface GenerateCardsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  mode: 'create' | 'edit' | 'generate';
+  mode: 'create' | 'edit' | 'generate' | 'addCards';
   existingDeck?: {
     id: string;
     title: string;
@@ -18,6 +18,7 @@ interface GenerateCardsModalProps {
   } | null;
   onAddDeck: (deck: DeckWithCards) => void;
   onEditDeck: (deck: DeckWithCards) => void;
+  onCardsAdded?: (deckId: string, cardsCount: number) => void;
   decks: Array<{ id: string; title: string; subject: string; difficulty: Difficulty }>;
 }
 
@@ -28,6 +29,7 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
   existingDeck,
   onAddDeck,
   onEditDeck,
+  onCardsAdded,
   decks,
 }) => {
   const { t, i18n } = useTranslation('decks');
@@ -85,6 +87,14 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
         setSubject(existingDeck.subject);
         setDifficulty(existingDeck.difficulty);
         setImportMode('ai');
+        setNumberOfCards(10);
+        setSelectedCardTypes(['standard', 'quiz', 'type-answer']);
+      } else if (mode === 'addCards' && existingDeck) {
+        // Add cards mode - use existing deck's settings
+        setTitle(existingDeck.title || '');
+        setSubject(existingDeck.subject);
+        setDifficulty(existingDeck.difficulty);
+        setImportMode('ai'); // Default to AI, but allow file/manual
         setNumberOfCards(10);
         setSelectedCardTypes(['standard', 'quiz', 'type-answer']);
       } else {
@@ -160,7 +170,7 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
           onEditDeck(updatedDeck);
         }
       } else if (mode === 'generate' && existingDeck) {
-        // GENERATE CARDS FOR EXISTING DECK
+        // GENERATE CARDS FOR EXISTING DECK (AI only - legacy mode)
         const newCards: Card[] = [];
 
         if (importMode === 'ai') {
@@ -207,6 +217,82 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
             updatedAt: new Date().toISOString(),
           };
           onEditDeck(updatedDeck);
+        }
+      } else if (mode === 'addCards' && existingDeck) {
+        // ADD CARDS TO EXISTING DECK (AI, file, or manual)
+        if (importMode === 'ai') {
+          const response = await generateDeckWithAI(
+            subject,
+            title,
+            difficulty,
+            numberOfCards,
+            selectedCardTypes,
+            selectedLanguage,
+            extraContext || undefined
+          );
+          if (response.success && response.data) {
+            const newCards = response.data.map((card, index) => ({
+              ...card,
+              id: `ai-${Date.now()}-${index}`,
+              deckId: existingDeck.id,
+              position: index,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            }));
+
+            const existingDeckData = decks.find(d => d.id === existingDeck.id);
+            if (existingDeckData) {
+              const updatedDeck: DeckWithCards = {
+                ...existingDeckData,
+                id: existingDeck.id,
+                ownerId: '',
+                topic: title,
+                isPublic: false,
+                tags: [],
+                cards: newCards,
+                totalCards: (existingDeckData as any).totalCards + newCards.length,
+                masteredCards: (existingDeckData as any).masteredCards || 0,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              };
+              onEditDeck(updatedDeck);
+            }
+            toast.success(t('toast.cardsAdded', { count: newCards.length }));
+            if (onCardsAdded) {
+              onCardsAdded(existingDeck.id, newCards.length);
+            }
+          } else {
+            toast.error(response.error?.message || t('toast.generationError'));
+            setIsGenerating(false);
+            return;
+          }
+        } else if (importMode === 'file' && fileContent) {
+          // Import from file to existing deck
+          const format = selectedFile?.name.endsWith('.csv') ? 'csv' : 'txt';
+          const response = await importDeck({
+            format,
+            data: fileContent,
+            deckId: existingDeck.id, // Add to existing deck
+          });
+
+          if (response.success && response.data) {
+            toast.success(t('toast.cardsAdded', { count: response.data.cardsImported }));
+            if (onCardsAdded) {
+              onCardsAdded(existingDeck.id, response.data.cardsImported);
+            }
+          } else {
+            const errorMessage = response.error?.message || t('toast.importError');
+            console.error('Import error:', response.error);
+            toast.error(errorMessage);
+            setIsGenerating(false);
+            return;
+          }
+        } else if (importMode === 'manual') {
+          // Open the edit cards modal for this deck (handled by parent)
+          toast.success(t('toast.openEditCards'));
+          if (onCardsAdded) {
+            onCardsAdded(existingDeck.id, 0); // Signal to open edit cards modal
+          }
         }
       } else {
         // CREATE MODE
@@ -265,10 +351,12 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
 
           if (response.success && response.data) {
             toast.success(t('toast.importSuccess', { count: response.data.cardsImported }));
-            // Wait for user to see the success message before reloading
-            setTimeout(() => {
-              window.location.reload();
-            }, 1500);
+            // Notify parent and close modal
+            if (onCardsAdded) {
+              onCardsAdded(response.data.deckId, response.data.cardsImported);
+            }
+            setIsGenerating(false);
+            onClose();
             return;
           } else {
             // Show detailed error message
@@ -358,7 +446,9 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
             ? t('modal.editDeck')
             : mode === 'generate'
               ? t('modal.generateCards')
-              : t('modal.newDeck')}
+              : mode === 'addCards'
+                ? t('modal.addCards')
+                : t('modal.newDeck')}
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -454,10 +544,10 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
                 </div>
               </div>
 
-              {mode === 'create' && (
+              {(mode === 'create' || mode === 'addCards') && (
                 <div className="pt-2">
                   <label className="block text-sm font-bold text-gray-700 mb-2">
-                    {t('modal.creationMethod')}
+                    {mode === 'addCards' ? t('modal.addMethod') : t('modal.creationMethod')}
                   </label>
                   <div className="grid grid-cols-3 gap-3">
                     <button
@@ -565,7 +655,7 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
                 </>
               )}
 
-              {importMode === 'file' && mode === 'create' && (
+              {importMode === 'file' && (mode === 'create' || mode === 'addCards') && (
                 <div className="space-y-4">
                   <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center bg-gray-50">
                     <input
@@ -612,7 +702,10 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
             <button
               type="submit"
               disabled={
-                isGenerating || (importMode === 'file' && !fileContent && mode === 'create')
+                isGenerating ||
+                (importMode === 'file' &&
+                  !fileContent &&
+                  (mode === 'create' || mode === 'addCards'))
               }
               className="flex-1 bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800 transition-colors flex justify-center items-center gap-2 shadow-lg hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -622,6 +715,8 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
                 t('modal.save')
               ) : mode === 'generate' ? (
                 t('modal.generateCardsBtn')
+              ) : mode === 'addCards' ? (
+                t('modal.addCardsBtn')
               ) : (
                 t('modal.createDeck')
               )}

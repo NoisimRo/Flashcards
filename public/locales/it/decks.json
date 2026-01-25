@@ -9,7 +9,10 @@
     "inStudy": "{{count}} in studio",
     "mastered": "{{count}} masterizzate",
     "generate": "Genera",
+    "generateShort": "Genera AI",
+    "addCards": "Aggiungi",
     "createSession": "Crea sessione",
+    "session": "Sessione",
     "addCardsFirst": "Aggiungi prima le carte"
   },
   "menu": {
@@ -33,6 +36,7 @@
   "modal": {
     "editDeck": "Modifica Mazzo",
     "generateCards": "Genera Carte",
+    "addCards": "Aggiungi Carte",
     "newDeck": "Nuovo Mazzo",
     "subject": "Materia",
     "titleLabel": "Titolo / Argomento",
@@ -43,6 +47,7 @@
     "cardsRecommendation": "Raccomandazione: 10-20 carte per sessioni efficaci",
     "cardsFromFile": "Il numero di carte dipenderà dal file importato",
     "creationMethod": "Metodo di Creazione",
+    "addMethod": "Metodo di Aggiunta",
     "aiAuto": "AI Auto",
     "import": "Importa",
     "manual": "Manuale",
@@ -62,6 +67,7 @@
     "cancel": "Annulla",
     "save": "Salva",
     "generateCardsBtn": "Genera Carte",
+    "addCardsBtn": "Aggiungi Carte",
     "createDeck": "Crea Mazzo",
     "language": "Lingua",
     "extraContext": "Contesto Extra / Esempi (Opzionale)",
@@ -121,7 +127,9 @@
     "exportError": "Errore nell'esportazione delle carte",
     "importSuccess": "{{count}} carte importate con successo",
     "importError": "Errore nell'importazione delle carte",
-    "fileReadError": "Errore nella lettura del file"
+    "fileReadError": "Errore nella lettura del file",
+    "cardsAdded": "{{count}} carte aggiunte con successo",
+    "openEditCards": "Apertura editor carte..."
   },
   "guestPrompt": {
     "createDeck": {
@@ -131,6 +139,10 @@
     "aiGeneration": {
       "title": "Funzione Premium",
       "message": "La generazione di carte con AI è disponibile solo per gli utenti con account. Crea un account gratuito per sbloccare questa funzione!"
+    },
+    "addCards": {
+      "title": "Crea un account gratuito",
+      "message": "Per aggiungere carte ai mazzi, crea un account gratuito!"
     }
   }
 }

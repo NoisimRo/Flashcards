@@ -14,6 +14,7 @@ import {
   Flag,
   ThumbsUp,
   Download,
+  PlusCircle,
 } from 'lucide-react';
 import { getDeck } from '../../../api/decks';
 import { useToast } from '../../ui/Toast';
@@ -30,6 +31,7 @@ interface DeckListProps {
   onDeleteDeck: (deckId: string) => void;
   onStartSession: (deck: Deck) => void;
   onResetDeck?: (deckId: string) => void;
+  onRefreshDecks?: () => void;
   isGuest?: boolean;
   onLoginPrompt?: (title: string, message: string) => void;
 }
@@ -41,6 +43,7 @@ export const DeckList: React.FC<DeckListProps> = ({
   onDeleteDeck,
   onStartSession,
   onResetDeck,
+  onRefreshDecks,
   isGuest = false,
   onLoginPrompt,
 }) => {
@@ -50,9 +53,9 @@ export const DeckList: React.FC<DeckListProps> = ({
 
   // Generate/Create Modal State
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
-  const [generateModalMode, setGenerateModalMode] = useState<'create' | 'edit' | 'generate'>(
-    'create'
-  );
+  const [generateModalMode, setGenerateModalMode] = useState<
+    'create' | 'edit' | 'generate' | 'addCards'
+  >('create');
   const [selectedDeckForGenerate, setSelectedDeckForGenerate] = useState<{
     id: string;
     title: string;
@@ -117,6 +120,38 @@ export const DeckList: React.FC<DeckListProps> = ({
     });
     setIsGenerateModalOpen(true);
     setActiveMenuId(null);
+  };
+
+  const openAddCardsModal = (deck: Deck) => {
+    // Guard: Visitors must register to add cards
+    if (isGuest && onLoginPrompt) {
+      onLoginPrompt(t('guestPrompt.addCards.title'), t('guestPrompt.addCards.message'));
+      return;
+    }
+
+    setGenerateModalMode('addCards');
+    setSelectedDeckForGenerate({
+      id: deck.id,
+      title: deck.title || '',
+      subject: deck.subject,
+      difficulty: deck.difficulty,
+    });
+    setIsGenerateModalOpen(true);
+    setActiveMenuId(null);
+  };
+
+  const handleCardsAdded = (deckId: string, cardsCount: number) => {
+    // Refresh decks to show updated card count
+    if (onRefreshDecks) {
+      onRefreshDecks();
+    }
+    // If manual mode was selected (cardsCount === 0), open edit cards modal
+    if (cardsCount === 0) {
+      const deck = decks.find(d => d.id === deckId);
+      if (deck) {
+        openEditCardsModal(deck);
+      }
+    }
   };
 
   // Edit Cards Modal Functions
@@ -366,31 +401,43 @@ export const DeckList: React.FC<DeckListProps> = ({
 
               {/* Permanent Action Bar */}
               <div className="flex gap-2 mt-auto">
-                {/* 1. Generate Cards */}
+                {/* 1. Generate Cards with AI */}
                 <button
                   onClick={e => {
                     e.stopPropagation();
                     openGenerateCardsModal(deck);
                   }}
-                  className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 text-sm"
+                  className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-2 rounded-xl transition-all flex items-center justify-center gap-1 text-xs"
                   title={t('deckCard.generate')}
                 >
-                  <Sparkles size={18} /> {t('deckCard.generate')}
+                  <Sparkles size={16} /> {t('deckCard.generateShort')}
                 </button>
 
-                {/* 2. Create Session */}
+                {/* 2. Add Cards (import/manual) */}
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    openAddCardsModal(deck);
+                  }}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-2 rounded-xl transition-all flex items-center justify-center gap-1 text-xs"
+                  title={t('deckCard.addCards')}
+                >
+                  <PlusCircle size={16} /> {t('deckCard.addCards')}
+                </button>
+
+                {/* 3. Create Session */}
                 <button
                   onClick={e => {
                     e.stopPropagation();
                     onStartSession(deck);
                   }}
-                  className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-bold py-2.5 px-2 rounded-xl transition-all flex items-center justify-center gap-1 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={deck.totalCards === 0}
                   title={
                     deck.totalCards > 0 ? t('deckCard.createSession') : t('deckCard.addCardsFirst')
                   }
                 >
-                  <Play size={18} fill="currentColor" /> {t('deckCard.createSession')}
+                  <Play size={16} fill="currentColor" /> {t('deckCard.session')}
                 </button>
               </div>
             </div>
@@ -406,6 +453,7 @@ export const DeckList: React.FC<DeckListProps> = ({
         existingDeck={selectedDeckForGenerate}
         onAddDeck={onAddDeck}
         onEditDeck={onEditDeck}
+        onCardsAdded={handleCardsAdded}
         decks={decks}
       />
 

@@ -9,7 +9,7 @@ const router = Router();
 // ============================================
 router.post('/deck', authenticateToken, async (req: Request, res: Response) => {
   try {
-    const { format, data, title, subject, difficulty = 'A2' } = req.body;
+    const { format, data, title, subject, difficulty = 'A2', deckId } = req.body;
 
     if (!format || !data) {
       return res.status(400).json({
@@ -63,50 +63,95 @@ router.post('/deck', authenticateToken, async (req: Request, res: Response) => {
       });
     }
 
-    // Create deck with cards
+    // Create deck with cards OR add cards to existing deck
     const result = await withTransaction(async client => {
-      // Validate subject if provided - check if it exists in subjects table
-      let validSubjectId = null;
-      if (subject) {
-        const subjectCheck = await client.query('SELECT id FROM subjects WHERE id = $1', [subject]);
-        if (subjectCheck.rows.length > 0) {
-          validSubjectId = subject;
+      let deck: any;
+
+      if (deckId) {
+        // Add cards to existing deck
+        const existingDeck = await client.query(
+          'SELECT * FROM decks WHERE id = $1 AND owner_id = $2 AND deleted_at IS NULL',
+          [deckId, req.user!.id]
+        );
+
+        if (existingDeck.rows.length === 0) {
+          throw new Error('Deck-ul nu a fost găsit sau nu ai permisiunea de a-l modifica');
         }
-      }
 
-      const deckResult = await client.query(
-        `INSERT INTO decks (title, subject_id, topic, difficulty, is_public, owner_id)
-         VALUES ($1, $2, $3, $4, $5, $6)
-         RETURNING *`,
-        [
-          title || `Import ${new Date().toLocaleDateString('ro-RO')}`,
-          validSubjectId,
-          title,
-          difficulty,
-          true,
-          req.user!.id,
-        ]
-      );
+        deck = existingDeck.rows[0];
 
-      const deck = deckResult.rows[0];
+        // Get the current max position
+        const posResult = await client.query(
+          'SELECT COALESCE(MAX(position), -1) + 1 as next_pos FROM cards WHERE deck_id = $1 AND deleted_at IS NULL',
+          [deckId]
+        );
+        const startPosition = posResult.rows[0].next_pos;
 
-      for (let i = 0; i < cards.length; i++) {
-        const card = cards[i];
-        await client.query(
-          `INSERT INTO cards (deck_id, front, back, context, type, options, correct_option_index, created_by, position)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        for (let i = 0; i < cards.length; i++) {
+          const card = cards[i];
+          await client.query(
+            `INSERT INTO cards (deck_id, front, back, context, type, options, correct_option_index, created_by, position)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+            [
+              deckId,
+              card.front,
+              card.back,
+              card.context,
+              card.type || 'standard',
+              card.options || [],
+              card.correctOptionIndex,
+              req.user!.id,
+              startPosition + i,
+            ]
+          );
+        }
+      } else {
+        // Create new deck with cards
+        // Validate subject if provided - check if it exists in subjects table
+        let validSubjectId = null;
+        if (subject) {
+          const subjectCheck = await client.query('SELECT id FROM subjects WHERE id = $1', [
+            subject,
+          ]);
+          if (subjectCheck.rows.length > 0) {
+            validSubjectId = subject;
+          }
+        }
+
+        const deckResult = await client.query(
+          `INSERT INTO decks (title, subject_id, topic, difficulty, is_public, owner_id)
+           VALUES ($1, $2, $3, $4, $5, $6)
+           RETURNING *`,
           [
-            deck.id,
-            card.front,
-            card.back,
-            card.context,
-            card.type || 'standard',
-            card.options || [],
-            card.correctOptionIndex,
+            title || `Import ${new Date().toLocaleDateString('ro-RO')}`,
+            validSubjectId,
+            title,
+            difficulty,
+            true,
             req.user!.id,
-            i,
           ]
         );
+
+        deck = deckResult.rows[0];
+
+        for (let i = 0; i < cards.length; i++) {
+          const card = cards[i];
+          await client.query(
+            `INSERT INTO cards (deck_id, front, back, context, type, options, correct_option_index, created_by, position)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+            [
+              deck.id,
+              card.front,
+              card.back,
+              card.context,
+              card.type || 'standard',
+              card.options || [],
+              card.correctOptionIndex,
+              req.user!.id,
+              i,
+            ]
+          );
+        }
       }
 
       return deck;

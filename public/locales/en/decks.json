@@ -9,7 +9,10 @@
     "inStudy": "{{count}} in study",
     "mastered": "{{count}} mastered",
     "generate": "Generate",
+    "generateShort": "Generate AI",
+    "addCards": "Add",
     "createSession": "Create session",
+    "session": "Session",
     "addCardsFirst": "Add cards first"
   },
   "menu": {
@@ -33,6 +36,7 @@
   "modal": {
     "editDeck": "Edit Deck",
     "generateCards": "Generate Cards",
+    "addCards": "Add Cards",
     "newDeck": "New Deck",
     "subject": "Subject",
     "titleLabel": "Title / Topic",
@@ -43,6 +47,7 @@
     "cardsRecommendation": "Recommendation: 10-20 cards for efficient sessions",
     "cardsFromFile": "Number of cards will depend on the imported file",
     "creationMethod": "Creation Method",
+    "addMethod": "Add Method",
     "aiAuto": "AI Auto",
     "import": "Import",
     "manual": "Manual",
@@ -62,6 +67,7 @@
     "cancel": "Cancel",
     "save": "Save",
     "generateCardsBtn": "Generate Cards",
+    "addCardsBtn": "Add Cards",
     "createDeck": "Create Deck",
     "language": "Language",
     "extraContext": "Extra Context / Examples (Optional)",
@@ -121,7 +127,9 @@
     "exportError": "Error exporting cards",
     "importSuccess": "Imported {{count}} cards successfully",
     "importError": "Error importing cards",
-    "fileReadError": "Error reading file"
+    "fileReadError": "Error reading file",
+    "cardsAdded": "Added {{count}} cards successfully",
+    "openEditCards": "Opening card editor..."
   },
   "guestPrompt": {
     "createDeck": {
@@ -131,6 +139,10 @@
     "aiGeneration": {
       "title": "Premium Feature",
       "message": "AI card generation is only available for users with an account. Create a free account to unlock this feature!"
+    },
+    "addCards": {
+      "title": "Create a free account",
+      "message": "To add cards to decks, create a free account!"
     }
   }
 }
