@@ -128,6 +128,26 @@ export const generateDeckWithAI = async (
     - context: A clear, eloquent sentence using the concept from "front" to demonstrate its meaning.
     - type: One of: ${cardTypes.map(t => `"${t}"`).join(', ')}
 
+    CONTEXT RULES
+    The context is a HINT, not a spoiler.
+     ✅ **DO:**
+     - Provide clues that guide thinking
+     - Reference related concepts
+     - Use indirect descriptions
+
+    ❌ **DON'T:**
+    - Reveal the answer directly
+    - Use the exact term from the answer
+    - Make the hint too obvious
+
+    **Good example:**
+    - Front: "Câte sunete are cuvântul ""ochean""?"
+    - Back: "4"
+    - Context: "Grupul ""ch"" și grupul ""ea"" ascund cheia numărătorii." ✅
+
+    **Bad example:**
+    - Context: "Răspunsul este 4 sunete." ❌
+
     STRICT CONSTRAINT FOR QUESTIONS:
     - The "front" field (question) must NEVER exceed 100 characters with spaces
     - Keep questions concise and direct
