@@ -4,6 +4,7 @@ import { Difficulty, Card, DeckWithCards } from '../../../types';
 import { Plus, Upload, Sparkles, Loader2 } from 'lucide-react';
 import { generateDeckWithAI, importDeck } from '../../../api/decks';
 import { useToast } from '../../ui/Toast';
+import { getSubjectId } from '../../../constants/subjects';
 
 interface GenerateCardsModalProps {
   isOpen: boolean;
@@ -258,7 +259,7 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
             format,
             data: fileContent,
             title: title || undefined,
-            subject: subject || undefined,
+            subject: getSubjectId(subject),
             difficulty: difficulty || undefined,
           });
 
