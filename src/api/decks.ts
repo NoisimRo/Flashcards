@@ -92,8 +92,7 @@ export async function generateDeckWithAI(
       context: string;
       type: 'standard' | 'quiz' | 'type-answer' | 'multiple-answer';
       options?: string[];
-      correctOptionIndex?: number;
-      correctOptionIndices?: number[];
+      correctOptionIndices?: number[]; // For quiz (single) and multiple-answer (multiple)
     }>
   >('/decks/generate', {
     subject,

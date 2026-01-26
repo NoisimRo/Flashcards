@@ -8,8 +8,7 @@ export interface CreateCardRequest {
   context?: string;
   type: 'standard' | 'type-answer' | 'quiz' | 'multiple-answer';
   options?: string[];
-  correctOptionIndex?: number;
-  correctOptionIndices?: number[];
+  correctOptionIndices?: number[]; // For quiz (single) and multiple-answer (multiple)
 }
 
 export interface UpdateCardRequest {
@@ -18,8 +17,7 @@ export interface UpdateCardRequest {
   context?: string;
   type?: 'standard' | 'type-answer' | 'quiz' | 'multiple-answer';
   options?: string[];
-  correctOptionIndex?: number;
-  correctOptionIndices?: number[];
+  correctOptionIndices?: number[]; // For quiz (single) and multiple-answer (multiple)
 }
 
 export interface CardResponse {
@@ -31,8 +29,7 @@ export interface CardResponse {
   hint?: string;
   type: 'standard' | 'type-answer' | 'quiz' | 'multiple-answer';
   options?: string[];
-  correctOptionIndex?: number;
-  correctOptionIndices?: number[];
+  correctOptionIndices?: number[]; // For quiz (single) and multiple-answer (multiple)
   flagCount?: number;
   position: number;
   createdAt: string;

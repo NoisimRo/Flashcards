@@ -25,9 +25,9 @@ router.post('/deck', authenticateToken, async (req: Request, res: Response) => {
       front: string;
       back: string;
       context?: string;
-      type?: 'standard' | 'quiz' | 'type-answer';
+      type?: 'standard' | 'quiz' | 'type-answer' | 'multiple-answer';
       options?: string[];
-      correctOptionIndex?: number;
+      correctOptionIndices?: number[];
     }[] = [];
 
     switch (format.toLowerCase()) {
@@ -90,7 +90,7 @@ router.post('/deck', authenticateToken, async (req: Request, res: Response) => {
         for (let i = 0; i < cards.length; i++) {
           const card = cards[i];
           await client.query(
-            `INSERT INTO cards (deck_id, front, back, context, type, options, correct_option_index, created_by, position)
+            `INSERT INTO cards (deck_id, front, back, context, type, options, correct_option_indices, created_by, position)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
             [
               deckId,
@@ -99,7 +99,7 @@ router.post('/deck', authenticateToken, async (req: Request, res: Response) => {
               card.context,
               card.type || 'standard',
               card.options || [],
-              card.correctOptionIndex,
+              card.correctOptionIndices || null,
               req.user!.id,
               startPosition + i,
             ]
@@ -137,7 +137,7 @@ router.post('/deck', authenticateToken, async (req: Request, res: Response) => {
         for (let i = 0; i < cards.length; i++) {
           const card = cards[i];
           await client.query(
-            `INSERT INTO cards (deck_id, front, back, context, type, options, correct_option_index, created_by, position)
+            `INSERT INTO cards (deck_id, front, back, context, type, options, correct_option_indices, created_by, position)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
             [
               deck.id,
@@ -146,7 +146,7 @@ router.post('/deck', authenticateToken, async (req: Request, res: Response) => {
               card.context,
               card.type || 'standard',
               card.options || [],
-              card.correctOptionIndex,
+              card.correctOptionIndices || null,
               req.user!.id,
               i,
             ]
@@ -286,23 +286,42 @@ function parseJSON(data: string): {
   front: string;
   back: string;
   context?: string;
-  type?: 'standard' | 'quiz' | 'type-answer';
+  type?: 'standard' | 'quiz' | 'type-answer' | 'multiple-answer';
   options?: string[];
-  correctOptionIndex?: number;
+  correctOptionIndices?: number[];
 }[] {
   try {
     const parsed = JSON.parse(data);
     const cards = Array.isArray(parsed) ? parsed : parsed.cards || [];
     return cards
       .filter((c: any) => c.front && c.back)
-      .map((c: any) => ({
-        front: String(c.front).trim(),
-        back: String(c.back).trim(),
-        context: c.context ? String(c.context).trim() : undefined,
-        type: ['standard', 'quiz', 'type-answer'].includes(c.type) ? c.type : 'standard',
-        options: c.type === 'quiz' && Array.isArray(c.options) ? c.options : undefined,
-        correctOptionIndex: c.type === 'quiz' ? c.correctOptionIndex : undefined,
-      }));
+      .map((c: any) => {
+        const validTypes = ['standard', 'quiz', 'type-answer', 'multiple-answer'];
+        const cardType = validTypes.includes(c.type) ? c.type : 'standard';
+
+        // Handle correctOptionIndices - support both old (correctOptionIndex) and new format
+        let correctOptionIndices: number[] | undefined;
+        if ((cardType === 'quiz' || cardType === 'multiple-answer') && Array.isArray(c.options)) {
+          if (Array.isArray(c.correctOptionIndices)) {
+            correctOptionIndices = c.correctOptionIndices;
+          } else if (typeof c.correctOptionIndex === 'number') {
+            // Convert old format to new
+            correctOptionIndices = [c.correctOptionIndex];
+          }
+        }
+
+        return {
+          front: String(c.front).trim(),
+          back: String(c.back).trim(),
+          context: c.context ? String(c.context).trim() : undefined,
+          type: cardType,
+          options:
+            (cardType === 'quiz' || cardType === 'multiple-answer') && Array.isArray(c.options)
+              ? c.options
+              : undefined,
+          correctOptionIndices,
+        };
+      });
   } catch {
     return [];
   }
@@ -312,18 +331,18 @@ function parseCSV(data: string): {
   front: string;
   back: string;
   context?: string;
-  type?: 'standard' | 'quiz' | 'type-answer';
+  type?: 'standard' | 'quiz' | 'type-answer' | 'multiple-answer';
   options?: string[];
-  correctOptionIndex?: number;
+  correctOptionIndices?: number[];
 }[] {
   const lines = data.split('\n').filter(line => line.trim());
   const cards: {
     front: string;
     back: string;
     context?: string;
-    type?: 'standard' | 'quiz' | 'type-answer';
+    type?: 'standard' | 'quiz' | 'type-answer' | 'multiple-answer';
     options?: string[];
-    correctOptionIndex?: number;
+    correctOptionIndices?: number[];
   }[] = [];
 
   // Skip header if present
@@ -332,24 +351,33 @@ function parseCSV(data: string): {
   for (let i = startIndex; i < lines.length; i++) {
     const parts = parseCSVLine(lines[i]);
     if (parts.length >= 2 && parts[0] && parts[1]) {
-      const cardType = parts[3]?.trim() as 'standard' | 'quiz' | 'type-answer';
-      const validType = ['standard', 'quiz', 'type-answer'].includes(cardType)
+      const cardType = parts[3]?.trim() as 'standard' | 'quiz' | 'type-answer' | 'multiple-answer';
+      const validType = ['standard', 'quiz', 'type-answer', 'multiple-answer'].includes(cardType)
         ? cardType
         : 'standard';
 
-      // Parse options (pipe-separated) and correct index for quiz cards
+      // Parse options (pipe-separated) and correct indices for quiz/multiple-answer cards
       let options: string[] | undefined;
-      let correctOptionIndex: number | undefined;
+      let correctOptionIndices: number[] | undefined;
 
-      if (validType === 'quiz' && parts[4]) {
+      if ((validType === 'quiz' || validType === 'multiple-answer') && parts[4]) {
         options = parts[4]
           .split('|')
           .map(o => o.trim())
           .filter(o => o);
         if (parts[5]) {
-          const idx = parseInt(parts[5].trim(), 10);
-          if (!isNaN(idx)) {
-            correctOptionIndex = idx;
+          // Support both single index and comma-separated indices
+          const indicesStr = parts[5].trim();
+          if (indicesStr.includes(',')) {
+            correctOptionIndices = indicesStr
+              .split(',')
+              .map(s => parseInt(s.trim(), 10))
+              .filter(n => !isNaN(n));
+          } else {
+            const idx = parseInt(indicesStr, 10);
+            if (!isNaN(idx)) {
+              correctOptionIndices = [idx];
+            }
           }
         }
       }
@@ -360,7 +388,7 @@ function parseCSV(data: string): {
         context: parts[2]?.trim() || undefined,
         type: validType,
         options,
-        correctOptionIndex,
+        correctOptionIndices,
       });
     }
   }
@@ -399,18 +427,18 @@ function parseTXT(data: string): {
   front: string;
   back: string;
   context?: string;
-  type?: 'standard' | 'quiz' | 'type-answer';
+  type?: 'standard' | 'quiz' | 'type-answer' | 'multiple-answer';
   options?: string[];
-  correctOptionIndex?: number;
+  correctOptionIndices?: number[];
 }[] {
   const lines = data.split('\n').filter(line => line.trim());
   const cards: {
     front: string;
     back: string;
     context?: string;
-    type?: 'standard' | 'quiz' | 'type-answer';
+    type?: 'standard' | 'quiz' | 'type-answer' | 'multiple-answer';
     options?: string[];
-    correctOptionIndex?: number;
+    correctOptionIndices?: number[];
   }[] = [];
 
   for (const line of lines) {
@@ -428,24 +456,33 @@ function parseTXT(data: string): {
     }
 
     if (parts.length >= 2 && parts[0] && parts[1]) {
-      const cardType = parts[3]?.trim() as 'standard' | 'quiz' | 'type-answer';
-      const validType = ['standard', 'quiz', 'type-answer'].includes(cardType)
+      const cardType = parts[3]?.trim() as 'standard' | 'quiz' | 'type-answer' | 'multiple-answer';
+      const validType = ['standard', 'quiz', 'type-answer', 'multiple-answer'].includes(cardType)
         ? cardType
         : 'standard';
 
-      // Parse options (pipe-separated) and correct index for quiz cards
+      // Parse options (pipe-separated) and correct indices for quiz/multiple-answer cards
       let options: string[] | undefined;
-      let correctOptionIndex: number | undefined;
+      let correctOptionIndices: number[] | undefined;
 
-      if (validType === 'quiz' && parts[4]) {
+      if ((validType === 'quiz' || validType === 'multiple-answer') && parts[4]) {
         options = parts[4]
           .split('|')
           .map(o => o.trim())
           .filter(o => o);
         if (parts[5]) {
-          const idx = parseInt(parts[5].trim(), 10);
-          if (!isNaN(idx)) {
-            correctOptionIndex = idx;
+          // Support both single index and comma-separated indices
+          const indicesStr = parts[5].trim();
+          if (indicesStr.includes(',')) {
+            correctOptionIndices = indicesStr
+              .split(',')
+              .map(s => parseInt(s.trim(), 10))
+              .filter(n => !isNaN(n));
+          } else {
+            const idx = parseInt(indicesStr, 10);
+            if (!isNaN(idx)) {
+              correctOptionIndices = [idx];
+            }
           }
         }
       }
@@ -456,7 +493,7 @@ function parseTXT(data: string): {
         context: parts[2]?.trim() || undefined,
         type: validType,
         options,
-        correctOptionIndex,
+        correctOptionIndices,
       });
     }
   }
@@ -468,9 +505,9 @@ function parseAnki(data: string): {
   front: string;
   back: string;
   context?: string;
-  type?: 'standard' | 'quiz' | 'type-answer';
+  type?: 'standard' | 'quiz' | 'type-answer' | 'multiple-answer';
   options?: string[];
-  correctOptionIndex?: number;
+  correctOptionIndices?: number[];
 }[] {
   // Anki export format is typically tab-separated
   return parseTXT(data);
@@ -491,9 +528,9 @@ function exportToJSON(deck: any, cards: any[], includeProgress: boolean): string
       back: c.back,
       context: c.context,
       type: c.type || 'standard',
-      ...(c.type === 'quiz' && {
+      ...((c.type === 'quiz' || c.type === 'multiple-answer') && {
         options: c.options || [],
-        correctOptionIndex: c.correct_option_index,
+        correctOptionIndices: c.correct_option_indices,
       }),
       ...(includeProgress && {
         status: c.status,

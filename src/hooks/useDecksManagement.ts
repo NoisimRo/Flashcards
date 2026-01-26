@@ -41,7 +41,6 @@ export function useDecksManagement() {
             context: c.context,
             type: c.type,
             options: c.options,
-            correctOptionIndex: c.correctOptionIndex,
             correctOptionIndices: c.correctOptionIndices,
           })),
         });
@@ -84,7 +83,6 @@ export function useDecksManagement() {
                 context: card.context,
                 type: card.type,
                 options: card.options,
-                correctOptionIndex: card.correctOptionIndex,
                 correctOptionIndices: card.correctOptionIndices,
               });
             } catch (cardError) {

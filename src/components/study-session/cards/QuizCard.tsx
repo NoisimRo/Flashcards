@@ -71,7 +71,7 @@ export const QuizCard: React.FC<QuizCardProps> = ({
     setQuizOption(index);
 
     // Instant feedback - check if answer is correct immediately
-    const correct = index === card.correctOptionIndex;
+    const correct = index === card.correctOptionIndices?.[0];
     setIsCorrect(correct);
     setHasAnswered(true);
 
@@ -160,7 +160,7 @@ export const QuizCard: React.FC<QuizCardProps> = ({
           <div className="flex flex-col gap-3">
             {card.options?.map((option, index) => {
               const isSelected = selectedQuizOption === index;
-              const isCorrectOption = index === card.correctOptionIndex;
+              const isCorrectOption = index === card.correctOptionIndices?.[0];
               const showCorrect = showResult && isCorrectOption;
               const showIncorrect = showResult && isSelected && !isCorrectOption;
 
