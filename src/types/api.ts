@@ -143,8 +143,7 @@ export interface CreateCardRequest {
   hint?: string;
   type?: 'standard' | 'quiz' | 'type-answer' | 'multiple-answer';
   options?: string[];
-  correctOptionIndex?: number;
-  correctOptionIndices?: number[];
+  correctOptionIndices?: number[]; // For quiz (single) and multiple-answer (multiple)
 }
 
 export interface UpdateCardRequest {
@@ -154,8 +153,7 @@ export interface UpdateCardRequest {
   hint?: string;
   type?: 'standard' | 'quiz' | 'type-answer' | 'multiple-answer';
   options?: string[];
-  correctOptionIndex?: number;
-  correctOptionIndices?: number[];
+  correctOptionIndices?: number[]; // For quiz (single) and multiple-answer (multiple)
 }
 
 export interface CardReviewRequest {

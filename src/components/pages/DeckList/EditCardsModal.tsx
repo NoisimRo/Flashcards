@@ -42,7 +42,7 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
     setEditCardType(card.type);
     if (card.type === 'quiz' && card.options && card.options.length > 0) {
       setEditCardOptions([...card.options]);
-      setEditCardCorrectIndex(card.correctOptionIndex || 0);
+      setEditCardCorrectIndex(card.correctOptionIndices?.[0] || 0);
       setEditCardCorrectIndices([]);
     } else if (card.type === 'multiple-answer' && card.options && card.options.length > 0) {
       setEditCardOptions([...card.options]);
@@ -77,7 +77,7 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
       // Add quiz-specific fields if needed
       if (editCardType === 'quiz') {
         updateData.options = editCardOptions.filter(opt => opt.trim() !== '');
-        updateData.correctOptionIndex = editCardCorrectIndex;
+        updateData.correctOptionIndices = [editCardCorrectIndex]; // Single index in array
       } else if (editCardType === 'multiple-answer') {
         updateData.options = editCardOptions.filter(opt => opt.trim() !== '');
         updateData.correctOptionIndices = editCardCorrectIndices;
@@ -99,9 +99,12 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
                   editCardType === 'quiz' || editCardType === 'multiple-answer'
                     ? editCardOptions
                     : undefined,
-                correctOptionIndex: editCardType === 'quiz' ? editCardCorrectIndex : undefined,
                 correctOptionIndices:
-                  editCardType === 'multiple-answer' ? editCardCorrectIndices : undefined,
+                  editCardType === 'quiz'
+                    ? [editCardCorrectIndex]
+                    : editCardType === 'multiple-answer'
+                      ? editCardCorrectIndices
+                      : undefined,
               }
             : card
         );

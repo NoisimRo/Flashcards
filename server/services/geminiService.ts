@@ -7,8 +7,7 @@ interface GeneratedCard {
   context: string;
   type: 'standard' | 'quiz' | 'type-answer' | 'multiple-answer';
   options?: string[];
-  correctOptionIndex?: number;
-  correctOptionIndices?: number[];
+  correctOptionIndices?: number[]; // For quiz (single) and multiple-answer (multiple)
 }
 
 export const generateDeckWithAI = async (
@@ -43,7 +42,7 @@ export const generateDeckWithAI = async (
             `Răspuns Greșit ${i}B`,
             `Răspuns Greșit ${i}C`,
           ],
-          correctOptionIndex: 0,
+          correctOptionIndices: [0],
         });
       } else if (cardType === 'multiple-answer') {
         mockCards.push({
@@ -89,7 +88,7 @@ export const generateDeckWithAI = async (
   }
   if (cardTypes.includes('quiz')) {
     cardTypeDescriptions.push(
-      `- "quiz": Multiple choice question with 4 options and correctOptionIndex (0-3)`
+      `- "quiz": Multiple choice question with 4 options and correctOptionIndices array with single element (e.g., [2] if option 3 is correct)`
     );
   }
   if (cardTypes.includes('type-answer')) {
@@ -175,7 +174,7 @@ export const generateDeckWithAI = async (
 
     Type-specific requirements:
     - For "quiz" cards:
-      * Include "options" (array of 4 answers) and "correctOptionIndex" (0-3)
+      * Include "options" (array of 4 answers) and "correctOptionIndices" (array with single index, e.g., [2] for option 3)
       * When contextually relevant, generate these quiz sub-types:
         - Cloze Deletion (Fill-in-the-blanks): Sentences with hidden key terms using context to help recall. the hidden term is replaced with ____
         - True/False: Rapid-fire statements for quick conceptual validation
@@ -212,7 +211,6 @@ export const generateDeckWithAI = async (
                 items: { type: Type.STRING },
                 nullable: true,
               },
-              correctOptionIndex: { type: Type.NUMBER, nullable: true },
               correctOptionIndices: {
                 type: Type.ARRAY,
                 items: { type: Type.NUMBER },
@@ -242,16 +240,16 @@ export const generateDeckWithAI = async (
         type: cardType,
       };
 
-      // Add quiz-specific fields if it's a quiz card
+      // Add quiz-specific fields if it's a quiz card (single correct answer in array)
       if (cardType === 'quiz' && c.options && Array.isArray(c.options)) {
         return {
           ...baseCard,
           options: c.options,
-          correctOptionIndex: c.correctOptionIndex ?? 0,
+          correctOptionIndices: c.correctOptionIndices ?? [0],
         };
       }
 
-      // Add multiple-answer-specific fields
+      // Add multiple-answer-specific fields (multiple correct answers in array)
       if (cardType === 'multiple-answer' && c.options && Array.isArray(c.options)) {
         return {
           ...baseCard,
