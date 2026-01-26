@@ -6,18 +6,20 @@ export interface CreateCardRequest {
   front: string;
   back: string;
   context?: string;
-  type: 'standard' | 'type-answer' | 'quiz';
+  type: 'standard' | 'type-answer' | 'quiz' | 'multiple-answer';
   options?: string[];
   correctOptionIndex?: number;
+  correctOptionIndices?: number[];
 }
 
 export interface UpdateCardRequest {
   front?: string;
   back?: string;
   context?: string;
-  type?: 'standard' | 'type-answer' | 'quiz';
+  type?: 'standard' | 'type-answer' | 'quiz' | 'multiple-answer';
   options?: string[];
   correctOptionIndex?: number;
+  correctOptionIndices?: number[];
 }
 
 export interface CardResponse {
@@ -27,9 +29,10 @@ export interface CardResponse {
   back: string;
   context?: string;
   hint?: string;
-  type: 'standard' | 'type-answer' | 'quiz';
+  type: 'standard' | 'type-answer' | 'quiz' | 'multiple-answer';
   options?: string[];
   correctOptionIndex?: number;
+  correctOptionIndices?: number[];
   flagCount?: number;
   position: number;
   createdAt: string;

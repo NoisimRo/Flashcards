@@ -25,6 +25,7 @@ interface StudySessionsStore {
   isCardFlipped: boolean;
   hintRevealed: boolean;
   selectedQuizOption: number | null;
+  selectedMultipleOptions: number[]; // For multiple-answer cards
   frontAction: 'know' | 'show' | null; // Track what user clicked on Standard card front
   isDirty: boolean;
   sessionStartTime: number;
@@ -65,6 +66,8 @@ interface StudySessionsStore {
   syncProgress: () => Promise<void>;
   getCurrentCard: () => any | null;
   setQuizOption: (option: number | null) => void;
+  toggleMultipleOption: (index: number) => void;
+  clearMultipleOptions: () => void;
   revealHint: () => void;
   resetSessionState: () => void;
 }
@@ -129,6 +132,7 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
   isCardFlipped: false,
   hintRevealed: false,
   selectedQuizOption: null,
+  selectedMultipleOptions: [],
   frontAction: null,
   isDirty: false,
   sessionStartTime: Date.now(),
@@ -203,6 +207,7 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
           isCardFlipped: false,
           hintRevealed: false,
           selectedQuizOption: null,
+          selectedMultipleOptions: [],
           isDirty: false,
           sessionStartTime: Date.now(),
           baselineDuration: session.durationSeconds || 0,
@@ -332,6 +337,7 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
           isCardFlipped: false,
           hintRevealed: false,
           selectedQuizOption: null,
+          selectedMultipleOptions: [],
           isDirty: false,
           sessionStartTime: Date.now(),
           baselineDuration: session.durationSeconds || 0,
@@ -380,6 +386,7 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
           isCardFlipped: false,
           hintRevealed: false,
           selectedQuizOption: null,
+          selectedMultipleOptions: [],
           isDirty: false,
           sessionStartTime: Date.now(),
           baselineDuration: session.durationSeconds || 0,
@@ -481,6 +488,7 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
       isCardFlipped: false,
       hintRevealed: false,
       selectedQuizOption: null,
+      selectedMultipleOptions: [],
       frontAction: null, // Reset front action for next card
       currentCardStartTime: Date.now(), // Start timing the next card
       perCardTimes,
@@ -508,6 +516,7 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
       isCardFlipped: false,
       hintRevealed: false,
       selectedQuizOption: null,
+      selectedMultipleOptions: [],
       frontAction: null,
       currentCardStartTime: Date.now(), // Start timing the previous card
       perCardTimes,
@@ -539,6 +548,7 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
       isCardFlipped: false,
       hintRevealed: false,
       selectedQuizOption: null,
+      selectedMultipleOptions: [],
       frontAction: null,
       currentCardStartTime: Date.now(), // Start timing first card after shuffle
       perCardTimes: {}, // Reset per-card times for shuffled deck
@@ -562,6 +572,7 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
       isCardFlipped: false,
       hintRevealed: false,
       selectedQuizOption: null,
+      selectedMultipleOptions: [],
       frontAction: null,
       currentCardStartTime: Date.now(), // Start timing first card
       perCardTimes: {}, // Reset per-card times for restart
@@ -574,6 +585,23 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
   // Set quiz option
   setQuizOption: (option: number | null) => {
     set({ selectedQuizOption: option });
+  },
+
+  // Toggle multiple option selection (for multiple-answer cards)
+  toggleMultipleOption: (index: number) => {
+    set(state => {
+      const current = state.selectedMultipleOptions;
+      if (current.includes(index)) {
+        return { selectedMultipleOptions: current.filter(i => i !== index) };
+      } else {
+        return { selectedMultipleOptions: [...current, index] };
+      }
+    });
+  },
+
+  // Clear all multiple options
+  clearMultipleOptions: () => {
+    set({ selectedMultipleOptions: [] });
   },
 
   // Set front action for Standard cards
@@ -666,6 +694,7 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
       isCardFlipped: false,
       hintRevealed: false,
       selectedQuizOption: null,
+      selectedMultipleOptions: [],
       frontAction: null,
       isDirty: false,
       sessionStartTime: Date.now(),
