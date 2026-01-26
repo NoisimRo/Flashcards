@@ -81,7 +81,7 @@ export async function generateDeckWithAI(
   topic: string,
   difficulty: string,
   numberOfCards: number = 10,
-  cardTypes?: Array<'standard' | 'quiz' | 'type-answer'>,
+  cardTypes?: Array<'standard' | 'quiz' | 'type-answer' | 'multiple-answer'>,
   language?: string,
   extraContext?: string
 ) {
@@ -90,9 +90,10 @@ export async function generateDeckWithAI(
       front: string;
       back: string;
       context: string;
-      type: 'standard' | 'quiz' | 'type-answer';
+      type: 'standard' | 'quiz' | 'type-answer' | 'multiple-answer';
       options?: string[];
       correctOptionIndex?: number;
+      correctOptionIndices?: number[];
     }>
   >('/decks/generate', {
     subject,

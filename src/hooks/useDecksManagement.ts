@@ -42,6 +42,7 @@ export function useDecksManagement() {
             type: c.type,
             options: c.options,
             correctOptionIndex: c.correctOptionIndex,
+            correctOptionIndices: c.correctOptionIndices,
           })),
         });
 
@@ -84,6 +85,7 @@ export function useDecksManagement() {
                 type: card.type,
                 options: card.options,
                 correctOptionIndex: card.correctOptionIndex,
+                correctOptionIndices: card.correctOptionIndices,
               });
             } catch (cardError) {
               console.error('Error adding card:', cardError);
