@@ -62,21 +62,45 @@ export const MultipleAnswerCard: React.FC<MultipleAnswerCardProps> = ({
 
   const [hasAnswered, setHasAnswered] = React.useState(hasAnsweredProp);
   const [isCorrect, setIsCorrect] = React.useState<boolean | null>(null);
+  const [showBack, setShowBack] = React.useState(false);
 
   // Reset local state when card changes
   React.useEffect(() => {
     setHasAnswered(false);
     setIsCorrect(null);
+    setShowBack(false);
     clearMultipleOptions();
   }, [card.id, clearMultipleOptions]);
 
   const cardAnswer = answers[card.id];
   const isAnswered = hasAnswered;
   const showResult = isAnswered;
-  const correctIndices = card.correctOptionIndices || [];
+
+  // Parse correctOptionIndices - handle both array and potential string formats
+  const correctIndices = React.useMemo(() => {
+    if (Array.isArray(card.correctOptionIndices)) {
+      return card.correctOptionIndices;
+    }
+    // Fallback: if it's a string like "[0,2]", try to parse it
+    if (typeof card.correctOptionIndices === 'string') {
+      try {
+        const parsed = JSON.parse(card.correctOptionIndices);
+        if (Array.isArray(parsed)) return parsed;
+      } catch {
+        // Ignore parse errors
+      }
+    }
+    return [];
+  }, [card.correctOptionIndices]);
 
   // Check if user's selection is correct (all-or-nothing)
   const checkAnswer = (): boolean => {
+    // If no correct indices defined, consider any selection as incorrect
+    if (correctIndices.length === 0) {
+      console.warn('MultipleAnswerCard: No correctOptionIndices defined for card', card.id);
+      return false;
+    }
+
     const sortedSelected = [...selectedMultipleOptions].sort((a, b) => a - b);
     const sortedCorrect = [...correctIndices].sort((a, b) => a - b);
 
@@ -101,11 +125,16 @@ export const MultipleAnswerCard: React.FC<MultipleAnswerCardProps> = ({
       onAnswer(correct);
     }, 100);
 
-    // Auto-advance after 3 seconds
+    // Show back explanation after 3 seconds
+    setTimeout(() => {
+      setShowBack(true);
+    }, 3000);
+
+    // Auto-advance after 6 seconds (3s feedback + 3s for reading back)
     if (onAutoAdvance) {
       setTimeout(() => {
         onAutoAdvance();
-      }, 3000);
+      }, 6000);
     }
   };
 
@@ -171,12 +200,9 @@ export const MultipleAnswerCard: React.FC<MultipleAnswerCardProps> = ({
         )}
 
         {/* Content Area */}
-        <div className="p-8 pb-32 flex-1 overflow-y-auto">
-          {/* Question Header */}
+        <div className="p-8 pb-24 flex-1 overflow-y-auto">
+          {/* Question */}
           <div className="mb-8">
-            <div className="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wide text-center">
-              Selectează Toate Răspunsurile Corecte
-            </div>
             <h2 className="text-2xl font-bold text-gray-900 text-center">{card.front}</h2>
           </div>
 
@@ -185,7 +211,7 @@ export const MultipleAnswerCard: React.FC<MultipleAnswerCardProps> = ({
             {card.options?.map((option, index) => {
               const isSelected = selectedMultipleOptions.includes(index);
               const isCorrectOption = correctIndices.includes(index);
-              const showCorrect = showResult && isCorrectOption && isSelected;
+              const showCorrectHighlight = showResult && isCorrectOption;
               const showIncorrect = showResult && isSelected && !isCorrectOption;
               const showMissed = showResult && isCorrectOption && !isSelected;
 
@@ -195,15 +221,13 @@ export const MultipleAnswerCard: React.FC<MultipleAnswerCardProps> = ({
                   onClick={() => handleOptionToggle(index)}
                   disabled={isAnswered}
                   className={`w-full text-left p-4 rounded-xl border-2 transition-all font-medium ${
-                    showCorrect
+                    showCorrectHighlight
                       ? 'border-green-500 bg-green-50 text-green-900'
                       : showIncorrect
                         ? 'border-red-500 bg-red-50 text-red-900'
-                        : showMissed
-                          ? 'border-orange-500 bg-orange-50 text-orange-900'
-                          : isSelected
-                            ? 'border-indigo-600 bg-indigo-50 text-indigo-900'
-                            : 'border-gray-200 hover:border-indigo-300 hover:bg-gray-50 text-gray-900'
+                        : isSelected
+                          ? 'border-indigo-600 bg-indigo-50 text-indigo-900'
+                          : 'border-gray-200 hover:border-indigo-300 hover:bg-gray-50 text-gray-900'
                   } ${isAnswered ? 'cursor-not-allowed' : 'cursor-pointer active:scale-98'}`}
                 >
                   <div className="flex items-center justify-between">
@@ -212,7 +236,7 @@ export const MultipleAnswerCard: React.FC<MultipleAnswerCardProps> = ({
                         <CheckSquare
                           size={20}
                           className={
-                            showCorrect
+                            showCorrectHighlight
                               ? 'text-green-600'
                               : showIncorrect
                                 ? 'text-red-600'
@@ -222,33 +246,21 @@ export const MultipleAnswerCard: React.FC<MultipleAnswerCardProps> = ({
                       ) : (
                         <Square
                           size={20}
-                          className={showMissed ? 'text-orange-600' : 'text-gray-400'}
+                          className={showMissed ? 'text-green-600' : 'text-gray-400'}
                         />
                       )}
                       <span>{option}</span>
                     </div>
-                    {showCorrect && <Check size={20} className="text-green-600" />}
+                    {showCorrectHighlight && <Check size={20} className="text-green-600" />}
                     {showIncorrect && <X size={20} className="text-red-600" />}
                     {showMissed && (
-                      <span className="text-xs text-orange-600 font-semibold">Ratat</span>
+                      <span className="text-xs text-green-600 font-semibold">Corect</span>
                     )}
                   </div>
                 </button>
               );
             })}
           </div>
-
-          {/* Answer Button - appears when at least one option is selected */}
-          {!isAnswered && selectedMultipleOptions.length > 0 && (
-            <div className="mt-6 flex justify-center">
-              <button
-                onClick={handleSubmitAnswer}
-                className="px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all active:scale-95 shadow-lg"
-              >
-                Răspunde
-              </button>
-            </div>
-          )}
 
           {/* Result Feedback */}
           {showResult && (
@@ -259,7 +271,17 @@ export const MultipleAnswerCard: React.FC<MultipleAnswerCardProps> = ({
             >
               {isCorrect
                 ? 'Excelent! Ai selectat toate răspunsurile corecte!'
-                : 'Incorect. Verifică răspunsurile corecte marcate cu verde.'}
+                : 'Incorect. Răspunsurile corecte sunt marcate cu verde.'}
+            </div>
+          )}
+
+          {/* Back Explanation - shown 3 seconds after answering */}
+          {showBack && card.back && (
+            <div className="mt-4 p-4 rounded-xl bg-indigo-50 border-2 border-indigo-200">
+              <div className="text-sm font-semibold text-indigo-600 mb-2 uppercase tracking-wide">
+                Explicație
+              </div>
+              <p className="text-gray-800 font-medium">{card.back}</p>
             </div>
           )}
         </div>
@@ -281,8 +303,18 @@ export const MultipleAnswerCard: React.FC<MultipleAnswerCardProps> = ({
               <ChevronLeft size={20} />
             </button>
 
-            {/* Spacer */}
-            <div className="flex-1"></div>
+            {/* Center: Răspunde button (when not answered and options selected) */}
+            {!isAnswered && selectedMultipleOptions.length > 0 && (
+              <button
+                onClick={handleSubmitAnswer}
+                className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 transition-all active:scale-95 shadow-lg"
+              >
+                Răspunde
+              </button>
+            )}
+
+            {/* Spacer when no center button */}
+            {(isAnswered || selectedMultipleOptions.length === 0) && <div className="flex-1"></div>}
 
             {/* Right: Next, Finish, or Skip Button */}
             {isAnswered ? (

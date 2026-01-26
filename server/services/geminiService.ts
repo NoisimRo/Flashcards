@@ -94,7 +94,7 @@ export const generateDeckWithAI = async (
   }
   if (cardTypes.includes('type-answer')) {
     cardTypeDescriptions.push(
-      `- "type-answer": Short answer question (suitable for 1-2 word answers like names, dates, or simple terms)`
+      `- "type-answer": Short answer question (suitable for 1-4 word answers like names, dates, or simple terms)`
     );
   }
   if (cardTypes.includes('multiple-answer')) {
@@ -163,15 +163,15 @@ export const generateDeckWithAI = async (
     **Good example:**
     - Front: "Câte sunete are cuvântul ""ochean""?"
     - Back: "4"
-    - Context: "Grupul ""ch"" și grupul ""ea"" ascund cheia numărătorii." ✅
+    - Context: "Grupul ""che"" + vocala ""e"" ascund cheia numărătorii." ✅
 
     **Bad example:**
     - Context: "Răspunsul este 4 sunete." ❌
 
-    STRICT CONSTRAINT FOR QUESTIONS:
-    - The "front" field (question) must NEVER exceed 100 characters with spaces
-    - Keep questions concise and direct
-    - This is a HARD LIMIT - questions longer than 100 characters are invalid
+    STRICT CONSTRAINT FOR QUESTIONS/OPTIONS:
+    - HARD LIMIT - The "front" field (question) must NEVER exceed 100 characters with spaces
+    - HARD LIMIT - The "back" field (standard/multiple answer) must NEVER exceed 150 characters with spaces
+    - HARD LIMIT - The "option" field (quiz/multiple answer) must NEVER exceed 8 words
 
     Type-specific requirements:
     - For "quiz" cards:
@@ -184,7 +184,7 @@ export const generateDeckWithAI = async (
       * Include "options" (array of 4 answers) and "correctOptionIndices" (array of indices, e.g., [0, 2])
       * At least 1 option must be correct, but 2, 3, or all 4 can also be correct
       * Use for questions where multiple facts/answers are valid (e.g., "Care sunt caracteristicile X?")
-    - For "type-answer" cards: Keep "back" short (1-2 words), no options needed
+    - For "type-answer" cards: Keep "back" short (1-4 words), no options needed
     - For "standard" cards: No options needed
 
     LANGUAGE REQUIREMENT:
