@@ -93,7 +93,7 @@ export const generateDeckWithAI = async (
   }
   if (cardTypes.includes('type-answer')) {
     cardTypeDescriptions.push(
-      `- "type-answer": Short answer question (suitable for 1-4 word answers like names, dates, or simple terms)`
+      `- "type-answer": Short answer question (suitable for 1-4 word answers)`
     );
   }
   if (cardTypes.includes('multiple-answer')) {
@@ -143,7 +143,7 @@ export const generateDeckWithAI = async (
 
     For each card, return a JSON object with:
     - front: The question or word
-    - back: The definition, answer, or correct answer
+    - back: The definition, correct answer, explanation for correct answer
     - context: A hint that helps the user to discover the correct answer. Use the concept from "front" but do not revele it directly. 
     - type: One of: ${cardTypes.map(t => `"${t}"`).join(', ')}
 
@@ -170,20 +170,20 @@ export const generateDeckWithAI = async (
     STRICT CONSTRAINT FOR QUESTIONS/OPTIONS:
     - HARD LIMIT - The "front" field (question) must NEVER exceed 100 characters with spaces
     - HARD LIMIT - The "back" field (standard/multiple answer) must NEVER exceed 150 characters with spaces
-    - HARD LIMIT - The "option" field (quiz/multiple answer) must NEVER exceed 8 words
+    - HARD LIMIT - The "option" field (quiz/multiple answer) must NEVER exceed 50 characters with spaces
 
     Type-specific requirements:
     - For "quiz" cards:
       * Include "options" (array of 4 answers) and "correctOptionIndices" (array with single index, e.g., [2] for option 3)
       * When contextually relevant, generate these quiz sub-types:
-        - Cloze Deletion (Fill-in-the-blanks): Sentences with hidden key terms using context to help recall. the hidden term is replaced with ____
         - True/False: Rapid-fire statements for quick conceptual validation
-      * Use standard multiple choice format when above sub-types don't fit
     - For "multiple-answer" cards:
       * Include "options" (array of 4 answers) and "correctOptionIndices" (array of indices, e.g., [0, 2])
       * At least 1 option must be correct, but 2, 3, or all 4 can also be correct
       * Use for questions where multiple facts/answers are valid (e.g., "Care sunt caracteristicile X?")
     - For "type-answer" cards: Keep "back" short (1-4 words), no options needed
+      * When contextually relevant, generate these quiz sub-types:
+        - Cloze Deletion (Fill-in-the-blanks): Sentences with hidden key terms using context to help recall. the hidden term is replaced with ____
     - For "standard" cards: No options needed
 
     LANGUAGE REQUIREMENT:
