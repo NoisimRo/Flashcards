@@ -168,10 +168,10 @@ export const generateDeckWithAI = async (
     **Bad example:**
     - Context: "Răspunsul este 4 sunete." ❌
 
-    STRICT CONSTRAINT FOR QUESTIONS:
-    - The "front" field (question) must NEVER exceed 100 characters with spaces
-    - Keep questions concise and direct
-    - This is a HARD LIMIT - questions longer than 100 characters are invalid
+    STRICT CONSTRAINT FOR QUESTIONS/OPTIONS:
+    - HARD LIMIT - The "front" field (question) must NEVER exceed 100 characters with spaces
+    - HARD LIMIT - The "back" field (standard/multiple answer) must NEVER exceed 150 characters with spaces
+    - HARD LIMIT - The "option" field (quiz/multiple answer) must NEVER exceed 8 words
 
     Type-specific requirements:
     - For "quiz" cards:
