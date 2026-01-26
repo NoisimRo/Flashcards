@@ -92,7 +92,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     if (answeredCards === totalCards && totalCards > 0 && !showCompletionModal) {
       setTimeout(() => {
         setShowCompletionModal(true);
-      }, 1500); // Increased delay to give user time to see last card answer
+      }, 6000); // 6 seconds delay to let user read feedback and explanation on last card
     }
   }, [answers, currentSession, showCompletionModal]);
 
