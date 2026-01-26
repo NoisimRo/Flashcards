@@ -42,8 +42,8 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
   const [importMode, setImportMode] = useState<'manual' | 'ai' | 'file'>('ai');
   const [numberOfCards, setNumberOfCards] = useState(10);
   const [selectedCardTypes, setSelectedCardTypes] = useState<
-    Array<'standard' | 'quiz' | 'type-answer'>
-  >(['standard', 'quiz', 'type-answer']);
+    Array<'standard' | 'quiz' | 'type-answer' | 'multiple-answer'>
+  >(['standard', 'quiz', 'type-answer', 'multiple-answer']);
   const [selectedLanguage, setSelectedLanguage] = useState('ro');
   const [extraContext, setExtraContext] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -88,7 +88,7 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
         setDifficulty(existingDeck.difficulty);
         setImportMode('ai');
         setNumberOfCards(10);
-        setSelectedCardTypes(['standard', 'quiz', 'type-answer']);
+        setSelectedCardTypes(['standard', 'quiz', 'type-answer', 'multiple-answer']);
       } else if (mode === 'addCards' && existingDeck) {
         // Add cards mode - use existing deck's settings
         setTitle(existingDeck.title || '');
@@ -96,14 +96,14 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
         setDifficulty(existingDeck.difficulty);
         setImportMode('ai'); // Default to AI, but allow file/manual
         setNumberOfCards(10);
-        setSelectedCardTypes(['standard', 'quiz', 'type-answer']);
+        setSelectedCardTypes(['standard', 'quiz', 'type-answer', 'multiple-answer']);
       } else {
         setTitle('');
         setSubject('Limba Română');
         setDifficulty('A2');
         setImportMode('ai');
         setNumberOfCards(10);
-        setSelectedCardTypes(['standard', 'quiz', 'type-answer']);
+        setSelectedCardTypes(['standard', 'quiz', 'type-answer', 'multiple-answer']);
       }
 
       // Default to current app language
@@ -115,7 +115,7 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
     }
   }, [isOpen, mode, existingDeck, i18n.language]);
 
-  const toggleCardType = (type: 'standard' | 'quiz' | 'type-answer') => {
+  const toggleCardType = (type: 'standard' | 'quiz' | 'type-answer' | 'multiple-answer') => {
     setSelectedCardTypes(prev => {
       if (prev.includes(type)) {
         // Don't allow deselecting if it's the last selected type
@@ -632,6 +632,21 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
                             {t('modal.typeAnswer')}
                           </span>
                           <p className="text-xs text-gray-600">{t('modal.typeAnswerDesc')}</p>
+                        </div>
+                      </label>
+
+                      <label className="flex items-center gap-3 cursor-pointer p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={selectedCardTypes.includes('multiple-answer')}
+                          onChange={() => toggleCardType('multiple-answer')}
+                          className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <div className="flex-1">
+                          <span className="font-semibold text-gray-900">
+                            {t('modal.multipleAnswer')}
+                          </span>
+                          <p className="text-xs text-gray-600">{t('modal.multipleAnswerDesc')}</p>
                         </div>
                       </label>
                     </div>

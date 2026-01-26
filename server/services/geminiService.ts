@@ -5,9 +5,10 @@ interface GeneratedCard {
   front: string;
   back: string;
   context: string;
-  type: 'standard' | 'quiz' | 'type-answer';
+  type: 'standard' | 'quiz' | 'type-answer' | 'multiple-answer';
   options?: string[];
   correctOptionIndex?: number;
+  correctOptionIndices?: number[];
 }
 
 export const generateDeckWithAI = async (
@@ -15,7 +16,7 @@ export const generateDeckWithAI = async (
   topic: string,
   difficulty: string,
   numberOfCards: number = 10,
-  cardTypes: Array<'standard' | 'quiz' | 'type-answer'> = ['standard', 'quiz'],
+  cardTypes: Array<'standard' | 'quiz' | 'type-answer' | 'multiple-answer'> = ['standard', 'quiz'],
   language: string = 'ro',
   extraContext?: string
 ): Promise<GeneratedCard[]> => {
@@ -43,6 +44,20 @@ export const generateDeckWithAI = async (
             `Răspuns Greșit ${i}C`,
           ],
           correctOptionIndex: 0,
+        });
+      } else if (cardType === 'multiple-answer') {
+        mockCards.push({
+          front: `Care sunt caracteristicile ${topic} ${i}?`,
+          back: `Răspunsuri corecte: A și C`,
+          context: `Context pentru Răspuns Multiplu ${i}.`,
+          type: 'multiple-answer',
+          options: [
+            `Răspuns Corect ${i}A`,
+            `Răspuns Greșit ${i}B`,
+            `Răspuns Corect ${i}C`,
+            `Răspuns Greșit ${i}D`,
+          ],
+          correctOptionIndices: [0, 2],
         });
       } else if (cardType === 'type-answer') {
         mockCards.push({
@@ -80,6 +95,11 @@ export const generateDeckWithAI = async (
   if (cardTypes.includes('type-answer')) {
     cardTypeDescriptions.push(
       `- "type-answer": Short answer question (suitable for 1-2 word answers like names, dates, or simple terms)`
+    );
+  }
+  if (cardTypes.includes('multiple-answer')) {
+    cardTypeDescriptions.push(
+      `- "multiple-answer": Multiple choice question with 4 options where 1-4 can be correct, uses correctOptionIndices array (e.g., [0, 2] if options 1 and 3 are correct)`
     );
   }
 
@@ -160,6 +180,10 @@ export const generateDeckWithAI = async (
         - Cloze Deletion (Fill-in-the-blanks): Sentences with hidden key terms using context to help recall. the hidden term is replaced with ____
         - True/False: Rapid-fire statements for quick conceptual validation
       * Use standard multiple choice format when above sub-types don't fit
+    - For "multiple-answer" cards:
+      * Include "options" (array of 4 answers) and "correctOptionIndices" (array of indices, e.g., [0, 2])
+      * At least 1 option must be correct, but 2, 3, or all 4 can also be correct
+      * Use for questions where multiple facts/answers are valid (e.g., "Care sunt caracteristicile X?")
     - For "type-answer" cards: Keep "back" short (1-2 words), no options needed
     - For "standard" cards: No options needed
 
@@ -189,6 +213,11 @@ export const generateDeckWithAI = async (
                 nullable: true,
               },
               correctOptionIndex: { type: Type.NUMBER, nullable: true },
+              correctOptionIndices: {
+                type: Type.ARRAY,
+                items: { type: Type.NUMBER },
+                nullable: true,
+              },
             },
           },
         },
@@ -201,9 +230,10 @@ export const generateDeckWithAI = async (
     const rawCards = JSON.parse(text);
     return rawCards.map((c: any) => {
       // Validate card type
-      let cardType: 'standard' | 'quiz' | 'type-answer' = 'standard';
+      let cardType: 'standard' | 'quiz' | 'type-answer' | 'multiple-answer' = 'standard';
       if (c.type === 'quiz') cardType = 'quiz';
       else if (c.type === 'type-answer') cardType = 'type-answer';
+      else if (c.type === 'multiple-answer') cardType = 'multiple-answer';
 
       const baseCard = {
         front: c.front,
@@ -218,6 +248,15 @@ export const generateDeckWithAI = async (
           ...baseCard,
           options: c.options,
           correctOptionIndex: c.correctOptionIndex ?? 0,
+        };
+      }
+
+      // Add multiple-answer-specific fields
+      if (cardType === 'multiple-answer' && c.options && Array.isArray(c.options)) {
+        return {
+          ...baseCard,
+          options: c.options,
+          correctOptionIndices: c.correctOptionIndices ?? [0],
         };
       }
 

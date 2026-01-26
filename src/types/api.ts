@@ -141,9 +141,10 @@ export interface CreateCardRequest {
   back: string;
   context?: string;
   hint?: string;
-  type?: 'standard' | 'quiz' | 'type-answer';
+  type?: 'standard' | 'quiz' | 'type-answer' | 'multiple-answer';
   options?: string[];
   correctOptionIndex?: number;
+  correctOptionIndices?: number[];
 }
 
 export interface UpdateCardRequest {
@@ -151,9 +152,10 @@ export interface UpdateCardRequest {
   back?: string;
   context?: string;
   hint?: string;
-  type?: string;
+  type?: 'standard' | 'quiz' | 'type-answer' | 'multiple-answer';
   options?: string[];
   correctOptionIndex?: number;
+  correctOptionIndices?: number[];
 }
 
 export interface CardReviewRequest {

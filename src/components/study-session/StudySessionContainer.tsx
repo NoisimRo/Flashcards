@@ -4,6 +4,7 @@ import { useAuth } from '../../store/AuthContext';
 import { StandardCard } from './cards/StandardCard';
 import { QuizCard } from './cards/QuizCard';
 import { TypeAnswerCard } from './cards/TypeAnswerCard';
+import { MultipleAnswerCard } from './cards/MultipleAnswerCard';
 import { ProgressBar } from './progress/ProgressBar';
 import { SessionStatsPieChart } from './progress/SessionStatsPieChart';
 import { StreakIndicator } from './feedback/StreakIndicator';
@@ -127,6 +128,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
       isCardFlipped: false,
       hintRevealed: false,
       selectedQuizOption: null,
+      selectedMultipleOptions: [],
       isDirty: true,
     });
   };
@@ -533,6 +535,37 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
                 // Don't manually trigger modal - useEffect handles it
               }}
               onNext={nextCard}
+              onSkip={() => {
+                skipCard(currentCard.id);
+                if (currentCardIndex < (currentSession?.cards?.length || 0) - 1) {
+                  nextCard();
+                }
+              }}
+              onUndo={undoLastAnswer}
+              onFinish={() => setShowCompletionModal(true)}
+              isFirstCard={currentCardIndex === 0}
+              isLastCard={currentCardIndex === (currentSession?.cards?.length || 0) - 1}
+              hasAnswered={answers[currentCard.id] !== undefined}
+            />
+          )}
+          {currentCard.type === 'multiple-answer' && (
+            <MultipleAnswerCard
+              card={currentCard}
+              onAnswer={handleAnswer}
+              onAutoAdvance={() => {
+                // Auto-advance to next card if not on last card
+                const totalCards = currentSession?.cards?.length || 0;
+                if (currentCardIndex < totalCards - 1) {
+                  nextCard();
+                }
+                // Don't manually trigger modal - useEffect handles it
+              }}
+              onNext={() => {
+                if (currentCardIndex < (currentSession?.cards?.length || 0) - 1) {
+                  nextCard();
+                }
+                // Don't manually trigger modal - useEffect handles it
+              }}
               onSkip={() => {
                 skipCard(currentCard.id);
                 if (currentCardIndex < (currentSession?.cards?.length || 0) - 1) {

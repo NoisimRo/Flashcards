@@ -26,9 +26,12 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
   const [editCardFront, setEditCardFront] = useState('');
   const [editCardBack, setEditCardBack] = useState('');
   const [editCardContext, setEditCardContext] = useState('');
-  const [editCardType, setEditCardType] = useState<'standard' | 'type-answer' | 'quiz'>('standard');
+  const [editCardType, setEditCardType] = useState<
+    'standard' | 'type-answer' | 'quiz' | 'multiple-answer'
+  >('standard');
   const [editCardOptions, setEditCardOptions] = useState<string[]>(['', '', '', '']);
   const [editCardCorrectIndex, setEditCardCorrectIndex] = useState(0);
+  const [editCardCorrectIndices, setEditCardCorrectIndices] = useState<number[]>([]);
   const [isSavingCard, setIsSavingCard] = useState(false);
 
   const startEditCard = (card: Card) => {
@@ -40,9 +43,15 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
     if (card.type === 'quiz' && card.options && card.options.length > 0) {
       setEditCardOptions([...card.options]);
       setEditCardCorrectIndex(card.correctOptionIndex || 0);
+      setEditCardCorrectIndices([]);
+    } else if (card.type === 'multiple-answer' && card.options && card.options.length > 0) {
+      setEditCardOptions([...card.options]);
+      setEditCardCorrectIndices(card.correctOptionIndices || []);
+      setEditCardCorrectIndex(0);
     } else {
       setEditCardOptions(['', '', '', '']);
       setEditCardCorrectIndex(0);
+      setEditCardCorrectIndices([]);
     }
   };
 
@@ -69,6 +78,9 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
       if (editCardType === 'quiz') {
         updateData.options = editCardOptions.filter(opt => opt.trim() !== '');
         updateData.correctOptionIndex = editCardCorrectIndex;
+      } else if (editCardType === 'multiple-answer') {
+        updateData.options = editCardOptions.filter(opt => opt.trim() !== '');
+        updateData.correctOptionIndices = editCardCorrectIndices;
       }
 
       const response = await updateCard(deck.id, editingCardId, updateData);
@@ -83,8 +95,13 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
                 back: editCardBack,
                 context: editCardContext,
                 type: editCardType,
-                options: editCardType === 'quiz' ? editCardOptions : undefined,
+                options:
+                  editCardType === 'quiz' || editCardType === 'multiple-answer'
+                    ? editCardOptions
+                    : undefined,
                 correctOptionIndex: editCardType === 'quiz' ? editCardCorrectIndex : undefined,
+                correctOptionIndices:
+                  editCardType === 'multiple-answer' ? editCardCorrectIndices : undefined,
               }
             : card
         );
@@ -257,12 +274,19 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
                         className="w-full border-2 border-gray-200 bg-white rounded-lg p-2 font-medium focus:border-indigo-500 outline-none"
                         value={editCardType}
                         onChange={e =>
-                          setEditCardType(e.target.value as 'standard' | 'type-answer' | 'quiz')
+                          setEditCardType(
+                            e.target.value as
+                              | 'standard'
+                              | 'type-answer'
+                              | 'quiz'
+                              | 'multiple-answer'
+                          )
                         }
                       >
                         <option value="standard">{t('modal.standard')}</option>
                         <option value="type-answer">{t('modal.typeAnswer')}</option>
                         <option value="quiz">{t('modal.quiz')}</option>
+                        <option value="multiple-answer">{t('modal.multipleAnswer')}</option>
                       </select>
                     </div>
 
@@ -295,6 +319,43 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
                           </div>
                         ))}
                         <p className="text-xs text-gray-500">{t('editCardsModal.selectCorrect')}</p>
+                      </div>
+                    )}
+
+                    {/* Multiple Answer Options (only for multiple-answer type) */}
+                    {editCardType === 'multiple-answer' && (
+                      <div className="space-y-2">
+                        <label className="block text-xs font-bold text-gray-500 uppercase">
+                          {t('editCardsModal.multipleAnswerOptions')}
+                        </label>
+                        {editCardOptions.map((option, idx) => (
+                          <div key={idx} className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={editCardCorrectIndices.includes(idx)}
+                              onChange={() => {
+                                setEditCardCorrectIndices(prev =>
+                                  prev.includes(idx) ? prev.filter(i => i !== idx) : [...prev, idx]
+                                );
+                              }}
+                              className="w-4 h-4 text-indigo-600 rounded"
+                            />
+                            <input
+                              type="text"
+                              className="flex-1 border-2 border-gray-200 bg-white rounded-lg p-2 text-sm font-medium focus:border-indigo-500 outline-none"
+                              value={option}
+                              onChange={e => {
+                                const newOptions = [...editCardOptions];
+                                newOptions[idx] = e.target.value;
+                                setEditCardOptions(newOptions);
+                              }}
+                              placeholder={t('editCardsModal.option', { number: idx + 1 })}
+                            />
+                          </div>
+                        ))}
+                        <p className="text-xs text-gray-500">
+                          {t('editCardsModal.selectMultipleCorrect')}
+                        </p>
                       </div>
                     )}
 

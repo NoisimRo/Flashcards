@@ -6,7 +6,7 @@ export type Difficulty = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
 
 export type UserRole = 'admin' | 'teacher' | 'student';
 
-export type CardType = 'standard' | 'quiz' | 'type-answer';
+export type CardType = 'standard' | 'quiz' | 'type-answer' | 'multiple-answer';
 
 export type CardStatus = 'new' | 'learning' | 'reviewing' | 'mastered';
 
@@ -38,6 +38,7 @@ export interface Card {
   type: CardType;
   options?: string[];
   correctOptionIndex?: number;
+  correctOptionIndices?: number[];
   // Flags
   flagCount?: number;
   // Metadata
