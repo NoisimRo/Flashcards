@@ -49,6 +49,7 @@ function formatCard(card: any) {
     type: card.type,
     options: card.options,
     correctOptionIndex: card.correct_option_index,
+    correctOptionIndices: card.correct_option_indices,
     position: card.position,
     createdAt: card.created_at,
     updatedAt: card.updated_at,
