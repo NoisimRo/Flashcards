@@ -152,7 +152,7 @@ export const QuizCard: React.FC<QuizCardProps> = ({
         {/* Content Area with padding for sticky footer */}
         <div className="p-8 pb-24 flex-1 overflow-y-auto">
           {/* Question */}
-          <div className="mb-8">
+          <div className="mt-4 mb-8">
             <h2 className="text-2xl font-bold text-gray-900 text-center">{card.front}</h2>
           </div>
 
