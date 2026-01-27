@@ -591,7 +591,7 @@ function exportToCSV(cards: any[], includeProgress: boolean): string {
       escapeCSV(c.context || ''),
       cardType,
       escapeCSV(options),
-      correctIndices,
+      escapeCSV(correctIndices),
     ];
     if (includeProgress) {
       row.push(c.status || '', c.ease_factor || '', c.interval || '');
@@ -603,7 +603,7 @@ function exportToCSV(cards: any[], includeProgress: boolean): string {
 }
 
 function escapeCSV(value: string): string {
-  if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+  if (value.includes(',') || value.includes(';') || value.includes('"') || value.includes('\n')) {
     return `"${value.replace(/"/g, '""')}"`;
   }
   return value;

@@ -434,14 +434,15 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
                 Răspuns
               </div>
 
-              {/* Result Status */}
+              {/* Result Status - Modificat pentru a evita afișarea la reset (isCorrect === null) */}
               <div className="mb-4">
-                {isCorrect ? (
+                {isCorrect === true && (
                   <div className="flex items-center justify-center gap-2 text-green-600">
                     <Check size={32} />
                     <span className="text-3xl font-bold">Corect!</span>
                   </div>
-                ) : (
+                )}
+                {isCorrect === false && (
                   <div className="flex items-center justify-center gap-2 text-red-600">
                     <X size={32} />
                     <span className="text-3xl font-bold">Greșit</span>

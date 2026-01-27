@@ -280,12 +280,18 @@ export const StandardCard: React.FC<StandardCardProps> = ({
               />
             </div>
 
-            {/* Back Content */}
+            {/* Back Content - Randat condiționat pentru a evita "ghosting-ul" de date la tranziție */}
             <div className="text-center px-4">
-              <div className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide">
-                Răspuns
-              </div>
-              <div className="text-2xl font-bold text-gray-900">{card.back}</div>
+              {frontAction !== null && (
+                <>
+                  <div className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide">
+                    Răspuns
+                  </div>
+                  <div className="text-2xl font-bold text-gray-900 animate-fade-in">
+                    {card.back}
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Sticky Navigation Footer (back) */}
