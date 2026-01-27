@@ -56,18 +56,53 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
   const [showBack, setShowBack] = React.useState(false);
   const [autoAdvanceTimer, setAutoAdvanceTimer] = React.useState<NodeJS.Timeout | null>(null);
 
+  const [matchedPitfall, setMatchedPitfall] = React.useState<string | null>(null);
+
   const cardAnswer = answers[card.id];
   // Show result if card was answered in store
   const showResult = cardAnswer !== undefined || hasAnswered;
   // Practice mode: card already answered in store, allow re-trying without XP
   const isPracticeMode = cardAnswer !== undefined;
 
+  // Get correct options for display on back face
+  const correctOptions = React.useMemo(() => {
+    if (card.options && card.correctOptionIndices && card.correctOptionIndices.length > 0) {
+      return card.correctOptionIndices.map(i => card.options![i]).filter(Boolean);
+    }
+    return [];
+  }, [card.options, card.correctOptionIndices]);
+
   const normalizeAnswer = (text: string): string => {
+    if (!text) return '';
     return text
       .toLowerCase()
       .trim()
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, ''); // Remove diacritics
+      .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+      .replace(/^a\s+/, '') // Remove infinitive particle "a"
+      .replace(/^(un|o|unul|una|niste)\s+/, '') // Remove indefinite articles
+      .replace(/[.,!?;:]+$/, '') // Remove trailing punctuation
+      .trim();
+  };
+
+  const checkFlexibility = (u: string, c: string): boolean => {
+    const suffixes = ['ul', 'le', 'lor', 'ua', 'a'];
+    for (const s of suffixes) {
+      if (u + s === c || c + s === u) return true;
+    }
+    return false;
+  };
+
+  const isMatch = (userNorm: string, candidateNorm: string): boolean => {
+    if (!userNorm || !candidateNorm) return false;
+    if (userNorm === candidateNorm) return true;
+    // Partial match (one contains the other) with minimum length check
+    const minLen = Math.min(userNorm.length, candidateNorm.length);
+    if (minLen >= 3 && (userNorm.includes(candidateNorm) || candidateNorm.includes(userNorm)))
+      return true;
+    // Suffix flexibility
+    if (checkFlexibility(userNorm, candidateNorm)) return true;
+    return false;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -75,12 +110,36 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
     if (!userAnswer.trim()) return;
 
     const normalizedUser = normalizeAnswer(userAnswer);
-    const normalizedCorrect = normalizeAnswer(card.back);
+    let correct = false;
+    let pitfall: string | null = null;
 
-    // Check if answer is correct (with some flexibility)
-    const correct =
-      normalizedUser === normalizedCorrect || normalizedUser.includes(normalizedCorrect);
+    // If card has options with correctOptionIndices, validate against them
+    if (
+      card.options &&
+      card.options.length > 0 &&
+      card.correctOptionIndices &&
+      card.correctOptionIndices.length > 0
+    ) {
+      for (let i = 0; i < card.options.length; i++) {
+        const normalizedOption = normalizeAnswer(card.options[i]);
+        if (isMatch(normalizedUser, normalizedOption)) {
+          if (card.correctOptionIndices.includes(i)) {
+            correct = true;
+          } else {
+            // Matched a pitfall (incorrect option)
+            pitfall = card.options[i];
+            correct = false;
+          }
+          break;
+        }
+      }
+    } else {
+      // Legacy fallback: compare against card.back
+      const normalizedCorrect = normalizeAnswer(card.back);
+      correct = isMatch(normalizedUser, normalizedCorrect);
+    }
 
+    setMatchedPitfall(pitfall);
     setIsCorrect(correct);
     setHasAnswered(true);
 
@@ -126,6 +185,7 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
     setUserAnswer('');
     setHasAnswered(hasAnsweredProp);
     setIsCorrect(null);
+    setMatchedPitfall(null);
 
     // Clear any pending auto-advance timer
     if (autoAdvanceTimer) {
@@ -369,17 +429,17 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
             </div>
 
             {/* Back Content */}
-            <div className="text-center">
+            <div className="text-center w-full px-4">
               <div className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide">
                 Răspuns
               </div>
 
               {/* Result Status */}
-              <div className="mb-6">
+              <div className="mb-4">
                 {isCorrect ? (
                   <div className="flex items-center justify-center gap-2 text-green-600">
                     <Check size={32} />
-                    <span className="text-3xl font-bold">Corect! 🎉</span>
+                    <span className="text-3xl font-bold">Corect!</span>
                   </div>
                 ) : (
                   <div className="flex items-center justify-center gap-2 text-red-600">
@@ -391,22 +451,40 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
 
               {/* User's Answer (if wrong) - PERSISTENT with red styling */}
               {!isCorrect && userAnswer && (
-                <div className="mb-4 p-4 bg-red-50 border-2 border-red-300 rounded-lg">
-                  <div className="flex items-center justify-center gap-2 text-red-700 mb-2">
-                    <X size={20} />
-                    <span className="text-sm font-bold uppercase">Răspunsul tău</span>
+                <div className="mb-3 p-3 bg-red-50 border-2 border-red-300 rounded-lg">
+                  <div className="flex items-center justify-center gap-2 text-red-700 mb-1">
+                    <X size={18} />
+                    <span className="text-xs font-bold uppercase">Răspunsul tău</span>
                   </div>
-                  <div className="text-xl font-bold text-red-700 text-center">{userAnswer}</div>
+                  <div className="text-lg font-bold text-red-700 text-center">{userAnswer}</div>
+                  {matchedPitfall && (
+                    <div className="text-xs text-red-600 mt-1 italic">Greșeală frecventă</div>
+                  )}
                 </div>
               )}
 
-              {/* Correct Answer */}
-              <div className="p-4 bg-green-50 border-2 border-green-300 rounded-lg">
-                <div className="flex items-center justify-center gap-2 text-green-700 mb-2">
-                  <Check size={20} />
-                  <span className="text-sm font-bold uppercase">Răspuns Corect</span>
+              {/* Correct Options (if card has options) */}
+              {correctOptions.length > 0 && (
+                <div className="mb-3 p-3 bg-green-50 border-2 border-green-300 rounded-lg">
+                  <div className="flex items-center justify-center gap-2 text-green-700 mb-1">
+                    <Check size={18} />
+                    <span className="text-xs font-bold uppercase">
+                      {correctOptions.length === 1 ? 'Răspuns Corect' : 'Răspunsuri Corecte'}
+                    </span>
+                  </div>
+                  <div className="text-lg font-bold text-green-700 text-center">
+                    {correctOptions.join(', ')}
+                  </div>
                 </div>
-                <div className="text-xl font-bold text-green-700 text-center">{card.back}</div>
+              )}
+
+              {/* Feedback / Explanation (card.back) */}
+              <div className="p-3 bg-indigo-50 border-2 border-indigo-200 rounded-lg">
+                <div className="flex items-center justify-center gap-2 text-indigo-700 mb-1">
+                  <Lightbulb size={18} />
+                  <span className="text-xs font-bold uppercase">Explicație</span>
+                </div>
+                <div className="text-base font-medium text-indigo-800 text-center">{card.back}</div>
               </div>
             </div>
 
