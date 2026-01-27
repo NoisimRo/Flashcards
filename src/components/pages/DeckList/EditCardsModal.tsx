@@ -44,7 +44,11 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
       setEditCardOptions([...card.options]);
       setEditCardCorrectIndex(card.correctOptionIndices?.[0] || 0);
       setEditCardCorrectIndices([]);
-    } else if (card.type === 'multiple-answer' && card.options && card.options.length > 0) {
+    } else if (
+      (card.type === 'multiple-answer' || card.type === 'type-answer') &&
+      card.options &&
+      card.options.length > 0
+    ) {
       setEditCardOptions([...card.options]);
       setEditCardCorrectIndices(card.correctOptionIndices || []);
       setEditCardCorrectIndex(0);
@@ -74,11 +78,11 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
         type: editCardType,
       };
 
-      // Add quiz-specific fields if needed
+      // Add options fields for quiz, multiple-answer, and type-answer
       if (editCardType === 'quiz') {
         updateData.options = editCardOptions.filter(opt => opt.trim() !== '');
         updateData.correctOptionIndices = [editCardCorrectIndex]; // Single index in array
-      } else if (editCardType === 'multiple-answer') {
+      } else if (editCardType === 'multiple-answer' || editCardType === 'type-answer') {
         updateData.options = editCardOptions.filter(opt => opt.trim() !== '');
         updateData.correctOptionIndices = editCardCorrectIndices;
       }
@@ -96,13 +100,15 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
                 context: editCardContext,
                 type: editCardType,
                 options:
-                  editCardType === 'quiz' || editCardType === 'multiple-answer'
+                  editCardType === 'quiz' ||
+                  editCardType === 'multiple-answer' ||
+                  editCardType === 'type-answer'
                     ? editCardOptions
                     : undefined,
                 correctOptionIndices:
                   editCardType === 'quiz'
                     ? [editCardCorrectIndex]
-                    : editCardType === 'multiple-answer'
+                    : editCardType === 'multiple-answer' || editCardType === 'type-answer'
                       ? editCardCorrectIndices
                       : undefined,
               }
@@ -358,6 +364,62 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
                         ))}
                         <p className="text-xs text-gray-500">
                           {t('editCardsModal.selectMultipleCorrect')}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Type-Answer Options (correct answers + pitfalls) */}
+                    {editCardType === 'type-answer' && (
+                      <div className="space-y-2">
+                        <label className="block text-xs font-bold text-gray-500 uppercase">
+                          {t('editCardsModal.typeAnswerOptions', {
+                            defaultValue: 'Răspunsuri Acceptate & Capcane',
+                          })}
+                        </label>
+                        {editCardOptions.map((option, idx) => (
+                          <div key={idx} className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={editCardCorrectIndices.includes(idx)}
+                              onChange={() => {
+                                setEditCardCorrectIndices(prev =>
+                                  prev.includes(idx) ? prev.filter(i => i !== idx) : [...prev, idx]
+                                );
+                              }}
+                              className="w-4 h-4 text-green-600 rounded"
+                            />
+                            <input
+                              type="text"
+                              className={`flex-1 border-2 bg-white rounded-lg p-2 text-sm font-medium focus:border-indigo-500 outline-none ${
+                                editCardCorrectIndices.includes(idx)
+                                  ? 'border-green-300'
+                                  : option.trim()
+                                    ? 'border-red-200'
+                                    : 'border-gray-200'
+                              }`}
+                              value={option}
+                              onChange={e => {
+                                const newOptions = [...editCardOptions];
+                                newOptions[idx] = e.target.value;
+                                setEditCardOptions(newOptions);
+                              }}
+                              placeholder={
+                                editCardCorrectIndices.includes(idx)
+                                  ? t('editCardsModal.correctAnswer', {
+                                      defaultValue: `Răspuns corect ${idx + 1}`,
+                                    })
+                                  : t('editCardsModal.pitfall', {
+                                      defaultValue: `Capcană / Greșeală frecventă ${idx + 1}`,
+                                    })
+                              }
+                            />
+                          </div>
+                        ))}
+                        <p className="text-xs text-gray-500">
+                          {t('editCardsModal.typeAnswerOptionsHelp', {
+                            defaultValue:
+                              'Bifează răspunsurile corecte. Cele nebifate sunt capcane/greșeli frecvente.',
+                          })}
                         </p>
                       </div>
                     )}

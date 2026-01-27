@@ -301,7 +301,10 @@ function parseJSON(data: string): {
 
         // Handle correctOptionIndices - support both old (correctOptionIndex) and new format
         let correctOptionIndices: number[] | undefined;
-        if ((cardType === 'quiz' || cardType === 'multiple-answer') && Array.isArray(c.options)) {
+        if (
+          (cardType === 'quiz' || cardType === 'multiple-answer' || cardType === 'type-answer') &&
+          Array.isArray(c.options)
+        ) {
           if (Array.isArray(c.correctOptionIndices)) {
             correctOptionIndices = c.correctOptionIndices;
           } else if (typeof c.correctOptionIndex === 'number') {
@@ -316,7 +319,8 @@ function parseJSON(data: string): {
           context: c.context ? String(c.context).trim() : undefined,
           type: cardType,
           options:
-            (cardType === 'quiz' || cardType === 'multiple-answer') && Array.isArray(c.options)
+            (cardType === 'quiz' || cardType === 'multiple-answer' || cardType === 'type-answer') &&
+            Array.isArray(c.options)
               ? c.options
               : undefined,
           correctOptionIndices,
@@ -360,7 +364,10 @@ function parseCSV(data: string): {
       let options: string[] | undefined;
       let correctOptionIndices: number[] | undefined;
 
-      if ((validType === 'quiz' || validType === 'multiple-answer') && parts[4]) {
+      if (
+        (validType === 'quiz' || validType === 'multiple-answer' || validType === 'type-answer') &&
+        parts[4]
+      ) {
         options = parts[4]
           .split('|')
           .map(o => o.trim())
@@ -465,7 +472,10 @@ function parseTXT(data: string): {
       let options: string[] | undefined;
       let correctOptionIndices: number[] | undefined;
 
-      if ((validType === 'quiz' || validType === 'multiple-answer') && parts[4]) {
+      if (
+        (validType === 'quiz' || validType === 'multiple-answer' || validType === 'type-answer') &&
+        parts[4]
+      ) {
         options = parts[4]
           .split('|')
           .map(o => o.trim())
@@ -528,10 +538,11 @@ function exportToJSON(deck: any, cards: any[], includeProgress: boolean): string
       back: c.back,
       context: c.context,
       type: c.type || 'standard',
-      ...((c.type === 'quiz' || c.type === 'multiple-answer') && {
-        options: c.options || [],
-        correctOptionIndices: c.correct_option_indices,
-      }),
+      ...((c.type === 'quiz' || c.type === 'multiple-answer' || c.type === 'type-answer') &&
+        c.options && {
+          options: c.options || [],
+          correctOptionIndices: c.correct_option_indices,
+        }),
       ...(includeProgress && {
         status: c.status,
         easeFactor: c.ease_factor,
@@ -563,12 +574,13 @@ function exportToCSV(cards: any[], includeProgress: boolean): string {
     const cardType = c.type || 'standard';
     // For quiz and multiple-answer cards, join options with pipe separator
     const options =
-      (cardType === 'quiz' || cardType === 'multiple-answer') && c.options
+      (cardType === 'quiz' || cardType === 'multiple-answer' || cardType === 'type-answer') &&
+      c.options
         ? c.options.join('|')
         : '';
     // Format correct indices as comma-separated (e.g., "0" for quiz, "0,2" for multiple-answer)
     const correctIndices =
-      (cardType === 'quiz' || cardType === 'multiple-answer') &&
+      (cardType === 'quiz' || cardType === 'multiple-answer' || cardType === 'type-answer') &&
       Array.isArray(c.correct_option_indices)
         ? c.correct_option_indices.join(',')
         : '';
@@ -611,9 +623,9 @@ function exportToTXT(cards: any[]): string {
 
       line += `\t${cardType}`;
 
-      // For quiz and multiple-answer cards, add options and correct indices
+      // For quiz, multiple-answer, and type-answer cards, add options and correct indices
       if (
-        (cardType === 'quiz' || cardType === 'multiple-answer') &&
+        (cardType === 'quiz' || cardType === 'multiple-answer' || cardType === 'type-answer') &&
         c.options &&
         c.options.length > 0
       ) {
