@@ -441,7 +441,7 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
                     <Check size={32} />
                     <span className="text-3xl font-bold">Corect!</span>
                   </div>
-                ) }
+                )}
                 {isCorrect === false && (
                   <div className="flex items-center justify-center gap-2 text-red-600">
                     <X size={32} />

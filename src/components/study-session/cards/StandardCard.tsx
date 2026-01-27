@@ -284,12 +284,14 @@ export const StandardCard: React.FC<StandardCardProps> = ({
             <div className="text-center px-4">
               {frontAction !== null && (
                 <>
-              <div className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide">
-                Răspuns
-              </div>
-              <div className="text-2xl font-bold text-gray-900 animate-fade-in">{card.back}</div>
-               </>
-             )}
+                  <div className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide">
+                    Răspuns
+                  </div>
+                  <div className="text-2xl font-bold text-gray-900 animate-fade-in">
+                    {card.back}
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Sticky Navigation Footer (back) */}
