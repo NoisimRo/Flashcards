@@ -591,7 +591,7 @@ function exportToCSV(cards: any[], includeProgress: boolean): string {
       escapeCSV(c.context || ''),
       cardType,
       escapeCSV(options),
-      correctIndices,
+      escapeCSV(correctIndices),
     ];
     if (includeProgress) {
       row.push(c.status || '', c.ease_factor || '', c.interval || '');
