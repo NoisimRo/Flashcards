@@ -63,6 +63,8 @@ export const MultipleAnswerCard: React.FC<MultipleAnswerCardProps> = ({
   const [hasAnswered, setHasAnswered] = React.useState(hasAnsweredProp);
   const [isCorrect, setIsCorrect] = React.useState<boolean | null>(null);
   const [showBack, setShowBack] = React.useState(false);
+  const [autoAdvanceTimer, setAutoAdvanceTimer] = React.useState<NodeJS.Timeout | null>(null);
+  const [showBackTimer, setShowBackTimer] = React.useState<NodeJS.Timeout | null>(null);
 
   // Reset local state when card changes
   React.useEffect(() => {
@@ -70,6 +72,11 @@ export const MultipleAnswerCard: React.FC<MultipleAnswerCardProps> = ({
     setIsCorrect(null);
     setShowBack(false);
     clearMultipleOptions();
+
+    return () => {
+      if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
+      if (showBackTimer) clearTimeout(showBackTimer);
+    };
   }, [card.id, clearMultipleOptions]);
 
   const cardAnswer = answers[card.id];
@@ -126,16 +133,42 @@ export const MultipleAnswerCard: React.FC<MultipleAnswerCardProps> = ({
     }, 100);
 
     // Show back explanation after 3 seconds
-    setTimeout(() => {
+    const backTimer = setTimeout(() => {
       setShowBack(true);
     }, 3000);
+    setShowBackTimer(backTimer);
 
     // Auto-advance after 6 seconds (3s feedback + 3s for reading back)
     if (onAutoAdvance) {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         onAutoAdvance();
       }, 6000);
+      setAutoAdvanceTimer(timer);
     }
+  };
+
+  const handleManualNext = () => {
+    if (autoAdvanceTimer) {
+      clearTimeout(autoAdvanceTimer);
+      setAutoAdvanceTimer(null);
+    }
+    if (showBackTimer) {
+      clearTimeout(showBackTimer);
+      setShowBackTimer(null);
+    }
+    onNext?.();
+  };
+
+  const handleManualFinish = () => {
+    if (autoAdvanceTimer) {
+      clearTimeout(autoAdvanceTimer);
+      setAutoAdvanceTimer(null);
+    }
+    if (showBackTimer) {
+      clearTimeout(showBackTimer);
+      setShowBackTimer(null);
+    }
+    onFinish?.();
   };
 
   return (
@@ -320,7 +353,7 @@ export const MultipleAnswerCard: React.FC<MultipleAnswerCardProps> = ({
             {isAnswered ? (
               isLastCard && onFinish ? (
                 <button
-                  onClick={onFinish}
+                  onClick={handleManualFinish}
                   className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all active:scale-95"
                 >
                   <CheckCircle size={18} />
@@ -328,7 +361,7 @@ export const MultipleAnswerCard: React.FC<MultipleAnswerCardProps> = ({
                 </button>
               ) : (
                 <button
-                  onClick={onNext}
+                  onClick={handleManualNext}
                   className="flex items-center gap-2 px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-all active:scale-95"
                 >
                   Următorul
@@ -337,7 +370,7 @@ export const MultipleAnswerCard: React.FC<MultipleAnswerCardProps> = ({
               )
             ) : isLastCard && onFinish ? (
               <button
-                onClick={onFinish}
+                onClick={handleManualFinish}
                 className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all active:scale-95"
               >
                 <CheckCircle size={18} />

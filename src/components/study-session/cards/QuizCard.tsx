@@ -52,12 +52,19 @@ export const QuizCard: React.FC<QuizCardProps> = ({
     useStudySessionsStore();
   const [hasAnswered, setHasAnswered] = React.useState(hasAnsweredProp);
   const [isCorrect, setIsCorrect] = React.useState<boolean | null>(null);
+  const [autoAdvanceTimer, setAutoAdvanceTimer] = React.useState<NodeJS.Timeout | null>(null);
 
   // Reset local state when card changes (enables re-visit practice)
   React.useEffect(() => {
     setHasAnswered(false);
     setIsCorrect(null);
     setQuizOption(null);
+
+    return () => {
+      if (autoAdvanceTimer) {
+        clearTimeout(autoAdvanceTimer);
+      }
+    };
   }, [card.id, setQuizOption]);
 
   const cardAnswer = answers[card.id];
@@ -82,10 +89,27 @@ export const QuizCard: React.FC<QuizCardProps> = ({
 
     // Auto-advance after 3 seconds
     if (onAutoAdvance) {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         onAutoAdvance();
       }, 3000);
+      setAutoAdvanceTimer(timer);
     }
+  };
+
+  const handleManualNext = () => {
+    if (autoAdvanceTimer) {
+      clearTimeout(autoAdvanceTimer);
+      setAutoAdvanceTimer(null);
+    }
+    onNext?.();
+  };
+
+  const handleManualFinish = () => {
+    if (autoAdvanceTimer) {
+      clearTimeout(autoAdvanceTimer);
+      setAutoAdvanceTimer(null);
+    }
+    onFinish?.();
   };
 
   return (
@@ -214,7 +238,7 @@ export const QuizCard: React.FC<QuizCardProps> = ({
             {isAnswered ? (
               isLastCard && onFinish ? (
                 <button
-                  onClick={onFinish}
+                  onClick={handleManualFinish}
                   className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all active:scale-95"
                 >
                   <CheckCircle size={18} />
@@ -222,7 +246,7 @@ export const QuizCard: React.FC<QuizCardProps> = ({
                 </button>
               ) : (
                 <button
-                  onClick={onNext}
+                  onClick={handleManualNext}
                   className="flex items-center gap-2 px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-all active:scale-95"
                 >
                   Următorul
@@ -231,7 +255,7 @@ export const QuizCard: React.FC<QuizCardProps> = ({
               )
             ) : isLastCard && onFinish ? (
               <button
-                onClick={onFinish}
+                onClick={handleManualFinish}
                 className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-all active:scale-95"
               >
                 <CheckCircle size={18} />
