@@ -177,8 +177,8 @@ CREATE TABLE cards (
 
     -- Type
     type card_type DEFAULT 'standard',
-    options TEXT[],  -- For quiz type
-    correct_option_index INTEGER,
+    options TEXT[],  -- For quiz and multiple-answer types
+    correct_option_indices INTEGER[],  -- Correct answer indices (quiz: single element, multiple-answer: multiple)
 
     -- Status
     status card_status DEFAULT 'new',
