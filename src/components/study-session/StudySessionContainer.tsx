@@ -283,7 +283,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
 
       // Trigger XP animation only if XP actually changed
       setTimeout(() => {
-        const xpChange = sessionXP - previousXP;
+        const xpChange = useStudySessionsStore.getState().sessionXP - previousXP;
         if (xpChange !== 0) {
           setEarnedXP(xpChange);
           setShowXPAnimation(true);
@@ -295,7 +295,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
 
       // Check for streak celebration (5, 10, 15, 20, etc.) - only if correct
       if (isCorrect) {
-        const newStreak = streak; // Get updated streak from store
+        const newStreak = useStudySessionsStore.getState().streak; // Get updated streak from store
         if (newStreak % 5 === 0 && newStreak >= 5 && newStreak > currentStreak) {
           setCelebrationStreak(newStreak);
           setShowStreakCelebration(true);
@@ -316,7 +316,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
   const checkLevelUp = () => {
     if (!user) return;
 
-    const totalXP = user.currentXP + sessionXP;
+    const totalXP = user.currentXP + useStudySessionsStore.getState().sessionXP;
 
     // Check if user has reached or exceeded next level threshold
     if (totalXP >= user.nextLevelXP && !showLevelUp) {
@@ -338,7 +338,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
         level: newLevel,
         currentXP: remainingXP,
         nextLevelXP: nextLevelXP,
-        totalXP: user.totalXP + sessionXP,
+        totalXP: user.totalXP + useStudySessionsStore.getState().sessionXP,
       });
 
       setLevelUpData({ oldLevel, newLevel });
