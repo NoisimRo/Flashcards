@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useStudySessionsStore } from '../../store/studySessionsStore';
 import { useAuth } from '../../store/AuthContext';
 import { StandardCard } from './cards/StandardCard';
@@ -67,10 +67,23 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [previousStreak, setPreviousStreak] = useState(0);
 
+  // Refs for synchronous level-up XP tracking (React state via updateUser is async)
+  // userXPStateRef: holds the post-level-up user state so checkLevelUp reads fresh values
+  const userXPStateRef = useRef<{
+    currentXP: number;
+    nextLevelXP: number;
+    level: number;
+  } | null>(null);
+  // sessionXPAtLastLevelUp: the sessionXP value when level-up last occurred,
+  // so we only count XP earned *since* the last level-up toward the next threshold
+  const sessionXPAtLastLevelUp = useRef(0);
+
   // Load session and enable auto-save on mount
   useEffect(() => {
     // CRITICAL: Reset state BEFORE loading to prevent answers from previous session
     resetSessionState();
+    userXPStateRef.current = null;
+    sessionXPAtLastLevelUp.current = 0;
     loadSession(sessionId);
     enableAutoSave();
 
@@ -258,6 +271,8 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
       )
     ) {
       restartSession();
+      userXPStateRef.current = null;
+      sessionXPAtLastLevelUp.current = 0;
       setShowCompletionModal(false);
       setShowXPAnimation(false);
       setShowStreakCelebration(false);
@@ -316,14 +331,24 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
   const checkLevelUp = () => {
     if (!user) return;
 
-    const totalXP = user.currentXP + useStudySessionsStore.getState().sessionXP;
+    const currentSessionXP = useStudySessionsStore.getState().sessionXP;
+
+    // Use synchronous ref if a level-up already occurred this session
+    // (React state via updateUser is async, so `user` may still hold stale values)
+    const effectiveCurrentXP = userXPStateRef.current?.currentXP ?? user.currentXP;
+    const effectiveNextLevelXP = userXPStateRef.current?.nextLevelXP ?? user.nextLevelXP;
+    const effectiveLevel = userXPStateRef.current?.level ?? user.level;
+
+    // Only count XP earned since the last level-up to avoid double-counting
+    const newXPSinceLastLevelUp = currentSessionXP - sessionXPAtLastLevelUp.current;
+    const totalXP = effectiveCurrentXP + newXPSinceLastLevelUp;
 
     // Check if user has reached or exceeded next level threshold
-    if (totalXP >= user.nextLevelXP && !showLevelUp) {
-      const oldLevel = user.level;
+    if (totalXP >= effectiveNextLevelXP && !showLevelUp) {
+      const oldLevel = effectiveLevel;
       let newLevel = oldLevel;
       let remainingXP = totalXP;
-      let nextLevelXP = user.nextLevelXP;
+      let nextLevelXP = effectiveNextLevelXP;
 
       // Calculate new level(s) - user might level up multiple times
       while (remainingXP >= nextLevelXP) {
@@ -333,12 +358,16 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
         nextLevelXP = Math.floor(nextLevelXP * 1.2);
       }
 
-      // CRITICAL: Update user object locally to prevent animation loop
+      // Synchronously update ref to prevent re-triggering on next answer
+      userXPStateRef.current = { currentXP: remainingXP, nextLevelXP, level: newLevel };
+      sessionXPAtLastLevelUp.current = currentSessionXP;
+
+      // Also update React state for display (async, corrected on next render)
       updateUser({
         level: newLevel,
         currentXP: remainingXP,
         nextLevelXP: nextLevelXP,
-        totalXP: user.totalXP + useStudySessionsStore.getState().sessionXP,
+        totalXP: user.totalXP + currentSessionXP,
       });
 
       setLevelUpData({ oldLevel, newLevel });
@@ -467,7 +496,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
         </div>
 
         {/* Card Display Area */}
-        <div className="mb-6">
+        <div className="mb-6 relative">
           {currentCard.type === 'standard' && (
             <StandardCard
               card={currentCard}
@@ -579,18 +608,19 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
               hasAnswered={answers[currentCard.id] !== undefined}
             />
           )}
+
+          {/* Streak Celebration - rendered inside card area for proper centering */}
+          {showStreakCelebration && (
+            <StreakCelebration
+              streak={celebrationStreak}
+              onComplete={() => setShowStreakCelebration(false)}
+            />
+          )}
         </div>
 
         {/* Animations */}
         {showXPAnimation && (
           <XPFloatingAnimation xp={earnedXP} onAnimationEnd={() => setShowXPAnimation(false)} />
-        )}
-
-        {showStreakCelebration && (
-          <StreakCelebration
-            streak={celebrationStreak}
-            onComplete={() => setShowStreakCelebration(false)}
-          />
         )}
 
         {showLevelUp && levelUpData && (
