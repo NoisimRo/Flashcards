@@ -19,7 +19,7 @@ export const XPFloatingAnimation: React.FC<XPFloatingAnimationProps> = ({ xp, on
     const timer = setTimeout(() => {
       setVisible(false);
       onAnimationEnd?.();
-    }, 1500); // Match animation duration
+    }, 2500); // Match animation duration
 
     return () => clearTimeout(timer);
   }, [onAnimationEnd]);
@@ -34,7 +34,7 @@ export const XPFloatingAnimation: React.FC<XPFloatingAnimationProps> = ({ xp, on
   const animation = (
     <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] pointer-events-none">
       <div
-        className={`${color} font-black text-5xl animate-float-xp whitespace-nowrap drop-shadow-2xl`}
+        className={`${color} font-black text-2xl animate-float-xp whitespace-nowrap drop-shadow-2xl`}
       >
         {sign}
         {displayValue} XP

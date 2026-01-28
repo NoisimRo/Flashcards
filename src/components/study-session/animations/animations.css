@@ -1,22 +1,23 @@
 /* Study Session Animations */
 
-/* Floating XP Animation */
+/* Floating XP Animation - floats toward top-right (XP indicator) */
 @keyframes float-xp {
   0% {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translate(0, 0) scale(1);
   }
-  50% {
-    transform: translateY(-30px) scale(1.2);
+  20% {
+    opacity: 1;
+    transform: translate(10px, -20px) scale(1.2);
   }
   100% {
     opacity: 0;
-    transform: translateY(-60px) scale(1);
+    transform: translate(120px, -200px) scale(0.5);
   }
 }
 
 .animate-float-xp {
-  animation: float-xp 1.5s ease-out forwards;
+  animation: float-xp 2.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 /* Pop In Animation */
