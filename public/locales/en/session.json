@@ -53,7 +53,9 @@
     "errors": {
       "loadingCards": "Error loading cards",
       "selectAtLeastOne": "Select at least one card",
-      "creating": "Error creating session"
+      "creating": "Error creating session",
+      "noCardsAvailable": "No cards available with current filters",
+      "noCardsAvailableHint": "Try unchecking some filter options above to include more cards."
     }
   },
   "continue": "Continue",

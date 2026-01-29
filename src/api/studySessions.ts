@@ -10,6 +10,27 @@ import type {
 import type { StudySession, StudySessionWithData } from '../types/models';
 
 /**
+ * Get available card count for session creation (accounts for filters)
+ */
+export async function getAvailableCardCount(
+  deckId: string,
+  excludeMastered: boolean,
+  excludeActiveSessionCards: boolean
+) {
+  const params = new URLSearchParams({
+    deckId,
+    excludeMastered: String(excludeMastered),
+    excludeActiveSessionCards: String(excludeActiveSessionCards),
+  });
+  return api.get<{
+    totalCards: number;
+    masteredCount: number;
+    activeSessionCardCount: number;
+    availableCount: number;
+  }>(`/study-sessions/available-count?${params.toString()}`);
+}
+
+/**
  * Create a new study session
  */
 export async function createStudySession(request: CreateStudySessionRequest) {

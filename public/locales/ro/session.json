@@ -53,7 +53,9 @@
     "errors": {
       "loadingCards": "Eroare la încărcarea cardurilor",
       "selectAtLeastOne": "Selectează cel puțin un card",
-      "creating": "Eroare la crearea sesiunii"
+      "creating": "Eroare la crearea sesiunii",
+      "noCardsAvailable": "Nu există carduri disponibile cu filtrele selectate",
+      "noCardsAvailableHint": "Încearcă să debifezi unele opțiuni de filtrare de mai sus pentru a include mai multe carduri."
     }
   },
   "continue": "Continuă",
