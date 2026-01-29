@@ -42,7 +42,9 @@
       "deselectAll": "Deselectează tot",
       "loading": "Se încarcă cardurile...",
       "noCards": "Nu există carduri disponibile",
-      "cardNumber": "Card #{{number}}"
+      "cardNumber": "Card #{{number}}",
+      "filterByTopics": "Filtrează după Teme",
+      "clearFilters": "Șterge filtrele"
     },
     "buttons": {
       "cancel": "Anulează",
