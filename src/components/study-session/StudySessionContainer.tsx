@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useStudySessionsStore } from '../../store/studySessionsStore';
+import { useStudySessionsStore, setOnUserUpdateCallback } from '../../store/studySessionsStore';
 import { useAuth } from '../../store/AuthContext';
 import { StandardCard } from './cards/StandardCard';
 import { QuizCard } from './cards/QuizCard';
@@ -77,6 +77,21 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
   // sessionXPAtLastLevelUp: the sessionXP value when level-up last occurred,
   // so we only count XP earned *since* the last level-up toward the next threshold
   const sessionXPAtLastLevelUp = useRef(0);
+
+  // Wire user update callback so PUT responses can sync auth context
+  useEffect(() => {
+    setOnUserUpdateCallback(data => {
+      updateUser({
+        level: data.level,
+        currentXP: data.currentXP,
+        nextLevelXP: data.nextLevelXP,
+        totalXP: data.totalXP,
+      });
+    });
+    return () => {
+      setOnUserUpdateCallback(null);
+    };
+  }, [updateUser]);
 
   // Load session and enable auto-save on mount
   useEffect(() => {
