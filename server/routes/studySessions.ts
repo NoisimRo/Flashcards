@@ -270,6 +270,110 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
 });
 
 // ============================================
+// GET /api/study-sessions/available-count - Get available card count for session creation
+// ============================================
+router.get('/available-count', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { deckId, excludeMastered, excludeActiveSessionCards } = req.query;
+
+    if (!deckId) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'VALIDATION_ERROR', message: 'deckId is required' },
+      });
+    }
+
+    // Total cards in deck
+    const totalResult = await query(
+      `SELECT COUNT(*) as count FROM cards WHERE deck_id = $1 AND deleted_at IS NULL`,
+      [deckId]
+    );
+    const totalCards = parseInt(totalResult.rows[0].count, 10);
+
+    // Mastered cards count
+    let masteredCount = 0;
+    if (excludeMastered === 'true') {
+      const masteredResult = await query(
+        `SELECT COUNT(*) as count
+         FROM cards c
+         JOIN user_card_progress ucp ON ucp.card_id = c.id AND ucp.user_id = $1
+         WHERE c.deck_id = $2 AND c.deleted_at IS NULL AND ucp.status = 'mastered'`,
+        [req.user!.id, deckId]
+      );
+      masteredCount = parseInt(masteredResult.rows[0].count, 10);
+    }
+
+    // Active session cards count (unique cards from this deck that are in active sessions)
+    let activeSessionCardCount = 0;
+    if (excludeActiveSessionCards === 'true') {
+      const activeResult = await query(
+        `SELECT COUNT(DISTINCT card_id) as count
+         FROM (
+           SELECT unnest(ss.selected_card_ids) AS card_id
+           FROM study_sessions ss
+           WHERE ss.user_id = $1 AND ss.status = 'active'
+         ) active_cards
+         JOIN cards c ON c.id = active_cards.card_id
+         WHERE c.deck_id = $2 AND c.deleted_at IS NULL`,
+        [req.user!.id, deckId]
+      );
+      activeSessionCardCount = parseInt(activeResult.rows[0].count, 10);
+    }
+
+    // Compute actual available (accounting for overlap between mastered and active)
+    // To get exact count, query the actual available cards
+    let availableCount = totalCards;
+    if (excludeMastered === 'true' || excludeActiveSessionCards === 'true') {
+      let excludeClause = '';
+      const params: any[] = [deckId];
+      let paramIdx = 2;
+
+      if (excludeMastered === 'true') {
+        excludeClause += ` AND c.id NOT IN (
+          SELECT ucp.card_id FROM user_card_progress ucp
+          WHERE ucp.user_id = $${paramIdx} AND ucp.status = 'mastered'
+        )`;
+        params.push(req.user!.id);
+        paramIdx++;
+      }
+
+      if (excludeActiveSessionCards === 'true') {
+        excludeClause += ` AND c.id NOT IN (
+          SELECT DISTINCT unnest(ss.selected_card_ids)
+          FROM study_sessions ss
+          WHERE ss.user_id = $${paramIdx} AND ss.status = 'active'
+        )`;
+        params.push(req.user!.id);
+        paramIdx++;
+      }
+
+      const availableResult = await query(
+        `SELECT COUNT(*) as count FROM cards c
+         WHERE c.deck_id = $1 AND c.deleted_at IS NULL${excludeClause}`,
+        params
+      );
+      availableCount = parseInt(availableResult.rows[0].count, 10);
+    }
+
+    res.json({
+      success: true,
+      data: {
+        totalCards,
+        masteredCount,
+        activeSessionCardCount,
+        availableCount,
+      },
+    });
+  } catch (error) {
+    console.error('Available count error:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'SERVER_ERROR', message: 'Error computing available count' },
+    });
+  }
+});
+
+// ============================================
 // GET /api/study-sessions - List sessions
 // ============================================
 router.get('/', authenticateToken, async (req: Request, res: Response) => {
@@ -367,11 +471,11 @@ router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
     const sessionRow = sessionResult.rows[0];
     const session = formatSession(sessionRow);
 
-    // Get cards
+    // Get cards - preserve the order stored in selected_card_ids (e.g. round-robin interleaved)
     const cardsResult = await query(
       `SELECT * FROM cards
        WHERE id = ANY($1::uuid[])
-       ORDER BY position ASC`,
+       ORDER BY array_position($1::uuid[], id)`,
       [session.selectedCardIds]
     );
 
@@ -1288,11 +1392,11 @@ router.get('/guest/:id', async (req: Request, res: Response) => {
     const sessionRow = sessionResult.rows[0];
     const session = formatSession(sessionRow);
 
-    // Get cards
+    // Get cards - preserve the order stored in selected_card_ids (e.g. round-robin interleaved)
     const cardsResult = await query(
       `SELECT * FROM cards
        WHERE id = ANY($1::uuid[])
-       ORDER BY position ASC`,
+       ORDER BY array_position($1::uuid[], id)`,
       [session.selectedCardIds]
     );
 

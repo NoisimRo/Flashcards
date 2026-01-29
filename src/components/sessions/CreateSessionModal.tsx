@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { X, Play, Shuffle, Brain, CheckSquare, List } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { CreateStudySessionRequest } from '../../types/api';
@@ -6,6 +6,7 @@ import { useStudySessionsStore } from '../../store/studySessionsStore';
 import { useAuth } from '../../store/AuthContext';
 import { useToast } from '../ui/Toast';
 import { getDeck } from '../../api/decks';
+import { getAvailableCardCount } from '../../api/studySessions';
 
 interface CreateSessionModalProps {
   deck: {
@@ -41,7 +42,45 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
   const [selectedCardIds, setSelectedCardIds] = useState<string[]>([]);
   const [loadingCards, setLoadingCards] = useState(false);
 
-  const availableCards = deck?.totalCards || 0; // Safe fallback to prevent NaN
+  // Dynamic available card count
+  const [availableCards, setAvailableCards] = useState(deck?.totalCards || 0);
+  const [loadingCount, setLoadingCount] = useState(false);
+
+  // Fetch available card count from backend
+  const fetchAvailableCount = useCallback(
+    async (mastered: boolean, activeSessions: boolean) => {
+      if (isGuest) {
+        setAvailableCards(deck?.totalCards || 0);
+        return;
+      }
+      setLoadingCount(true);
+      try {
+        const response = await getAvailableCardCount(deck.id, mastered, activeSessions);
+        if (response.success && response.data) {
+          setAvailableCards(response.data.availableCount);
+        }
+      } catch {
+        // Fallback to total cards on error
+        setAvailableCards(deck?.totalCards || 0);
+      } finally {
+        setLoadingCount(false);
+      }
+    },
+    [deck.id, deck?.totalCards, isGuest]
+  );
+
+  // Fetch count on mount and when checkboxes change
+  useEffect(() => {
+    fetchAvailableCount(excludeMastered, excludeActiveSessionCards);
+  }, [excludeMastered, excludeActiveSessionCards, fetchAvailableCount]);
+
+  // Clamp cardCount when availableCards changes
+  useEffect(() => {
+    const maxSlider = Math.max(5, Math.min(50, availableCards));
+    if (cardCount > maxSlider) {
+      setCardCount(maxSlider);
+    }
+  }, [availableCards, cardCount]);
 
   // Fetch deck cards when manual mode is selected
   useEffect(() => {
@@ -112,9 +151,18 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
       toast.success(t('create.success', { cards: session.totalCards }));
       onSessionCreated(session.id);
     } else {
-      toast.error(t('create.errors.creating'));
+      // Check store error for more descriptive feedback
+      const storeError = useStudySessionsStore.getState().error;
+      if (storeError) {
+        toast.error(storeError);
+      } else {
+        toast.error(t('create.errors.creating'));
+      }
     }
   };
+
+  const sliderMax = Math.max(5, Math.min(50, availableCards));
+  const noCardsAvailable = availableCards === 0 && !loadingCount;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -216,17 +264,18 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
               <input
                 type="range"
                 min="5"
-                max={Math.max(5, Math.min(50, availableCards))}
-                value={cardCount}
+                max={sliderMax}
+                value={Math.min(cardCount, sliderMax)}
                 onChange={e => setCardCount(parseInt(e.target.value))}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                disabled={noCardsAvailable}
               />
               <div className="flex justify-between text-xs text-gray-500 mt-1">
                 <span>{t('create.cardCount.min')}</span>
                 <span>{t('create.cardCount.max', { count: Math.min(50, availableCards) })}</span>
               </div>
               <p className="text-sm text-gray-600 mt-2">
-                {t('create.cardCount.available', { count: availableCards })}
+                {loadingCount ? '...' : t('create.cardCount.available', { count: availableCards })}
               </p>
             </div>
           )}
@@ -266,6 +315,18 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
               </div>
             </label>
           </div>
+
+          {/* Warning when no cards are available */}
+          {noCardsAvailable && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+              <p className="text-sm font-semibold text-amber-800">
+                {t('create.errors.noCardsAvailable')}
+              </p>
+              <p className="text-xs text-amber-700 mt-1">
+                {t('create.errors.noCardsAvailableHint')}
+              </p>
+            </div>
+          )}
 
           {/* Manual Card Selection */}
           {selectionMethod === 'manual' && (
@@ -337,7 +398,7 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
           </button>
           <button
             onClick={handleCreate}
-            disabled={isLoading}
+            disabled={isLoading || noCardsAvailable}
             className="flex-1 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
           >
             <Play size={20} />
