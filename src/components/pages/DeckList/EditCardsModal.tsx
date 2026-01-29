@@ -2,7 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, DeckWithCards } from '../../../types';
 import { Plus, X, Edit, Trash2, Save, Tags } from 'lucide-react';
-import { createCard, updateCard, deleteCard as deleteCardAPI, getCardTags } from '../../../api/cards';
+import {
+  createCard,
+  updateCard,
+  deleteCard as deleteCardAPI,
+  getCardTags,
+} from '../../../api/cards';
 import { useToast } from '../../ui/Toast';
 import { TagInput } from '../../ui/TagInput';
 import { getTagColor } from '../../../utils/tagColors';
@@ -230,7 +235,6 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
           front: card.front,
           back: card.back,
           context: card.context,
-          hint: card.hint,
           type: card.type,
           options: card.options,
           correctOptionIndices: card.correctOptionIndices,
@@ -309,9 +313,7 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
                 setBulkTags([]);
               }}
               className={`text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
-                isBulkMode
-                  ? 'bg-indigo-100 text-indigo-700'
-                  : 'text-gray-500 hover:bg-gray-100'
+                isBulkMode ? 'bg-indigo-100 text-indigo-700' : 'text-gray-500 hover:bg-gray-100'
               }`}
             >
               <Tags size={16} />

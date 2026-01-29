@@ -22,7 +22,7 @@ export const TagInput: React.FC<TagInputProps> = ({
   const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   // 300ms debounced filtering
   const updateSuggestions = useCallback(
@@ -96,15 +96,11 @@ export const TagInput: React.FC<TagInputProps> = ({
     }
     if (e.key === 'ArrowDown' && showSuggestions) {
       e.preventDefault();
-      setHighlightedIndex(prev =>
-        prev < filteredSuggestions.length - 1 ? prev + 1 : 0
-      );
+      setHighlightedIndex(prev => (prev < filteredSuggestions.length - 1 ? prev + 1 : 0));
     }
     if (e.key === 'ArrowUp' && showSuggestions) {
       e.preventDefault();
-      setHighlightedIndex(prev =>
-        prev > 0 ? prev - 1 : filteredSuggestions.length - 1
-      );
+      setHighlightedIndex(prev => (prev > 0 ? prev - 1 : filteredSuggestions.length - 1));
     }
   };
 
@@ -163,9 +159,7 @@ export const TagInput: React.FC<TagInputProps> = ({
                 onMouseDown={e => e.preventDefault()}
                 onClick={() => addTag(suggestion)}
                 className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 transition-colors ${
-                  idx === highlightedIndex
-                    ? 'bg-indigo-50'
-                    : 'hover:bg-gray-50'
+                  idx === highlightedIndex ? 'bg-indigo-50' : 'hover:bg-gray-50'
                 }`}
               >
                 <span

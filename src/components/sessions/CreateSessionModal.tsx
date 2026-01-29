@@ -39,7 +39,9 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
   const [cardCount, setCardCount] = useState(20);
   const [excludeMastered, setExcludeMastered] = useState(true);
   const [excludeActiveSessionCards, setExcludeActiveSessionCards] = useState(false);
-  const [deckCards, setDeckCards] = useState<Array<{ id: string; front: string; tags?: string[] }>>([]);
+  const [deckCards, setDeckCards] = useState<Array<{ id: string; front: string; tags?: string[] }>>(
+    []
+  );
   const [selectedCardIds, setSelectedCardIds] = useState<string[]>([]);
   const [loadingCards, setLoadingCards] = useState(false);
   const [availableTags, setAvailableTags] = useState<string[]>([]);

@@ -20,7 +20,7 @@ function hashString(str: string): number {
   const lower = str.toLowerCase().trim();
   for (let i = 0; i < lower.length; i++) {
     const char = lower.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
+    hash = (hash << 5) - hash + char;
     hash |= 0;
   }
   return Math.abs(hash);
