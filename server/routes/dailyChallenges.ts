@@ -43,13 +43,20 @@ router.get('/today', authenticateToken, async (req, res) => {
 
     const challenge = challenges.rows[0];
 
-    // CRITICAL FIX: Include both completed AND active sessions
-    // Active sessions store progress in answers JSON field, not in correct_count
+    // CRITICAL: Split by session status to avoid counting cumulative multi-day data
+    // - Active sessions started today: all progress belongs to today
+    // - Completed sessions completed today: progress committed today (even if started earlier)
+    // We CANNOT use last_activity_at alone because active sessions from previous days
+    // would include their full cumulative correct_count/duration, not just today's portion.
     const sessionsResult = await query(
       `SELECT status, correct_count, duration_seconds, answers
        FROM study_sessions
        WHERE user_id = $1
-         AND DATE(last_activity_at) = $2`,
+         AND (
+           (status = 'active' AND DATE(started_at) = $2)
+           OR
+           (status = 'completed' AND DATE(completed_at) = $2)
+         )`,
       [userId, today]
     );
 
@@ -195,7 +202,10 @@ router.post('/claim-reward', authenticateToken, async (req, res) => {
       // CRITICAL FIX: Include both completed AND active sessions (match /today logic)
       // Active sessions have correct_count = NULL but have answers in JSON field
       const sessionsResult = await query(
-        'SELECT status, correct_count, answers FROM study_sessions WHERE user_id = $1 AND DATE(last_activity_at) = $2',
+        `SELECT status, correct_count, answers FROM study_sessions
+         WHERE user_id = $1
+           AND ((status = 'active' AND DATE(started_at) = $2)
+                OR (status = 'completed' AND DATE(completed_at) = $2))`,
         [userId, today]
       );
       let totalCorrectAnswers = 0;
@@ -217,7 +227,10 @@ router.post('/claim-reward', authenticateToken, async (req, res) => {
     } else if (challengeId === 'time') {
       // Aggregate time from all sessions today
       const sessionsResult = await query(
-        'SELECT duration_seconds FROM study_sessions WHERE user_id = $1 AND DATE(last_activity_at) = $2',
+        `SELECT duration_seconds FROM study_sessions
+         WHERE user_id = $1
+           AND ((status = 'active' AND DATE(started_at) = $2)
+                OR (status = 'completed' AND DATE(completed_at) = $2))`,
         [userId, today]
       );
       let totalTimeMinutes = 0;
@@ -232,7 +245,10 @@ router.post('/claim-reward', authenticateToken, async (req, res) => {
       // User's streak value is only updated after session completion, but we need to check
       // if TODAY's activity meets the requirement (even from active sessions)
       const sessionsResult = await query(
-        'SELECT status, correct_count, duration_seconds, answers FROM study_sessions WHERE user_id = $1 AND DATE(last_activity_at) = $2',
+        `SELECT status, correct_count, duration_seconds, answers FROM study_sessions
+         WHERE user_id = $1
+           AND ((status = 'active' AND DATE(started_at) = $2)
+                OR (status = 'completed' AND DATE(completed_at) = $2))`,
         [userId, today]
       );
 
@@ -344,13 +360,15 @@ router.get('/activity-calendar', authenticateToken, async (req, res) => {
       [userId]
     );
 
-    // CRITICAL FIX: Get today's active sessions to include their time (not yet in daily_progress)
+    // Get today's active sessions started today to include their time (not yet in daily_progress)
+    // Only sessions started today — active sessions from previous days have cumulative totals
+    // that can't be split by day, so we exclude them to avoid overcounting.
     const todayStr = new Date().toISOString().split('T')[0];
     const activeSessionsResult = await query(
       `SELECT status, duration_seconds, answers
        FROM study_sessions
        WHERE user_id = $1
-         AND DATE(last_activity_at) = $2
+         AND DATE(started_at) = $2
          AND status = 'active'`,
       [userId, todayStr]
     );
