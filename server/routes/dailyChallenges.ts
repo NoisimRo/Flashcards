@@ -49,7 +49,7 @@ router.get('/today', authenticateToken, async (req, res) => {
       `SELECT status, correct_count, duration_seconds, answers
        FROM study_sessions
        WHERE user_id = $1
-         AND DATE(started_at) = $2`,
+         AND DATE(last_activity_at) = $2`,
       [userId, today]
     );
 
@@ -195,7 +195,7 @@ router.post('/claim-reward', authenticateToken, async (req, res) => {
       // CRITICAL FIX: Include both completed AND active sessions (match /today logic)
       // Active sessions have correct_count = NULL but have answers in JSON field
       const sessionsResult = await query(
-        'SELECT status, correct_count, answers FROM study_sessions WHERE user_id = $1 AND DATE(started_at) = $2',
+        'SELECT status, correct_count, answers FROM study_sessions WHERE user_id = $1 AND DATE(last_activity_at) = $2',
         [userId, today]
       );
       let totalCorrectAnswers = 0;
@@ -217,7 +217,7 @@ router.post('/claim-reward', authenticateToken, async (req, res) => {
     } else if (challengeId === 'time') {
       // Aggregate time from all sessions today
       const sessionsResult = await query(
-        'SELECT duration_seconds FROM study_sessions WHERE user_id = $1 AND DATE(started_at) = $2',
+        'SELECT duration_seconds FROM study_sessions WHERE user_id = $1 AND DATE(last_activity_at) = $2',
         [userId, today]
       );
       let totalTimeMinutes = 0;
@@ -232,7 +232,7 @@ router.post('/claim-reward', authenticateToken, async (req, res) => {
       // User's streak value is only updated after session completion, but we need to check
       // if TODAY's activity meets the requirement (even from active sessions)
       const sessionsResult = await query(
-        'SELECT status, correct_count, duration_seconds, answers FROM study_sessions WHERE user_id = $1 AND DATE(started_at) = $2',
+        'SELECT status, correct_count, duration_seconds, answers FROM study_sessions WHERE user_id = $1 AND DATE(last_activity_at) = $2',
         [userId, today]
       );
 
@@ -350,7 +350,7 @@ router.get('/activity-calendar', authenticateToken, async (req, res) => {
       `SELECT status, duration_seconds, answers
        FROM study_sessions
        WHERE user_id = $1
-         AND DATE(started_at) = $2
+         AND DATE(last_activity_at) = $2
          AND status = 'active'`,
       [userId, todayStr]
     );
