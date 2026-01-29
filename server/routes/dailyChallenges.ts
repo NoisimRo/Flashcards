@@ -43,40 +43,11 @@ router.get('/today', authenticateToken, async (req, res) => {
 
     const challenge = challenges.rows[0];
 
-    // CRITICAL FIX: Include both completed AND active sessions
-    // Active sessions store progress in answers JSON field, not in correct_count
-    const sessionsResult = await query(
-      `SELECT status, correct_count, duration_seconds, answers
-       FROM study_sessions
-       WHERE user_id = $1
-         AND DATE(last_activity_at) = $2`,
-      [userId, today]
-    );
-
-    // Aggregate correct answers and time from all sessions today
-    let totalCorrectAnswers = 0;
-    let totalTimeMinutes = 0;
-
-    for (const session of sessionsResult.rows) {
-      if (session.status === 'completed') {
-        // Completed sessions have correct_count populated
-        totalCorrectAnswers += session.correct_count || 0;
-      } else {
-        // Active sessions: count correct answers from answers JSON
-        const answers = session.answers || {};
-        const correctInSession = Object.values(answers).filter(
-          (answer: any) => answer === 'correct'
-        ).length;
-        totalCorrectAnswers += correctInSession;
-      }
-
-      // Time is tracked in duration_seconds for both active and completed sessions
-      totalTimeMinutes += Math.floor((session.duration_seconds || 0) / 60);
-    }
-
+    // Read progress directly from daily_challenges columns
+    // These are updated incrementally by PUT auto-save and POST /complete endpoints
     const todayProgress = {
-      correct_answers: totalCorrectAnswers,
-      time_spent_minutes: totalTimeMinutes,
+      correct_answers: challenge.cards_learned_today || 0,
+      time_spent_minutes: challenge.time_studied_today || 0,
     };
 
     // Get user's current streak
@@ -191,73 +162,19 @@ router.post('/claim-reward', authenticateToken, async (req, res) => {
     let isCompleted = false;
     let rewardXP = 0;
 
+    // Read progress directly from daily_challenges columns (updated by PUT auto-save and POST /complete)
+    const todayCorrectAnswers = challenge.cards_learned_today || 0;
+    const todayTimeMinutes = challenge.time_studied_today || 0;
+
     if (challengeId === 'cards') {
-      // CRITICAL FIX: Include both completed AND active sessions (match /today logic)
-      // Active sessions have correct_count = NULL but have answers in JSON field
-      const sessionsResult = await query(
-        'SELECT status, correct_count, answers FROM study_sessions WHERE user_id = $1 AND DATE(last_activity_at) = $2',
-        [userId, today]
-      );
-      let totalCorrectAnswers = 0;
-      for (const session of sessionsResult.rows) {
-        if (session.status === 'completed') {
-          // Completed sessions have correct_count populated
-          totalCorrectAnswers += session.correct_count || 0;
-        } else {
-          // Active sessions: count correct answers from answers JSON
-          const answers = session.answers || {};
-          const correctInSession = Object.values(answers).filter(
-            (answer: any) => answer === 'correct'
-          ).length;
-          totalCorrectAnswers += correctInSession;
-        }
-      }
-      isCompleted = totalCorrectAnswers >= challenge.cards_target;
+      isCompleted = todayCorrectAnswers >= challenge.cards_target;
       rewardXP = 50;
     } else if (challengeId === 'time') {
-      // Aggregate time from all sessions today
-      const sessionsResult = await query(
-        'SELECT duration_seconds FROM study_sessions WHERE user_id = $1 AND DATE(last_activity_at) = $2',
-        [userId, today]
-      );
-      let totalTimeMinutes = 0;
-      for (const session of sessionsResult.rows) {
-        totalTimeMinutes += Math.floor((session.duration_seconds || 0) / 60);
-      }
-      isCompleted = totalTimeMinutes >= challenge.time_target;
+      isCompleted = todayTimeMinutes >= challenge.time_target;
       rewardXP = 30;
     } else if (challengeId === 'streak') {
-      // CRITICAL FIX: Check if TODAY's activity meets streak conditions (match /today logic)
-      // Streak is maintained if: time >= 10 minutes OR correct answers >= 20
-      // User's streak value is only updated after session completion, but we need to check
-      // if TODAY's activity meets the requirement (even from active sessions)
-      const sessionsResult = await query(
-        'SELECT status, correct_count, duration_seconds, answers FROM study_sessions WHERE user_id = $1 AND DATE(last_activity_at) = $2',
-        [userId, today]
-      );
-
-      let totalCorrectAnswers = 0;
-      let totalTimeMinutes = 0;
-
-      for (const session of sessionsResult.rows) {
-        if (session.status === 'completed') {
-          // Completed sessions have correct_count populated
-          totalCorrectAnswers += session.correct_count || 0;
-        } else {
-          // Active sessions: count correct answers from answers JSON
-          const answers = session.answers || {};
-          const correctInSession = Object.values(answers).filter(
-            (answer: any) => answer === 'correct'
-          ).length;
-          totalCorrectAnswers += correctInSession;
-        }
-
-        // Time is tracked in duration_seconds for both active and completed sessions
-        totalTimeMinutes += Math.floor((session.duration_seconds || 0) / 60);
-      }
-
       // Streak requirement: 10+ minutes OR 20+ correct answers
-      isCompleted = totalTimeMinutes >= 10 || totalCorrectAnswers >= 20;
+      isCompleted = todayTimeMinutes >= 10 || todayCorrectAnswers >= 20;
       rewardXP = 100;
     }
 
@@ -334,8 +251,9 @@ router.get('/activity-calendar', authenticateToken, async (req, res) => {
     const userId = req.user!.id;
 
     // Get last 28 days of daily_progress
+    // No separate active sessions query needed — PUT auto-save writes incrementally to daily_progress
     const activityResult = await query(
-      `SELECT date, cards_learned, time_spent_minutes, sessions_completed
+      `SELECT date, cards_studied, cards_learned, time_spent_minutes, sessions_completed
        FROM daily_progress
        WHERE user_id = $1
          AND date >= CURRENT_DATE - INTERVAL '27 days'
@@ -343,28 +261,6 @@ router.get('/activity-calendar', authenticateToken, async (req, res) => {
        ORDER BY date ASC`,
       [userId]
     );
-
-    // CRITICAL FIX: Get today's active sessions to include their time (not yet in daily_progress)
-    const todayStr = new Date().toISOString().split('T')[0];
-    const activeSessionsResult = await query(
-      `SELECT status, duration_seconds, answers
-       FROM study_sessions
-       WHERE user_id = $1
-         AND DATE(last_activity_at) = $2
-         AND status = 'active'`,
-      [userId, todayStr]
-    );
-
-    // Calculate time and cards from active sessions
-    let activeTodayMinutes = 0;
-    let activeTodayCards = 0;
-    for (const session of activeSessionsResult.rows) {
-      activeTodayMinutes += Math.floor((session.duration_seconds || 0) / 60);
-      const answers = session.answers || {};
-      activeTodayCards += Object.values(answers).filter(
-        (answer: any) => answer === 'correct'
-      ).length;
-    }
 
     // Create calendar for last 28 days
     const calendar = [];
@@ -379,13 +275,19 @@ router.get('/activity-calendar', authenticateToken, async (req, res) => {
       const dateStr = date.toISOString().split('T')[0];
 
       const activity: any = activityMap.get(dateStr);
-      const studied = !!activity && (activity.cards_learned > 0 || activity.sessions_completed > 0);
+      const cardsLearned = activity?.cards_learned || 0;
+      const cardsStudied = activity?.cards_studied || 0;
+      const timeSpent = activity?.time_spent_minutes || 0;
+      const sessionsCompleted = activity?.sessions_completed || 0;
+      const studied =
+        cardsLearned > 0 || cardsStudied > 0 || sessionsCompleted > 0 || timeSpent > 0;
 
-      // Calculate intensity based on cards learned and time spent
+      // Calculate intensity based on cards and time spent
       let intensity = 0;
-      if (studied && activity) {
-        const cardsScore = Math.min(activity.cards_learned / 10, 1); // 10+ cards = max
-        const timeScore = Math.min(activity.time_spent_minutes / 15, 1); // 15+ min = max
+      if (studied) {
+        const totalCards = cardsLearned + cardsStudied;
+        const cardsScore = Math.min(totalCards / 10, 1); // 10+ cards = max
+        const timeScore = Math.min(timeSpent / 15, 1); // 15+ min = max
         const combinedScore = (cardsScore + timeScore) / 2;
 
         if (combinedScore > 0.66) intensity = 3;
@@ -393,18 +295,12 @@ router.get('/activity-calendar', authenticateToken, async (req, res) => {
         else if (combinedScore > 0) intensity = 1;
       }
 
-      // CRITICAL FIX: Add active session time/cards to today's entry
-      const isToday = dateStr === todayStr;
-      const finalCardsLearned = (activity?.cards_learned || 0) + (isToday ? activeTodayCards : 0);
-      const finalTimeSpent =
-        (activity?.time_spent_minutes || 0) + (isToday ? activeTodayMinutes : 0);
-
       calendar.push({
         date: dateStr,
         studied,
         intensity,
-        cardsLearned: finalCardsLearned,
-        timeSpent: finalTimeSpent,
+        cardsLearned: cardsLearned + cardsStudied,
+        timeSpent,
       });
     }
 

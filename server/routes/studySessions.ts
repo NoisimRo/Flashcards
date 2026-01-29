@@ -433,17 +433,17 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
       params.push(currentCardIndex);
     }
 
+    // Calculate new answers since last save (hoisted for use in daily tracking below)
+    let newCorrectAnswers = 0;
+    let newTotalAnswers = 0;
+
     // Handle incremental answer tracking for success rate
     if (answers !== undefined) {
       updateFields.push(`answers = $${paramIndex++}`);
       params.push(JSON.stringify(answers));
 
-      // Calculate new answers since last save
       const oldAnswers = session.answers || {};
       const newAnswers = answers;
-
-      let newCorrectAnswers = 0;
-      let newTotalAnswers = 0;
 
       // Find answers that are new or changed
       for (const [cardId, answer] of Object.entries(newAnswers)) {
@@ -522,8 +522,10 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
       }
     }
 
-    // SIMPLIFIED: Just update duration_seconds in session (no incremental user/daily_progress updates)
-    // Time is aggregated on session completion only, preventing double-counting
+    // Track duration and update daily progress incrementally
+    const oldDuration = session.duration_seconds || 0;
+    const newDuration = durationSeconds !== undefined ? durationSeconds : oldDuration;
+
     if (durationSeconds !== undefined) {
       updateFields.push(`duration_seconds = $${paramIndex++}`);
       params.push(durationSeconds);
@@ -540,6 +542,41 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
        RETURNING *`,
       params
     );
+
+    // --- Incremental daily_progress and daily_challenges updates ---
+    // Compute deltas for time and correct answers since last auto-save
+    const timeDeltaSeconds = newDuration - oldDuration;
+    const timeDeltaMinutes = Math.floor(timeDeltaSeconds / 60);
+
+    // newCorrectAnswers and newTotalAnswers were computed above (lines ~445-457)
+    // They represent the delta of answers since last save
+    const correctDelta = answers !== undefined ? newCorrectAnswers : 0;
+
+    const today = new Date().toISOString().split('T')[0];
+
+    if (timeDeltaMinutes > 0 || correctDelta > 0) {
+      // Update daily_progress incrementally
+      await query(
+        `INSERT INTO daily_progress
+           (user_id, date, cards_studied, time_spent_minutes)
+         VALUES ($1, $2, $3, $4)
+         ON CONFLICT (user_id, date)
+         DO UPDATE SET
+           cards_studied = daily_progress.cards_studied + $3,
+           time_spent_minutes = daily_progress.time_spent_minutes + $4`,
+        [req.user!.id, today, correctDelta, timeDeltaMinutes]
+      );
+
+      // Update daily_challenges incrementally
+      await query(
+        `UPDATE daily_challenges
+         SET cards_learned_today = cards_learned_today + $1,
+             time_studied_today = time_studied_today + $2,
+             updated_at = NOW()
+         WHERE user_id = $3 AND date = $4`,
+        [correctDelta, timeDeltaMinutes, req.user!.id, today]
+      );
+    }
 
     res.json({
       success: true,
@@ -589,9 +626,23 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
         throw new Error('ALREADY_COMPLETED');
       }
 
-      // SIMPLIFIED: Use full duration (no incremental calculation needed)
-      // Since PUT endpoint no longer updates time incrementally, we can safely use total duration
-      const totalMinutes = Math.floor((durationSeconds || 0) / 60);
+      // Calculate the DELTA of time and correct answers since last auto-save
+      // PUT auto-saves already wrote incremental data to daily_progress/daily_challenges,
+      // so we only add what's new since the last auto-save.
+      const lastSavedDuration = session.duration_seconds || 0;
+      const finalDuration = durationSeconds || 0;
+      const timeDeltaSeconds = Math.max(0, finalDuration - lastSavedDuration);
+      const timeDeltaMinutes = Math.floor(timeDeltaSeconds / 60);
+
+      // Total minutes for user stats (full session duration, not delta)
+      const totalMinutes = Math.floor(finalDuration / 60);
+
+      // Calculate correct answers delta: final correct_count minus what PUT already tracked
+      const lastSavedAnswers = session.answers || {};
+      const lastSavedCorrectCount = Object.values(lastSavedAnswers).filter(
+        (a: any) => a === 'correct'
+      ).length;
+      const correctDelta = Math.max(0, (correctCount || 0) - lastSavedCorrectCount);
 
       // Update session
       const updatedSession = await client.query(
@@ -771,19 +822,32 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
         ]
       );
 
-      // Update daily progress (for daily challenges and streak calendar)
+      // Update daily progress with DELTAS (PUT auto-save already tracked time/cards incrementally)
+      // Here we add: final time delta, cards_learned (SM-2), xp_earned, sessions_completed
+      // Also add correctDelta to cards_studied for the final answers not yet tracked by PUT
       const today = new Date().toISOString().split('T')[0];
       await client.query(
         `INSERT INTO daily_progress
-           (user_id, date, cards_learned, time_spent_minutes, xp_earned, sessions_completed)
-         VALUES ($1, $2, $3, $4, $5, 1)
+           (user_id, date, cards_studied, cards_learned, time_spent_minutes, xp_earned, sessions_completed)
+         VALUES ($1, $2, $3, $4, $5, $6, 1)
          ON CONFLICT (user_id, date)
          DO UPDATE SET
-           cards_learned = daily_progress.cards_learned + $3,
-           time_spent_minutes = daily_progress.time_spent_minutes + $4,
-           xp_earned = daily_progress.xp_earned + $5,
+           cards_studied = daily_progress.cards_studied + $3,
+           cards_learned = daily_progress.cards_learned + $4,
+           time_spent_minutes = daily_progress.time_spent_minutes + $5,
+           xp_earned = daily_progress.xp_earned + $6,
            sessions_completed = daily_progress.sessions_completed + 1`,
-        [req.user!.id, today, cardsLearned, totalMinutes, sessionXP]
+        [req.user!.id, today, correctDelta, cardsLearned, timeDeltaMinutes, sessionXP]
+      );
+
+      // Update daily_challenges with final deltas
+      await client.query(
+        `UPDATE daily_challenges
+         SET cards_learned_today = cards_learned_today + $1,
+             time_studied_today = time_studied_today + $2,
+             updated_at = NOW()
+         WHERE user_id = $3 AND date = $4`,
+        [correctDelta, timeDeltaMinutes, req.user!.id, today]
       );
 
       // Check and unlock achievements
