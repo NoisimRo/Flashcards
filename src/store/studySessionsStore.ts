@@ -33,6 +33,7 @@ interface StudySessionsStore {
   currentCardStartTime: number; // Track when current card was shown
   perCardTimes: Record<string, number>; // Track accumulated time per card ID
   totalActiveSeconds: number; // Sum of all per-card times
+  revealedHintCardIds: Record<string, boolean>; // Track which cards have had hints revealed (to avoid double XP charge)
 
   // Guest mode state
   guestToken: string | null;
@@ -155,6 +156,7 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
   currentCardStartTime: Date.now(),
   perCardTimes: {},
   totalActiveSeconds: 0,
+  revealedHintCardIds: {},
 
   // Guest mode state
   guestToken: null,
@@ -211,26 +213,67 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
       const response = await sessionsApi.getStudySession(id);
       if (response.success && response.data) {
         const session = response.data;
+        const savedAnswers = session.answers || {};
+        const cards = session.cards || [];
 
-        // Restore session state from backend
+        // Compute smart card index:
+        // 1. First unanswered card
+        // 2. First skipped card (if all cards have some answer)
+        // 3. Full reset if all cards are answered (correct/incorrect)
+        let startCardIndex = 0;
+        let resetAnswers = savedAnswers;
+
+        const firstUnanswered = cards.findIndex((card: any) => savedAnswers[card.id] === undefined);
+
+        if (firstUnanswered !== -1) {
+          // Found an unanswered card - start there
+          startCardIndex = firstUnanswered;
+        } else {
+          // All cards have some answer - check for skipped
+          const firstSkipped = cards.findIndex((card: any) => savedAnswers[card.id] === 'skipped');
+
+          if (firstSkipped !== -1) {
+            // Found a skipped card - start there
+            startCardIndex = firstSkipped;
+          } else {
+            // All cards answered (correct/incorrect) - full reset
+            startCardIndex = 0;
+            resetAnswers = {};
+          }
+        }
+
+        // Always reset sessionXP and streak to 0 on session load/resume
         set({
           currentSession: session,
-          currentCardIndex: session.currentCardIndex || 0,
-          answers: session.answers || {},
-          streak: session.streak || 0,
-          sessionXP: session.sessionXP || 0,
+          currentCardIndex: startCardIndex,
+          answers: resetAnswers,
+          streak: 0,
+          sessionXP: 0,
           isCardFlipped: false,
           hintRevealed: false,
           selectedQuizOption: null,
           selectedMultipleOptions: [],
+          revealedHintCardIds: {},
           isDirty: false,
           sessionStartTime: Date.now(),
           baselineDuration: session.durationSeconds || 0,
-          currentCardStartTime: Date.now(), // Start timing current card
-          perCardTimes: {}, // Reset per-card times for new session viewing
-          totalActiveSeconds: 0, // Will accumulate as user progresses
+          currentCardStartTime: Date.now(),
+          perCardTimes: {},
+          totalActiveSeconds: 0,
           isLoading: false,
         });
+
+        // Sync the reset state to backend (sessionXP=0, streak=0, updated card index)
+        const state = get();
+        if (state.currentSession) {
+          await state.updateSessionProgress(id, {
+            currentCardIndex: startCardIndex,
+            answers: resetAnswers,
+            streak: 0,
+            sessionXP: 0,
+            durationSeconds: session.durationSeconds || 0,
+          });
+        }
       } else {
         set({
           error: response.error?.message || 'Failed to load session',
@@ -500,10 +543,15 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
     // Record time on current card before moving to next
     const { perCardTimes, totalActiveSeconds } = recordCardTime(state);
 
+    // Check if the next card already had its hint revealed
+    const nextIndex = Math.min(state.currentCardIndex + 1, totalCards - 1);
+    const nextCardId = state.currentSession?.cards?.[nextIndex]?.id;
+    const nextHintRevealed = nextCardId ? !!state.revealedHintCardIds[nextCardId] : false;
+
     set({
-      currentCardIndex: Math.min(state.currentCardIndex + 1, totalCards - 1),
+      currentCardIndex: nextIndex,
       isCardFlipped: false,
-      hintRevealed: false,
+      hintRevealed: nextHintRevealed,
       selectedQuizOption: null,
       selectedMultipleOptions: [],
       frontAction: null, // Reset front action for next card
@@ -524,6 +572,9 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
     // Record time on current card before going back
     const { perCardTimes, totalActiveSeconds } = recordCardTime(state);
 
+    // Check if the previous card already had its hint revealed
+    const prevHintRevealed = !!state.revealedHintCardIds[previousCard.id];
+
     // CRITICAL FIX: Do NOT delete the answer - just go back
     // This preserves the pie chart progress while allowing navigation back
     // If the card was skipped, user can re-answer it
@@ -531,7 +582,7 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
     set({
       currentCardIndex: state.currentCardIndex - 1,
       isCardFlipped: false,
-      hintRevealed: false,
+      hintRevealed: prevHintRevealed,
       selectedQuizOption: null,
       selectedMultipleOptions: [],
       frontAction: null,
@@ -542,13 +593,13 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
     });
   },
 
-  // Shuffle cards (Fisher-Yates algorithm) - KEEPS XP and streak
+  // Shuffle cards (Fisher-Yates algorithm) - resets XP and streak
   shuffleCards: () => {
     const state = get();
     if (!state.currentSession?.cards) return;
 
     // Record time on current card before shuffling
-    const { perCardTimes, totalActiveSeconds } = recordCardTime(state);
+    const { totalActiveSeconds } = recordCardTime(state);
 
     const shuffledCards = [...state.currentSession.cards];
     for (let i = shuffledCards.length - 1; i > 0; i--) {
@@ -562,41 +613,48 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
         : null,
       currentCardIndex: 0,
       answers: {}, // Clear all answers when shuffling
+      streak: 0,
+      sessionXP: 0,
       isCardFlipped: false,
       hintRevealed: false,
       selectedQuizOption: null,
       selectedMultipleOptions: [],
       frontAction: null,
+      revealedHintCardIds: {},
       currentCardStartTime: Date.now(), // Start timing first card after shuffle
       perCardTimes: {}, // Reset per-card times for shuffled deck
       totalActiveSeconds, // KEEP accumulated time
-      // KEEP streak and sessionXP - user's progress is preserved
       isDirty: true,
     });
   },
 
-  // Restart session - KEEPS XP and streak, same order
+  // Restart session - resets XP and streak
   restartSession: () => {
     const state = get();
     if (!state.currentSession?.cards) return;
 
     // Record time on current card before restarting
-    const { perCardTimes, totalActiveSeconds } = recordCardTime(state);
+    const { totalActiveSeconds } = recordCardTime(state);
 
     set({
       currentCardIndex: 0,
       answers: {}, // Clear all answers
+      streak: 0,
+      sessionXP: 0,
       isCardFlipped: false,
       hintRevealed: false,
       selectedQuizOption: null,
       selectedMultipleOptions: [],
       frontAction: null,
+      revealedHintCardIds: {},
       currentCardStartTime: Date.now(), // Start timing first card
       perCardTimes: {}, // Reset per-card times for restart
       totalActiveSeconds, // KEEP accumulated time
-      // KEEP streak and sessionXP - user's progress is preserved
       isDirty: true,
     });
+
+    // Sync the reset to backend
+    state.syncProgress();
   },
 
   // Set quiz option
@@ -691,12 +749,19 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
     }
   },
 
-  // Reveal hint (costs 20 XP)
+  // Reveal hint (costs 20 XP, only once per card)
   revealHint: () => {
     const state = get();
+    const currentCard = state.getCurrentCard();
+    if (!currentCard) return;
+
+    const alreadyRevealed = state.revealedHintCardIds[currentCard.id];
+
     set({
       hintRevealed: true,
-      sessionXP: Math.max(0, state.sessionXP - 20), // Deduct 20 XP, minimum 0
+      // Only deduct XP on first reveal for this card
+      sessionXP: alreadyRevealed ? state.sessionXP : Math.max(0, state.sessionXP - 20),
+      revealedHintCardIds: { ...state.revealedHintCardIds, [currentCard.id]: true },
       isDirty: true,
     });
   },
@@ -713,6 +778,7 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
       selectedQuizOption: null,
       selectedMultipleOptions: [],
       frontAction: null,
+      revealedHintCardIds: {},
       isDirty: false,
       sessionStartTime: Date.now(),
       baselineDuration: 0,
