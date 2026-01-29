@@ -474,49 +474,49 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
       params.push(streak);
     }
 
+    // Hoist incrementalXP so it's available for daily_progress xp_earned tracking below
+    let incrementalXP = 0;
+
     if (sessionXP !== undefined) {
       updateFields.push(`session_xp = $${paramIndex++}`);
       params.push(sessionXP);
 
       // Get current session XP to calculate incremental XP
       const oldSessionXP = session.session_xp || 0;
-      const incrementalXP = Math.max(0, sessionXP - oldSessionXP);
+      incrementalXP = Math.max(0, sessionXP - oldSessionXP);
 
       // Update user's XP incrementally (only new XP earned since last save)
       if (incrementalXP > 0) {
         const userResult = await query(
-          'SELECT total_xp, current_xp, level FROM users WHERE id = $1',
+          'SELECT total_xp, current_xp, next_level_xp, level FROM users WHERE id = $1',
           [req.user!.id]
         );
 
         if (userResult.rows.length > 0) {
           const user = userResult.rows[0];
           const newTotalXP = user.total_xp + incrementalXP;
-          const newCurrentXP = user.current_xp + incrementalXP;
-
-          // Calculate XP needed for next level (exponential growth: 20% per level)
-          const calculateXPForLevel = (level: number) => {
-            return Math.floor(100 * Math.pow(1.2, level - 1));
-          };
-
+          let newCurrentXP = user.current_xp + incrementalXP;
           let newLevel = user.level;
-          let currentXP = newCurrentXP;
+          let newNextLevelXP = user.next_level_xp || 100;
 
-          // Check for level up
-          while (currentXP >= calculateXPForLevel(newLevel + 1)) {
-            currentXP -= calculateXPForLevel(newLevel + 1);
+          // Check for level up using stored next_level_xp (not computed from scratch)
+          // This matches the client-side formula: while currentXP >= nextLevelXP, deduct and level up
+          while (newCurrentXP >= newNextLevelXP) {
+            newCurrentXP -= newNextLevelXP;
             newLevel++;
+            newNextLevelXP = Math.floor(newNextLevelXP * 1.2);
           }
 
-          // Update user with new XP and possibly new level
+          // Update user with new XP, level, and next_level_xp
           await query(
             `UPDATE users
              SET total_xp = $1,
                  current_xp = $2,
                  level = $3,
+                 next_level_xp = $4,
                  updated_at = NOW()
-             WHERE id = $4`,
-            [newTotalXP, currentXP, newLevel, req.user!.id]
+             WHERE id = $5`,
+            [newTotalXP, newCurrentXP, newLevel, newNextLevelXP, req.user!.id]
           );
         }
       }
@@ -556,33 +556,54 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
 
     const today = new Date().toISOString().split('T')[0];
 
-    if (timeDeltaSeconds > 0 || correctDelta > 0) {
+    if (timeDeltaSeconds > 0 || correctDelta > 0 || incrementalXP > 0) {
       // Update daily_progress incrementally (time_spent_minutes stores SECONDS for granularity)
+      // Also track xp_earned incrementally so daily progress stays accurate even if session is abandoned
       await query(
         `INSERT INTO daily_progress
-           (user_id, date, cards_studied, time_spent_minutes)
-         VALUES ($1, $2, $3, $4)
+           (user_id, date, cards_studied, time_spent_minutes, xp_earned)
+         VALUES ($1, $2, $3, $4, $5)
          ON CONFLICT (user_id, date)
          DO UPDATE SET
            cards_studied = daily_progress.cards_studied + $3,
-           time_spent_minutes = daily_progress.time_spent_minutes + $4`,
-        [req.user!.id, today, correctDelta, timeDeltaSeconds]
+           time_spent_minutes = daily_progress.time_spent_minutes + $4,
+           xp_earned = daily_progress.xp_earned + $5`,
+        [req.user!.id, today, correctDelta, timeDeltaSeconds, incrementalXP]
       );
 
       // Update daily_challenges incrementally (time_studied_today stores SECONDS)
-      await query(
-        `UPDATE daily_challenges
-         SET cards_learned_today = cards_learned_today + $1,
-             time_studied_today = time_studied_today + $2,
-             updated_at = NOW()
-         WHERE user_id = $3 AND date = $4`,
-        [correctDelta, timeDeltaSeconds, req.user!.id, today]
-      );
+      if (timeDeltaSeconds > 0 || correctDelta > 0) {
+        await query(
+          `UPDATE daily_challenges
+           SET cards_learned_today = cards_learned_today + $1,
+               time_studied_today = time_studied_today + $2,
+               updated_at = NOW()
+           WHERE user_id = $3 AND date = $4`,
+          [correctDelta, timeDeltaSeconds, req.user!.id, today]
+        );
+      }
     }
+
+    // Fetch updated user data to return so the frontend stays in sync
+    const updatedUserResult = await query(
+      'SELECT level, current_xp, next_level_xp, total_xp FROM users WHERE id = $1',
+      [req.user!.id]
+    );
+
+    const updatedUser =
+      updatedUserResult.rows.length > 0
+        ? {
+            level: updatedUserResult.rows[0].level,
+            currentXP: updatedUserResult.rows[0].current_xp,
+            nextLevelXP: updatedUserResult.rows[0].next_level_xp,
+            totalXP: updatedUserResult.rows[0].total_xp,
+          }
+        : undefined;
 
     res.json({
       success: true,
       data: formatSession(result.rows[0]),
+      user: updatedUser,
     });
   } catch (error) {
     console.error('Update session error:', error);
@@ -774,72 +795,45 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
         }
       }
 
-      // Update user stats
+      // XP and level were already updated incrementally by the PUT auto-save handler.
+      // We do NOT add sessionXP to total_xp/current_xp again to avoid double-counting.
       const sessionXP = session.session_xp || 0;
 
-      // Get current user stats for level-up calculation
+      // Get current user stats (already updated by PUT handler)
       const userResult = await client.query(
         'SELECT level, current_xp, next_level_xp FROM users WHERE id = $1',
         [req.user!.id]
       );
       const currentUser = userResult.rows[0];
 
-      // Calculate new XP and check for level up
-      let newCurrentXP = (currentUser.current_xp || 0) + sessionXP;
-      let newLevel = currentUser.level || 1;
-      let newNextLevelXP = currentUser.next_level_xp || 100;
-      let leveledUp = false;
-
-      // Level up logic - keep leveling up until current_xp < next_level_xp
-      while (newCurrentXP >= newNextLevelXP) {
-        newCurrentXP -= newNextLevelXP;
-        newLevel += 1;
-        leveledUp = true;
-        // Each level requires 20% more XP than previous (exponential growth)
-        newNextLevelXP = Math.floor(newNextLevelXP * 1.2);
-      }
-
-      // Update user stats
-      // Note: We use incremental time/answers to avoid double-counting with PUT updates
+      // Update user stats (only non-XP fields: cards_learned, decks_completed, time)
       await client.query(
         `UPDATE users
          SET total_cards_learned = total_cards_learned + $1,
              total_decks_completed = total_decks_completed + 1,
-             total_xp = total_xp + $2,
-             current_xp = $3,
-             level = $4,
-             next_level_xp = $5,
-             total_time_spent = total_time_spent + $6,
+             total_time_spent = total_time_spent + $2,
              updated_at = NOW()
-         WHERE id = $7`,
-        [
-          cardsLearned,
-          sessionXP,
-          newCurrentXP,
-          newLevel,
-          newNextLevelXP,
-          totalMinutes,
-          req.user!.id,
-        ]
+         WHERE id = $3`,
+        [cardsLearned, totalMinutes, req.user!.id]
       );
 
-      // Update daily progress with DELTAS (PUT auto-save already tracked time/cards incrementally)
-      // Here we add: final time delta, cards_learned (SM-2), xp_earned, sessions_completed
+      // Update daily progress with DELTAS (PUT auto-save already tracked time/cards/xp incrementally)
+      // Here we add: final time delta, cards_learned (SM-2), sessions_completed
       // Also add correctDelta to cards_studied for the final answers not yet tracked by PUT
+      // NOTE: xp_earned is NOT added here — PUT handler already tracks it incrementally
       // NOTE: time_spent_minutes stores SECONDS for granularity (converted to minutes on read)
       const today = new Date().toISOString().split('T')[0];
       await client.query(
         `INSERT INTO daily_progress
-           (user_id, date, cards_studied, cards_learned, time_spent_minutes, xp_earned, sessions_completed)
-         VALUES ($1, $2, $3, $4, $5, $6, 1)
+           (user_id, date, cards_studied, cards_learned, time_spent_minutes, sessions_completed)
+         VALUES ($1, $2, $3, $4, $5, 1)
          ON CONFLICT (user_id, date)
          DO UPDATE SET
            cards_studied = daily_progress.cards_studied + $3,
            cards_learned = daily_progress.cards_learned + $4,
            time_spent_minutes = daily_progress.time_spent_minutes + $5,
-           xp_earned = daily_progress.xp_earned + $6,
            sessions_completed = daily_progress.sessions_completed + 1`,
-        [req.user!.id, today, correctDelta, cardsLearned, timeDeltaSeconds, sessionXP]
+        [req.user!.id, today, correctDelta, cardsLearned, timeDeltaSeconds]
       );
 
       // Update daily_challenges with final deltas (time_studied_today stores SECONDS)
@@ -867,13 +861,15 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
         [currentStreak, longestStreak, req.user!.id]
       );
 
+      // Level-ups are handled in real-time by the PUT auto-save handler.
+      // Return the current level from DB (already reflects any level-ups).
       return {
         session: updatedSession.rows[0],
         cardsLearned,
         sessionXP,
-        leveledUp,
+        leveledUp: false,
         oldLevel: currentUser.level,
-        newLevel,
+        newLevel: currentUser.level,
         newAchievements,
         newStreak: currentStreak,
         streakUpdated: true,

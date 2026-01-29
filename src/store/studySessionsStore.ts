@@ -83,6 +83,21 @@ const calculateXP = (isCorrect: boolean, streak: number, difficulty: Difficulty)
 // Auto-save timer reference
 let autoSaveTimer: NodeJS.Timeout | null = null;
 
+// Module-level callback for user data updates from PUT responses.
+// Components (e.g., StudySessionContainer) set this to wire backend user updates
+// to the auth context's updateUser function.
+type UserUpdateData = {
+  level: number;
+  currentXP: number;
+  nextLevelXP: number;
+  totalXP: number;
+};
+let onUserUpdateCallback: ((data: UserUpdateData) => void) | null = null;
+
+export function setOnUserUpdateCallback(cb: ((data: UserUpdateData) => void) | null) {
+  onUserUpdateCallback = cb;
+}
+
 // Helper to get or create guest token
 const getOrCreateGuestToken = (): string => {
   let token = localStorage.getItem('guest_token');
@@ -229,11 +244,8 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
 
   // Update session progress
   updateSessionProgress: async (id: string, progress: UpdateStudySessionRequest) => {
-    console.log('🔄 [Store] updateSessionProgress called', { id, progress });
     try {
-      console.log('📡 [Store] Sending PUT request to API...');
       const response = await sessionsApi.updateStudySession(id, progress);
-      console.log('✅ [Store] API response received:', response);
       if (response.success && response.data) {
         set(state => ({
           currentSession: state.currentSession
@@ -243,11 +255,16 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
             s.id === id ? { ...s, ...response.data } : s
           ),
         }));
-      } else {
-        console.error('❌ [Store] API response not successful:', response.error);
+
+        // If the backend returned updated user data (level, XP), notify via callback
+        // so the auth context stays in sync with the database
+        const userData = (response as any).user;
+        if (userData && onUserUpdateCallback) {
+          onUserUpdateCallback(userData);
+        }
       }
     } catch (error) {
-      console.error('❌ [Store] Error updating session progress:', error);
+      console.error('Error updating session progress:', error);
     }
   },
 
