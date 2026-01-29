@@ -1,7 +1,11 @@
 import { Router, Request, Response } from 'express';
 import { query, withTransaction } from '../db/index.js';
 import { authenticateToken } from '../middleware/auth.js';
-import { selectCardsForSession, calculateSM2Update } from '../services/cardSelectionService.js';
+import {
+  selectCardsForSession,
+  calculateSM2Update,
+  interleaveCardsByType,
+} from '../services/cardSelectionService.js';
 import { checkAndUnlockAchievements } from './achievements.js';
 import { calculateStreakFromDailyProgress } from './auth.js';
 
@@ -86,6 +90,7 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
       cardCount,
       selectedCardIds,
       excludeMasteredCards = true,
+      excludeActiveSessionCards = false,
       title,
     } = req.body;
 
@@ -147,12 +152,26 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
       repetitions: p.repetitions,
     }));
 
+    // Optionally get card IDs already in user's active sessions
+    let excludeCardIds: Set<string> | undefined;
+    if (excludeActiveSessionCards) {
+      const activeCardsResult = await query(
+        `SELECT DISTINCT unnest(selected_card_ids) AS card_id
+         FROM study_sessions
+         WHERE user_id = $1 AND status = 'active'`,
+        [req.user!.id]
+      );
+      if (activeCardsResult.rows.length > 0) {
+        excludeCardIds = new Set(activeCardsResult.rows.map((r: any) => r.card_id));
+      }
+    }
+
     // Select cards using service
     const { selectedCards, availableCount, masteredCount } = selectCardsForSession(
       cardsResult.rows,
       transformedProgress,
       selectionMethod,
-      { cardCount, selectedCardIds, excludeMastered: excludeMasteredCards }
+      { cardCount, selectedCardIds, excludeMastered: excludeMasteredCards, excludeCardIds }
     );
 
     if (selectedCards.length === 0) {
@@ -165,18 +184,28 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
       });
     }
 
+    // Apply round-robin interleaving by card type
+    const interleavedCards = interleaveCardsByType(selectedCards);
+
     // Create session
     const sessionTitle =
       title ||
-      `${selectionMethod.charAt(0).toUpperCase() + selectionMethod.slice(1)} - ${selectedCards.length} carduri`;
+      `${selectionMethod.charAt(0).toUpperCase() + selectionMethod.slice(1)} - ${interleavedCards.length} carduri`;
 
-    const selectedCardUuids = selectedCards.map((c: any) => c.id);
+    const interleavedCardUuids = interleavedCards.map((c: any) => c.id);
     const sessionResult = await query(
       `INSERT INTO study_sessions
          (user_id, deck_id, title, selection_method, total_cards, selected_card_ids)
        VALUES ($1, $2, $3, $4, $5, $6::uuid[])
        RETURNING *`,
-      [req.user!.id, deckId, sessionTitle, selectionMethod, selectedCards.length, selectedCardUuids]
+      [
+        req.user!.id,
+        deckId,
+        sessionTitle,
+        selectionMethod,
+        interleavedCards.length,
+        interleavedCardUuids,
+      ]
     );
 
     const session = formatSession(sessionResult.rows[0]);
@@ -210,7 +239,7 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
                 difficulty: deckResult.rows[0].difficulty,
               }
             : null,
-          cards: selectedCards.map(formatCard),
+          cards: interleavedCards.map(formatCard),
           cardProgress: cardProgressMap,
         },
         availableCards: availableCount,
@@ -1050,19 +1079,29 @@ router.post('/guest', async (req: Request, res: Response) => {
       });
     }
 
+    // Apply round-robin interleaving by card type
+    const interleavedCards = interleaveCardsByType(selectedCards);
+
     // Create guest session
     const sessionTitle =
       title ||
-      `Guest - ${selectionMethod.charAt(0).toUpperCase() + selectionMethod.slice(1)} - ${selectedCards.length} carduri`;
+      `Guest - ${selectionMethod.charAt(0).toUpperCase() + selectionMethod.slice(1)} - ${interleavedCards.length} carduri`;
 
-    const selectedCardUuids = selectedCards.map((c: any) => c.id);
+    const interleavedCardUuids = interleavedCards.map((c: any) => c.id);
     const sessionResult = await query(
       `INSERT INTO study_sessions
          (deck_id, title, selection_method, total_cards, selected_card_ids,
           guest_token, is_guest, status)
        VALUES ($1, $2, $3, $4, $5::uuid[], $6, true, 'active')
        RETURNING *`,
-      [deckId, sessionTitle, selectionMethod, selectedCards.length, selectedCardUuids, guestToken]
+      [
+        deckId,
+        sessionTitle,
+        selectionMethod,
+        interleavedCards.length,
+        interleavedCardUuids,
+        guestToken,
+      ]
     );
 
     const session = formatSession(sessionResult.rows[0]);
@@ -1092,7 +1131,7 @@ router.post('/guest', async (req: Request, res: Response) => {
                 difficulty: deckResult.rows[0].difficulty,
               }
             : null,
-          cards: selectedCards.map(formatCard),
+          cards: interleavedCards.map(formatCard),
           cardProgress: {}, // No progress for guests
         },
       },

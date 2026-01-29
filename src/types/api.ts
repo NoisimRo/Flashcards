@@ -195,6 +195,7 @@ export interface CreateStudySessionRequest {
   cardCount?: number; // For 'random' and 'smart' methods
   selectedCardIds?: string[]; // For 'manual' method
   excludeMasteredCards?: boolean; // Default: true
+  excludeActiveSessionCards?: boolean; // Default: false - exclude cards already in active sessions
   title?: string; // Optional custom title
 }
 

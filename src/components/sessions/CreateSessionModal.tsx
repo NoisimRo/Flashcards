@@ -36,6 +36,7 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
   );
   const [cardCount, setCardCount] = useState(20);
   const [excludeMastered, setExcludeMastered] = useState(true);
+  const [excludeActiveSessionCards, setExcludeActiveSessionCards] = useState(false);
   const [deckCards, setDeckCards] = useState<Array<{ id: string; front: string }>>([]);
   const [selectedCardIds, setSelectedCardIds] = useState<string[]>([]);
   const [loadingCards, setLoadingCards] = useState(false);
@@ -94,6 +95,7 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
       deckId: deck.id,
       selectionMethod,
       excludeMasteredCards: excludeMastered,
+      excludeActiveSessionCards,
     };
 
     if (selectionMethod === 'random' || selectionMethod === 'smart') {
@@ -230,13 +232,13 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
           )}
 
           {/* Options */}
-          <div className="space-y-3">
-            <label className="flex items-center gap-3 cursor-pointer">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label className="flex items-start gap-3 cursor-pointer">
               <input
                 type="checkbox"
                 checked={excludeMastered}
                 onChange={e => setExcludeMastered(e.target.checked)}
-                className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mt-0.5"
               />
               <div className="flex-1">
                 <span className="font-semibold text-gray-900">
@@ -244,6 +246,22 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                 </span>
                 <p className="text-xs text-gray-600">
                   {t('create.options.excludeMastered.description')}
+                </p>
+              </div>
+            </label>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={excludeActiveSessionCards}
+                onChange={e => setExcludeActiveSessionCards(e.target.checked)}
+                className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mt-0.5"
+              />
+              <div className="flex-1">
+                <span className="font-semibold text-gray-900">
+                  {t('create.options.excludeActiveSessions.label')}
+                </span>
+                <p className="text-xs text-gray-600">
+                  {t('create.options.excludeActiveSessions.description')}
                 </p>
               </div>
             </label>
