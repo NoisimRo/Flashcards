@@ -2,6 +2,18 @@
 -- FLASHCARDS DATABASE SCHEMA
 -- PostgreSQL
 -- ============================================
+-- This file represents the ACTUAL production database structure.
+-- It incorporates all applied migrations:
+--   - 001_refactor_sessions.sql (session refactor + user_card_progress)
+--   - 002_daily_challenges.sql (daily challenges system)
+--   - 01-make-decks-public.sql (decks public by default)
+--   - 02-deck-reviews.sql (deck review/rating system)
+--   - 03-card-flags.sql (card flagging system)
+--   - 04-deck-flags.sql (deck flagging system)
+--
+-- IMPORTANT: Keep this file in sync with the actual database.
+-- When adding migrations, update this file to reflect the final state.
+-- ============================================
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -15,6 +27,7 @@ CREATE TYPE difficulty_level AS ENUM ('A1', 'A2', 'B1', 'B2', 'C1', 'C2');
 CREATE TYPE card_type AS ENUM ('standard', 'quiz', 'type-answer');
 CREATE TYPE card_status AS ENUM ('new', 'learning', 'reviewing', 'mastered');
 CREATE TYPE sync_status AS ENUM ('synced', 'pending', 'conflict', 'error');
+CREATE TYPE flag_status AS ENUM ('pending', 'under_review', 'resolved', 'dismissed');
 
 -- ============================================
 -- USERS TABLE
@@ -121,7 +134,13 @@ CREATE TABLE decks (
 
     -- Stats (denormalized for performance)
     total_cards INTEGER DEFAULT 0,
-    mastered_cards INTEGER DEFAULT 0,
+
+    -- Review/Rating stats (managed by triggers on deck_reviews)
+    average_rating DECIMAL(3,2) DEFAULT 0.00,
+    review_count INTEGER DEFAULT 0,
+
+    -- Flag count (managed by trigger on deck_flags)
+    flag_count INTEGER DEFAULT 0,
 
     -- Ownership
     owner_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -162,8 +181,36 @@ CREATE INDEX idx_deck_shares_deck ON deck_shares(deck_id);
 CREATE INDEX idx_deck_shares_user ON deck_shares(user_id);
 
 -- ============================================
+-- DECK REVIEWS TABLE
+-- ============================================
+
+CREATE TABLE deck_reviews (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    deck_id UUID NOT NULL REFERENCES decks(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+
+    -- Review content
+    rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    comment TEXT,
+
+    -- Metadata
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+
+    -- Prevent duplicate reviews from same user
+    CONSTRAINT unique_user_deck_review UNIQUE (deck_id, user_id)
+);
+
+CREATE INDEX idx_deck_reviews_deck ON deck_reviews(deck_id);
+CREATE INDEX idx_deck_reviews_user ON deck_reviews(user_id);
+CREATE INDEX idx_deck_reviews_rating ON deck_reviews(rating);
+CREATE INDEX idx_deck_reviews_created ON deck_reviews(created_at DESC);
+
+-- ============================================
 -- CARDS TABLE
 -- ============================================
+-- Note: SM-2 fields (status, ease_factor, interval, repetitions, next_review_date)
+-- were moved to user_card_progress table in migration 001.
 
 CREATE TABLE cards (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -180,14 +227,8 @@ CREATE TABLE cards (
     options TEXT[],  -- For quiz and multiple-answer types
     correct_option_indices INTEGER[],  -- Correct answer indices (quiz: single element, multiple-answer: multiple)
 
-    -- Status
-    status card_status DEFAULT 'new',
-
-    -- Spaced repetition (SM-2)
-    ease_factor DECIMAL(3,2) DEFAULT 2.50,
-    interval INTEGER DEFAULT 0,  -- Days
-    repetitions INTEGER DEFAULT 0,
-    next_review_date DATE,
+    -- Flag count (managed by trigger on card_flags)
+    flag_count INTEGER DEFAULT 0,
 
     -- Metadata
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -202,45 +243,153 @@ CREATE TABLE cards (
 );
 
 CREATE INDEX idx_cards_deck ON cards(deck_id);
-CREATE INDEX idx_cards_status ON cards(status);
-CREATE INDEX idx_cards_next_review ON cards(next_review_date);
 CREATE INDEX idx_cards_search ON cards USING gin(to_tsvector('romanian', front || ' ' || back));
+
+-- ============================================
+-- CARD FLAGS TABLE
+-- ============================================
+
+CREATE TABLE card_flags (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    card_id UUID NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
+    deck_id UUID NOT NULL REFERENCES decks(id) ON DELETE CASCADE,
+    flagged_by_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+
+    -- Flag details
+    comment TEXT,
+    status flag_status DEFAULT 'pending',
+
+    -- Review tracking (for teachers)
+    reviewed_by_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    reviewed_at TIMESTAMP WITH TIME ZONE,
+    review_notes TEXT,
+
+    -- Metadata
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_card_flags_card ON card_flags(card_id);
+CREATE INDEX idx_card_flags_deck ON card_flags(deck_id);
+CREATE INDEX idx_card_flags_user ON card_flags(flagged_by_user_id);
+CREATE INDEX idx_card_flags_status ON card_flags(status);
+CREATE INDEX idx_card_flags_reviewer ON card_flags(reviewed_by_user_id) WHERE reviewed_by_user_id IS NOT NULL;
+CREATE INDEX idx_card_flags_pending ON card_flags(created_at DESC) WHERE status = 'pending';
+
+-- ============================================
+-- DECK FLAGS TABLE
+-- ============================================
+
+CREATE TABLE deck_flags (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    deck_id UUID NOT NULL REFERENCES decks(id) ON DELETE CASCADE,
+    flagged_by_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+
+    -- Flag details
+    reason VARCHAR(100),  -- e.g., 'inappropriate', 'incorrect_information', 'duplicate', 'other'
+    comment TEXT,
+    status flag_status DEFAULT 'pending',
+
+    -- Review tracking (for teachers/admins)
+    reviewed_by_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    reviewed_at TIMESTAMP WITH TIME ZONE,
+    review_notes TEXT,
+
+    -- Metadata
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_deck_flags_deck ON deck_flags(deck_id);
+CREATE INDEX idx_deck_flags_user ON deck_flags(flagged_by_user_id);
+CREATE INDEX idx_deck_flags_status ON deck_flags(status);
+CREATE INDEX idx_deck_flags_reason ON deck_flags(reason);
+CREATE INDEX idx_deck_flags_reviewer ON deck_flags(reviewed_by_user_id) WHERE reviewed_by_user_id IS NOT NULL;
+CREATE INDEX idx_deck_flags_pending ON deck_flags(created_at DESC) WHERE status = 'pending';
+
+-- ============================================
+-- USER CARD PROGRESS TABLE
+-- ============================================
+-- Per-user spaced repetition progress for each card.
+-- SM-2 algorithm data moved here from cards table.
+
+CREATE TABLE user_card_progress (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    card_id UUID NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
+
+    -- Status
+    status card_status DEFAULT 'new',
+
+    -- Spaced Repetition (SM-2 Algorithm)
+    ease_factor DECIMAL(3,2) DEFAULT 2.50,
+    interval INTEGER DEFAULT 0,              -- Days until next review
+    repetitions INTEGER DEFAULT 0,           -- Number of successful repetitions
+    next_review_date DATE,                   -- When card is due for review
+
+    -- Statistics
+    times_seen INTEGER DEFAULT 0,            -- Total times card was shown
+    times_correct INTEGER DEFAULT 0,         -- Times answered correctly
+    times_incorrect INTEGER DEFAULT 0,       -- Times answered incorrectly
+    last_reviewed_at TIMESTAMP WITH TIME ZONE,
+
+    -- Metadata
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+
+    CONSTRAINT unique_user_card_progress UNIQUE(user_id, card_id)
+);
+
+CREATE INDEX idx_user_card_progress_user ON user_card_progress(user_id);
+CREATE INDEX idx_user_card_progress_card ON user_card_progress(card_id);
+CREATE INDEX idx_user_card_progress_status ON user_card_progress(user_id, status);
+CREATE INDEX idx_user_card_progress_next_review ON user_card_progress(user_id, next_review_date) WHERE next_review_date IS NOT NULL;
 
 -- ============================================
 -- STUDY SESSIONS TABLE
 -- ============================================
+-- Refactored in migration 001. Sessions track individual study attempts
+-- with card selection, progress tracking, and final results.
 
 CREATE TABLE study_sessions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    deck_id UUID NOT NULL REFERENCES decks(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    deck_id UUID REFERENCES decks(id) ON DELETE SET NULL,  -- Nullable in case deck is deleted
 
-    -- Progress
-    current_index INTEGER DEFAULT 0,
-    shuffled_order UUID[] DEFAULT '{}',
-    answers JSONB DEFAULT '{}'::jsonb,
+    -- Session Configuration
+    title VARCHAR(200),                      -- Session name (e.g., "Random 20 cards")
+    selection_method VARCHAR(20) NOT NULL,   -- 'random', 'smart', 'manual', 'all'
+    total_cards INTEGER NOT NULL,            -- Number of cards in session
+    selected_card_ids UUID[] NOT NULL,       -- Array of card IDs selected for this session
 
-    -- Stats
+    -- Progress Tracking
+    current_card_index INTEGER DEFAULT 0,    -- Current position in session
+    answers JSONB DEFAULT '{}'::jsonb,       -- { "card-id": "correct" | "incorrect" | "skipped" }
+    streak INTEGER DEFAULT 0,                -- Current correct answer streak
+    session_xp INTEGER DEFAULT 0,            -- XP earned in this session
+
+    -- Session Status
+    status VARCHAR(20) DEFAULT 'active',     -- 'active', 'completed', 'abandoned'
+    started_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    completed_at TIMESTAMP WITH TIME ZONE,
+    last_activity_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    duration_seconds INTEGER,                -- Total time spent (calculated on complete)
+
+    -- Final Results (populated when status = 'completed')
+    score INTEGER,                           -- Final score percentage (0-100)
     correct_count INTEGER DEFAULT 0,
     incorrect_count INTEGER DEFAULT 0,
     skipped_count INTEGER DEFAULT 0,
-    streak INTEGER DEFAULT 0,
-    max_streak INTEGER DEFAULT 0,
-    xp_earned INTEGER DEFAULT 0,
 
-    -- Time
-    started_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    finished_at TIMESTAMP WITH TIME ZONE,
-    total_time_seconds INTEGER DEFAULT 0,
-
-    -- State
-    is_completed BOOLEAN DEFAULT false,
-    is_paused BOOLEAN DEFAULT false
+    -- Metadata
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE INDEX idx_sessions_user ON study_sessions(user_id);
-CREATE INDEX idx_sessions_deck ON study_sessions(deck_id);
-CREATE INDEX idx_sessions_active ON study_sessions(user_id, is_completed) WHERE is_completed = false;
+CREATE INDEX idx_study_sessions_user_status ON study_sessions(user_id, status);
+CREATE INDEX idx_study_sessions_deck ON study_sessions(deck_id);
+CREATE INDEX idx_study_sessions_active ON study_sessions(user_id, status) WHERE status = 'active';
+CREATE INDEX idx_study_sessions_last_activity ON study_sessions(user_id, last_activity_at DESC);
 
 -- ============================================
 -- DAILY PROGRESS TABLE
@@ -261,6 +410,43 @@ CREATE TABLE daily_progress (
 );
 
 CREATE INDEX idx_daily_progress_user_date ON daily_progress(user_id, date DESC);
+
+-- ============================================
+-- DAILY CHALLENGES TABLE
+-- ============================================
+
+CREATE TABLE daily_challenges (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    date DATE NOT NULL,
+
+    -- Challenge progress (tracked throughout the day)
+    cards_learned_today INTEGER DEFAULT 0,
+    time_studied_today INTEGER DEFAULT 0,  -- Minutes
+    streak_maintained BOOLEAN DEFAULT false,
+
+    -- Challenge targets (can vary per user based on level)
+    cards_target INTEGER DEFAULT 30,
+    time_target INTEGER DEFAULT 20,  -- Minutes
+
+    -- Rewards
+    cards_challenge_completed BOOLEAN DEFAULT false,
+    time_challenge_completed BOOLEAN DEFAULT false,
+    streak_challenge_completed BOOLEAN DEFAULT false,
+
+    cards_reward_claimed BOOLEAN DEFAULT false,
+    time_reward_claimed BOOLEAN DEFAULT false,
+    streak_reward_claimed BOOLEAN DEFAULT false,
+
+    -- Metadata
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+
+    CONSTRAINT unique_user_daily_challenge UNIQUE(user_id, date)
+);
+
+CREATE INDEX idx_daily_challenges_user_date ON daily_challenges(user_id, date DESC);
+CREATE INDEX idx_daily_challenges_today ON daily_challenges(user_id, date) WHERE date = CURRENT_DATE;
 
 -- ============================================
 -- ACHIEVEMENTS TABLE
@@ -329,7 +515,7 @@ CREATE INDEX idx_sync_queue_pending ON sync_queue(user_id, processed_at) WHERE p
 -- FUNCTIONS & TRIGGERS
 -- ============================================
 
--- Update updated_at timestamp
+-- Update updated_at timestamp (shared by multiple tables)
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -353,30 +539,157 @@ CREATE TRIGGER update_cards_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
--- Update deck card counts
-CREATE OR REPLACE FUNCTION update_deck_card_counts()
+CREATE TRIGGER update_user_card_progress_updated_at
+    BEFORE UPDATE ON user_card_progress
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_study_sessions_updated_at
+    BEFORE UPDATE ON study_sessions
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_daily_challenges_updated_at
+    BEFORE UPDATE ON daily_challenges
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Update deck total_cards count (simplified after migration 001 removed mastered_cards)
+CREATE OR REPLACE FUNCTION update_deck_total_cards()
 RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP = 'INSERT' OR TG_OP = 'UPDATE' THEN
         UPDATE decks SET
-            total_cards = (SELECT COUNT(*) FROM cards WHERE deck_id = NEW.deck_id AND deleted_at IS NULL),
-            mastered_cards = (SELECT COUNT(*) FROM cards WHERE deck_id = NEW.deck_id AND status = 'mastered' AND deleted_at IS NULL)
+            total_cards = (SELECT COUNT(*) FROM cards WHERE deck_id = NEW.deck_id AND deleted_at IS NULL)
         WHERE id = NEW.deck_id;
         RETURN NEW;
     ELSIF TG_OP = 'DELETE' THEN
         UPDATE decks SET
-            total_cards = (SELECT COUNT(*) FROM cards WHERE deck_id = OLD.deck_id AND deleted_at IS NULL),
-            mastered_cards = (SELECT COUNT(*) FROM cards WHERE deck_id = OLD.deck_id AND status = 'mastered' AND deleted_at IS NULL)
+            total_cards = (SELECT COUNT(*) FROM cards WHERE deck_id = OLD.deck_id AND deleted_at IS NULL)
         WHERE id = OLD.deck_id;
         RETURN OLD;
     END IF;
 END;
 $$ language 'plpgsql';
 
-CREATE TRIGGER update_deck_counts_on_card_change
+CREATE TRIGGER update_deck_total_cards_trigger
     AFTER INSERT OR UPDATE OR DELETE ON cards
     FOR EACH ROW
-    EXECUTE FUNCTION update_deck_card_counts();
+    EXECUTE FUNCTION update_deck_total_cards();
+
+-- Update deck rating stats (triggered by deck_reviews changes)
+CREATE OR REPLACE FUNCTION update_deck_rating_stats()
+RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE decks
+    SET
+        average_rating = (
+            SELECT COALESCE(AVG(rating), 0)
+            FROM deck_reviews
+            WHERE deck_id = COALESCE(NEW.deck_id, OLD.deck_id)
+        ),
+        review_count = (
+            SELECT COUNT(*)
+            FROM deck_reviews
+            WHERE deck_id = COALESCE(NEW.deck_id, OLD.deck_id)
+        ),
+        updated_at = NOW()
+    WHERE id = COALESCE(NEW.deck_id, OLD.deck_id);
+
+    RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_deck_stats_on_review_change
+    AFTER INSERT OR UPDATE OR DELETE ON deck_reviews
+    FOR EACH ROW
+    EXECUTE FUNCTION update_deck_rating_stats();
+
+-- Update deck_reviews updated_at
+CREATE OR REPLACE FUNCTION update_deck_reviews_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER deck_reviews_updated_at
+    BEFORE UPDATE ON deck_reviews
+    FOR EACH ROW
+    EXECUTE FUNCTION update_deck_reviews_updated_at();
+
+-- Update card flag count (triggered by card_flags changes)
+CREATE OR REPLACE FUNCTION update_card_flag_count()
+RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE cards
+    SET flag_count = (
+        SELECT COUNT(*)
+        FROM card_flags
+        WHERE card_id = COALESCE(NEW.card_id, OLD.card_id)
+          AND status = 'pending'
+    )
+    WHERE id = COALESCE(NEW.card_id, OLD.card_id);
+
+    RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_card_flag_count_trigger
+    AFTER INSERT OR UPDATE OR DELETE ON card_flags
+    FOR EACH ROW
+    EXECUTE FUNCTION update_card_flag_count();
+
+-- Update card_flags updated_at
+CREATE OR REPLACE FUNCTION update_card_flags_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER card_flags_updated_at
+    BEFORE UPDATE ON card_flags
+    FOR EACH ROW
+    EXECUTE FUNCTION update_card_flags_updated_at();
+
+-- Update deck flag count (triggered by deck_flags changes)
+CREATE OR REPLACE FUNCTION update_deck_flag_count()
+RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE decks
+    SET flag_count = (
+        SELECT COUNT(*)
+        FROM deck_flags
+        WHERE deck_id = COALESCE(NEW.deck_id, OLD.deck_id)
+          AND status = 'pending'
+    )
+    WHERE id = COALESCE(NEW.deck_id, OLD.deck_id);
+
+    RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_deck_flag_count_trigger
+    AFTER INSERT OR UPDATE OR DELETE ON deck_flags
+    FOR EACH ROW
+    EXECUTE FUNCTION update_deck_flag_count();
+
+-- Update deck_flags updated_at
+CREATE OR REPLACE FUNCTION update_deck_flags_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER deck_flags_updated_at
+    BEFORE UPDATE ON deck_flags
+    FOR EACH ROW
+    EXECUTE FUNCTION update_deck_flags_updated_at();
 
 -- ============================================
 -- VIEWS

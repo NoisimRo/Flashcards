@@ -41,6 +41,41 @@ For any significant change (logic modifications, data source changes, architectu
 
 ---
 
+## Database Schema Verification
+
+**CRITICAL REQUIREMENT for AI-assisted sessions:**
+
+Before proposing any solution that involves database queries, backend route changes, or data model modifications, **you MUST verify the actual database schema** by reading `server/db/schema.sql` and the migration files in `server/db/migrations/`.
+
+### Why This Matters
+
+The `schema.sql` file represents the **actual production database structure** (with all migrations applied). Previous sessions have introduced bugs by writing SQL queries that referenced columns that didn't exist in the real database (e.g., using old column names from an outdated schema).
+
+### Verification Steps
+
+1. **Read `server/db/schema.sql`** to understand current table structures, column names, types, and constraints
+2. **Check migration files** in `server/db/migrations/` if schema.sql seems inconsistent with backend code
+3. **Cross-reference** the columns you plan to use in queries against the actual schema
+4. **Never assume** column names — always verify (e.g., `finished_at` vs `completed_at`, `total_time_seconds` vs `duration_seconds`, `is_completed` vs `status`)
+
+### Keeping Schema in Sync
+
+- When applying new migrations to the database, **also update `schema.sql`** to reflect the final state
+- `schema.sql` should always be a single source of truth that can recreate the entire database from scratch
+- Migration files in `server/db/migrations/` contain the incremental changes and should be kept for reference
+
+### If Database Changes Are Needed
+
+If a fix or feature requires database schema changes:
+
+1. **Do NOT modify the database directly** — ask the user to run commands
+2. Provide step-by-step terminal commands using `psql "$DATABASE_URL"`
+3. Create a new migration file in `server/db/migrations/`
+4. Update `schema.sql` to reflect the changes
+5. Update relevant TypeScript types if needed
+
+---
+
 ## ⚠️ CRITICAL: Formatting Before Every Commit
 
 **THIS IS MANDATORY** - Always run before committing:
