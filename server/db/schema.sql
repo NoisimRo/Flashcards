@@ -3,13 +3,17 @@
 -- PostgreSQL
 -- ============================================
 -- This file represents the ACTUAL production database structure.
--- It incorporates all applied migrations:
+-- Last verified against production: 2029-01-29 (server/db/2029_01_29_DB.md)
+--
+-- Applied migrations:
 --   - 001_refactor_sessions.sql (session refactor + user_card_progress)
 --   - 002_daily_challenges.sql (daily challenges system)
 --   - 01-make-decks-public.sql (decks public by default)
 --   - 02-deck-reviews.sql (deck review/rating system)
 --   - 03-card-flags.sql (card flagging system)
 --   - 04-deck-flags.sql (deck flagging system)
+--   - Manual: guest session support (guest_token, is_guest on study_sessions)
+--   - Manual: answer tracking (total_correct_answers, total_answers on users)
 --
 -- IMPORTANT: Keep this file in sync with the actual database.
 -- When adding migrations, update this file to reflect the final state.
@@ -55,6 +59,10 @@ CREATE TABLE users (
     total_cards_learned INTEGER DEFAULT 0,
     total_decks_completed INTEGER DEFAULT 0,
 
+    -- Answer tracking
+    total_correct_answers INTEGER DEFAULT 0,
+    total_answers INTEGER DEFAULT 0,
+
     -- Preferences (JSON)
     preferences JSONB DEFAULT '{
         "dailyGoal": 20,
@@ -70,11 +78,14 @@ CREATE TABLE users (
     last_login_at TIMESTAMP WITH TIME ZONE,
 
     -- Soft delete
-    deleted_at TIMESTAMP WITH TIME ZONE
+    deleted_at TIMESTAMP WITH TIME ZONE,
+
+    -- Constraints
+    CONSTRAINT check_answers_positive CHECK (total_correct_answers >= 0 AND total_answers >= 0),
+    CONSTRAINT check_correct_not_exceed_total CHECK (total_correct_answers <= total_answers)
 );
 
 CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_users_role ON users(role);
 
 -- ============================================
 -- REFRESH TOKENS TABLE
@@ -90,9 +101,6 @@ CREATE TABLE refresh_tokens (
 
     CONSTRAINT unique_token UNIQUE(token_hash)
 );
-
-CREATE INDEX idx_refresh_tokens_user ON refresh_tokens(user_id);
-CREATE INDEX idx_refresh_tokens_expires ON refresh_tokens(expires_at);
 
 -- ============================================
 -- SUBJECTS TABLE
@@ -135,13 +143,6 @@ CREATE TABLE decks (
     -- Stats (denormalized for performance)
     total_cards INTEGER DEFAULT 0,
 
-    -- Review/Rating stats (managed by triggers on deck_reviews)
-    average_rating DECIMAL(3,2) DEFAULT 0.00,
-    review_count INTEGER DEFAULT 0,
-
-    -- Flag count (managed by trigger on deck_flags)
-    flag_count INTEGER DEFAULT 0,
-
     -- Ownership
     owner_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 
@@ -155,30 +156,17 @@ CREATE TABLE decks (
     version INTEGER DEFAULT 1,
 
     -- Soft delete
-    deleted_at TIMESTAMP WITH TIME ZONE
+    deleted_at TIMESTAMP WITH TIME ZONE,
+
+    -- Review/Rating stats (managed by triggers on deck_reviews)
+    average_rating DECIMAL(3,2) DEFAULT 0.00,
+    review_count INTEGER DEFAULT 0,
+
+    -- Flag count (managed by trigger on deck_flags)
+    flag_count INTEGER DEFAULT 0
 );
 
 CREATE INDEX idx_decks_owner ON decks(owner_id);
-CREATE INDEX idx_decks_subject ON decks(subject_id);
-CREATE INDEX idx_decks_public ON decks(is_public) WHERE is_public = true;
-CREATE INDEX idx_decks_search ON decks USING gin(to_tsvector('romanian', title || ' ' || COALESCE(description, '')));
-
--- ============================================
--- DECK SHARES TABLE (for sharing decks)
--- ============================================
-
-CREATE TABLE deck_shares (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    deck_id UUID NOT NULL REFERENCES decks(id) ON DELETE CASCADE,
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    can_edit BOOLEAN DEFAULT false,
-    shared_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-
-    CONSTRAINT unique_share UNIQUE(deck_id, user_id)
-);
-
-CREATE INDEX idx_deck_shares_deck ON deck_shares(deck_id);
-CREATE INDEX idx_deck_shares_user ON deck_shares(user_id);
 
 -- ============================================
 -- DECK REVIEWS TABLE
@@ -225,10 +213,7 @@ CREATE TABLE cards (
     -- Type
     type card_type DEFAULT 'standard',
     options TEXT[],  -- For quiz and multiple-answer types
-    correct_option_indices INTEGER[],  -- Correct answer indices (quiz: single element, multiple-answer: multiple)
-
-    -- Flag count (managed by trigger on card_flags)
-    flag_count INTEGER DEFAULT 0,
+    correct_option_indices INTEGER[],  -- Correct answer indices
 
     -- Metadata
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -239,11 +224,13 @@ CREATE TABLE cards (
     position INTEGER DEFAULT 0,
 
     -- Soft delete
-    deleted_at TIMESTAMP WITH TIME ZONE
+    deleted_at TIMESTAMP WITH TIME ZONE,
+
+    -- Flag count (managed by trigger on card_flags)
+    flag_count INTEGER DEFAULT 0
 );
 
 CREATE INDEX idx_cards_deck ON cards(deck_id);
-CREATE INDEX idx_cards_search ON cards USING gin(to_tsvector('romanian', front || ' ' || back));
 
 -- ============================================
 -- CARD FLAGS TABLE
@@ -350,10 +337,11 @@ CREATE INDEX idx_user_card_progress_next_review ON user_card_progress(user_id, n
 -- ============================================
 -- Refactored in migration 001. Sessions track individual study attempts
 -- with card selection, progress tracking, and final results.
+-- Guest session support added manually (guest_token, is_guest).
 
 CREATE TABLE study_sessions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,  -- Nullable for guest sessions
     deck_id UUID REFERENCES decks(id) ON DELETE SET NULL,  -- Nullable in case deck is deleted
 
     -- Session Configuration
@@ -383,13 +371,21 @@ CREATE TABLE study_sessions (
 
     -- Metadata
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+
+    -- Guest session support
+    guest_token VARCHAR(255),                -- Token for unauthenticated sessions
+    is_guest BOOLEAN DEFAULT false,          -- Whether this is a guest session
+
+    -- Either user_id or guest_token must be present
+    CONSTRAINT check_session_identity CHECK (user_id IS NOT NULL OR guest_token IS NOT NULL)
 );
 
 CREATE INDEX idx_study_sessions_user_status ON study_sessions(user_id, status);
 CREATE INDEX idx_study_sessions_deck ON study_sessions(deck_id);
 CREATE INDEX idx_study_sessions_active ON study_sessions(user_id, status) WHERE status = 'active';
 CREATE INDEX idx_study_sessions_last_activity ON study_sessions(user_id, last_activity_at DESC);
+CREATE INDEX idx_study_sessions_guest_token ON study_sessions(guest_token);
 
 -- ============================================
 -- DAILY PROGRESS TABLE
@@ -408,8 +404,6 @@ CREATE TABLE daily_progress (
 
     CONSTRAINT unique_daily_progress UNIQUE(user_id, date)
 );
-
-CREATE INDEX idx_daily_progress_user_date ON daily_progress(user_id, date DESC);
 
 -- ============================================
 -- DAILY CHALLENGES TABLE
@@ -446,7 +440,6 @@ CREATE TABLE daily_challenges (
 );
 
 CREATE INDEX idx_daily_challenges_user_date ON daily_challenges(user_id, date DESC);
-CREATE INDEX idx_daily_challenges_today ON daily_challenges(user_id, date) WHERE date = CURRENT_DATE;
 
 -- ============================================
 -- ACHIEVEMENTS TABLE
@@ -490,27 +483,6 @@ CREATE TABLE user_achievements (
     CONSTRAINT unique_user_achievement UNIQUE(user_id, achievement_id)
 );
 
-CREATE INDEX idx_user_achievements_user ON user_achievements(user_id);
-
--- ============================================
--- SYNC QUEUE TABLE (for offline sync)
--- ============================================
-
-CREATE TABLE sync_queue (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    operation VARCHAR(20) NOT NULL,  -- create, update, delete
-    entity_type VARCHAR(50) NOT NULL,  -- deck, card, session
-    entity_id UUID NOT NULL,
-    data JSONB,
-    timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    processed_at TIMESTAMP WITH TIME ZONE,
-    error TEXT
-);
-
-CREATE INDEX idx_sync_queue_user ON sync_queue(user_id);
-CREATE INDEX idx_sync_queue_pending ON sync_queue(user_id, processed_at) WHERE processed_at IS NULL;
-
 -- ============================================
 -- FUNCTIONS & TRIGGERS
 -- ============================================
@@ -549,12 +521,7 @@ CREATE TRIGGER update_study_sessions_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_daily_challenges_updated_at
-    BEFORE UPDATE ON daily_challenges
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
-
--- Update deck total_cards count (simplified after migration 001 removed mastered_cards)
+-- Update deck total_cards count
 CREATE OR REPLACE FUNCTION update_deck_total_cards()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -690,50 +657,3 @@ CREATE TRIGGER deck_flags_updated_at
     BEFORE UPDATE ON deck_flags
     FOR EACH ROW
     EXECUTE FUNCTION update_deck_flags_updated_at();
-
--- ============================================
--- VIEWS
--- ============================================
-
--- Leaderboard view
-CREATE VIEW leaderboard AS
-SELECT
-    u.id as user_id,
-    u.name,
-    u.avatar,
-    u.level,
-    u.total_xp,
-    u.streak,
-    ROW_NUMBER() OVER (ORDER BY u.total_xp DESC) as position
-FROM users u
-WHERE u.deleted_at IS NULL
-ORDER BY u.total_xp DESC;
-
--- User stats view
-CREATE VIEW user_stats AS
-SELECT
-    u.id as user_id,
-    u.name,
-    u.level,
-    u.total_xp,
-    u.streak,
-    u.total_cards_learned,
-    u.total_decks_completed,
-    u.total_time_spent,
-    (SELECT COUNT(*) FROM decks d WHERE d.owner_id = u.id AND d.deleted_at IS NULL) as decks_owned,
-    (SELECT COUNT(*) FROM user_achievements ua WHERE ua.user_id = u.id) as achievements_unlocked
-FROM users u
-WHERE u.deleted_at IS NULL;
-
--- ============================================
--- PERMISSIONS (pentru Cloud SQL user)
--- ============================================
--- Rulează aceste comenzi după ce ai creat userul flashcards_user
-
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO flashcards_user;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO flashcards_user;
-GRANT USAGE ON SCHEMA public TO flashcards_user;
-
--- Pentru tabele create în viitor
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO flashcards_user;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO flashcards_user;
