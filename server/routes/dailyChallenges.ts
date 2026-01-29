@@ -45,9 +45,10 @@ router.get('/today', authenticateToken, async (req, res) => {
 
     // Read progress directly from daily_challenges columns
     // These are updated incrementally by PUT auto-save and POST /complete endpoints
+    // time_studied_today is stored in SECONDS for granularity — convert to minutes here
     const todayProgress = {
       correct_answers: challenge.cards_learned_today || 0,
-      time_spent_minutes: challenge.time_studied_today || 0,
+      time_spent_minutes: Math.floor((challenge.time_studied_today || 0) / 60),
     };
 
     // Get user's current streak
@@ -164,7 +165,8 @@ router.post('/claim-reward', authenticateToken, async (req, res) => {
 
     // Read progress directly from daily_challenges columns (updated by PUT auto-save and POST /complete)
     const todayCorrectAnswers = challenge.cards_learned_today || 0;
-    const todayTimeMinutes = challenge.time_studied_today || 0;
+    // time_studied_today is stored in SECONDS — convert to minutes
+    const todayTimeMinutes = Math.floor((challenge.time_studied_today || 0) / 60);
 
     if (challengeId === 'cards') {
       isCompleted = todayCorrectAnswers >= challenge.cards_target;
@@ -277,7 +279,8 @@ router.get('/activity-calendar', authenticateToken, async (req, res) => {
       const activity: any = activityMap.get(dateStr);
       const cardsLearned = activity?.cards_learned || 0;
       const cardsStudied = activity?.cards_studied || 0;
-      const timeSpent = activity?.time_spent_minutes || 0;
+      // time_spent_minutes stores SECONDS for granularity — convert to minutes here
+      const timeSpent = Math.floor((activity?.time_spent_minutes || 0) / 60);
       const sessionsCompleted = activity?.sessions_completed || 0;
       const studied =
         cardsLearned > 0 || cardsStudied > 0 || sessionsCompleted > 0 || timeSpent > 0;

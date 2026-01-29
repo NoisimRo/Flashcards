@@ -545,17 +545,19 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
 
     // --- Incremental daily_progress and daily_challenges updates ---
     // Compute deltas for time and correct answers since last auto-save
-    const timeDeltaSeconds = newDuration - oldDuration;
-    const timeDeltaMinutes = Math.floor(timeDeltaSeconds / 60);
+    // IMPORTANT: Store time in SECONDS (not minutes) to avoid rounding loss.
+    // Auto-saves happen every ~30s, so Math.floor(30/60) = 0 would lose all time.
+    // Convert to minutes only when reading in GET endpoints.
+    const timeDeltaSeconds = Math.max(0, newDuration - oldDuration);
 
-    // newCorrectAnswers and newTotalAnswers were computed above (lines ~445-457)
+    // newCorrectAnswers and newTotalAnswers were computed above
     // They represent the delta of answers since last save
     const correctDelta = answers !== undefined ? newCorrectAnswers : 0;
 
     const today = new Date().toISOString().split('T')[0];
 
-    if (timeDeltaMinutes > 0 || correctDelta > 0) {
-      // Update daily_progress incrementally
+    if (timeDeltaSeconds > 0 || correctDelta > 0) {
+      // Update daily_progress incrementally (time_spent_minutes stores SECONDS for granularity)
       await query(
         `INSERT INTO daily_progress
            (user_id, date, cards_studied, time_spent_minutes)
@@ -564,17 +566,17 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
          DO UPDATE SET
            cards_studied = daily_progress.cards_studied + $3,
            time_spent_minutes = daily_progress.time_spent_minutes + $4`,
-        [req.user!.id, today, correctDelta, timeDeltaMinutes]
+        [req.user!.id, today, correctDelta, timeDeltaSeconds]
       );
 
-      // Update daily_challenges incrementally
+      // Update daily_challenges incrementally (time_studied_today stores SECONDS)
       await query(
         `UPDATE daily_challenges
          SET cards_learned_today = cards_learned_today + $1,
              time_studied_today = time_studied_today + $2,
              updated_at = NOW()
          WHERE user_id = $3 AND date = $4`,
-        [correctDelta, timeDeltaMinutes, req.user!.id, today]
+        [correctDelta, timeDeltaSeconds, req.user!.id, today]
       );
     }
 
@@ -632,7 +634,6 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
       const lastSavedDuration = session.duration_seconds || 0;
       const finalDuration = durationSeconds || 0;
       const timeDeltaSeconds = Math.max(0, finalDuration - lastSavedDuration);
-      const timeDeltaMinutes = Math.floor(timeDeltaSeconds / 60);
 
       // Total minutes for user stats (full session duration, not delta)
       const totalMinutes = Math.floor(finalDuration / 60);
@@ -825,6 +826,7 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
       // Update daily progress with DELTAS (PUT auto-save already tracked time/cards incrementally)
       // Here we add: final time delta, cards_learned (SM-2), xp_earned, sessions_completed
       // Also add correctDelta to cards_studied for the final answers not yet tracked by PUT
+      // NOTE: time_spent_minutes stores SECONDS for granularity (converted to minutes on read)
       const today = new Date().toISOString().split('T')[0];
       await client.query(
         `INSERT INTO daily_progress
@@ -837,17 +839,17 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
            time_spent_minutes = daily_progress.time_spent_minutes + $5,
            xp_earned = daily_progress.xp_earned + $6,
            sessions_completed = daily_progress.sessions_completed + 1`,
-        [req.user!.id, today, correctDelta, cardsLearned, timeDeltaMinutes, sessionXP]
+        [req.user!.id, today, correctDelta, cardsLearned, timeDeltaSeconds, sessionXP]
       );
 
-      // Update daily_challenges with final deltas
+      // Update daily_challenges with final deltas (time_studied_today stores SECONDS)
       await client.query(
         `UPDATE daily_challenges
          SET cards_learned_today = cards_learned_today + $1,
              time_studied_today = time_studied_today + $2,
              updated_at = NOW()
          WHERE user_id = $3 AND date = $4`,
-        [correctDelta, timeDeltaMinutes, req.user!.id, today]
+        [correctDelta, timeDeltaSeconds, req.user!.id, today]
       );
 
       // Check and unlock achievements
