@@ -385,9 +385,8 @@ For AI-assisted development sessions, ensure continuity:
 ### Updating Database Schema
 
 1. Modify `server/db/schema.sql`
-2. Create migration script (manual for now)
-3. Update relevant TypeScript types
-4. Test with fresh database
+2. Update relevant TypeScript types
+3. Test with fresh database
 
 ---
 
