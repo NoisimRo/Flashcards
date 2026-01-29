@@ -3,18 +3,7 @@
 -- PostgreSQL
 -- ============================================
 -- This file represents the ACTUAL production database structure.
--- Last verified against production: 2029-01-29 (server/db/2029_01_29_DB.md)
---
--- Applied migrations:
---   - 001_refactor_sessions.sql (session refactor + user_card_progress)
---   - 002_daily_challenges.sql (daily challenges system)
---   - 01-make-decks-public.sql (decks public by default)
---   - 02-deck-reviews.sql (deck review/rating system)
---   - 03-card-flags.sql (card flagging system)
---   - 04-deck-flags.sql (deck flagging system)
---   - Manual: guest session support (guest_token, is_guest on study_sessions)
---   - Manual: answer tracking (total_correct_answers, total_answers on users)
---
+-- Last verified against production: 2026-01-29
 -- IMPORTANT: Keep this file in sync with the actual database.
 -- When adding migrations, update this file to reflect the final state.
 -- ============================================
