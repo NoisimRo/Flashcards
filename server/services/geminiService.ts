@@ -5,6 +5,7 @@ interface GeneratedCard {
   front: string;
   back: string;
   context: string;
+  tag: string;
   type: 'standard' | 'quiz' | 'type-answer' | 'multiple-answer';
   options?: string[];
   correctOptionIndices?: number[]; // For quiz (single), multiple-answer (multiple), and type-answer (correct options)
@@ -35,6 +36,7 @@ export const generateDeckWithAI = async (
           front: `Întrebare Quiz ${i} (${topic})`,
           back: `Răspuns Corect ${i}`,
           context: `Context pentru Quiz ${i}.`,
+          tag: `${topic}`,
           type: 'quiz',
           options: [
             `Răspuns Corect ${i}`,
@@ -49,6 +51,7 @@ export const generateDeckWithAI = async (
           front: `Care sunt caracteristicile ${topic} ${i}?`,
           back: `Răspunsuri corecte: A și C`,
           context: `Context pentru Răspuns Multiplu ${i}.`,
+          tag: `${topic}`,
           type: 'multiple-answer',
           options: [
             `Răspuns Corect ${i}A`,
@@ -63,6 +66,7 @@ export const generateDeckWithAI = async (
           front: `Care este ${topic} ${i}?`,
           back: `Explicație: Răspunsul corect este Răspuns${i} deoarece...`,
           context: `Context pentru ${topic} ${i}.`,
+          tag: `${topic}`,
           type: 'type-answer',
           options: [
             `Răspuns${i}`,
@@ -77,6 +81,7 @@ export const generateDeckWithAI = async (
           front: `Exemplu Card ${i} (${topic})`,
           back: `Definiție ${i}`,
           context: `Acesta este un context pentru Exemplu Card ${i}.`,
+          tag: `${topic}`,
           type: 'standard',
         });
       }
@@ -151,7 +156,8 @@ export const generateDeckWithAI = async (
     For each card, return a JSON object with:
     - front: The question or word
     - back: The definition, correct answer, explanation for correct answer
-    - context: A hint that helps the user to discover the correct answer. Use the concept from "front" but do not revele it directly. 
+    - context: A hint that helps the user to discover the correct answer. Use the concept from "front" but do not revele it directly.
+    - tag: A short topic/subtopic label (1-3 words) that categorizes this specific card within the broader "${subject} > ${topic}" scope. For example: "Accente", "Verbe Auxiliare", "Ecuații liniare", "Revoluția de la 1848". The tag must be in ${languageName}.
     - type: One of: ${cardTypes.map(t => `"${t}"`).join(', ')}
 
     CONTEXT RULES
@@ -216,6 +222,7 @@ export const generateDeckWithAI = async (
               front: { type: Type.STRING },
               back: { type: Type.STRING },
               context: { type: Type.STRING },
+              tag: { type: Type.STRING },
               type: { type: Type.STRING },
               options: {
                 type: Type.ARRAY,
@@ -248,6 +255,7 @@ export const generateDeckWithAI = async (
         front: c.front,
         back: c.back,
         context: c.context,
+        tag: c.tag || '',
         type: cardType,
       };
 

@@ -144,6 +144,7 @@ export interface CreateCardRequest {
   type?: 'standard' | 'quiz' | 'type-answer' | 'multiple-answer';
   options?: string[];
   correctOptionIndices?: number[]; // For quiz (single) and multiple-answer (multiple)
+  tags?: string[];
 }
 
 export interface UpdateCardRequest {
@@ -154,6 +155,7 @@ export interface UpdateCardRequest {
   type?: 'standard' | 'quiz' | 'type-answer' | 'multiple-answer';
   options?: string[];
   correctOptionIndices?: number[]; // For quiz (single) and multiple-answer (multiple)
+  tags?: string[];
 }
 
 export interface CardReviewRequest {

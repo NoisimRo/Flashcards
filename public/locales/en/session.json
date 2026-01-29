@@ -42,7 +42,9 @@
       "deselectAll": "Deselect all",
       "loading": "Loading cards...",
       "noCards": "No cards available",
-      "cardNumber": "Card #{{number}}"
+      "cardNumber": "Card #{{number}}",
+      "filterByTopics": "Filter by Topics",
+      "clearFilters": "Clear filters"
     },
     "buttons": {
       "cancel": "Cancel",

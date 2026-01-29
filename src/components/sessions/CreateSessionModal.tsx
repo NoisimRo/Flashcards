@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { X, Play, Shuffle, Brain, CheckSquare, List } from 'lucide-react';
+import { X, Play, Shuffle, Brain, CheckSquare, List, Tag } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { CreateStudySessionRequest } from '../../types/api';
 import { useStudySessionsStore } from '../../store/studySessionsStore';
@@ -7,6 +7,7 @@ import { useAuth } from '../../store/AuthContext';
 import { useToast } from '../ui/Toast';
 import { getDeck } from '../../api/decks';
 import { getAvailableCardCount } from '../../api/studySessions';
+import { getTagColor } from '../../utils/tagColors';
 
 interface CreateSessionModalProps {
   deck: {
@@ -38,9 +39,13 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
   const [cardCount, setCardCount] = useState(20);
   const [excludeMastered, setExcludeMastered] = useState(true);
   const [excludeActiveSessionCards, setExcludeActiveSessionCards] = useState(false);
-  const [deckCards, setDeckCards] = useState<Array<{ id: string; front: string }>>([]);
+  const [deckCards, setDeckCards] = useState<Array<{ id: string; front: string; tags?: string[] }>>(
+    []
+  );
   const [selectedCardIds, setSelectedCardIds] = useState<string[]>([]);
   const [loadingCards, setLoadingCards] = useState(false);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   // Dynamic available card count
   const [availableCards, setAvailableCards] = useState(deck?.totalCards || 0);
@@ -89,7 +94,12 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
       getDeck(deck.id)
         .then(response => {
           if (response.success && response.data?.cards) {
-            setDeckCards(response.data.cards.map(c => ({ id: c.id, front: c.front })));
+            const cards = response.data.cards;
+            setDeckCards(cards.map(c => ({ id: c.id, front: c.front, tags: c.tags || [] })));
+            // Extract unique tags from cards
+            const tagSet = new Set<string>();
+            cards.forEach(c => (c.tags || []).forEach(t => tagSet.add(t)));
+            setAvailableTags(Array.from(tagSet).sort());
           }
         })
         .catch(err => {
@@ -99,6 +109,16 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
         .finally(() => setLoadingCards(false));
     }
   }, [selectionMethod, deck.id, deckCards.length, toast, t]);
+
+  // Auto-select cards when tags change
+  useEffect(() => {
+    if (selectedTags.length > 0 && deckCards.length > 0) {
+      const matchingIds = deckCards
+        .filter(card => card.tags?.some(t => selectedTags.includes(t)))
+        .map(c => c.id);
+      setSelectedCardIds(matchingIds);
+    }
+  }, [selectedTags, deckCards]);
 
   const toggleCardSelection = (cardId: string) => {
     setSelectedCardIds(prev =>
@@ -351,6 +371,52 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                   </button>
                 )}
               </div>
+
+              {/* Topic filter pills */}
+              {availableTags.length > 0 && (
+                <div className="mb-3">
+                  <h5 className="text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-1">
+                    <Tag size={12} />
+                    {t('create.manual.filterByTopics')}
+                  </h5>
+                  <div className="flex flex-wrap gap-2">
+                    {availableTags.map(tag => {
+                      const isSelected = selectedTags.includes(tag);
+                      const color = getTagColor(tag);
+                      return (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={() =>
+                            setSelectedTags(prev =>
+                              isSelected ? prev.filter(t => t !== tag) : [...prev, tag]
+                            )
+                          }
+                          className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                            isSelected
+                              ? `${color.bg} ${color.text} ring-2 ring-indigo-400`
+                              : 'bg-white text-gray-500 hover:bg-gray-100 border border-gray-200'
+                          }`}
+                        >
+                          {tag}
+                        </button>
+                      );
+                    })}
+                    {selectedTags.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedTags([]);
+                          setSelectedCardIds([]);
+                        }}
+                        className="text-xs text-gray-500 hover:text-gray-700 underline ml-1"
+                      >
+                        {t('create.manual.clearFilters')}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {loadingCards ? (
                 <p className="text-sm text-gray-600 text-center py-4">

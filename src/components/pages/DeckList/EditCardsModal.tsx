@@ -1,9 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, DeckWithCards } from '../../../types';
-import { Plus, X, Edit, Trash2, Save } from 'lucide-react';
-import { createCard, updateCard, deleteCard as deleteCardAPI } from '../../../api/cards';
+import { Plus, X, Edit, Trash2, Save, Tags } from 'lucide-react';
+import {
+  createCard,
+  updateCard,
+  deleteCard as deleteCardAPI,
+  getCardTags,
+} from '../../../api/cards';
 import { useToast } from '../../ui/Toast';
+import { TagInput } from '../../ui/TagInput';
+import { getTagColor } from '../../../utils/tagColors';
 
 interface EditCardsModalProps {
   isOpen: boolean;
@@ -33,6 +40,19 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
   const [editCardCorrectIndex, setEditCardCorrectIndex] = useState(0);
   const [editCardCorrectIndices, setEditCardCorrectIndices] = useState<number[]>([]);
   const [isSavingCard, setIsSavingCard] = useState(false);
+  const [editCardTags, setEditCardTags] = useState<string[]>([]);
+  const [existingTags, setExistingTags] = useState<string[]>([]);
+
+  // Fetch existing tags for autocomplete
+  useEffect(() => {
+    if (isOpen && deck) {
+      getCardTags(deck.id).then(response => {
+        if (response.success && response.data) {
+          setExistingTags(response.data);
+        }
+      });
+    }
+  }, [isOpen, deck]);
 
   const startEditCard = (card: Card) => {
     setEditingCardId(card.id);
@@ -40,6 +60,7 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
     setEditCardBack(card.back);
     setEditCardContext(card.context || '');
     setEditCardType(card.type);
+    setEditCardTags(card.tags || []);
     if (card.type === 'quiz' && card.options && card.options.length > 0) {
       setEditCardOptions([...card.options]);
       setEditCardCorrectIndex(card.correctOptionIndices?.[0] || 0);
@@ -64,6 +85,7 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
     setEditCardFront('');
     setEditCardBack('');
     setEditCardContext('');
+    setEditCardTags([]);
   };
 
   const saveEditCard = async () => {
@@ -76,6 +98,7 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
         back: editCardBack,
         context: editCardContext || undefined,
         type: editCardType,
+        tags: editCardTags,
       };
 
       // Add options fields for quiz, multiple-answer, and type-answer
@@ -99,6 +122,7 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
                 back: editCardBack,
                 context: editCardContext,
                 type: editCardType,
+                tags: editCardTags,
                 options:
                   editCardType === 'quiz' ||
                   editCardType === 'multiple-answer' ||
@@ -188,8 +212,74 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
     }
   };
 
+  // Bulk edit state
+  const [isBulkMode, setIsBulkMode] = useState(false);
+  const [bulkSelectedCardIds, setBulkSelectedCardIds] = useState<Set<string>>(new Set());
+  const [bulkTags, setBulkTags] = useState<string[]>([]);
+
+  const handleBulkApplyTags = async () => {
+    if (!deck || bulkSelectedCardIds.size === 0 || bulkTags.length === 0) return;
+    setIsSavingCard(true);
+    try {
+      const updates = Array.from(bulkSelectedCardIds).map(cardId => {
+        const card = deck.cards.find(c => c.id === cardId);
+        if (!card) return null;
+        // Merge existing tags with new tags (case-insensitive dedup)
+        const mergedTags = [...(card.tags || [])];
+        bulkTags.forEach(newTag => {
+          if (!mergedTags.some(t => t.toLowerCase() === newTag.toLowerCase())) {
+            mergedTags.push(newTag);
+          }
+        });
+        return updateCard(deck.id, cardId, {
+          front: card.front,
+          back: card.back,
+          context: card.context,
+          type: card.type,
+          options: card.options,
+          correctOptionIndices: card.correctOptionIndices,
+          tags: mergedTags,
+        });
+      });
+
+      await Promise.all(updates.filter(Boolean));
+
+      // Update local state
+      const updatedCards = deck.cards.map(card => {
+        if (bulkSelectedCardIds.has(card.id)) {
+          const mergedTags = [...(card.tags || [])];
+          bulkTags.forEach(newTag => {
+            if (!mergedTags.some(t => t.toLowerCase() === newTag.toLowerCase())) {
+              mergedTags.push(newTag);
+            }
+          });
+          return { ...card, tags: mergedTags };
+        }
+        return card;
+      });
+      onDeckUpdate({ ...deck, cards: updatedCards });
+
+      // Refresh existing tags for autocomplete
+      const tagSet = new Set<string>();
+      updatedCards.forEach(c => (c.tags || []).forEach(t => tagSet.add(t)));
+      setExistingTags(Array.from(tagSet).sort());
+
+      setBulkSelectedCardIds(new Set());
+      setBulkTags([]);
+      toast.success(t('toast.bulkTagsApplied', { count: bulkSelectedCardIds.size }));
+    } catch (error) {
+      console.error('Bulk tag error:', error);
+      toast.error(t('toast.bulkTagsError'));
+    } finally {
+      setIsSavingCard(false);
+    }
+  };
+
   const handleClose = () => {
     cancelEditCard();
+    setIsBulkMode(false);
+    setBulkSelectedCardIds(new Set());
+    setBulkTags([]);
     onClose();
   };
 
@@ -215,12 +305,27 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
               })}
             </p>
           </div>
-          <button
-            onClick={handleClose}
-            className="text-gray-400 hover:text-gray-900 p-2 hover:bg-gray-100 rounded-full transition-colors"
-          >
-            <X size={24} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                setIsBulkMode(!isBulkMode);
+                setBulkSelectedCardIds(new Set());
+                setBulkTags([]);
+              }}
+              className={`text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
+                isBulkMode ? 'bg-indigo-100 text-indigo-700' : 'text-gray-500 hover:bg-gray-100'
+              }`}
+            >
+              <Tags size={16} />
+              {t('editCardsModal.bulkEdit')}
+            </button>
+            <button
+              onClick={handleClose}
+              className="text-gray-400 hover:text-gray-900 p-2 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <X size={24} />
+            </button>
+          </div>
         </div>
 
         {/* Cards List */}
@@ -271,6 +376,19 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
                         value={editCardContext}
                         onChange={e => setEditCardContext(e.target.value)}
                         placeholder={t('editCardsModal.contextPlaceholder')}
+                      />
+                    </div>
+
+                    {/* Tags */}
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
+                        {t('editCardsModal.tags')}
+                      </label>
+                      <TagInput
+                        tags={editCardTags}
+                        onChange={setEditCardTags}
+                        existingTags={existingTags}
+                        placeholder={t('editCardsModal.tagsPlaceholder')}
                       />
                     </div>
 
@@ -445,9 +563,24 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
                   // View Mode
                   <div>
                     <div className="flex justify-between items-start mb-2">
-                      <span className="text-xs font-bold text-gray-400 uppercase">
-                        {t('editCardsModal.cardNumber', { number: index + 1 })}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        {isBulkMode && (
+                          <input
+                            type="checkbox"
+                            checked={bulkSelectedCardIds.has(card.id)}
+                            onChange={() => {
+                              const newSet = new Set(bulkSelectedCardIds);
+                              if (newSet.has(card.id)) newSet.delete(card.id);
+                              else newSet.add(card.id);
+                              setBulkSelectedCardIds(newSet);
+                            }}
+                            className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                          />
+                        )}
+                        <span className="text-xs font-bold text-gray-400 uppercase">
+                          {t('editCardsModal.cardNumber', { number: index + 1 })}
+                        </span>
+                      </div>
                       <div className="flex gap-2">
                         <button
                           onClick={() => startEditCard(card)}
@@ -486,6 +619,21 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
                           <p className="text-sm text-gray-600 italic">{card.context}</p>
                         </div>
                       )}
+                      {card.tags && card.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mt-1">
+                          {card.tags.map((tag, i) => {
+                            const color = getTagColor(tag);
+                            return (
+                              <span
+                                key={i}
+                                className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${color.bg} ${color.text}`}
+                              >
+                                {tag}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -493,6 +641,29 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
             ))
           )}
         </div>
+
+        {/* Bulk Tag Editor */}
+        {isBulkMode && bulkSelectedCardIds.size > 0 && (
+          <div className="p-4 bg-indigo-50 border-t border-indigo-200">
+            <p className="text-sm font-semibold text-indigo-800 mb-2">
+              {t('editCardsModal.bulkTagsLabel', { count: bulkSelectedCardIds.size })}
+            </p>
+            <TagInput
+              tags={bulkTags}
+              onChange={setBulkTags}
+              existingTags={existingTags}
+              placeholder={t('editCardsModal.tagsPlaceholder')}
+            />
+            <button
+              onClick={handleBulkApplyTags}
+              disabled={isSavingCard || bulkTags.length === 0}
+              className="mt-2 bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors text-sm disabled:opacity-50 flex items-center gap-2"
+            >
+              <Tags size={14} />
+              {isSavingCard ? t('editCardsModal.saving') : t('editCardsModal.applyTags')}
+            </button>
+          </div>
+        )}
 
         {/* Footer */}
         <div className="p-6 border-t border-gray-100">
