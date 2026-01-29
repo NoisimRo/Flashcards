@@ -6,6 +6,7 @@
 interface Card {
   id: string;
   position: number;
+  type?: string; // 'standard' | 'quiz' | 'multiple-answer' | 'type-answer'
   // Add other card fields as needed
 }
 
@@ -28,13 +29,14 @@ export function selectCardsForSession(
     cardCount?: number;
     selectedCardIds?: string[];
     excludeMastered?: boolean;
+    excludeCardIds?: Set<string>;
   }
 ): {
   selectedCards: Card[];
   availableCount: number;
   masteredCount: number;
 } {
-  const { cardCount, selectedCardIds, excludeMastered = true } = options;
+  const { cardCount, selectedCardIds, excludeMastered = true, excludeCardIds } = options;
 
   // Build a map of card progress for quick lookup
   const progressMap = new Map<string, UserCardProgress>();
@@ -51,6 +53,11 @@ export function selectCardsForSession(
       if (isMastered) masteredCount++;
       return !isMastered;
     });
+  }
+
+  // Filter out cards already in active sessions if requested
+  if (excludeCardIds && excludeCardIds.size > 0) {
+    availableCards = availableCards.filter(card => !excludeCardIds.has(card.id));
   }
 
   const availableCount = availableCards.length;
@@ -167,6 +174,45 @@ function selectManual(cards: Card[], selectedIds: string[]): Card[] {
   });
 
   return selected;
+}
+
+/**
+ * Interleave cards by type in round-robin order.
+ * Sequence: standard → quiz → multiple-answer → type-answer → repeat
+ * If a type runs out, skip it and continue with the next available type.
+ */
+export function interleaveCardsByType(cards: Card[]): Card[] {
+  const typeOrder = ['standard', 'quiz', 'multiple-answer', 'type-answer'];
+
+  // Group cards by type (preserving order within each group)
+  const buckets: Record<string, Card[]> = {};
+  for (const t of typeOrder) {
+    buckets[t] = [];
+  }
+
+  for (const card of cards) {
+    const cardType = card.type || 'standard';
+    if (buckets[cardType]) {
+      buckets[cardType].push(card);
+    } else {
+      // Unknown type goes to standard bucket
+      buckets['standard'].push(card);
+    }
+  }
+
+  const result: Card[] = [];
+  let remaining = cards.length;
+
+  while (remaining > 0) {
+    for (const t of typeOrder) {
+      if (buckets[t].length > 0) {
+        result.push(buckets[t].shift()!);
+        remaining--;
+      }
+    }
+  }
+
+  return result;
 }
 
 /**

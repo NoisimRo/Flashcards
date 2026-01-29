@@ -30,6 +30,10 @@
       "excludeMastered": {
         "label": "Exclude mastered cards",
         "description": "Don't include cards with \"mastered\" status"
+      },
+      "excludeActiveSessions": {
+        "label": "Exclude active session cards",
+        "description": "Don't include cards already in an active session"
       }
     },
     "manual": {

@@ -30,6 +30,10 @@
       "excludeMastered": {
         "label": "Exclude carduri învățate",
         "description": "Nu include carduri cu status \"mastered\""
+      },
+      "excludeActiveSessions": {
+        "label": "Exclude carduri din sesiuni active",
+        "description": "Nu include carduri deja alocate într-o sesiune activă"
       }
     },
     "manual": {
