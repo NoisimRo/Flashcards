@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, DeckWithCards } from '../../../types';
 import { Plus, X, Edit, Trash2, Save } from 'lucide-react';
-import { createCard, updateCard, deleteCard as deleteCardAPI } from '../../../api/cards';
+import { createCard, updateCard, deleteCard as deleteCardAPI, getCardTags } from '../../../api/cards';
 import { useToast } from '../../ui/Toast';
+import { TagInput } from '../../ui/TagInput';
+import { getTagColor } from '../../../utils/tagColors';
 
 interface EditCardsModalProps {
   isOpen: boolean;
@@ -33,6 +35,19 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
   const [editCardCorrectIndex, setEditCardCorrectIndex] = useState(0);
   const [editCardCorrectIndices, setEditCardCorrectIndices] = useState<number[]>([]);
   const [isSavingCard, setIsSavingCard] = useState(false);
+  const [editCardTags, setEditCardTags] = useState<string[]>([]);
+  const [existingTags, setExistingTags] = useState<string[]>([]);
+
+  // Fetch existing tags for autocomplete
+  useEffect(() => {
+    if (isOpen && deck) {
+      getCardTags(deck.id).then(response => {
+        if (response.success && response.data) {
+          setExistingTags(response.data);
+        }
+      });
+    }
+  }, [isOpen, deck]);
 
   const startEditCard = (card: Card) => {
     setEditingCardId(card.id);
@@ -40,6 +55,7 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
     setEditCardBack(card.back);
     setEditCardContext(card.context || '');
     setEditCardType(card.type);
+    setEditCardTags(card.tags || []);
     if (card.type === 'quiz' && card.options && card.options.length > 0) {
       setEditCardOptions([...card.options]);
       setEditCardCorrectIndex(card.correctOptionIndices?.[0] || 0);
@@ -64,6 +80,7 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
     setEditCardFront('');
     setEditCardBack('');
     setEditCardContext('');
+    setEditCardTags([]);
   };
 
   const saveEditCard = async () => {
@@ -76,6 +93,7 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
         back: editCardBack,
         context: editCardContext || undefined,
         type: editCardType,
+        tags: editCardTags,
       };
 
       // Add options fields for quiz, multiple-answer, and type-answer
@@ -99,6 +117,7 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
                 back: editCardBack,
                 context: editCardContext,
                 type: editCardType,
+                tags: editCardTags,
                 options:
                   editCardType === 'quiz' ||
                   editCardType === 'multiple-answer' ||
@@ -271,6 +290,19 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
                         value={editCardContext}
                         onChange={e => setEditCardContext(e.target.value)}
                         placeholder={t('editCardsModal.contextPlaceholder')}
+                      />
+                    </div>
+
+                    {/* Tags */}
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
+                        {t('editCardsModal.tags')}
+                      </label>
+                      <TagInput
+                        tags={editCardTags}
+                        onChange={setEditCardTags}
+                        existingTags={existingTags}
+                        placeholder={t('editCardsModal.tagsPlaceholder')}
                       />
                     </div>
 
@@ -484,6 +516,21 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
                             {t('editCardsModal.contextLabel')}
                           </p>
                           <p className="text-sm text-gray-600 italic">{card.context}</p>
+                        </div>
+                      )}
+                      {card.tags && card.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mt-1">
+                          {card.tags.map((tag, i) => {
+                            const color = getTagColor(tag);
+                            return (
+                              <span
+                                key={i}
+                                className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${color.bg} ${color.text}`}
+                              >
+                                {tag}
+                              </span>
+                            );
+                          })}
                         </div>
                       )}
                     </div>
