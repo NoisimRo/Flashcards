@@ -141,7 +141,13 @@ export const TagInput: React.FC<TagInputProps> = ({
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             onFocus={() => inputValue.trim() && updateSuggestions(inputValue)}
-            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+            onBlur={() => {
+              // Auto-commit typed text as a tag on blur
+              if (inputValue.trim()) {
+                addTag(inputValue);
+              }
+              setTimeout(() => setShowSuggestions(false), 200);
+            }}
             placeholder={tags.length === 0 ? placeholder : ''}
             className="flex-1 min-w-[80px] outline-none text-sm bg-transparent"
           />
