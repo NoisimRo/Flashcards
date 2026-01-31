@@ -339,8 +339,13 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
           setShowStreakCelebration(true);
         }
       }
+    } else if (previousStatus === 'correct' && !isCorrect) {
+      // Scenario B: User clicked "Știu" then "Nu știu" — downgrade to incorrect
+      // Allow changing from correct → incorrect (user realized they were wrong)
+      // No XP/streak update needed (anti-cheating: only downgrade allowed)
+      answerCard(currentCard.id, isCorrect);
     }
-    // Scenario B: Already answered (correct/incorrect) → Skip answerCard
+    // Scenario C: Already answered (incorrect→correct or same) → Skip answerCard
     // Local UI feedback in QuizCard will still show, but no XP/streak update
 
     // Auto-advance to next card after a short delay
