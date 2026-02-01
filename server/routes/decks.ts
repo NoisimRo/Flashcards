@@ -954,6 +954,7 @@ function formatCard(card: any) {
     type: card.type,
     options: card.options,
     correctOptionIndices: card.correct_option_indices,
+    tags: card.tags || [],
     status: card.status,
     easeFactor: parseFloat(card.ease_factor),
     interval: card.interval,

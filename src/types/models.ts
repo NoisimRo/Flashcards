@@ -38,6 +38,7 @@ export interface Card {
   type: CardType;
   options?: string[];
   correctOptionIndices?: number[]; // Used for both 'quiz' (single correct) and 'multiple-answer' (multiple correct)
+  tags?: string[];
   // Flags
   flagCount?: number;
   // Metadata
