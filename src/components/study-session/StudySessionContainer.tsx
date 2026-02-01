@@ -14,12 +14,15 @@ import { StreakCelebration } from './animations/StreakCelebration';
 import { LevelUpOverlay } from './animations/LevelUpOverlay';
 import { AchievementCelebration } from './animations/AchievementCelebration';
 import { SessionCompletionModal } from './modals/SessionCompletionModal';
+import { EditCardModal } from './modals/EditCardModal';
+import { deleteCard } from '../../api/cards';
 import { getAchievements } from '../../api/achievements';
 import type { Achievement as ApiAchievement } from '../../api/achievements';
 import {
   useAchievementChecker,
   type TriggeredAchievement,
 } from '../../hooks/useAchievementChecker';
+import type { Card } from '../../types/models';
 import { ArrowLeft, Shuffle, RotateCcw, CheckCircle } from 'lucide-react';
 
 interface StudySessionContainerProps {
@@ -81,6 +84,10 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
   );
   const [allAchievements, setAllAchievements] = useState<ApiAchievement[]>([]);
   const { checkAchievements, recordCorrectAnswer } = useAchievementChecker(allAchievements);
+
+  // Card editing state (teachers & admins)
+  const canEditDelete = user?.role === 'teacher' || user?.role === 'admin';
+  const [editingCard, setEditingCard] = useState<Card | null>(null);
 
   // Refs for synchronous level-up XP tracking (React state via updateUser is async)
   // userXPStateRef: holds the post-level-up user state so checkLevelUp reads fresh values
@@ -165,6 +172,48 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     setShowCompletionModal(false);
     await syncProgress();
     onBack();
+  };
+
+  // Handle card edit (teachers/admins)
+  const handleEditCard = () => {
+    const card = getCurrentCard();
+    if (card) setEditingCard(card);
+  };
+
+  const handleCardSaved = (updatedCard: Card) => {
+    // Update the card in the current session's card list in-place
+    if (currentSession?.cards) {
+      const idx = currentSession.cards.findIndex(c => c.id === updatedCard.id);
+      if (idx !== -1) {
+        currentSession.cards[idx] = updatedCard;
+      }
+    }
+    setEditingCard(null);
+  };
+
+  // Handle card delete (teachers/admins)
+  const handleDeleteCard = async () => {
+    const card = getCurrentCard();
+    if (!card || !currentSession) return;
+
+    try {
+      const res = await deleteCard(card.deckId, card.id);
+      if (res?.success) {
+        // Remove the card from the session and move to next
+        const remaining = currentSession.cards?.filter(c => c.id !== card.id) || [];
+        if (remaining.length === 0) {
+          onBack();
+        } else {
+          // Advance to next or stay at valid index
+          currentSession.cards = remaining;
+          if (currentCardIndex >= remaining.length) {
+            useStudySessionsStore.setState({ currentCardIndex: remaining.length - 1 });
+          }
+        }
+      }
+    } catch {
+      alert('Eroare la ștergerea cardului.');
+    }
   };
 
   const handleReviewMistakes = () => {
@@ -595,6 +644,9 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
               isLastCard={currentCardIndex === (currentSession?.cards?.length || 0) - 1}
               hasAnswered={answers[currentCard.id] !== undefined}
               isSkipped={answers[currentCard.id] === 'skipped'}
+              canEditDelete={canEditDelete}
+              onEditCard={handleEditCard}
+              onDeleteCard={handleDeleteCard}
             />
           )}
           {currentCard.type === 'quiz' && (
@@ -627,6 +679,9 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
               isFirstCard={currentCardIndex === 0}
               isLastCard={currentCardIndex === (currentSession?.cards?.length || 0) - 1}
               hasAnswered={answers[currentCard.id] !== undefined}
+              canEditDelete={canEditDelete}
+              onEditCard={handleEditCard}
+              onDeleteCard={handleDeleteCard}
             />
           )}
           {currentCard.type === 'type-answer' && (
@@ -653,6 +708,9 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
               isFirstCard={currentCardIndex === 0}
               isLastCard={currentCardIndex === (currentSession?.cards?.length || 0) - 1}
               hasAnswered={answers[currentCard.id] !== undefined}
+              canEditDelete={canEditDelete}
+              onEditCard={handleEditCard}
+              onDeleteCard={handleDeleteCard}
             />
           )}
           {currentCard.type === 'multiple-answer' && (
@@ -685,6 +743,9 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
               isFirstCard={currentCardIndex === 0}
               isLastCard={currentCardIndex === (currentSession?.cards?.length || 0) - 1}
               hasAnswered={answers[currentCard.id] !== undefined}
+              canEditDelete={canEditDelete}
+              onEditCard={handleEditCard}
+              onDeleteCard={handleDeleteCard}
             />
           )}
 
@@ -741,6 +802,15 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
             onSaveAndExit={handleSaveAndExit}
             onFinishAndExit={handleFinishAndExit}
             onReviewMistakes={handleReviewMistakes}
+          />
+        )}
+
+        {/* Edit Card Modal (teachers/admins) */}
+        {editingCard && (
+          <EditCardModal
+            card={editingCard}
+            onClose={() => setEditingCard(null)}
+            onSave={handleCardSaved}
           />
         )}
       </div>

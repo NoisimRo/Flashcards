@@ -795,7 +795,11 @@ router.put('/:deckId/cards/:cardId', authenticateToken, async (req: Request, res
       });
     }
 
-    if (deckResult.rows[0].owner_id !== req.user!.id && req.user!.role !== 'admin') {
+    if (
+      deckResult.rows[0].owner_id !== req.user!.id &&
+      req.user!.role !== 'admin' &&
+      req.user!.role !== 'teacher'
+    ) {
       return res.status(403).json({
         success: false,
         error: {
@@ -875,7 +879,11 @@ router.delete('/:deckId/cards/:cardId', authenticateToken, async (req: Request, 
       });
     }
 
-    if (deckResult.rows[0].owner_id !== req.user!.id && req.user!.role !== 'admin') {
+    if (
+      deckResult.rows[0].owner_id !== req.user!.id &&
+      req.user!.role !== 'admin' &&
+      req.user!.role !== 'teacher'
+    ) {
       return res.status(403).json({
         success: false,
         error: {
