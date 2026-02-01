@@ -531,7 +531,7 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
 
     // Get current session to calculate incremental changes
     const sessionResult = await query(
-      'SELECT user_id, duration_seconds, answers, session_xp FROM study_sessions WHERE id = $1',
+      'SELECT user_id, duration_seconds, answers, session_xp, total_cards FROM study_sessions WHERE id = $1',
       [id]
     );
 
@@ -718,6 +718,35 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
       }
     }
 
+    // Check and unlock achievements in real-time (not just on session completion)
+    // This ensures badges are persisted even if the user exits without completing
+    let newAchievements: any[] = [];
+    if (answers && Object.keys(answers).length > 0) {
+      try {
+        const currentAnswers = answers || {};
+        const correctCount = Object.values(currentAnswers).filter(
+          (a: unknown) => a === 'correct'
+        ).length;
+        const totalCards = session.total_cards || 0;
+        const score = totalCards > 0 ? Math.round((correctCount / totalCards) * 100) : 0;
+        const completedAtHour = new Date().getHours();
+
+        newAchievements = await withTransaction(async txClient => {
+          return checkAndUnlockAchievements(txClient, req.user!.id, {
+            correctCount,
+            durationSeconds: durationSeconds || 0,
+            totalCards,
+            completedAtHour,
+            score,
+            sessionXP: sessionXP || 0,
+          });
+        });
+      } catch (achievementError) {
+        // Non-fatal: don't fail the auto-save if achievement check errors
+        console.error('Achievement check error in PUT:', achievementError);
+      }
+    }
+
     // Fetch updated user data to return so the frontend stays in sync
     const updatedUserResult = await query(
       'SELECT level, current_xp, next_level_xp, total_xp FROM users WHERE id = $1',
@@ -738,6 +767,7 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
       success: true,
       data: formatSession(result.rows[0]),
       user: updatedUser,
+      newAchievements: newAchievements.length > 0 ? newAchievements : undefined,
     });
   } catch (error) {
     console.error('Update session error:', error);
