@@ -24,19 +24,17 @@ interface SessionCompletionModalProps {
   onReviewMistakes?: () => void;
 }
 
-// Map card types to display labels
-const TYPE_LABELS: Record<string, string> = {
-  standard: 'Carduri Standard',
-  quiz: 'Quiz',
-  'multiple-answer': 'Răspuns Multiplu',
-};
-
-// Map card types to colors
-const TYPE_COLORS: Record<string, string> = {
-  standard: 'bg-blue-100 text-blue-700',
-  quiz: 'bg-purple-100 text-purple-700',
-  'multiple-answer': 'bg-teal-100 text-teal-700',
-};
+// Rotate through a palette for tag badge colors
+const TAG_COLORS = [
+  'bg-blue-100 text-blue-700',
+  'bg-purple-100 text-purple-700',
+  'bg-teal-100 text-teal-700',
+  'bg-pink-100 text-pink-700',
+  'bg-amber-100 text-amber-700',
+  'bg-cyan-100 text-cyan-700',
+  'bg-rose-100 text-rose-700',
+  'bg-emerald-100 text-emerald-700',
+];
 
 function computeTagAccuracies(cards: Card[], answers: Record<string, AnswerStatus>): TagAccuracy[] {
   const tagMap = new Map<string, { correct: number; total: number }>();
@@ -45,11 +43,14 @@ function computeTagAccuracies(cards: Card[], answers: Record<string, AnswerStatu
     const answer = answers[card.id];
     if (!answer || answer === 'skipped') continue;
 
-    const tag = card.type || 'standard';
-    const entry = tagMap.get(tag) || { correct: 0, total: 0 };
-    entry.total++;
-    if (answer === 'correct') entry.correct++;
-    tagMap.set(tag, entry);
+    const cardTags = card.tags && card.tags.length > 0 ? card.tags : ['Fără tag'];
+
+    for (const tag of cardTags) {
+      const entry = tagMap.get(tag) || { correct: 0, total: 0 };
+      entry.total++;
+      if (answer === 'correct') entry.correct++;
+      tagMap.set(tag, entry);
+    }
   }
 
   return Array.from(tagMap.entries()).map(([tag, { correct, total }]) => ({
@@ -62,7 +63,7 @@ function computeTagAccuracies(cards: Card[], answers: Record<string, AnswerStatu
 
 /**
  * SessionCompletionModal - Modal shown when all cards are completed
- * Shows Strengths vs Growth Areas by card type
+ * Shows Strengths vs Growth Areas grouped by card tags
  */
 export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
   score,
@@ -81,6 +82,13 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
   const hasReviewableCards = incorrectCount + skippedCount > 0;
 
   const tagAccuracies = React.useMemo(() => computeTagAccuracies(cards, answers), [cards, answers]);
+
+  // Build a stable color index map: each unique tag gets a consistent color
+  const tagColorMap = React.useMemo(() => {
+    const map = new Map<string, number>();
+    tagAccuracies.forEach((t, i) => map.set(t.tag, i));
+    return map;
+  }, [tagAccuracies]);
 
   // Strengths: >= 80% accuracy, sorted highest first
   const strengths = tagAccuracies
@@ -150,7 +158,12 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
             </div>
             <div className="space-y-2">
               {strengths.map(tag => (
-                <TagProgressBar key={tag.tag} tag={tag} variant="strength" />
+                <TagProgressBar
+                  key={tag.tag}
+                  tag={tag}
+                  variant="strength"
+                  colorIndex={tagColorMap.get(tag.tag) ?? 0}
+                />
               ))}
             </div>
           </div>
@@ -167,7 +180,12 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
             </div>
             <div className="space-y-2">
               {growthAreas.map(tag => (
-                <TagProgressBar key={tag.tag} tag={tag} variant="growth" />
+                <TagProgressBar
+                  key={tag.tag}
+                  tag={tag}
+                  variant="growth"
+                  colorIndex={tagColorMap.get(tag.tag) ?? 0}
+                />
               ))}
             </div>
           </div>
@@ -217,12 +235,12 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
 };
 
 /** Mini progress bar for a tag's accuracy */
-const TagProgressBar: React.FC<{ tag: TagAccuracy; variant: 'strength' | 'growth' }> = ({
-  tag,
-  variant,
-}) => {
-  const label = TYPE_LABELS[tag.tag] || tag.tag;
-  const colorClass = TYPE_COLORS[tag.tag] || 'bg-gray-100 text-gray-700';
+const TagProgressBar: React.FC<{
+  tag: TagAccuracy;
+  variant: 'strength' | 'growth';
+  colorIndex: number;
+}> = ({ tag, variant, colorIndex }) => {
+  const colorClass = TAG_COLORS[colorIndex % TAG_COLORS.length];
 
   const barColor =
     variant === 'strength' ? 'bg-green-500' : tag.accuracy === 0 ? 'bg-red-500' : 'bg-orange-500';
@@ -233,7 +251,7 @@ const TagProgressBar: React.FC<{ tag: TagAccuracy; variant: 'strength' | 'growth
     <div className="rounded-xl bg-gray-50 p-3">
       <div className="flex items-center justify-between mb-2">
         <span className={`text-xs font-semibold px-2 py-0.5 rounded-md ${colorClass}`}>
-          {label}
+          {tag.tag}
         </span>
         <span className="text-sm font-bold text-gray-700">
           {tag.correct}/{tag.total} ({tag.accuracy}%)
