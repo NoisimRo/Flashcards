@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useStudySessionsStore } from '../../store/studySessionsStore';
+import { useStudySessionsStore, setOnUserUpdateCallback } from '../../store/studySessionsStore';
 import { useAuth } from '../../store/AuthContext';
 import { StandardCard } from './cards/StandardCard';
 import { QuizCard } from './cards/QuizCard';
@@ -60,6 +60,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     sessionStartTime,
     totalActiveSeconds,
     perCardTimes,
+    syncProgress,
   } = useStudySessionsStore();
 
   // Animation state
@@ -91,6 +92,21 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
   // sessionXPAtLastLevelUp: the sessionXP value when level-up last occurred,
   // so we only count XP earned *since* the last level-up toward the next threshold
   const sessionXPAtLastLevelUp = useRef(0);
+
+  // Wire user update callback so PUT responses can sync auth context
+  useEffect(() => {
+    setOnUserUpdateCallback(data => {
+      updateUser({
+        level: data.level,
+        currentXP: data.currentXP,
+        nextLevelXP: data.nextLevelXP,
+        totalXP: data.totalXP,
+      });
+    });
+    return () => {
+      setOnUserUpdateCallback(null);
+    };
+  }, [updateUser]);
 
   // Load session and enable auto-save on mount
   useEffect(() => {
@@ -141,6 +157,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
   // Handle completion modal actions
   const handleSaveAndExit = async () => {
     setShowCompletionModal(false);
+    await syncProgress();
     onBack();
   };
 
@@ -285,7 +302,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
   const handleShuffle = () => {
     if (
       window.confirm(
-        'Sigur vrei să amesteci cardurile? Progresul (răspunsuri) va fi șters, dar XP-ul și streak-ul vor fi păstrate.'
+        'Sigur vrei să amesteci cardurile? Progresul (răspunsuri), XP-ul și streak-ul vor fi resetate.'
       )
     ) {
       shuffleCards();
@@ -296,7 +313,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
   const handleRestart = () => {
     if (
       window.confirm(
-        'Sigur vrei să restartezi sesiunea? Progresul (răspunsuri) va fi șters, dar XP-ul și streak-ul vor fi păstrate.'
+        'Sigur vrei să restartezi sesiunea? Progresul (răspunsuri), XP-ul și streak-ul vor fi resetate.'
       )
     ) {
       restartSession();
@@ -364,7 +381,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
         }
       }
     }
-    // Scenario B: Already answered (correct/incorrect) → Skip answerCard
+    // Scenario C: Already answered (incorrect→correct or same) → Skip answerCard
     // Local UI feedback in QuizCard will still show, but no XP/streak update
 
     // Auto-advance to next card after a short delay
@@ -462,7 +479,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <button
-              onClick={onBack}
+              onClick={handleBack}
               className="flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium transition-all active:scale-95"
             >
               <ArrowLeft size={20} />
@@ -551,8 +568,9 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
               onNext={() => {
                 if (currentCardIndex < (currentSession?.cards?.length || 0) - 1) {
                   nextCard();
+                } else {
+                  setShowCompletionModal(true);
                 }
-                // Don't manually trigger modal - useEffect handles it
               }}
               onSkip={() => {
                 skipCard(currentCard.id);
@@ -565,6 +583,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
               isFirstCard={currentCardIndex === 0}
               isLastCard={currentCardIndex === (currentSession?.cards?.length || 0) - 1}
               hasAnswered={answers[currentCard.id] !== undefined}
+              isSkipped={answers[currentCard.id] === 'skipped'}
             />
           )}
           {currentCard.type === 'quiz' && (
@@ -572,18 +591,19 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
               card={currentCard}
               onAnswer={handleAnswer}
               onAutoAdvance={() => {
-                // Auto-advance to next card if not on last card
                 const totalCards = currentSession?.cards?.length || 0;
                 if (currentCardIndex < totalCards - 1) {
                   nextCard();
+                } else {
+                  setShowCompletionModal(true);
                 }
-                // Don't manually trigger modal - useEffect handles it
               }}
               onNext={() => {
                 if (currentCardIndex < (currentSession?.cards?.length || 0) - 1) {
                   nextCard();
+                } else {
+                  setShowCompletionModal(true);
                 }
-                // Don't manually trigger modal - useEffect handles it
               }}
               onSkip={() => {
                 skipCard(currentCard.id);
@@ -603,12 +623,12 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
               card={currentCard}
               onAnswer={handleAnswer}
               onAutoAdvance={() => {
-                // Auto-advance to next card if not on last card
                 const totalCards = currentSession?.cards?.length || 0;
                 if (currentCardIndex < totalCards - 1) {
                   nextCard();
+                } else {
+                  setShowCompletionModal(true);
                 }
-                // Don't manually trigger modal - useEffect handles it
               }}
               onNext={nextCard}
               onSkip={() => {
@@ -629,18 +649,19 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
               card={currentCard}
               onAnswer={handleAnswer}
               onAutoAdvance={() => {
-                // Auto-advance to next card if not on last card
                 const totalCards = currentSession?.cards?.length || 0;
                 if (currentCardIndex < totalCards - 1) {
                   nextCard();
+                } else {
+                  setShowCompletionModal(true);
                 }
-                // Don't manually trigger modal - useEffect handles it
               }}
               onNext={() => {
                 if (currentCardIndex < (currentSession?.cards?.length || 0) - 1) {
                   nextCard();
+                } else {
+                  setShowCompletionModal(true);
                 }
-                // Don't manually trigger modal - useEffect handles it
               }}
               onSkip={() => {
                 skipCard(currentCard.id);
@@ -704,6 +725,8 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
             skippedCount={Object.values(answers).filter(a => a === 'skipped').length}
             totalCards={currentSession.cards?.length || 0}
             xpEarned={sessionXP}
+            cards={currentSession.cards || []}
+            answers={answers}
             onSaveAndExit={handleSaveAndExit}
             onFinishAndExit={handleFinishAndExit}
             onReviewMistakes={handleReviewMistakes}

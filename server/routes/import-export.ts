@@ -28,6 +28,7 @@ router.post('/deck', authenticateToken, async (req: Request, res: Response) => {
       type?: 'standard' | 'quiz' | 'type-answer' | 'multiple-answer';
       options?: string[];
       correctOptionIndices?: number[];
+      tags?: string[];
     }[] = [];
 
     switch (format.toLowerCase()) {
@@ -90,8 +91,8 @@ router.post('/deck', authenticateToken, async (req: Request, res: Response) => {
         for (let i = 0; i < cards.length; i++) {
           const card = cards[i];
           await client.query(
-            `INSERT INTO cards (deck_id, front, back, context, type, options, correct_option_indices, created_by, position)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+            `INSERT INTO cards (deck_id, front, back, context, type, options, correct_option_indices, created_by, position, tags)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
             [
               deckId,
               card.front,
@@ -102,6 +103,7 @@ router.post('/deck', authenticateToken, async (req: Request, res: Response) => {
               card.correctOptionIndices || null,
               req.user!.id,
               startPosition + i,
+              card.tags || [],
             ]
           );
         }
@@ -137,8 +139,8 @@ router.post('/deck', authenticateToken, async (req: Request, res: Response) => {
         for (let i = 0; i < cards.length; i++) {
           const card = cards[i];
           await client.query(
-            `INSERT INTO cards (deck_id, front, back, context, type, options, correct_option_indices, created_by, position)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+            `INSERT INTO cards (deck_id, front, back, context, type, options, correct_option_indices, created_by, position, tags)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
             [
               deck.id,
               card.front,
@@ -149,6 +151,7 @@ router.post('/deck', authenticateToken, async (req: Request, res: Response) => {
               card.correctOptionIndices || null,
               req.user!.id,
               i,
+              card.tags || [],
             ]
           );
         }
@@ -289,6 +292,7 @@ function parseJSON(data: string): {
   type?: 'standard' | 'quiz' | 'type-answer' | 'multiple-answer';
   options?: string[];
   correctOptionIndices?: number[];
+  tags?: string[];
 }[] {
   try {
     const parsed = JSON.parse(data);
@@ -313,6 +317,14 @@ function parseJSON(data: string): {
           }
         }
 
+        // Handle tags - support array or single string
+        let tags: string[] | undefined;
+        if (Array.isArray(c.tags)) {
+          tags = c.tags.map((t: any) => String(t).trim()).filter((t: string) => t);
+        } else if (c.tag && typeof c.tag === 'string') {
+          tags = [String(c.tag).trim()];
+        }
+
         return {
           front: String(c.front).trim(),
           back: String(c.back).trim(),
@@ -324,6 +336,7 @@ function parseJSON(data: string): {
               ? c.options
               : undefined,
           correctOptionIndices,
+          tags,
         };
       });
   } catch {
@@ -338,6 +351,7 @@ function parseCSV(data: string): {
   type?: 'standard' | 'quiz' | 'type-answer' | 'multiple-answer';
   options?: string[];
   correctOptionIndices?: number[];
+  tags?: string[];
 }[] {
   const lines = data.split('\n').filter(line => line.trim());
   const cards: {
@@ -347,6 +361,7 @@ function parseCSV(data: string): {
     type?: 'standard' | 'quiz' | 'type-answer' | 'multiple-answer';
     options?: string[];
     correctOptionIndices?: number[];
+    tags?: string[];
   }[] = [];
 
   // Skip header if present
@@ -389,6 +404,15 @@ function parseCSV(data: string): {
         }
       }
 
+      // Parse tags from column 6 (pipe-separated)
+      let tags: string[] | undefined;
+      if (parts[6]) {
+        tags = parts[6]
+          .split('|')
+          .map(t => t.trim())
+          .filter(t => t);
+      }
+
       cards.push({
         front: parts[0].trim(),
         back: parts[1].trim(),
@@ -396,6 +420,7 @@ function parseCSV(data: string): {
         type: validType,
         options,
         correctOptionIndices,
+        tags: tags && tags.length > 0 ? tags : undefined,
       });
     }
   }
@@ -437,6 +462,7 @@ function parseTXT(data: string): {
   type?: 'standard' | 'quiz' | 'type-answer' | 'multiple-answer';
   options?: string[];
   correctOptionIndices?: number[];
+  tags?: string[];
 }[] {
   const lines = data.split('\n').filter(line => line.trim());
   const cards: {
@@ -446,6 +472,7 @@ function parseTXT(data: string): {
     type?: 'standard' | 'quiz' | 'type-answer' | 'multiple-answer';
     options?: string[];
     correctOptionIndices?: number[];
+    tags?: string[];
   }[] = [];
 
   for (const line of lines) {
@@ -497,6 +524,15 @@ function parseTXT(data: string): {
         }
       }
 
+      // Parse tags from column 6 (pipe-separated) - only when using tab delimiter
+      let tags: string[] | undefined;
+      if (parts[6] && line.includes('\t')) {
+        tags = parts[6]
+          .split('|')
+          .map(t => t.trim())
+          .filter(t => t);
+      }
+
       cards.push({
         front: parts[0].trim(),
         back: parts[1].trim(),
@@ -504,6 +540,7 @@ function parseTXT(data: string): {
         type: validType,
         options,
         correctOptionIndices,
+        tags: tags && tags.length > 0 ? tags : undefined,
       });
     }
   }
@@ -518,6 +555,7 @@ function parseAnki(data: string): {
   type?: 'standard' | 'quiz' | 'type-answer' | 'multiple-answer';
   options?: string[];
   correctOptionIndices?: number[];
+  tags?: string[];
 }[] {
   // Anki export format is typically tab-separated
   return parseTXT(data);
@@ -537,6 +575,7 @@ function exportToJSON(deck: any, cards: any[], includeProgress: boolean): string
       front: c.front,
       back: c.back,
       context: c.context,
+      tags: c.tags || [],
       type: c.type || 'standard',
       ...((c.type === 'quiz' || c.type === 'multiple-answer' || c.type === 'type-answer') &&
         c.options && {
@@ -564,11 +603,12 @@ function exportToCSV(cards: any[], includeProgress: boolean): string {
         'Type',
         'Options',
         'CorrectOptionIndices',
+        'Tags',
         'Status',
         'Ease Factor',
         'Interval',
       ]
-    : ['Front', 'Back', 'Context', 'Type', 'Options', 'CorrectOptionIndices'];
+    : ['Front', 'Back', 'Context', 'Type', 'Options', 'CorrectOptionIndices', 'Tags'];
 
   const rows = cards.map(c => {
     const cardType = c.type || 'standard';
@@ -585,6 +625,8 @@ function exportToCSV(cards: any[], includeProgress: boolean): string {
         ? c.correct_option_indices.join(',')
         : '';
 
+    const tagsStr = Array.isArray(c.tags) ? c.tags.join('|') : '';
+
     const row = [
       escapeCSV(c.front),
       escapeCSV(c.back),
@@ -592,6 +634,7 @@ function exportToCSV(cards: any[], includeProgress: boolean): string {
       cardType,
       escapeCSV(options),
       escapeCSV(correctIndices),
+      escapeCSV(tagsStr),
     ];
     if (includeProgress) {
       row.push(c.status || '', c.ease_factor || '', c.interval || '');
@@ -633,7 +676,12 @@ function exportToTXT(cards: any[]): string {
           ? c.correct_option_indices.join(',')
           : '';
         line += `\t${c.options.join('|')}\t${correctIndices}`;
+      } else {
+        line += '\t\t'; // Empty options and indices columns
       }
+
+      // Tags column (pipe-separated)
+      line += `\t${Array.isArray(c.tags) && c.tags.length > 0 ? c.tags.join('|') : ''}`;
 
       return line;
     })

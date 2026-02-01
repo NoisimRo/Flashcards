@@ -212,6 +212,9 @@ CREATE TABLE cards (
     -- Order within deck
     position INTEGER DEFAULT 0,
 
+    -- Tags (topic-based tagging)
+    tags TEXT[] DEFAULT '{}',
+
     -- Soft delete
     deleted_at TIMESTAMP WITH TIME ZONE,
 
@@ -220,6 +223,7 @@ CREATE TABLE cards (
 );
 
 CREATE INDEX idx_cards_deck ON cards(deck_id);
+CREATE INDEX idx_cards_tags ON cards USING GIN(tags);
 
 -- ============================================
 -- CARD FLAGS TABLE

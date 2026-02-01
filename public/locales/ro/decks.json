@@ -103,7 +103,12 @@
     "answer": "Răspuns:",
     "contextLabel": "Context:",
     "newQuestion": "Întrebare nouă",
-    "newAnswer": "Răspuns nou"
+    "newAnswer": "Răspuns nou",
+    "tags": "Etichete",
+    "tagsPlaceholder": "Scrie o etichetă și apasă Enter...",
+    "bulkEdit": "Editare în masă",
+    "bulkTagsLabel": "Atribuie etichete la {{count}} carduri selectate",
+    "applyTags": "Aplică Etichete"
   },
   "loading": {
     "message": "Se generează carduri...",
@@ -144,7 +149,9 @@
     "importError": "Eroare la importarea cardurilor",
     "fileReadError": "Eroare la citirea fișierului",
     "cardsAdded": "{{count}} carduri adăugate cu succes",
-    "openEditCards": "Se deschide editorul de carduri..."
+    "openEditCards": "Se deschide editorul de carduri...",
+    "bulkTagsApplied": "Etichete aplicate la {{count}} carduri",
+    "bulkTagsError": "Eroare la aplicarea etichetelor"
   },
   "guestPrompt": {
     "createDeck": {

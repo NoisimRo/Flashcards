@@ -25,6 +25,7 @@ interface StandardCardProps {
   isFirstCard?: boolean;
   isLastCard?: boolean;
   hasAnswered?: boolean;
+  isSkipped?: boolean;
   canEditDelete?: boolean;
   onEditCard?: () => void;
   onDeleteCard?: () => void;
@@ -45,6 +46,7 @@ export const StandardCard: React.FC<StandardCardProps> = ({
   isFirstCard = false,
   isLastCard = false,
   hasAnswered = false,
+  isSkipped = false,
   canEditDelete = false,
   onEditCard,
   onDeleteCard,
@@ -73,13 +75,16 @@ export const StandardCard: React.FC<StandardCardProps> = ({
   const handleShow = (e: React.MouseEvent) => {
     e.stopPropagation();
     setFrontAction('show');
-    onAnswer(false);
+    if (!hasAnswered) {
+      onAnswer(false);
+    }
     flipCard();
   };
 
   // Handle "Nu știu" button on back (change from correct to incorrect)
   const handleDontKnow = (e: React.MouseEvent) => {
     e.stopPropagation();
+    setFrontAction('show'); // Hide "Nu știu" button after clicking (answer is now incorrect)
     onAnswer(false);
   };
 
@@ -194,8 +199,9 @@ export const StandardCard: React.FC<StandardCardProps> = ({
                   <ChevronLeft size={20} />
                 </button>
 
-                {/* Action buttons - only show if not answered */}
-                {!hasAnswered && (
+                {/* Action buttons */}
+                {!hasAnswered || isSkipped ? (
+                  /* New card or skipped: show both "Știu" and "Arată" */
                   <div className="flex gap-2 flex-1 justify-center">
                     <button
                       onClick={handleKnow}
@@ -212,10 +218,18 @@ export const StandardCard: React.FC<StandardCardProps> = ({
                       Arată
                     </button>
                   </div>
+                ) : (
+                  /* Already answered (correct/incorrect): show only "Arată" for review */
+                  <div className="flex gap-2 flex-1 justify-center">
+                    <button
+                      onClick={handleShow}
+                      className="flex items-center gap-2 px-6 py-2 bg-indigo-100 text-indigo-700 rounded-lg font-semibold hover:bg-indigo-200 transition-all active:scale-95"
+                    >
+                      <Eye size={18} />
+                      Arată
+                    </button>
+                  </div>
                 )}
-
-                {/* Spacer when answered */}
-                {hasAnswered && <div className="flex-1"></div>}
 
                 {/* Right side: Skip or Finish button */}
                 {isLastCard && onFinish ? (
@@ -227,7 +241,7 @@ export const StandardCard: React.FC<StandardCardProps> = ({
                     <CheckCircle size={18} />
                     <span className="hidden sm:inline">Finalizare</span>
                   </button>
-                ) : (
+                ) : !hasAnswered || isSkipped ? (
                   <button
                     onClick={onSkip}
                     className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-all active:scale-95"
@@ -235,6 +249,8 @@ export const StandardCard: React.FC<StandardCardProps> = ({
                   >
                     <SkipForward size={20} />
                   </button>
+                ) : (
+                  <div className="w-9" /> /* Spacer to maintain layout */
                 )}
               </div>
             </div>
@@ -280,18 +296,14 @@ export const StandardCard: React.FC<StandardCardProps> = ({
               />
             </div>
 
-            {/* Back Content - Randat condiționat pentru a evita "ghosting-ul" de date la tranziție */}
+            {/* Back Content */}
             <div className="text-center px-4">
-              {frontAction !== null && (
-                <>
-                  <div className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide">
-                    Răspuns
-                  </div>
-                  <div className="text-2xl font-bold text-gray-900 animate-fade-in">
-                    {card.back}
-                  </div>
-                </>
-              )}
+              <>
+                <div className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide">
+                  Răspuns
+                </div>
+                <div className="text-2xl font-bold text-gray-900 animate-fade-in">{card.back}</div>
+              </>
             </div>
 
             {/* Sticky Navigation Footer (back) */}
@@ -315,8 +327,8 @@ export const StandardCard: React.FC<StandardCardProps> = ({
                 </button>
 
                 <div className="flex gap-2 flex-1 justify-end">
-                  {/* Flow A: User clicked "Știu" - show "Nu știu" button */}
-                  {frontAction === 'know' && (
+                  {/* Show "Nu știu" when answer is currently correct (allows downgrade) */}
+                  {(frontAction === 'know' || cardAnswer === 'correct') && (
                     <button
                       onClick={handleDontKnow}
                       className="flex items-center gap-2 px-6 py-2 bg-red-100 text-red-700 rounded-lg font-semibold hover:bg-red-200 transition-all active:scale-95"
