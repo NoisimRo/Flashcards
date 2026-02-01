@@ -237,7 +237,12 @@ export type AchievementConditionType =
   | 'decks_created'
   | 'cards_per_minute'
   | 'total_xp'
-  | 'time_spent_hours';
+  | 'time_spent_hours'
+  | 'session_time_of_day'
+  | 'perfect_score_min_cards'
+  | 'total_sessions_completed'
+  | 'single_session_xp'
+  | 'cards_mastered_single_deck';
 
 export interface AchievementCondition {
   type: AchievementConditionType;

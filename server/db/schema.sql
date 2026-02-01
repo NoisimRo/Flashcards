@@ -456,7 +456,18 @@ INSERT INTO achievements (id, title, description, icon, color, xp_reward, condit
     ('a5', 'Flacără Vie', 'Streak de 7 zile', 'flame', 'bg-orange-100 text-orange-600', 150, 'streak_days', 7, 'silver'),
     ('a6', 'Diamant', '100 carduri memorate', 'diamond', 'bg-indigo-100 text-indigo-600', 200, 'cards_mastered', 100, 'gold'),
     ('a7', 'Maestru', 'Nivel 10 atins', 'crown', 'bg-amber-100 text-amber-600', 500, 'level_reached', 10, 'gold'),
-    ('a8', 'Dedicat', '30 zile consecutive', 'calendar', 'bg-red-100 text-red-600', 1000, 'streak_days', 30, 'platinum');
+    ('a8', 'Dedicat', '30 zile consecutive', 'calendar', 'bg-red-100 text-red-600', 1000, 'streak_days', 30, 'platinum'),
+    ('a9', 'Night Owl', 'Sesiune completată între 23:00-04:00', 'moon', 'bg-slate-100 text-slate-600', 80, 'session_time_of_day', 2300, 'silver'),
+    ('a10', 'Early Bird', 'Sesiune completată între 05:00-08:00', 'sunrise', 'bg-sky-100 text-sky-600', 80, 'session_time_of_day', 500, 'silver'),
+    ('a11', 'Scor Perfect', '100% corect cu minim 15 carduri', 'award', 'bg-yellow-100 text-yellow-600', 150, 'perfect_score_min_cards', 15, 'gold'),
+    ('a12', 'Maratonist', '25 sesiuni completate', 'trophy', 'bg-teal-100 text-teal-600', 120, 'total_sessions_completed', 25, 'silver'),
+    ('a13', 'Centurion', '100 sesiuni completate', 'medal', 'bg-emerald-100 text-emerald-600', 300, 'total_sessions_completed', 100, 'gold'),
+    ('a14', 'Colecționar XP', '1000 XP total acumulat', 'coins', 'bg-lime-100 text-lime-600', 75, 'total_xp', 1000, 'bronze'),
+    ('a15', 'Tezaurizator XP', '5000 XP total acumulat', 'gem', 'bg-violet-100 text-violet-600', 200, 'total_xp', 5000, 'silver'),
+    ('a16', 'Legendă XP', '20000 XP total acumulat', 'sparkles', 'bg-fuchsia-100 text-fuchsia-600', 500, 'total_xp', 20000, 'platinum'),
+    ('a17', 'Speed Demon', '15 carduri pe minut', 'timer', 'bg-rose-100 text-rose-600', 150, 'cards_per_minute', 15, 'gold'),
+    ('a18', 'Explozie de Cunoștințe', '200+ XP într-o singură sesiune', 'brain', 'bg-cyan-100 text-cyan-600', 100, 'single_session_xp', 200, 'silver'),
+    ('a19', 'Maestrul Deck-ului', 'Memorat toate cardurile dintr-un deck', 'book-check', 'bg-emerald-100 text-emerald-600', 250, 'cards_mastered_single_deck', 1, 'gold');
 
 -- ============================================
 -- USER ACHIEVEMENTS TABLE

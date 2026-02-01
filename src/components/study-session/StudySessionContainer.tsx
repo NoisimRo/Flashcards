@@ -12,7 +12,14 @@ import { XPIndicator } from './feedback/XPIndicator';
 import { XPFloatingAnimation } from './animations/XPFloatingAnimation';
 import { StreakCelebration } from './animations/StreakCelebration';
 import { LevelUpOverlay } from './animations/LevelUpOverlay';
+import { AchievementCelebration } from './animations/AchievementCelebration';
 import { SessionCompletionModal } from './modals/SessionCompletionModal';
+import { getAchievements } from '../../api/achievements';
+import type { Achievement as ApiAchievement } from '../../api/achievements';
+import {
+  useAchievementChecker,
+  type TriggeredAchievement,
+} from '../../hooks/useAchievementChecker';
 import { ArrowLeft, Shuffle, RotateCcw, CheckCircle } from 'lucide-react';
 
 interface StudySessionContainerProps {
@@ -67,6 +74,13 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [previousStreak, setPreviousStreak] = useState(0);
 
+  // Achievement celebration state
+  const [achievementCelebration, setAchievementCelebration] = useState<TriggeredAchievement | null>(
+    null
+  );
+  const [allAchievements, setAllAchievements] = useState<ApiAchievement[]>([]);
+  const { checkAchievements } = useAchievementChecker(allAchievements);
+
   // Refs for synchronous level-up XP tracking (React state via updateUser is async)
   // userXPStateRef: holds the post-level-up user state so checkLevelUp reads fresh values
   const userXPStateRef = useRef<{
@@ -92,6 +106,21 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
       resetSessionState();
     };
   }, [sessionId, loadSession, enableAutoSave, disableAutoSave, resetSessionState]);
+
+  // Fetch achievements for client-side badge checking
+  useEffect(() => {
+    if (user) {
+      getAchievements()
+        .then(res => {
+          if (res?.success && res?.data?.achievements) {
+            setAllAchievements(res.data.achievements);
+          }
+        })
+        .catch(() => {
+          // Silent fail - achievements check is cosmetic only
+        });
+    }
+  }, [user]);
 
   // Check if session is complete (all cards answered)
   useEffect(() => {
@@ -314,6 +343,24 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
         if (newStreak % 5 === 0 && newStreak >= 5 && newStreak > currentStreak) {
           setCelebrationStreak(newStreak);
           setShowStreakCelebration(true);
+        }
+      }
+
+      // Check for achievement unlocks (client-side approximation for animation)
+      if (allAchievements.length > 0 && !achievementCelebration) {
+        const state = useStudySessionsStore.getState();
+        const correctCount = Object.values(state.answers).filter(a => a === 'correct').length;
+        const totalCards = currentSession?.cards?.length || 0;
+        const durationSeconds = state.totalActiveSeconds;
+        const triggered = checkAchievements({
+          correctCount,
+          totalCards,
+          sessionXP: state.sessionXP,
+          durationSeconds,
+          answers: state.answers as Record<string, string>,
+        });
+        if (triggered) {
+          setAchievementCelebration(triggered);
         }
       }
     }
@@ -628,6 +675,15 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
             oldLevel={levelUpData.oldLevel}
             newLevel={levelUpData.newLevel}
             onComplete={() => setShowLevelUp(false)}
+          />
+        )}
+
+        {achievementCelebration && (
+          <AchievementCelebration
+            icon={achievementCelebration.icon}
+            title={achievementCelebration.title}
+            color={achievementCelebration.color}
+            onComplete={() => setAchievementCelebration(null)}
           />
         )}
 
