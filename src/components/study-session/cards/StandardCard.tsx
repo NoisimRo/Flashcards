@@ -25,6 +25,7 @@ interface StandardCardProps {
   isFirstCard?: boolean;
   isLastCard?: boolean;
   hasAnswered?: boolean;
+  isSkipped?: boolean;
   canEditDelete?: boolean;
   onEditCard?: () => void;
   onDeleteCard?: () => void;
@@ -45,6 +46,7 @@ export const StandardCard: React.FC<StandardCardProps> = ({
   isFirstCard = false,
   isLastCard = false,
   hasAnswered = false,
+  isSkipped = false,
   canEditDelete = false,
   onEditCard,
   onDeleteCard,
@@ -198,7 +200,8 @@ export const StandardCard: React.FC<StandardCardProps> = ({
                 </button>
 
                 {/* Action buttons */}
-                {!hasAnswered ? (
+                {!hasAnswered || isSkipped ? (
+                  /* New card or skipped: show both "Știu" and "Arată" */
                   <div className="flex gap-2 flex-1 justify-center">
                     <button
                       onClick={handleKnow}
@@ -216,8 +219,8 @@ export const StandardCard: React.FC<StandardCardProps> = ({
                     </button>
                   </div>
                 ) : (
+                  /* Already answered (correct/incorrect): show only "Arată" for review */
                   <div className="flex gap-2 flex-1 justify-center">
-                    {/* Already answered: show "Arată" to let user flip and review */}
                     <button
                       onClick={handleShow}
                       className="flex items-center gap-2 px-6 py-2 bg-indigo-100 text-indigo-700 rounded-lg font-semibold hover:bg-indigo-200 transition-all active:scale-95"
@@ -238,7 +241,7 @@ export const StandardCard: React.FC<StandardCardProps> = ({
                     <CheckCircle size={18} />
                     <span className="hidden sm:inline">Finalizare</span>
                   </button>
-                ) : !hasAnswered ? (
+                ) : !hasAnswered || isSkipped ? (
                   <button
                     onClick={onSkip}
                     className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-all active:scale-95"

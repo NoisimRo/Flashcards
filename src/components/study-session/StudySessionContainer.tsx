@@ -93,16 +93,28 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     };
   }, [sessionId, loadSession, enableAutoSave, disableAutoSave, resetSessionState]);
 
+  // Track previous answer count to detect when user actively answers (not on resume)
+  const prevAnswerCountRef = useRef<number>(Object.keys(answers).length);
+
   // Check if session is complete (all cards answered)
   useEffect(() => {
     if (!currentSession?.cards) return;
 
     const totalCards = currentSession.cards.length;
     const answeredCards = Object.keys(answers).length;
+    const prevCount = prevAnswerCountRef.current;
+    prevAnswerCountRef.current = answeredCards;
 
-    // Show completion modal when all cards are answered
-    // SINGLE SOURCE OF TRUTH - prevents double completion calls
-    if (answeredCards === totalCards && totalCards > 0 && !showCompletionModal) {
+    // Only trigger when user ACTIVELY answered a new card (count increased)
+    // This prevents the modal from firing on resume when skipped cards already fill all slots
+    const userJustAnswered = answeredCards > prevCount;
+
+    if (
+      answeredCards === totalCards &&
+      totalCards > 0 &&
+      !showCompletionModal &&
+      userJustAnswered
+    ) {
       setTimeout(() => {
         setShowCompletionModal(true);
       }, 6000); // 6 seconds delay to let user read feedback and explanation on last card
@@ -523,6 +535,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
               isFirstCard={currentCardIndex === 0}
               isLastCard={currentCardIndex === (currentSession?.cards?.length || 0) - 1}
               hasAnswered={answers[currentCard.id] !== undefined}
+              isSkipped={answers[currentCard.id] === 'skipped'}
             />
           )}
           {currentCard.type === 'quiz' && (
@@ -653,6 +666,8 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
             skippedCount={Object.values(answers).filter(a => a === 'skipped').length}
             totalCards={currentSession.cards?.length || 0}
             xpEarned={sessionXP}
+            cards={currentSession.cards || []}
+            answers={answers}
             onSaveAndExit={handleSaveAndExit}
             onFinishAndExit={handleFinishAndExit}
             onReviewMistakes={handleReviewMistakes}
