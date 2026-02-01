@@ -15,35 +15,98 @@
   "items": {
     "a1": {
       "title": "Primo Passo",
-      "description": "Completato il primo mazzo"
+      "description": "Completato il primo mazzo",
+      "howToEarn": "Completa la tua prima sessione di studio da un mazzo"
     },
     "a2": {
       "title": "Stella Brillante",
-      "description": "5 giorni consecutivi"
+      "description": "5 giorni consecutivi",
+      "howToEarn": "Studia ogni giorno per 5 giorni consecutivi"
     },
     "a3": {
       "title": "Veloce come un Fulmine",
-      "description": "10 carte in 1 minuto"
+      "description": "10 carte in 1 minuto",
+      "howToEarn": "Rispondi correttamente ad almeno 10 carte al minuto in una sessione"
     },
     "a4": {
       "title": "Bibliotecario",
-      "description": "Creati 3 mazzi"
+      "description": "Creati 3 mazzi",
+      "howToEarn": "Crea 3 mazzi tuoi"
     },
     "a5": {
       "title": "Fiamma Viva",
-      "description": "Serie di 7 giorni"
+      "description": "Serie di 7 giorni",
+      "howToEarn": "Mantieni una serie di studio di 7 giorni consecutivi"
     },
     "a6": {
       "title": "Diamante",
-      "description": "100 carte masterizzate"
+      "description": "100 carte masterizzate",
+      "howToEarn": "Masterizza 100 carte in totale"
     },
     "a7": {
       "title": "Maestro",
-      "description": "Raggiunto livello 10"
+      "description": "Raggiunto livello 10",
+      "howToEarn": "Raggiungi il livello 10 accumulando XP"
     },
     "a8": {
       "title": "Dedicato",
-      "description": "30 giorni consecutivi"
+      "description": "30 giorni consecutivi",
+      "howToEarn": "Studia ogni giorno per 30 giorni consecutivi"
+    },
+    "a9": {
+      "title": "Night Owl",
+      "description": "Sessione dopo le 23:00",
+      "howToEarn": "Completa una sessione di studio tra le 23:00 e le 04:00"
+    },
+    "a10": {
+      "title": "Early Bird",
+      "description": "Sessione mattutina",
+      "howToEarn": "Completa una sessione di studio tra le 05:00 e le 08:00"
+    },
+    "a11": {
+      "title": "Punteggio Perfetto",
+      "description": "100% corretto, minimo 15 carte",
+      "howToEarn": "Ottieni il 100% corretto in una sessione con almeno 15 carte"
+    },
+    "a12": {
+      "title": "Maratoneta",
+      "description": "25 sessioni completate",
+      "howToEarn": "Completa 25 sessioni di studio in totale"
+    },
+    "a13": {
+      "title": "Centurione",
+      "description": "100 sessioni completate",
+      "howToEarn": "Completa 100 sessioni di studio in totale"
+    },
+    "a14": {
+      "title": "Collezionista XP",
+      "description": "1.000 XP accumulati",
+      "howToEarn": "Accumula 1.000 XP in totale"
+    },
+    "a15": {
+      "title": "Accumulatore XP",
+      "description": "5.000 XP accumulati",
+      "howToEarn": "Accumula 5.000 XP in totale"
+    },
+    "a16": {
+      "title": "Leggenda XP",
+      "description": "20.000 XP accumulati",
+      "howToEarn": "Accumula 20.000 XP in totale"
+    },
+    "a17": {
+      "title": "Speed Demon",
+      "description": "15 carte al minuto",
+      "howToEarn": "Rispondi correttamente ad almeno 15 carte al minuto in una sessione"
+    },
+    "a18": {
+      "title": "Esplosione di Conoscenza",
+      "description": "200+ XP in una sessione",
+      "howToEarn": "Guadagna oltre 200 XP in una singola sessione di studio"
+    },
+    "a19": {
+      "title": "Maestro del Mazzo",
+      "description": "Tutte le carte masterizzate",
+      "howToEarn": "Masterizza tutte le carte in un singolo mazzo"
     }
   }
 }

@@ -75,7 +75,7 @@ interface StudySessionsStore {
 
 // XP Calculation Helper
 const calculateXP = (isCorrect: boolean, streak: number, difficulty: Difficulty): number => {
-  const baseXP: Record<Difficulty, number> = { A1: 5, A2: 8, B1: 12, B2: 15, C1: 20, C2: 25 };
+  const baseXP: Record<Difficulty, number> = { A1: 3, A2: 6, B1: 12, B2: 20, C1: 35, C2: 50 };
   if (!isCorrect) return 0;
   const streakMultiplier = Math.min(1 + streak * 0.1, 2.5); // Max 2.5x
   return Math.floor((baseXP[difficulty] || 10) * streakMultiplier);

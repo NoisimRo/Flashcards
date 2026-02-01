@@ -929,18 +929,24 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
         }
       }
 
-      // XP and level were already updated incrementally by the PUT auto-save handler.
-      // We do NOT add sessionXP to total_xp/current_xp again to avoid double-counting.
-      const sessionXP = session.session_xp || 0;
+      // XP was already incrementally applied to users.total_xp and users.current_xp
+      // by the PUT auto-save endpoint. Do NOT add sessionXP again here to avoid double-counting.
+      // We still record the full session XP in daily_progress.xp_earned (PUT doesn't write there).
+      const fullSessionXP = session.session_xp || 0;
 
-      // Get current user stats (already updated by PUT handler)
+      // Get current user stats (already includes all auto-saved XP)
       const userResult = await client.query(
         'SELECT level, current_xp, next_level_xp FROM users WHERE id = $1',
         [req.user!.id]
       );
       const currentUser = userResult.rows[0];
 
-      // Update user stats (only non-XP fields: cards_learned, decks_completed, time)
+      // Read current level state (already correct from PUT auto-saves)
+      const newLevel = currentUser.level || 1;
+      const newCurrentXP = currentUser.current_xp || 0;
+      const newNextLevelXP = currentUser.next_level_xp || 100;
+
+      // Update user stats WITHOUT adding XP again (PUT already applied it)
       await client.query(
         `UPDATE users
          SET total_cards_learned = total_cards_learned + $1,
@@ -967,7 +973,7 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
            cards_learned = daily_progress.cards_learned + $4,
            time_spent_minutes = daily_progress.time_spent_minutes + $5,
            sessions_completed = daily_progress.sessions_completed + 1`,
-        [req.user!.id, today, correctDelta, cardsLearned, timeDeltaSeconds]
+        [req.user!.id, today, correctDelta, cardsLearned, timeDeltaSeconds, fullSessionXP]
       );
 
       // Update daily_challenges with final deltas (time_studied_today stores SECONDS)
@@ -980,8 +986,16 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
         [correctDelta, timeDeltaSeconds, req.user!.id, today]
       );
 
-      // Check and unlock achievements
-      const newAchievements = await checkAndUnlockAchievements(client, req.user!.id);
+      // Check and unlock achievements (pass session context for session-specific conditions)
+      const completedAtHour = new Date().getHours();
+      const newAchievements = await checkAndUnlockAchievements(client, req.user!.id, {
+        correctCount: correctCount || 0,
+        durationSeconds: finalDuration,
+        totalCards: session.total_cards,
+        completedAtHour,
+        score: score || 0,
+        sessionXP: fullSessionXP,
+      });
 
       // CRITICAL FIX: Recalculate streak from daily_progress after session completion
       const { currentStreak, longestStreak } = await calculateStreakFromDailyProgress(req.user!.id);
@@ -1000,8 +1014,8 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
       return {
         session: updatedSession.rows[0],
         cardsLearned,
-        sessionXP,
-        leveledUp: false,
+        sessionXP: fullSessionXP,
+        leveledUp: false, // Level-ups happen in real-time via PUT auto-save
         oldLevel: currentUser.level,
         newLevel: currentUser.level,
         newAchievements,

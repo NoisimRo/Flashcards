@@ -15,35 +15,98 @@
   "items": {
     "a1": {
       "title": "First Step",
-      "description": "Completed first deck"
+      "description": "Completed first deck",
+      "howToEarn": "Complete your first study session from a deck"
     },
     "a2": {
       "title": "Shining Star",
-      "description": "5 consecutive days"
+      "description": "5 consecutive days",
+      "howToEarn": "Study every day for 5 consecutive days"
     },
     "a3": {
       "title": "Lightning Fast",
-      "description": "10 cards in 1 minute"
+      "description": "10 cards in 1 minute",
+      "howToEarn": "Answer at least 10 cards correctly per minute in a session"
     },
     "a4": {
       "title": "Librarian",
-      "description": "Created 3 decks"
+      "description": "Created 3 decks",
+      "howToEarn": "Create 3 decks of your own"
     },
     "a5": {
       "title": "Living Flame",
-      "description": "7 day streak"
+      "description": "7 day streak",
+      "howToEarn": "Maintain a study streak of 7 consecutive days"
     },
     "a6": {
       "title": "Diamond",
-      "description": "100 cards mastered"
+      "description": "100 cards mastered",
+      "howToEarn": "Master 100 cards in total"
     },
     "a7": {
       "title": "Master",
-      "description": "Reached level 10"
+      "description": "Reached level 10",
+      "howToEarn": "Reach level 10 by accumulating XP"
     },
     "a8": {
       "title": "Dedicated",
-      "description": "30 consecutive days"
+      "description": "30 consecutive days",
+      "howToEarn": "Study every day for 30 consecutive days"
+    },
+    "a9": {
+      "title": "Night Owl",
+      "description": "Session after 11 PM",
+      "howToEarn": "Complete a study session between 11 PM and 4 AM"
+    },
+    "a10": {
+      "title": "Early Bird",
+      "description": "Early morning session",
+      "howToEarn": "Complete a study session between 5 AM and 8 AM"
+    },
+    "a11": {
+      "title": "Perfect Score",
+      "description": "100% correct, min 15 cards",
+      "howToEarn": "Get 100% correct in a session with at least 15 cards"
+    },
+    "a12": {
+      "title": "Marathon Runner",
+      "description": "25 sessions completed",
+      "howToEarn": "Complete 25 study sessions in total"
+    },
+    "a13": {
+      "title": "Centurion",
+      "description": "100 sessions completed",
+      "howToEarn": "Complete 100 study sessions in total"
+    },
+    "a14": {
+      "title": "XP Collector",
+      "description": "1,000 XP accumulated",
+      "howToEarn": "Accumulate 1,000 total XP"
+    },
+    "a15": {
+      "title": "XP Hoarder",
+      "description": "5,000 XP accumulated",
+      "howToEarn": "Accumulate 5,000 total XP"
+    },
+    "a16": {
+      "title": "XP Legend",
+      "description": "20,000 XP accumulated",
+      "howToEarn": "Accumulate 20,000 total XP"
+    },
+    "a17": {
+      "title": "Speed Demon",
+      "description": "15 cards per minute",
+      "howToEarn": "Answer at least 15 cards correctly per minute in a session"
+    },
+    "a18": {
+      "title": "Knowledge Burst",
+      "description": "200+ XP in one session",
+      "howToEarn": "Earn over 200 XP in a single study session"
+    },
+    "a19": {
+      "title": "Deck Master",
+      "description": "All cards mastered in a deck",
+      "howToEarn": "Master every card in a single deck"
     }
   }
 }

@@ -5,6 +5,19 @@ import { authenticateToken } from '../middleware/auth.js';
 const router = express.Router();
 
 /**
+ * Session context passed from the session completion endpoint
+ * to enable session-specific achievement condition checks.
+ */
+export interface SessionContext {
+  correctCount: number;
+  durationSeconds: number;
+  totalCards: number;
+  completedAtHour: number; // 0-23
+  score: number; // 0-100 percentage
+  sessionXP: number;
+}
+
+/**
  * GET /api/achievements
  * Get all achievements with user's unlock status
  */
@@ -21,7 +34,7 @@ router.get('/', authenticateToken, async (req, res) => {
          CASE WHEN ua.id IS NOT NULL THEN true ELSE false END as unlocked
        FROM achievements a
        LEFT JOIN user_achievements ua ON a.id = ua.achievement_id AND ua.user_id = $1
-       ORDER BY a.created_at ASC`,
+       ORDER BY a.xp_reward ASC, a.created_at ASC`,
       [userId]
     );
 
@@ -74,7 +87,11 @@ router.get('/', authenticateToken, async (req, res) => {
  * Check and unlock achievements for a user
  * Called internally after session completion
  */
-export async function checkAndUnlockAchievements(client: any, userId: string): Promise<any[]> {
+export async function checkAndUnlockAchievements(
+  client: any,
+  userId: string,
+  sessionContext?: SessionContext
+): Promise<any[]> {
   try {
     // Get user stats
     const userResult = await client.query(
@@ -82,7 +99,10 @@ export async function checkAndUnlockAchievements(client: any, userId: string): P
          level,
          streak,
          total_cards_learned,
-         total_decks_completed
+         total_decks_completed,
+         total_xp,
+         current_xp,
+         next_level_xp
        FROM users
        WHERE id = $1`,
       [userId]
@@ -138,9 +158,74 @@ export async function checkAndUnlockAchievements(client: any, userId: string): P
           break;
         }
 
-        case 'cards_per_minute':
-          // This would need to be checked during session - skip for now
+        case 'cards_per_minute': {
+          if (!sessionContext) break;
+          const durationMinutes = sessionContext.durationSeconds / 60;
+          if (durationMinutes <= 0) break;
+          const cardsPerMinute = sessionContext.correctCount / durationMinutes;
+          unlockConditionMet = cardsPerMinute >= achievement.condition_value;
           break;
+        }
+
+        case 'total_xp':
+          unlockConditionMet = user.total_xp >= achievement.condition_value;
+          break;
+
+        case 'session_time_of_day': {
+          if (!sessionContext) break;
+          const hour = sessionContext.completedAtHour;
+          const startHour = Math.floor(achievement.condition_value / 100);
+          if (startHour >= 20) {
+            // Night range: wraps around midnight (e.g., 23:00-03:59)
+            unlockConditionMet = hour >= startHour || hour < (startHour + 5) % 24;
+          } else {
+            // Morning range (e.g., 05:00-08:59)
+            unlockConditionMet = hour >= startHour && hour < startHour + 4;
+          }
+          break;
+        }
+
+        case 'perfect_score_min_cards': {
+          if (!sessionContext) break;
+          unlockConditionMet =
+            sessionContext.score === 100 &&
+            sessionContext.totalCards >= achievement.condition_value;
+          break;
+        }
+
+        case 'total_sessions_completed': {
+          const sessionsResult = await client.query(
+            `SELECT COUNT(*) as count FROM study_sessions
+             WHERE user_id = $1 AND status = 'completed'`,
+            [userId]
+          );
+          unlockConditionMet =
+            parseInt(sessionsResult.rows[0].count) >= achievement.condition_value;
+          break;
+        }
+
+        case 'single_session_xp': {
+          if (!sessionContext) break;
+          unlockConditionMet = sessionContext.sessionXP >= achievement.condition_value;
+          break;
+        }
+
+        case 'cards_mastered_single_deck': {
+          // Check if user has mastered ALL cards in any single deck
+          const deckMasteryResult = await client.query(
+            `SELECT d.id
+             FROM decks d
+             JOIN cards c ON c.deck_id = d.id AND c.deleted_at IS NULL
+             LEFT JOIN user_card_progress ucp ON ucp.card_id = c.id AND ucp.user_id = $1
+             WHERE d.deleted_at IS NULL
+             GROUP BY d.id
+             HAVING COUNT(c.id) > 0
+               AND COUNT(c.id) = COUNT(CASE WHEN ucp.status = 'mastered' THEN 1 END)`,
+            [userId]
+          );
+          unlockConditionMet = deckMasteryResult.rows.length >= achievement.condition_value;
+          break;
+        }
 
         default:
           console.warn(`Unknown achievement condition type: ${achievement.condition_type}`);
@@ -155,21 +240,54 @@ export async function checkAndUnlockAchievements(client: any, userId: string): P
           [userId, achievement.id, achievement.xp_reward]
         );
 
+        // Award XP with level-up calculation
+        const newTotalXP = user.total_xp + achievement.xp_reward;
+        let newCurrentXP = user.current_xp + achievement.xp_reward;
+        let newLevel = user.level;
+        let newNextLevelXP = user.next_level_xp;
+
+        while (newCurrentXP >= newNextLevelXP) {
+          newCurrentXP -= newNextLevelXP;
+          newLevel++;
+          newNextLevelXP = Math.floor(newNextLevelXP * 1.2);
+        }
+
+        await client.query(
+          `UPDATE users
+           SET total_xp = $1,
+               current_xp = $2,
+               level = $3,
+               next_level_xp = $4,
+               updated_at = NOW()
+           WHERE id = $5`,
+          [newTotalXP, newCurrentXP, newLevel, newNextLevelXP, userId]
+        );
+
+        // Update in-memory user for subsequent achievement checks in the same loop
+        user.total_xp = newTotalXP;
+        user.current_xp = newCurrentXP;
+        user.level = newLevel;
+        user.next_level_xp = newNextLevelXP;
+
+        // Record achievement XP in daily_progress
+        const today = new Date().toISOString().split('T')[0];
+        await client.query(
+          `INSERT INTO daily_progress (user_id, date, xp_earned)
+           VALUES ($1, $2, $3)
+           ON CONFLICT (user_id, date)
+           DO UPDATE SET xp_earned = daily_progress.xp_earned + $3`,
+          [userId, today, achievement.xp_reward]
+        );
+
         newlyUnlocked.push({
           id: achievement.id,
           title: achievement.title,
           description: achievement.description,
           icon: achievement.icon,
+          color: achievement.color,
           xpReward: achievement.xp_reward,
+          tier: achievement.tier,
         });
-
-        // Award XP for achievement
-        await client.query(
-          `UPDATE users
-           SET total_xp = total_xp + $1
-           WHERE id = $2`,
-          [achievement.xp_reward, userId]
-        );
       }
     }
 

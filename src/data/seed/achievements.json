@@ -9,7 +9,8 @@
       "type": "decks_completed",
       "value": 1
     },
-    "color": "bg-yellow-100 text-yellow-600"
+    "color": "bg-yellow-100 text-yellow-600",
+    "tier": "bronze"
   },
   {
     "id": "a2",
@@ -21,7 +22,8 @@
       "type": "streak_days",
       "value": 5
     },
-    "color": "bg-blue-100 text-blue-600"
+    "color": "bg-blue-100 text-blue-600",
+    "tier": "bronze"
   },
   {
     "id": "a3",
@@ -33,7 +35,8 @@
       "type": "cards_per_minute",
       "value": 10
     },
-    "color": "bg-purple-100 text-purple-600"
+    "color": "bg-purple-100 text-purple-600",
+    "tier": "silver"
   },
   {
     "id": "a4",
@@ -45,7 +48,8 @@
       "type": "decks_created",
       "value": 3
     },
-    "color": "bg-green-100 text-green-600"
+    "color": "bg-green-100 text-green-600",
+    "tier": "bronze"
   },
   {
     "id": "a5",
@@ -57,7 +61,8 @@
       "type": "streak_days",
       "value": 7
     },
-    "color": "bg-orange-100 text-orange-600"
+    "color": "bg-orange-100 text-orange-600",
+    "tier": "silver"
   },
   {
     "id": "a6",
@@ -69,7 +74,8 @@
       "type": "cards_mastered",
       "value": 100
     },
-    "color": "bg-indigo-100 text-indigo-600"
+    "color": "bg-indigo-100 text-indigo-600",
+    "tier": "gold"
   },
   {
     "id": "a7",
@@ -81,7 +87,8 @@
       "type": "level_reached",
       "value": 10
     },
-    "color": "bg-amber-100 text-amber-600"
+    "color": "bg-amber-100 text-amber-600",
+    "tier": "gold"
   },
   {
     "id": "a8",
@@ -93,6 +100,150 @@
       "type": "streak_days",
       "value": 30
     },
-    "color": "bg-red-100 text-red-600"
+    "color": "bg-red-100 text-red-600",
+    "tier": "platinum"
+  },
+  {
+    "id": "a9",
+    "title": "Night Owl",
+    "description": "Sesiune completată între 23:00-04:00",
+    "icon": "moon",
+    "xpReward": 80,
+    "condition": {
+      "type": "session_time_of_day",
+      "value": 2300
+    },
+    "color": "bg-slate-100 text-slate-600",
+    "tier": "silver"
+  },
+  {
+    "id": "a10",
+    "title": "Early Bird",
+    "description": "Sesiune completată între 05:00-08:00",
+    "icon": "sunrise",
+    "xpReward": 80,
+    "condition": {
+      "type": "session_time_of_day",
+      "value": 500
+    },
+    "color": "bg-sky-100 text-sky-600",
+    "tier": "silver"
+  },
+  {
+    "id": "a11",
+    "title": "Scor Perfect",
+    "description": "100% corect cu minim 15 carduri",
+    "icon": "award",
+    "xpReward": 150,
+    "condition": {
+      "type": "perfect_score_min_cards",
+      "value": 15
+    },
+    "color": "bg-yellow-100 text-yellow-600",
+    "tier": "gold"
+  },
+  {
+    "id": "a12",
+    "title": "Maratonist",
+    "description": "25 sesiuni completate",
+    "icon": "trophy",
+    "xpReward": 120,
+    "condition": {
+      "type": "total_sessions_completed",
+      "value": 25
+    },
+    "color": "bg-teal-100 text-teal-600",
+    "tier": "silver"
+  },
+  {
+    "id": "a13",
+    "title": "Centurion",
+    "description": "100 sesiuni completate",
+    "icon": "medal",
+    "xpReward": 300,
+    "condition": {
+      "type": "total_sessions_completed",
+      "value": 100
+    },
+    "color": "bg-emerald-100 text-emerald-600",
+    "tier": "gold"
+  },
+  {
+    "id": "a14",
+    "title": "Colecționar XP",
+    "description": "1000 XP total acumulat",
+    "icon": "coins",
+    "xpReward": 75,
+    "condition": {
+      "type": "total_xp",
+      "value": 1000
+    },
+    "color": "bg-lime-100 text-lime-600",
+    "tier": "bronze"
+  },
+  {
+    "id": "a15",
+    "title": "Tezaurizator XP",
+    "description": "5000 XP total acumulat",
+    "icon": "gem",
+    "xpReward": 200,
+    "condition": {
+      "type": "total_xp",
+      "value": 5000
+    },
+    "color": "bg-violet-100 text-violet-600",
+    "tier": "silver"
+  },
+  {
+    "id": "a16",
+    "title": "Legendă XP",
+    "description": "20000 XP total acumulat",
+    "icon": "sparkles",
+    "xpReward": 500,
+    "condition": {
+      "type": "total_xp",
+      "value": 20000
+    },
+    "color": "bg-fuchsia-100 text-fuchsia-600",
+    "tier": "platinum"
+  },
+  {
+    "id": "a17",
+    "title": "Speed Demon",
+    "description": "15 carduri pe minut",
+    "icon": "timer",
+    "xpReward": 150,
+    "condition": {
+      "type": "cards_per_minute",
+      "value": 15
+    },
+    "color": "bg-rose-100 text-rose-600",
+    "tier": "gold"
+  },
+  {
+    "id": "a18",
+    "title": "Explozie de Cunoștințe",
+    "description": "200+ XP într-o singură sesiune",
+    "icon": "brain",
+    "xpReward": 100,
+    "condition": {
+      "type": "single_session_xp",
+      "value": 200
+    },
+    "color": "bg-cyan-100 text-cyan-600",
+    "tier": "silver"
+  },
+  {
+    "id": "a19",
+    "title": "Maestrul Deck-ului",
+    "description": "Memorat toate cardurile dintr-un deck",
+    "icon": "book-check",
+    "xpReward": 250,
+    "condition": {
+      "type": "cards_mastered_single_deck",
+      "value": 1
+    },
+    "color": "bg-emerald-100 text-emerald-600",
+    "tier": "gold"
   }
 ]

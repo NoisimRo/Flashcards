@@ -177,3 +177,41 @@
 .card-flip-back {
   transform: rotateY(180deg);
 }
+
+/* Confetti particle animations for achievement celebrations */
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-20vh) rotate(0deg);
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+@keyframes confetti-shake {
+  0%,
+  100% {
+    margin-left: 0;
+  }
+  25% {
+    margin-left: 20px;
+  }
+  75% {
+    margin-left: -20px;
+  }
+}
+
+.confetti-particle {
+  position: fixed;
+  top: -10px;
+  animation:
+    confetti-fall var(--fall-duration, 3s) linear forwards,
+    confetti-shake var(--shake-duration, 1.5s) ease-in-out infinite;
+  pointer-events: none;
+  z-index: 9999;
+}

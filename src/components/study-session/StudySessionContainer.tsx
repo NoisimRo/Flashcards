@@ -12,7 +12,14 @@ import { XPIndicator } from './feedback/XPIndicator';
 import { XPFloatingAnimation } from './animations/XPFloatingAnimation';
 import { StreakCelebration } from './animations/StreakCelebration';
 import { LevelUpOverlay } from './animations/LevelUpOverlay';
+import { AchievementCelebration } from './animations/AchievementCelebration';
 import { SessionCompletionModal } from './modals/SessionCompletionModal';
+import { getAchievements } from '../../api/achievements';
+import type { Achievement as ApiAchievement } from '../../api/achievements';
+import {
+  useAchievementChecker,
+  type TriggeredAchievement,
+} from '../../hooks/useAchievementChecker';
 import { ArrowLeft, Shuffle, RotateCcw, CheckCircle } from 'lucide-react';
 
 interface StudySessionContainerProps {
@@ -68,6 +75,13 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [previousStreak, setPreviousStreak] = useState(0);
 
+  // Achievement celebration state
+  const [achievementCelebration, setAchievementCelebration] = useState<TriggeredAchievement | null>(
+    null
+  );
+  const [allAchievements, setAllAchievements] = useState<ApiAchievement[]>([]);
+  const { checkAchievements } = useAchievementChecker(allAchievements);
+
   // Refs for synchronous level-up XP tracking (React state via updateUser is async)
   // userXPStateRef: holds the post-level-up user state so checkLevelUp reads fresh values
   const userXPStateRef = useRef<{
@@ -109,7 +123,38 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     };
   }, [sessionId, loadSession, enableAutoSave, disableAutoSave, resetSessionState]);
 
-  // Handle back navigation - sync progress before leaving
+  // Fetch achievements for client-side badge checking
+  useEffect(() => {
+    if (user) {
+      getAchievements()
+        .then(res => {
+          if (res?.success && res?.data?.achievements) {
+            setAllAchievements(res.data.achievements);
+          }
+        })
+        .catch(() => {
+          // Silent fail - achievements check is cosmetic only
+        });
+    }
+  }, [user]);
+
+  // Check if session is complete (all cards answered)
+  useEffect(() => {
+    if (!currentSession?.cards) return;
+
+    const totalCards = currentSession.cards.length;
+    const answeredCards = Object.keys(answers).length;
+
+    // Show completion modal when all cards are answered
+    // SINGLE SOURCE OF TRUTH - prevents double completion calls
+    if (answeredCards === totalCards && totalCards > 0 && !showCompletionModal) {
+      setTimeout(() => {
+        setShowCompletionModal(true);
+      }, 6000); // 6 seconds delay to let user read feedback and explanation on last card
+    }
+  }, [answers, currentSession, showCompletionModal]);
+
+  // Handle back navigation with progress sync
   const handleBack = async () => {
     await syncProgress();
     onBack();
@@ -323,11 +368,24 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
           setShowStreakCelebration(true);
         }
       }
-    } else if (previousStatus === 'correct' && !isCorrect) {
-      // Scenario B: User clicked "Știu" then "Nu știu" — downgrade to incorrect
-      // Allow changing from correct → incorrect (user realized they were wrong)
-      // No XP/streak update needed (anti-cheating: only downgrade allowed)
-      answerCard(currentCard.id, isCorrect);
+
+      // Check for achievement unlocks (client-side approximation for animation)
+      if (allAchievements.length > 0 && !achievementCelebration) {
+        const state = useStudySessionsStore.getState();
+        const correctCount = Object.values(state.answers).filter(a => a === 'correct').length;
+        const totalCards = currentSession?.cards?.length || 0;
+        const durationSeconds = state.totalActiveSeconds;
+        const triggered = checkAchievements({
+          correctCount,
+          totalCards,
+          sessionXP: state.sessionXP,
+          durationSeconds,
+          answers: state.answers as Record<string, string>,
+        });
+        if (triggered) {
+          setAchievementCelebration(triggered);
+        }
+      }
     }
     // Scenario C: Already answered (incorrect→correct or same) → Skip answerCard
     // Local UI feedback in QuizCard will still show, but no XP/streak update
@@ -644,6 +702,15 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
             oldLevel={levelUpData.oldLevel}
             newLevel={levelUpData.newLevel}
             onComplete={() => setShowLevelUp(false)}
+          />
+        )}
+
+        {achievementCelebration && (
+          <AchievementCelebration
+            icon={achievementCelebration.icon}
+            title={achievementCelebration.title}
+            color={achievementCelebration.color}
+            onComplete={() => setAchievementCelebration(null)}
           />
         )}
 

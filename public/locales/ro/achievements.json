@@ -15,35 +15,98 @@
   "items": {
     "a1": {
       "title": "Primul Pas",
-      "description": "Completat primul deck"
+      "description": "Completat primul deck",
+      "howToEarn": "Finalizează prima ta sesiune de studiu dintr-un deck"
     },
     "a2": {
       "title": "Stea Strălucitoare",
-      "description": "5 zile consecutive"
+      "description": "5 zile consecutive",
+      "howToEarn": "Studiază în fiecare zi timp de 5 zile consecutive"
     },
     "a3": {
       "title": "Rapid ca Fulgerul",
-      "description": "10 carduri în 1 minut"
+      "description": "10 carduri în 1 minut",
+      "howToEarn": "Răspunde corect la cel puțin 10 carduri pe minut într-o sesiune"
     },
     "a4": {
       "title": "Bibliotecar",
-      "description": "Creat 3 deck-uri"
+      "description": "Creat 3 deck-uri",
+      "howToEarn": "Creează 3 deck-uri proprii"
     },
     "a5": {
       "title": "Flacără Vie",
-      "description": "Streak de 7 zile"
+      "description": "Streak de 7 zile",
+      "howToEarn": "Menține un streak de studiu de 7 zile consecutive"
     },
     "a6": {
       "title": "Diamant",
-      "description": "100 carduri memorate"
+      "description": "100 carduri memorate",
+      "howToEarn": "Memorează 100 de carduri în total"
     },
     "a7": {
       "title": "Maestru",
-      "description": "Nivel 10 atins"
+      "description": "Nivel 10 atins",
+      "howToEarn": "Atinge nivelul 10 prin acumularea de XP"
     },
     "a8": {
       "title": "Dedicat",
-      "description": "30 zile consecutive"
+      "description": "30 zile consecutive",
+      "howToEarn": "Studiază în fiecare zi timp de 30 de zile consecutive"
+    },
+    "a9": {
+      "title": "Night Owl",
+      "description": "Sesiune după ora 23:00",
+      "howToEarn": "Completează o sesiune între orele 23:00 și 04:00"
+    },
+    "a10": {
+      "title": "Early Bird",
+      "description": "Sesiune dimineața devreme",
+      "howToEarn": "Completează o sesiune între orele 05:00 și 08:00"
+    },
+    "a11": {
+      "title": "Scor Perfect",
+      "description": "100% corect, minim 15 carduri",
+      "howToEarn": "Obține 100% corect într-o sesiune cu cel puțin 15 carduri"
+    },
+    "a12": {
+      "title": "Maratonist",
+      "description": "25 sesiuni completate",
+      "howToEarn": "Completează 25 de sesiuni de studiu în total"
+    },
+    "a13": {
+      "title": "Centurion",
+      "description": "100 sesiuni completate",
+      "howToEarn": "Completează 100 de sesiuni de studiu în total"
+    },
+    "a14": {
+      "title": "Colecționar XP",
+      "description": "1.000 XP acumulat",
+      "howToEarn": "Acumulează 1.000 XP în total"
+    },
+    "a15": {
+      "title": "Tezaurizator XP",
+      "description": "5.000 XP acumulat",
+      "howToEarn": "Acumulează 5.000 XP în total"
+    },
+    "a16": {
+      "title": "Legendă XP",
+      "description": "20.000 XP acumulat",
+      "howToEarn": "Acumulează 20.000 XP în total"
+    },
+    "a17": {
+      "title": "Speed Demon",
+      "description": "15 carduri pe minut",
+      "howToEarn": "Răspunde corect la cel puțin 15 carduri pe minut într-o sesiune"
+    },
+    "a18": {
+      "title": "Explozie de Cunoștințe",
+      "description": "200+ XP într-o sesiune",
+      "howToEarn": "Câștigă peste 200 XP într-o singură sesiune de studiu"
+    },
+    "a19": {
+      "title": "Maestrul Deck-ului",
+      "description": "Toate cardurile memorate",
+      "howToEarn": "Memorează toate cardurile dintr-un deck"
     }
   }
 }
