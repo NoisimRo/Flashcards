@@ -81,7 +81,10 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
   const isPerfect = score === 100;
   const hasReviewableCards = incorrectCount + skippedCount > 0;
 
-  const tagAccuracies = React.useMemo(() => computeTagAccuracies(cards, answers), [cards, answers]);
+  const tagAccuracies = React.useMemo(
+    () => computeTagAccuracies(cards, answers).filter(t => t.total > 1),
+    [cards, answers]
+  );
 
   // Build a stable color index map: each unique tag gets a consistent color
   const tagColorMap = React.useMemo(() => {
@@ -90,15 +93,17 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
     return map;
   }, [tagAccuracies]);
 
-  // Strengths: >= 80% accuracy, sorted highest first
+  // Strengths: >= 80% accuracy, sorted highest first, top 3
   const strengths = tagAccuracies
     .filter(t => t.accuracy >= 80)
-    .sort((a, b) => b.accuracy - a.accuracy);
+    .sort((a, b) => b.accuracy - a.accuracy)
+    .slice(0, 3);
 
-  // Growth areas: < 80% accuracy, sorted lowest first (most urgent)
+  // Growth areas: < 80% accuracy, sorted lowest first (most urgent), top 3
   const growthAreas = tagAccuracies
     .filter(t => t.accuracy < 80)
-    .sort((a, b) => a.accuracy - b.accuracy);
+    .sort((a, b) => a.accuracy - b.accuracy)
+    .slice(0, 3);
 
   return (
     <div

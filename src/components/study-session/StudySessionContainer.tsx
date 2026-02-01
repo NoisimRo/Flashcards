@@ -109,34 +109,6 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     };
   }, [sessionId, loadSession, enableAutoSave, disableAutoSave, resetSessionState]);
 
-  // Track previous answer count to detect when user actively answers (not on resume)
-  const prevAnswerCountRef = useRef<number>(Object.keys(answers).length);
-
-  // Check if session is complete (all cards answered)
-  useEffect(() => {
-    if (!currentSession?.cards) return;
-
-    const totalCards = currentSession.cards.length;
-    const answeredCards = Object.keys(answers).length;
-    const prevCount = prevAnswerCountRef.current;
-    prevAnswerCountRef.current = answeredCards;
-
-    // Only trigger when user ACTIVELY answered a new card (count increased)
-    // This prevents the modal from firing on resume when skipped cards already fill all slots
-    const userJustAnswered = answeredCards > prevCount;
-
-    if (
-      answeredCards === totalCards &&
-      totalCards > 0 &&
-      !showCompletionModal &&
-      userJustAnswered
-    ) {
-      setTimeout(() => {
-        setShowCompletionModal(true);
-      }, 6000); // 6 seconds delay to let user read feedback and explanation on last card
-    }
-  }, [answers, currentSession, showCompletionModal]);
-
   // Handle back navigation - sync progress before leaving
   const handleBack = async () => {
     await syncProgress();
@@ -544,8 +516,9 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
               onNext={() => {
                 if (currentCardIndex < (currentSession?.cards?.length || 0) - 1) {
                   nextCard();
+                } else {
+                  setShowCompletionModal(true);
                 }
-                // Don't manually trigger modal - useEffect handles it
               }}
               onSkip={() => {
                 skipCard(currentCard.id);
@@ -566,18 +539,19 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
               card={currentCard}
               onAnswer={handleAnswer}
               onAutoAdvance={() => {
-                // Auto-advance to next card if not on last card
                 const totalCards = currentSession?.cards?.length || 0;
                 if (currentCardIndex < totalCards - 1) {
                   nextCard();
+                } else {
+                  setShowCompletionModal(true);
                 }
-                // Don't manually trigger modal - useEffect handles it
               }}
               onNext={() => {
                 if (currentCardIndex < (currentSession?.cards?.length || 0) - 1) {
                   nextCard();
+                } else {
+                  setShowCompletionModal(true);
                 }
-                // Don't manually trigger modal - useEffect handles it
               }}
               onSkip={() => {
                 skipCard(currentCard.id);
@@ -597,12 +571,12 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
               card={currentCard}
               onAnswer={handleAnswer}
               onAutoAdvance={() => {
-                // Auto-advance to next card if not on last card
                 const totalCards = currentSession?.cards?.length || 0;
                 if (currentCardIndex < totalCards - 1) {
                   nextCard();
+                } else {
+                  setShowCompletionModal(true);
                 }
-                // Don't manually trigger modal - useEffect handles it
               }}
               onNext={nextCard}
               onSkip={() => {
@@ -623,18 +597,19 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
               card={currentCard}
               onAnswer={handleAnswer}
               onAutoAdvance={() => {
-                // Auto-advance to next card if not on last card
                 const totalCards = currentSession?.cards?.length || 0;
                 if (currentCardIndex < totalCards - 1) {
                   nextCard();
+                } else {
+                  setShowCompletionModal(true);
                 }
-                // Don't manually trigger modal - useEffect handles it
               }}
               onNext={() => {
                 if (currentCardIndex < (currentSession?.cards?.length || 0) - 1) {
                   nextCard();
+                } else {
+                  setShowCompletionModal(true);
                 }
-                // Don't manually trigger modal - useEffect handles it
               }}
               onSkip={() => {
                 skipCard(currentCard.id);
