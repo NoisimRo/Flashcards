@@ -162,6 +162,10 @@ export async function checkAndUnlockAchievements(
           if (!sessionContext) break;
           const durationMinutes = sessionContext.durationSeconds / 60;
           if (durationMinutes <= 0) break;
+          // Require at least 10 correct answers AND the rate to exceed the threshold
+          // This prevents triggering after just 1 fast card
+          const minCorrectRequired = Math.max(10, achievement.condition_value);
+          if (sessionContext.correctCount < minCorrectRequired) break;
           const cardsPerMinute = sessionContext.correctCount / durationMinutes;
           unlockConditionMet = cardsPerMinute >= achievement.condition_value;
           break;

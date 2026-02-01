@@ -102,7 +102,7 @@ export const AchievementCelebration: React.FC<AchievementCelebrationProps> = ({
   }, []);
 
   const overlay = (
-    <div className="fixed inset-0 z-[9998] flex flex-col items-center justify-center pointer-events-none">
+    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none">
       {/* Confetti particles */}
       {particles.map(p => (
         <div
@@ -125,16 +125,19 @@ export const AchievementCelebration: React.FC<AchievementCelebrationProps> = ({
       ))}
 
       {/* Badge content */}
-      <div className="animate-pop-in flex flex-col items-center gap-3 bg-white/95 backdrop-blur-md p-8 rounded-3xl shadow-2xl border-4 border-amber-400">
-        <div className="text-sm font-bold uppercase tracking-widest text-amber-600">
-          Badge Unlocked!
+      <div className="animate-level-up flex flex-col items-center gap-4">
+        <div className="text-5xl">🏆</div>
+        <div className="flex flex-col items-center gap-3 bg-white/95 backdrop-blur-md p-8 rounded-3xl shadow-2xl border-4 border-amber-400">
+          <div className="text-sm font-bold uppercase tracking-widest text-amber-600">
+            Badge Unlocked!
+          </div>
+          <div
+            className={`w-20 h-20 rounded-full flex items-center justify-center ${color || 'bg-amber-100 text-amber-600'}`}
+          >
+            <Icon size={40} />
+          </div>
+          <h2 className="text-2xl font-black text-gray-900 text-center">{title}</h2>
         </div>
-        <div
-          className={`w-20 h-20 rounded-full flex items-center justify-center ${color || 'bg-amber-100 text-amber-600'}`}
-        >
-          <Icon size={40} />
-        </div>
-        <h2 className="text-2xl font-black text-gray-900 text-center">{title}</h2>
       </div>
     </div>
   );

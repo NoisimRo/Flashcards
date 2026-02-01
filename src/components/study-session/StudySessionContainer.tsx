@@ -80,7 +80,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     null
   );
   const [allAchievements, setAllAchievements] = useState<ApiAchievement[]>([]);
-  const { checkAchievements } = useAchievementChecker(allAchievements);
+  const { checkAchievements, recordCorrectAnswer } = useAchievementChecker(allAchievements);
 
   // Refs for synchronous level-up XP tracking (React state via updateUser is async)
   // userXPStateRef: holds the post-level-up user state so checkLevelUp reads fresh values
@@ -359,6 +359,11 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
         // Check for level up during session
         checkLevelUp();
       }, 10);
+
+      // Record correct answer timestamp for sliding-window achievement checks
+      if (isCorrect) {
+        recordCorrectAnswer();
+      }
 
       // Check for streak celebration (5, 10, 15, 20, etc.) - only if correct
       if (isCorrect) {
