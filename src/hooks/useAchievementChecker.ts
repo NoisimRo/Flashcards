@@ -16,41 +16,59 @@ interface SessionStats {
   answers: Record<string, string>;
 }
 
+const SESSION_STORAGE_KEY = 'achievement_triggered_ids';
+
+function loadTriggeredFromStorage(): Set<string> {
+  try {
+    const stored = sessionStorage.getItem(SESSION_STORAGE_KEY);
+    return stored ? new Set(JSON.parse(stored)) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function saveTriggeredToStorage(ids: Set<string>) {
+  try {
+    sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify([...ids]));
+  } catch {
+    // Silent fail — sessionStorage may be unavailable
+  }
+}
+
 /**
  * Client-side achievement checker for real-time badge animations during sessions.
  * Checks conditions that can be evaluated from local session state.
  * The server remains the source of truth — this is purely for animation timing.
+ * Uses sessionStorage to prevent re-triggering on page refresh.
  */
 export function useAchievementChecker(unlockedAchievements: ApiAchievement[]) {
-  const triggeredIds = useRef<Set<string>>(new Set());
-  const alreadyUnlockedIds = useRef<Set<string>>(new Set());
-
-  // Initialize already-unlocked set from fetched data
-  if (unlockedAchievements.length > 0 && alreadyUnlockedIds.current.size === 0) {
-    unlockedAchievements.forEach(a => {
-      if (a.unlocked) {
-        alreadyUnlockedIds.current.add(a.id);
-      }
-    });
-  }
+  // Load previously triggered IDs from sessionStorage to survive page refreshes
+  const triggeredIds = useRef<Set<string>>(loadTriggeredFromStorage());
+  // Sliding window of timestamps for correct answers (for cards_per_minute)
+  const correctTimestamps = useRef<number[]>([]);
 
   const checkAchievements = useCallback(
     (stats: SessionStats): TriggeredAchievement | null => {
       const hour = new Date().getHours();
 
       for (const achievement of unlockedAchievements) {
-        // Skip already-unlocked or already-triggered-this-session
+        // Skip already-unlocked (server) or already-triggered (client, persisted in sessionStorage)
         if (achievement.unlocked) continue;
         if (triggeredIds.current.has(achievement.id)) continue;
-        if (alreadyUnlockedIds.current.has(achievement.id)) continue;
 
         let conditionMet = false;
 
         switch (achievement.conditionType) {
           case 'cards_per_minute': {
-            const durationMinutes = stats.durationSeconds / 60;
-            if (durationMinutes > 0) {
-              conditionMet = stats.correctCount / durationMinutes >= achievement.conditionValue;
+            // Sliding window: check if the last N correct answers fit within 1 minute
+            const requiredCards = achievement.conditionValue;
+            const timestamps = correctTimestamps.current;
+            if (timestamps.length >= requiredCards) {
+              const windowStart = timestamps[timestamps.length - requiredCards];
+              const windowEnd = timestamps[timestamps.length - 1];
+              const windowSeconds = (windowEnd - windowStart) / 1000;
+              // N cards answered within 60 seconds (window from first to last of N)
+              conditionMet = windowSeconds <= 60 && windowSeconds >= 0;
             }
             break;
           }
@@ -91,6 +109,7 @@ export function useAchievementChecker(unlockedAchievements: ApiAchievement[]) {
 
         if (conditionMet) {
           triggeredIds.current.add(achievement.id);
+          saveTriggeredToStorage(triggeredIds.current);
           return {
             id: achievement.id,
             icon: achievement.icon,
@@ -105,9 +124,15 @@ export function useAchievementChecker(unlockedAchievements: ApiAchievement[]) {
     [unlockedAchievements]
   );
 
-  const resetTriggered = useCallback(() => {
-    triggeredIds.current.clear();
+  const recordCorrectAnswer = useCallback(() => {
+    correctTimestamps.current.push(Date.now());
   }, []);
 
-  return { checkAchievements, resetTriggered };
+  const resetTriggered = useCallback(() => {
+    triggeredIds.current.clear();
+    correctTimestamps.current = [];
+    saveTriggeredToStorage(triggeredIds.current);
+  }, []);
+
+  return { checkAchievements, recordCorrectAnswer, resetTriggered };
 }
