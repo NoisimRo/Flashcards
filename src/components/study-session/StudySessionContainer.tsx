@@ -154,6 +154,12 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     }
   }, [answers, currentSession, showCompletionModal]);
 
+  // Handle back navigation with progress sync
+  const handleBack = async () => {
+    await syncProgress();
+    onBack();
+  };
+
   // Handle completion modal actions
   const handleSaveAndExit = async () => {
     setShowCompletionModal(false);
