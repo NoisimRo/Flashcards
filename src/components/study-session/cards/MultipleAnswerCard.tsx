@@ -62,20 +62,16 @@ export const MultipleAnswerCard: React.FC<MultipleAnswerCardProps> = ({
 
   const [hasAnswered, setHasAnswered] = React.useState(hasAnsweredProp);
   const [isCorrect, setIsCorrect] = React.useState<boolean | null>(null);
-  const [showBack, setShowBack] = React.useState(false);
   const [autoAdvanceTimer, setAutoAdvanceTimer] = React.useState<NodeJS.Timeout | null>(null);
-  const [showBackTimer, setShowBackTimer] = React.useState<NodeJS.Timeout | null>(null);
 
   // Reset local state when card changes
   React.useEffect(() => {
     setHasAnswered(false);
     setIsCorrect(null);
-    setShowBack(false);
     clearMultipleOptions();
 
     return () => {
       if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
-      if (showBackTimer) clearTimeout(showBackTimer);
     };
   }, [card.id, clearMultipleOptions]);
 
@@ -132,17 +128,11 @@ export const MultipleAnswerCard: React.FC<MultipleAnswerCardProps> = ({
       onAnswer(correct);
     }, 100);
 
-    // Show back explanation after 3 seconds
-    const backTimer = setTimeout(() => {
-      setShowBack(true);
-    }, 3000);
-    setShowBackTimer(backTimer);
-
-    // Auto-advance after 6 seconds (3s feedback + 3s for reading back)
+    // Auto-advance after 10 seconds to allow time for reading the explanation
     if (onAutoAdvance) {
       const timer = setTimeout(() => {
         onAutoAdvance();
-      }, 6000);
+      }, 10000);
       setAutoAdvanceTimer(timer);
     }
   };
@@ -152,10 +142,6 @@ export const MultipleAnswerCard: React.FC<MultipleAnswerCardProps> = ({
       clearTimeout(autoAdvanceTimer);
       setAutoAdvanceTimer(null);
     }
-    if (showBackTimer) {
-      clearTimeout(showBackTimer);
-      setShowBackTimer(null);
-    }
     onNext?.();
   };
 
@@ -164,17 +150,21 @@ export const MultipleAnswerCard: React.FC<MultipleAnswerCardProps> = ({
       clearTimeout(autoAdvanceTimer);
       setAutoAdvanceTimer(null);
     }
-    if (showBackTimer) {
-      clearTimeout(showBackTimer);
-      setShowBackTimer(null);
-    }
     onFinish?.();
   };
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      {/* Card Container */}
-      <div className="relative bg-white rounded-2xl shadow-xl min-h-[500px] flex flex-col">
+      {/* Card Container - with glow effect on answer */}
+      <div
+        className={`relative bg-white rounded-2xl shadow-xl min-h-[500px] flex flex-col transition-all duration-500 border-2 ${
+          showResult && isCorrect === true
+            ? 'border-green-500 shadow-[0_0_25px_rgba(34,197,94,0.5)]'
+            : showResult && isCorrect === false
+              ? 'border-red-500 shadow-[0_0_25px_rgba(239,68,68,0.5)]'
+              : 'border-transparent'
+        }`}
+      >
         {/* Lightbulb Hint Button (top-left) */}
         {card.context && !hintRevealed && !isAnswered && (
           <div className="absolute top-4 left-4 z-10">
@@ -295,21 +285,8 @@ export const MultipleAnswerCard: React.FC<MultipleAnswerCardProps> = ({
             })}
           </div>
 
-          {/* Result Feedback */}
-          {showResult && (
-            <div
-              className={`mt-6 p-4 rounded-xl text-center font-bold ${
-                isCorrect ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-              }`}
-            >
-              {isCorrect
-                ? 'Excelent! Ai selectat toate răspunsurile corecte!'
-                : 'Incorect. Răspunsurile corecte sunt marcate cu verde.'}
-            </div>
-          )}
-
-          {/* Back Explanation - shown 3 seconds after answering */}
-          {showBack && card.back && (
+          {/* Back Explanation - shown immediately after answering */}
+          {showResult && card.back && (
             <div className="mt-4 p-4 rounded-xl bg-indigo-50 border-2 border-indigo-200">
               <div className="text-sm font-semibold text-indigo-600 mb-2 uppercase tracking-wide">
                 Explicație
