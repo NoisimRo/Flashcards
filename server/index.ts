@@ -20,6 +20,7 @@ import dailyChallengesRoutes from './routes/dailyChallenges.js';
 import achievementsRoutes from './routes/achievements.js';
 import reviewsRoutes from './routes/reviews.js';
 import flagsRoutes from './routes/flags.js';
+import cardsRoutes from './routes/cards.js';
 
 const app = express();
 
@@ -85,6 +86,7 @@ app.use('/api/import', importExportRoutes);
 app.use('/api/export', importExportRoutes);
 app.use('/api/reviews', reviewsRoutes);
 app.use('/api/flags', flagsRoutes);
+app.use('/api/cards', cardsRoutes);
 
 // ============================================
 // STATIC FILES (Production)

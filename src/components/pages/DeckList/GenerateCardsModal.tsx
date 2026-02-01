@@ -187,6 +187,7 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
             newCards.push(
               ...response.data.map((card, index) => ({
                 ...card,
+                tags: card.tag ? [card.tag] : [],
                 id: `ai-${Date.now()}-${index}`,
                 deckId: existingDeck.id,
                 position: index,
@@ -233,6 +234,7 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
           if (response.success && response.data) {
             const newCards = response.data.map((card, index) => ({
               ...card,
+              tags: card.tag ? [card.tag] : [],
               id: `ai-${Date.now()}-${index}`,
               deckId: existingDeck.id,
               position: index,
@@ -310,6 +312,7 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
           if (response.success && response.data) {
             const newCards = response.data.map((card, index) => ({
               ...card,
+              tags: card.tag ? [card.tag] : [],
               id: `ai-${Date.now()}-${index}`,
               deckId: `d-${Date.now()}`,
               position: index,

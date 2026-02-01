@@ -9,6 +9,7 @@ export interface CreateCardRequest {
   type: 'standard' | 'type-answer' | 'quiz' | 'multiple-answer';
   options?: string[];
   correctOptionIndices?: number[]; // For quiz (single) and multiple-answer (multiple)
+  tags?: string[];
 }
 
 export interface UpdateCardRequest {
@@ -18,6 +19,7 @@ export interface UpdateCardRequest {
   type?: 'standard' | 'type-answer' | 'quiz' | 'multiple-answer';
   options?: string[];
   correctOptionIndices?: number[]; // For quiz (single) and multiple-answer (multiple)
+  tags?: string[];
 }
 
 export interface CardResponse {
@@ -30,6 +32,7 @@ export interface CardResponse {
   type: 'standard' | 'type-answer' | 'quiz' | 'multiple-answer';
   options?: string[];
   correctOptionIndices?: number[]; // For quiz (single) and multiple-answer (multiple)
+  tags?: string[];
   flagCount?: number;
   position: number;
   createdAt: string;
@@ -52,4 +55,9 @@ export async function deleteCard(deckId: string, cardId: string) {
 
 export async function getCard(deckId: string, cardId: string) {
   return api.get<CardResponse>(`/decks/${deckId}/cards/${cardId}`);
+}
+
+export async function getCardTags(deckId?: string) {
+  const params = deckId ? `?deckId=${deckId}` : '';
+  return api.get<string[]>(`/cards/tags${params}`);
 }

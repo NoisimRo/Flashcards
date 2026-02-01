@@ -30,6 +30,10 @@
       "excludeMastered": {
         "label": "Exclude carduri învățate",
         "description": "Nu include carduri cu status \"mastered\""
+      },
+      "excludeActiveSessions": {
+        "label": "Exclude carduri din sesiuni active",
+        "description": "Nu include carduri deja alocate într-o sesiune activă"
       }
     },
     "manual": {
@@ -38,7 +42,9 @@
       "deselectAll": "Deselectează tot",
       "loading": "Se încarcă cardurile...",
       "noCards": "Nu există carduri disponibile",
-      "cardNumber": "Card #{{number}}"
+      "cardNumber": "Card #{{number}}",
+      "filterByTopics": "Filtrează după Teme",
+      "clearFilters": "Șterge filtrele"
     },
     "buttons": {
       "cancel": "Anulează",
@@ -49,7 +55,9 @@
     "errors": {
       "loadingCards": "Eroare la încărcarea cardurilor",
       "selectAtLeastOne": "Selectează cel puțin un card",
-      "creating": "Eroare la crearea sesiunii"
+      "creating": "Eroare la crearea sesiunii",
+      "noCardsAvailable": "Nu există carduri disponibile cu filtrele selectate",
+      "noCardsAvailableHint": "Încearcă să debifezi unele opțiuni de filtrare de mai sus pentru a include mai multe carduri."
     }
   },
   "continue": "Continuă",

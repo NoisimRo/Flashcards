@@ -101,7 +101,12 @@
     "addNewCard": "Add New Card",
     "question": "Question:",
     "answer": "Answer:",
-    "contextLabel": "Context:"
+    "contextLabel": "Context:",
+    "tags": "Tags",
+    "tagsPlaceholder": "Type a tag and press Enter...",
+    "bulkEdit": "Bulk Edit",
+    "bulkTagsLabel": "Assign tags to {{count}} selected cards",
+    "applyTags": "Apply Tags"
   },
   "loading": {
     "message": "Generating cards..."
@@ -133,7 +138,9 @@
     "importError": "Error importing cards",
     "fileReadError": "Error reading file",
     "cardsAdded": "Added {{count}} cards successfully",
-    "openEditCards": "Opening card editor..."
+    "openEditCards": "Opening card editor...",
+    "bulkTagsApplied": "Tags applied to {{count}} cards",
+    "bulkTagsError": "Error applying tags"
   },
   "guestPrompt": {
     "createDeck": {

@@ -90,6 +90,7 @@ export async function generateDeckWithAI(
       front: string;
       back: string;
       context: string;
+      tag?: string;
       type: 'standard' | 'quiz' | 'type-answer' | 'multiple-answer';
       options?: string[];
       correctOptionIndices?: number[]; // For quiz (single) and multiple-answer (multiple)

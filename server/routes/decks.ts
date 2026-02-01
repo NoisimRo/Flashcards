@@ -378,8 +378,8 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
         for (let i = 0; i < cards.length; i++) {
           const card = cards[i];
           await client.query(
-            `INSERT INTO cards (deck_id, front, back, context, hint, type, options, correct_option_indices, created_by, position)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+            `INSERT INTO cards (deck_id, front, back, context, hint, type, options, correct_option_indices, created_by, position, tags)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
             [
               deck.id,
               card.front,
@@ -391,6 +391,7 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
               card.correctOptionIndices || null,
               req.user!.id,
               i,
+              card.tags || (card.tag ? [card.tag] : []),
             ]
           );
         }
@@ -679,6 +680,7 @@ router.post('/:id/cards', authenticateToken, async (req: Request, res: Response)
       type = 'standard',
       options,
       correctOptionIndices,
+      tags,
     } = req.body;
 
     if (!front || !back) {
@@ -724,8 +726,8 @@ router.post('/:id/cards', authenticateToken, async (req: Request, res: Response)
     );
 
     const cardResult = await query(
-      `INSERT INTO cards (deck_id, front, back, context, hint, type, options, correct_option_indices, created_by, position)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      `INSERT INTO cards (deck_id, front, back, context, hint, type, options, correct_option_indices, created_by, position, tags)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        RETURNING *`,
       [
         id,
@@ -738,6 +740,7 @@ router.post('/:id/cards', authenticateToken, async (req: Request, res: Response)
         correctOptionIndices || null,
         req.user!.id,
         posResult.rows[0].next_pos,
+        tags || [],
       ]
     );
 
@@ -764,7 +767,7 @@ router.post('/:id/cards', authenticateToken, async (req: Request, res: Response)
 router.put('/:deckId/cards/:cardId', authenticateToken, async (req: Request, res: Response) => {
   try {
     const { deckId, cardId } = req.params;
-    const { front, back, context, hint, type, options, correctOptionIndices } = req.body;
+    const { front, back, context, hint, type, options, correctOptionIndices, tags } = req.body;
 
     if (!front || !back) {
       return res.status(400).json({
@@ -805,8 +808,8 @@ router.put('/:deckId/cards/:cardId', authenticateToken, async (req: Request, res
     // Update card
     const cardResult = await query(
       `UPDATE cards
-       SET front = $1, back = $2, context = $3, hint = $4, type = $5, options = $6, correct_option_indices = $7, updated_at = NOW()
-       WHERE id = $8 AND deck_id = $9 AND deleted_at IS NULL
+       SET front = $1, back = $2, context = $3, hint = $4, type = $5, options = $6, correct_option_indices = $7, tags = $8, updated_at = NOW()
+       WHERE id = $9 AND deck_id = $10 AND deleted_at IS NULL
        RETURNING *`,
       [
         front,
@@ -816,6 +819,7 @@ router.put('/:deckId/cards/:cardId', authenticateToken, async (req: Request, res
         type,
         options || [],
         correctOptionIndices || null,
+        tags || [],
         cardId,
         deckId,
       ]

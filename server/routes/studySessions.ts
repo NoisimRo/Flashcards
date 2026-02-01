@@ -1,7 +1,11 @@
 import { Router, Request, Response } from 'express';
 import { query, withTransaction } from '../db/index.js';
 import { authenticateToken } from '../middleware/auth.js';
-import { selectCardsForSession, calculateSM2Update } from '../services/cardSelectionService.js';
+import {
+  selectCardsForSession,
+  calculateSM2Update,
+  interleaveCardsByType,
+} from '../services/cardSelectionService.js';
 import { checkAndUnlockAchievements } from './achievements.js';
 import { calculateStreakFromDailyProgress } from './auth.js';
 
@@ -87,6 +91,7 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
       cardCount,
       selectedCardIds,
       excludeMasteredCards = true,
+      excludeActiveSessionCards = false,
       title,
     } = req.body;
 
@@ -148,12 +153,26 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
       repetitions: p.repetitions,
     }));
 
+    // Optionally get card IDs already in user's active sessions
+    let excludeCardIds: Set<string> | undefined;
+    if (excludeActiveSessionCards) {
+      const activeCardsResult = await query(
+        `SELECT DISTINCT unnest(selected_card_ids) AS card_id
+         FROM study_sessions
+         WHERE user_id = $1 AND status = 'active'`,
+        [req.user!.id]
+      );
+      if (activeCardsResult.rows.length > 0) {
+        excludeCardIds = new Set(activeCardsResult.rows.map((r: any) => r.card_id));
+      }
+    }
+
     // Select cards using service
     const { selectedCards, availableCount, masteredCount } = selectCardsForSession(
       cardsResult.rows,
       transformedProgress,
       selectionMethod,
-      { cardCount, selectedCardIds, excludeMastered: excludeMasteredCards }
+      { cardCount, selectedCardIds, excludeMastered: excludeMasteredCards, excludeCardIds }
     );
 
     if (selectedCards.length === 0) {
@@ -166,18 +185,28 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
       });
     }
 
+    // Apply round-robin interleaving by card type
+    const interleavedCards = interleaveCardsByType(selectedCards);
+
     // Create session
     const sessionTitle =
       title ||
-      `${selectionMethod.charAt(0).toUpperCase() + selectionMethod.slice(1)} - ${selectedCards.length} carduri`;
+      `${selectionMethod.charAt(0).toUpperCase() + selectionMethod.slice(1)} - ${interleavedCards.length} carduri`;
 
-    const selectedCardUuids = selectedCards.map((c: any) => c.id);
+    const interleavedCardUuids = interleavedCards.map((c: any) => c.id);
     const sessionResult = await query(
       `INSERT INTO study_sessions
          (user_id, deck_id, title, selection_method, total_cards, selected_card_ids)
        VALUES ($1, $2, $3, $4, $5, $6::uuid[])
        RETURNING *`,
-      [req.user!.id, deckId, sessionTitle, selectionMethod, selectedCards.length, selectedCardUuids]
+      [
+        req.user!.id,
+        deckId,
+        sessionTitle,
+        selectionMethod,
+        interleavedCards.length,
+        interleavedCardUuids,
+      ]
     );
 
     const session = formatSession(sessionResult.rows[0]);
@@ -211,7 +240,7 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
                 difficulty: deckResult.rows[0].difficulty,
               }
             : null,
-          cards: selectedCards.map(formatCard),
+          cards: interleavedCards.map(formatCard),
           cardProgress: cardProgressMap,
         },
         availableCards: availableCount,
@@ -237,6 +266,110 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
           details: error instanceof Error ? error.message : 'Unknown error',
         }),
       },
+    });
+  }
+});
+
+// ============================================
+// GET /api/study-sessions/available-count - Get available card count for session creation
+// ============================================
+router.get('/available-count', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { deckId, excludeMastered, excludeActiveSessionCards } = req.query;
+
+    if (!deckId) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'VALIDATION_ERROR', message: 'deckId is required' },
+      });
+    }
+
+    // Total cards in deck
+    const totalResult = await query(
+      `SELECT COUNT(*) as count FROM cards WHERE deck_id = $1 AND deleted_at IS NULL`,
+      [deckId]
+    );
+    const totalCards = parseInt(totalResult.rows[0].count, 10);
+
+    // Mastered cards count
+    let masteredCount = 0;
+    if (excludeMastered === 'true') {
+      const masteredResult = await query(
+        `SELECT COUNT(*) as count
+         FROM cards c
+         JOIN user_card_progress ucp ON ucp.card_id = c.id AND ucp.user_id = $1
+         WHERE c.deck_id = $2 AND c.deleted_at IS NULL AND ucp.status = 'mastered'`,
+        [req.user!.id, deckId]
+      );
+      masteredCount = parseInt(masteredResult.rows[0].count, 10);
+    }
+
+    // Active session cards count (unique cards from this deck that are in active sessions)
+    let activeSessionCardCount = 0;
+    if (excludeActiveSessionCards === 'true') {
+      const activeResult = await query(
+        `SELECT COUNT(DISTINCT card_id) as count
+         FROM (
+           SELECT unnest(ss.selected_card_ids) AS card_id
+           FROM study_sessions ss
+           WHERE ss.user_id = $1 AND ss.status = 'active'
+         ) active_cards
+         JOIN cards c ON c.id = active_cards.card_id
+         WHERE c.deck_id = $2 AND c.deleted_at IS NULL`,
+        [req.user!.id, deckId]
+      );
+      activeSessionCardCount = parseInt(activeResult.rows[0].count, 10);
+    }
+
+    // Compute actual available (accounting for overlap between mastered and active)
+    // To get exact count, query the actual available cards
+    let availableCount = totalCards;
+    if (excludeMastered === 'true' || excludeActiveSessionCards === 'true') {
+      let excludeClause = '';
+      const params: any[] = [deckId];
+      let paramIdx = 2;
+
+      if (excludeMastered === 'true') {
+        excludeClause += ` AND c.id NOT IN (
+          SELECT ucp.card_id FROM user_card_progress ucp
+          WHERE ucp.user_id = $${paramIdx} AND ucp.status = 'mastered'
+        )`;
+        params.push(req.user!.id);
+        paramIdx++;
+      }
+
+      if (excludeActiveSessionCards === 'true') {
+        excludeClause += ` AND c.id NOT IN (
+          SELECT DISTINCT unnest(ss.selected_card_ids)
+          FROM study_sessions ss
+          WHERE ss.user_id = $${paramIdx} AND ss.status = 'active'
+        )`;
+        params.push(req.user!.id);
+        paramIdx++;
+      }
+
+      const availableResult = await query(
+        `SELECT COUNT(*) as count FROM cards c
+         WHERE c.deck_id = $1 AND c.deleted_at IS NULL${excludeClause}`,
+        params
+      );
+      availableCount = parseInt(availableResult.rows[0].count, 10);
+    }
+
+    res.json({
+      success: true,
+      data: {
+        totalCards,
+        masteredCount,
+        activeSessionCardCount,
+        availableCount,
+      },
+    });
+  } catch (error) {
+    console.error('Available count error:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'SERVER_ERROR', message: 'Error computing available count' },
     });
   }
 });
@@ -339,11 +472,11 @@ router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
     const sessionRow = sessionResult.rows[0];
     const session = formatSession(sessionRow);
 
-    // Get cards
+    // Get cards - preserve the order stored in selected_card_ids (e.g. round-robin interleaved)
     const cardsResult = await query(
       `SELECT * FROM cards
        WHERE id = ANY($1::uuid[])
-       ORDER BY position ASC`,
+       ORDER BY array_position($1::uuid[], id)`,
       [session.selectedCardIds]
     );
 
@@ -475,49 +608,49 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
       params.push(streak);
     }
 
+    // Hoist incrementalXP so it's available for daily_progress xp_earned tracking below
+    let incrementalXP = 0;
+
     if (sessionXP !== undefined) {
       updateFields.push(`session_xp = $${paramIndex++}`);
       params.push(sessionXP);
 
       // Get current session XP to calculate incremental XP
       const oldSessionXP = session.session_xp || 0;
-      const incrementalXP = Math.max(0, sessionXP - oldSessionXP);
+      incrementalXP = Math.max(0, sessionXP - oldSessionXP);
 
       // Update user's XP incrementally (only new XP earned since last save)
       if (incrementalXP > 0) {
         const userResult = await query(
-          'SELECT total_xp, current_xp, level FROM users WHERE id = $1',
+          'SELECT total_xp, current_xp, next_level_xp, level FROM users WHERE id = $1',
           [req.user!.id]
         );
 
         if (userResult.rows.length > 0) {
           const user = userResult.rows[0];
           const newTotalXP = user.total_xp + incrementalXP;
-          const newCurrentXP = user.current_xp + incrementalXP;
-
-          // Calculate XP needed for next level (exponential growth: 20% per level)
-          const calculateXPForLevel = (level: number) => {
-            return Math.floor(100 * Math.pow(1.2, level - 1));
-          };
-
+          let newCurrentXP = user.current_xp + incrementalXP;
           let newLevel = user.level;
-          let currentXP = newCurrentXP;
+          let newNextLevelXP = user.next_level_xp || 100;
 
-          // Check for level up
-          while (currentXP >= calculateXPForLevel(newLevel + 1)) {
-            currentXP -= calculateXPForLevel(newLevel + 1);
+          // Check for level up using stored next_level_xp (not computed from scratch)
+          // This matches the client-side formula: while currentXP >= nextLevelXP, deduct and level up
+          while (newCurrentXP >= newNextLevelXP) {
+            newCurrentXP -= newNextLevelXP;
             newLevel++;
+            newNextLevelXP = Math.floor(newNextLevelXP * 1.2);
           }
 
-          // Update user with new XP and possibly new level
+          // Update user with new XP, level, and next_level_xp
           await query(
             `UPDATE users
              SET total_xp = $1,
                  current_xp = $2,
                  level = $3,
+                 next_level_xp = $4,
                  updated_at = NOW()
-             WHERE id = $4`,
-            [newTotalXP, currentXP, newLevel, req.user!.id]
+             WHERE id = $5`,
+            [newTotalXP, newCurrentXP, newLevel, newNextLevelXP, req.user!.id]
           );
         }
       }
@@ -557,33 +690,54 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
 
     const today = new Date().toISOString().split('T')[0];
 
-    if (timeDeltaSeconds > 0 || correctDelta > 0) {
+    if (timeDeltaSeconds > 0 || correctDelta > 0 || incrementalXP > 0) {
       // Update daily_progress incrementally (time_spent_minutes stores SECONDS for granularity)
+      // Also track xp_earned incrementally so daily progress stays accurate even if session is abandoned
       await query(
         `INSERT INTO daily_progress
-           (user_id, date, cards_studied, time_spent_minutes)
-         VALUES ($1, $2, $3, $4)
+           (user_id, date, cards_studied, time_spent_minutes, xp_earned)
+         VALUES ($1, $2, $3, $4, $5)
          ON CONFLICT (user_id, date)
          DO UPDATE SET
            cards_studied = daily_progress.cards_studied + $3,
-           time_spent_minutes = daily_progress.time_spent_minutes + $4`,
-        [req.user!.id, today, correctDelta, timeDeltaSeconds]
+           time_spent_minutes = daily_progress.time_spent_minutes + $4,
+           xp_earned = daily_progress.xp_earned + $5`,
+        [req.user!.id, today, correctDelta, timeDeltaSeconds, incrementalXP]
       );
 
       // Update daily_challenges incrementally (time_studied_today stores SECONDS)
-      await query(
-        `UPDATE daily_challenges
-         SET cards_learned_today = cards_learned_today + $1,
-             time_studied_today = time_studied_today + $2,
-             updated_at = NOW()
-         WHERE user_id = $3 AND date = $4`,
-        [correctDelta, timeDeltaSeconds, req.user!.id, today]
-      );
+      if (timeDeltaSeconds > 0 || correctDelta > 0) {
+        await query(
+          `UPDATE daily_challenges
+           SET cards_learned_today = cards_learned_today + $1,
+               time_studied_today = time_studied_today + $2,
+               updated_at = NOW()
+           WHERE user_id = $3 AND date = $4`,
+          [correctDelta, timeDeltaSeconds, req.user!.id, today]
+        );
+      }
     }
+
+    // Fetch updated user data to return so the frontend stays in sync
+    const updatedUserResult = await query(
+      'SELECT level, current_xp, next_level_xp, total_xp FROM users WHERE id = $1',
+      [req.user!.id]
+    );
+
+    const updatedUser =
+      updatedUserResult.rows.length > 0
+        ? {
+            level: updatedUserResult.rows[0].level,
+            currentXP: updatedUserResult.rows[0].current_xp,
+            nextLevelXP: updatedUserResult.rows[0].next_level_xp,
+            totalXP: updatedUserResult.rows[0].total_xp,
+          }
+        : undefined;
 
     res.json({
       success: true,
       data: formatSession(result.rows[0]),
+      user: updatedUser,
     });
   } catch (error) {
     console.error('Update session error:', error);
@@ -775,72 +929,45 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
         }
       }
 
-      // Update user stats
+      // XP and level were already updated incrementally by the PUT auto-save handler.
+      // We do NOT add sessionXP to total_xp/current_xp again to avoid double-counting.
       const sessionXP = session.session_xp || 0;
 
-      // Get current user stats for level-up calculation
+      // Get current user stats (already updated by PUT handler)
       const userResult = await client.query(
         'SELECT level, current_xp, next_level_xp FROM users WHERE id = $1',
         [req.user!.id]
       );
       const currentUser = userResult.rows[0];
 
-      // Calculate new XP and check for level up
-      let newCurrentXP = (currentUser.current_xp || 0) + sessionXP;
-      let newLevel = currentUser.level || 1;
-      let newNextLevelXP = currentUser.next_level_xp || 100;
-      let leveledUp = false;
-
-      // Level up logic - keep leveling up until current_xp < next_level_xp
-      while (newCurrentXP >= newNextLevelXP) {
-        newCurrentXP -= newNextLevelXP;
-        newLevel += 1;
-        leveledUp = true;
-        // Each level requires 20% more XP than previous (exponential growth)
-        newNextLevelXP = Math.floor(newNextLevelXP * 1.2);
-      }
-
-      // Update user stats
-      // Note: We use incremental time/answers to avoid double-counting with PUT updates
+      // Update user stats (only non-XP fields: cards_learned, decks_completed, time)
       await client.query(
         `UPDATE users
          SET total_cards_learned = total_cards_learned + $1,
              total_decks_completed = total_decks_completed + 1,
-             total_xp = total_xp + $2,
-             current_xp = $3,
-             level = $4,
-             next_level_xp = $5,
-             total_time_spent = total_time_spent + $6,
+             total_time_spent = total_time_spent + $2,
              updated_at = NOW()
-         WHERE id = $7`,
-        [
-          cardsLearned,
-          sessionXP,
-          newCurrentXP,
-          newLevel,
-          newNextLevelXP,
-          totalMinutes,
-          req.user!.id,
-        ]
+         WHERE id = $3`,
+        [cardsLearned, totalMinutes, req.user!.id]
       );
 
-      // Update daily progress with DELTAS (PUT auto-save already tracked time/cards incrementally)
-      // Here we add: final time delta, cards_learned (SM-2), xp_earned, sessions_completed
+      // Update daily progress with DELTAS (PUT auto-save already tracked time/cards/xp incrementally)
+      // Here we add: final time delta, cards_learned (SM-2), sessions_completed
       // Also add correctDelta to cards_studied for the final answers not yet tracked by PUT
+      // NOTE: xp_earned is NOT added here — PUT handler already tracks it incrementally
       // NOTE: time_spent_minutes stores SECONDS for granularity (converted to minutes on read)
       const today = new Date().toISOString().split('T')[0];
       await client.query(
         `INSERT INTO daily_progress
-           (user_id, date, cards_studied, cards_learned, time_spent_minutes, xp_earned, sessions_completed)
-         VALUES ($1, $2, $3, $4, $5, $6, 1)
+           (user_id, date, cards_studied, cards_learned, time_spent_minutes, sessions_completed)
+         VALUES ($1, $2, $3, $4, $5, 1)
          ON CONFLICT (user_id, date)
          DO UPDATE SET
            cards_studied = daily_progress.cards_studied + $3,
            cards_learned = daily_progress.cards_learned + $4,
            time_spent_minutes = daily_progress.time_spent_minutes + $5,
-           xp_earned = daily_progress.xp_earned + $6,
            sessions_completed = daily_progress.sessions_completed + 1`,
-        [req.user!.id, today, correctDelta, cardsLearned, timeDeltaSeconds, sessionXP]
+        [req.user!.id, today, correctDelta, cardsLearned, timeDeltaSeconds]
       );
 
       // Update daily_challenges with final deltas (time_studied_today stores SECONDS)
@@ -868,13 +995,15 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
         [currentStreak, longestStreak, req.user!.id]
       );
 
+      // Level-ups are handled in real-time by the PUT auto-save handler.
+      // Return the current level from DB (already reflects any level-ups).
       return {
         session: updatedSession.rows[0],
         cardsLearned,
         sessionXP,
-        leveledUp,
+        leveledUp: false,
         oldLevel: currentUser.level,
-        newLevel,
+        newLevel: currentUser.level,
         newAchievements,
         newStreak: currentStreak,
         streakUpdated: true,
@@ -1055,19 +1184,29 @@ router.post('/guest', async (req: Request, res: Response) => {
       });
     }
 
+    // Apply round-robin interleaving by card type
+    const interleavedCards = interleaveCardsByType(selectedCards);
+
     // Create guest session
     const sessionTitle =
       title ||
-      `Guest - ${selectionMethod.charAt(0).toUpperCase() + selectionMethod.slice(1)} - ${selectedCards.length} carduri`;
+      `Guest - ${selectionMethod.charAt(0).toUpperCase() + selectionMethod.slice(1)} - ${interleavedCards.length} carduri`;
 
-    const selectedCardUuids = selectedCards.map((c: any) => c.id);
+    const interleavedCardUuids = interleavedCards.map((c: any) => c.id);
     const sessionResult = await query(
       `INSERT INTO study_sessions
          (deck_id, title, selection_method, total_cards, selected_card_ids,
           guest_token, is_guest, status)
        VALUES ($1, $2, $3, $4, $5::uuid[], $6, true, 'active')
        RETURNING *`,
-      [deckId, sessionTitle, selectionMethod, selectedCards.length, selectedCardUuids, guestToken]
+      [
+        deckId,
+        sessionTitle,
+        selectionMethod,
+        interleavedCards.length,
+        interleavedCardUuids,
+        guestToken,
+      ]
     );
 
     const session = formatSession(sessionResult.rows[0]);
@@ -1097,7 +1236,7 @@ router.post('/guest', async (req: Request, res: Response) => {
                 difficulty: deckResult.rows[0].difficulty,
               }
             : null,
-          cards: selectedCards.map(formatCard),
+          cards: interleavedCards.map(formatCard),
           cardProgress: {}, // No progress for guests
         },
       },
@@ -1254,11 +1393,11 @@ router.get('/guest/:id', async (req: Request, res: Response) => {
     const sessionRow = sessionResult.rows[0];
     const session = formatSession(sessionRow);
 
-    // Get cards
+    // Get cards - preserve the order stored in selected_card_ids (e.g. round-robin interleaved)
     const cardsResult = await query(
       `SELECT * FROM cards
        WHERE id = ANY($1::uuid[])
-       ORDER BY position ASC`,
+       ORDER BY array_position($1::uuid[], id)`,
       [session.selectedCardIds]
     );
 

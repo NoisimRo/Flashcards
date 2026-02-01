@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useStudySessionsStore } from '../../store/studySessionsStore';
+import { useStudySessionsStore, setOnUserUpdateCallback } from '../../store/studySessionsStore';
 import { useAuth } from '../../store/AuthContext';
 import { StandardCard } from './cards/StandardCard';
 import { QuizCard } from './cards/QuizCard';
@@ -53,6 +53,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     sessionStartTime,
     totalActiveSeconds,
     perCardTimes,
+    syncProgress,
   } = useStudySessionsStore();
 
   // Animation state
@@ -77,6 +78,21 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
   // sessionXPAtLastLevelUp: the sessionXP value when level-up last occurred,
   // so we only count XP earned *since* the last level-up toward the next threshold
   const sessionXPAtLastLevelUp = useRef(0);
+
+  // Wire user update callback so PUT responses can sync auth context
+  useEffect(() => {
+    setOnUserUpdateCallback(data => {
+      updateUser({
+        level: data.level,
+        currentXP: data.currentXP,
+        nextLevelXP: data.nextLevelXP,
+        totalXP: data.totalXP,
+      });
+    });
+    return () => {
+      setOnUserUpdateCallback(null);
+    };
+  }, [updateUser]);
 
   // Load session and enable auto-save on mount
   useEffect(() => {
@@ -121,9 +137,16 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     }
   }, [answers, currentSession, showCompletionModal]);
 
+  // Handle back navigation - sync progress before leaving
+  const handleBack = async () => {
+    await syncProgress();
+    onBack();
+  };
+
   // Handle completion modal actions
   const handleSaveAndExit = async () => {
     setShowCompletionModal(false);
+    await syncProgress();
     onBack();
   };
 
@@ -268,7 +291,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
   const handleShuffle = () => {
     if (
       window.confirm(
-        'Sigur vrei să amesteci cardurile? Progresul (răspunsuri) va fi șters, dar XP-ul și streak-ul vor fi păstrate.'
+        'Sigur vrei să amesteci cardurile? Progresul (răspunsuri), XP-ul și streak-ul vor fi resetate.'
       )
     ) {
       shuffleCards();
@@ -279,7 +302,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
   const handleRestart = () => {
     if (
       window.confirm(
-        'Sigur vrei să restartezi sesiunea? Progresul (răspunsuri) va fi șters, dar XP-ul și streak-ul vor fi păstrate.'
+        'Sigur vrei să restartezi sesiunea? Progresul (răspunsuri), XP-ul și streak-ul vor fi resetate.'
       )
     ) {
       restartSession();
@@ -432,7 +455,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <button
-              onClick={onBack}
+              onClick={handleBack}
               className="flex items-center gap-2 text-gray-600 hover:text-gray-900 font-medium transition-all active:scale-95"
             >
               <ArrowLeft size={20} />
