@@ -120,17 +120,47 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
       card.correctOptionIndices &&
       card.correctOptionIndices.length > 0
     ) {
-      for (let i = 0; i < card.options.length; i++) {
-        const normalizedOption = normalizeAnswer(card.options[i]);
-        if (isMatch(normalizedUser, normalizedOption)) {
+      // Pre-normalize all options once
+      const normalizedOptions = card.options.map(o => normalizeAnswer(o));
+
+      // Pass 1: Exact match — if the user typed exactly one of the options, decide immediately
+      let matched = false;
+      for (let i = 0; i < normalizedOptions.length; i++) {
+        if (normalizedUser === normalizedOptions[i]) {
+          matched = true;
           if (card.correctOptionIndices.includes(i)) {
             correct = true;
           } else {
-            // Matched a pitfall (incorrect option)
             pitfall = card.options[i];
             correct = false;
           }
           break;
+        }
+      }
+
+      // Pass 2: Best fuzzy match — no exact match found, pick the closest fuzzy hit
+      if (!matched) {
+        let bestIndex = -1;
+        let bestLenDiff = Infinity;
+
+        for (let i = 0; i < normalizedOptions.length; i++) {
+          if (isMatch(normalizedUser, normalizedOptions[i])) {
+            // Prefer the option whose length is closest to the user's input
+            const lenDiff = Math.abs(normalizedUser.length - normalizedOptions[i].length);
+            if (lenDiff < bestLenDiff) {
+              bestLenDiff = lenDiff;
+              bestIndex = i;
+            }
+          }
+        }
+
+        if (bestIndex !== -1) {
+          if (card.correctOptionIndices.includes(bestIndex)) {
+            correct = true;
+          } else {
+            pitfall = card.options[bestIndex];
+            correct = false;
+          }
         }
       }
     } else {

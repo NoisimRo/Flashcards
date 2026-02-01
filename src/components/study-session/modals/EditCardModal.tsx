@@ -47,7 +47,7 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({ card, onClose, onS
     setError('');
   }, [card]);
 
-  const hasOptions = type === 'quiz' || type === 'multiple-answer';
+  const hasOptions = type === 'quiz' || type === 'multiple-answer' || type === 'type-answer';
 
   const handleAddOption = () => {
     setOptions([...options, '']);

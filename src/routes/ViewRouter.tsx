@@ -28,7 +28,7 @@ import { Settings } from '../components/pages/Settings/Settings';
  */
 export const ViewRouter: React.FC = () => {
   const { currentView, activeSessionId, setCurrentView } = useUIStore();
-  const { decks: apiDecks, isLoading: isLoadingDecks } = useDecksStore();
+  const { decks: apiDecks, isLoading: isLoadingDecks, fetchDecks } = useDecksStore();
   const { user: authUser, isAuthenticated } = useAuth();
   const decksManagement = useDecksManagement();
   const sessionManagement = useSessionManagement();
@@ -72,6 +72,7 @@ export const ViewRouter: React.FC = () => {
           onDeleteDeck={decksManagement.handleDeleteDeck}
           onStartSession={sessionManagement.handleStartSession}
           onResetDeck={decksManagement.handleResetDeck}
+          onRefreshDecks={() => fetchDecks({ ownedOnly: true })}
           isGuest={isGuest}
           onLoginPrompt={(title, message) => {
             /* Already handled in hooks */
