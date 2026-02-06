@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Filter, Eye, CheckCircle, XCircle, Clock, Edit, X, Save } from 'lucide-react';
+import { Shield, Filter, Eye, CheckCircle, XCircle, Clock, Edit, X } from 'lucide-react';
 import { useToast } from '../ui/Toast';
 import { getFlags, updateFlagStatus, type Flag, type FlagStatus } from '../../api/flags';
-import { updateCard } from '../../api/cards';
+import { getCard, getCardTags } from '../../api/cards';
+import { EditCardModal } from '../study-session/modals/EditCardModal';
+import type { Card, CardType, CardFlag } from '../../types/models';
 
 type FlagTypeFilter = 'all' | 'card' | 'deck';
 
@@ -66,13 +68,13 @@ export const ModerationDashboard: React.FC = () => {
   const [reviewNotes, setReviewNotes] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
 
-  // Edit card modal state
-  const [editCardModalOpen, setEditCardModalOpen] = useState(false);
-  const [editCardFront, setEditCardFront] = useState('');
-  const [editCardBack, setEditCardBack] = useState('');
-  const [editCardContext, setEditCardContext] = useState('');
-  const [editCardId, setEditCardId] = useState<string | null>(null);
-  const [isSavingCard, setIsSavingCard] = useState(false);
+  // Unified EditCardModal state
+  const [editCard, setEditCard] = useState<Card | null>(null);
+  const [isLoadingCard, setIsLoadingCard] = useState(false);
+  const [existingTags, setExistingTags] = useState<string[]>([]);
+
+  // Mobile details panel
+  const [mobileDetailsOpen, setMobileDetailsOpen] = useState(false);
 
   const toast = useToast();
 
@@ -103,6 +105,11 @@ export const ModerationDashboard: React.FC = () => {
     }
   };
 
+  const handleSelectFlag = (flag: Flag) => {
+    setSelectedFlag(flag);
+    setMobileDetailsOpen(true);
+  };
+
   const handleUpdateStatus = async (
     flagId: string,
     newStatus: 'under_review' | 'resolved' | 'dismissed'
@@ -121,6 +128,7 @@ export const ModerationDashboard: React.FC = () => {
         );
         setFlags(flags.map(f => (f.id === flagId ? { ...f, status: newStatus } : f)));
         setSelectedFlag(null);
+        setMobileDetailsOpen(false);
         setReviewNotes('');
         loadFlags(); // Refresh list
       } else {
@@ -134,56 +142,68 @@ export const ModerationDashboard: React.FC = () => {
     }
   };
 
-  const openEditCardModal = () => {
-    if (!selectedFlag || selectedFlag.type !== 'card' || !('cardFront' in selectedFlag)) {
+  const openEditCardModal = async () => {
+    if (!selectedFlag || selectedFlag.type !== 'card' || !('cardId' in selectedFlag)) {
       return;
     }
 
-    setEditCardId('cardId' in selectedFlag ? selectedFlag.cardId : null);
-    setEditCardFront('cardFront' in selectedFlag ? selectedFlag.cardFront || '' : '');
-    setEditCardBack('cardBack' in selectedFlag ? selectedFlag.cardBack || '' : '');
-    setEditCardContext(''); // Context not available in flag data
-    setEditCardModalOpen(true);
-  };
+    const cardFlag = selectedFlag as CardFlag;
+    setIsLoadingCard(true);
 
-  const handleSaveCardEdit = async () => {
-    if (!editCardId || !selectedFlag || selectedFlag.type !== 'card') return;
-
-    const deckId = (selectedFlag as any).deckId;
-    if (!deckId) {
-      toast.error('Eroare', 'DeckId lipsește din flag');
-      return;
-    }
-
-    setIsSavingCard(true);
     try {
-      const response = await updateCard(deckId, editCardId, {
-        front: editCardFront,
-        back: editCardBack,
-        context: editCardContext || undefined,
-      });
+      // Fetch full card data for the unified editor
+      const response = await getCard(cardFlag.deckId, cardFlag.cardId);
+      if (response.success && response.data) {
+        setEditCard(response.data as Card);
 
-      if (response.success) {
-        toast.success('Card actualizat cu succes');
-
-        // Auto-resolve the flag after successful edit
-        if (selectedFlag) {
-          await handleUpdateStatus(selectedFlag.id, 'resolved');
+        // Load tags for autocomplete
+        const tagsResponse = await getCardTags(cardFlag.deckId);
+        if (tagsResponse.success && tagsResponse.data) {
+          setExistingTags(tagsResponse.data);
         }
-
-        setEditCardModalOpen(false);
-        setEditCardId(null);
-        setEditCardFront('');
-        setEditCardBack('');
-        setEditCardContext('');
       } else {
-        toast.error('Eroare', response.error?.message || 'Nu s-a putut actualiza cardul');
+        // Fallback: construct Card from flag data if API fails
+        const fallbackCard: Card = {
+          id: cardFlag.cardId,
+          deckId: cardFlag.deckId,
+          front: cardFlag.cardFront || '',
+          back: cardFlag.cardBack || '',
+          context: cardFlag.cardContext || '',
+          type: (cardFlag.cardType as CardType) || 'standard',
+          position: 0,
+          createdAt: cardFlag.createdAt,
+          updatedAt: cardFlag.updatedAt,
+        };
+        setEditCard(fallbackCard);
       }
     } catch (error) {
-      console.error('Error updating card:', error);
-      toast.error('Eroare', 'A apărut o eroare la actualizarea cardului');
+      console.error('Error loading card for edit:', error);
+      // Fallback: construct Card from flag data
+      const cardFlag2 = selectedFlag as CardFlag;
+      const fallbackCard: Card = {
+        id: cardFlag2.cardId,
+        deckId: cardFlag2.deckId,
+        front: cardFlag2.cardFront || '',
+        back: cardFlag2.cardBack || '',
+        context: cardFlag2.cardContext || '',
+        type: (cardFlag2.cardType as CardType) || 'standard',
+        position: 0,
+        createdAt: cardFlag2.createdAt,
+        updatedAt: cardFlag2.updatedAt,
+      };
+      setEditCard(fallbackCard);
     } finally {
-      setIsSavingCard(false);
+      setIsLoadingCard(false);
+    }
+  };
+
+  const handleCardSaved = async (updatedCard: Card) => {
+    toast.success('Card actualizat cu succes');
+    setEditCard(null);
+
+    // Auto-resolve the flag after successful edit
+    if (selectedFlag) {
+      await handleUpdateStatus(selectedFlag.id, 'resolved');
     }
   };
 
@@ -196,6 +216,144 @@ export const ModerationDashboard: React.FC = () => {
         {config.icon}
         {config.label}
       </span>
+    );
+  };
+
+  // Extracted details panel content — reused for desktop sidebar and mobile overlay
+  const renderDetailsContent = () => {
+    if (!selectedFlag) return null;
+
+    return (
+      <div className="space-y-4">
+        {/* Type & Status */}
+        <div>
+          <p className="text-xs font-medium text-gray-500 mb-2">TIP & STATUS</p>
+          <div className="flex gap-2">
+            <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium">
+              {selectedFlag.type === 'card' ? 'Card' : 'Deck'}
+            </span>
+            {getStatusBadge(selectedFlag.status)}
+          </div>
+        </div>
+
+        {/* Content */}
+        <div>
+          <p className="text-xs font-medium text-gray-500 mb-2">CONȚINUT</p>
+          <p className="text-sm font-medium text-gray-900">{selectedFlag.deckTitle}</p>
+          {selectedFlag.type === 'card' && 'cardFront' in selectedFlag && (
+            <div className="mt-2 p-3 bg-gray-50 rounded-lg space-y-2">
+              <div>
+                <p className="text-xs font-medium text-gray-600">Față:</p>
+                <p className="text-sm text-gray-900">{selectedFlag.cardFront}</p>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-gray-600">Spate:</p>
+                <p className="text-sm text-gray-900">{selectedFlag.cardBack}</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Reason */}
+        {'reason' in selectedFlag && selectedFlag.reason && (
+          <div>
+            <p className="text-xs font-medium text-gray-500 mb-2">MOTIV</p>
+            <p className="text-sm text-gray-900">{selectedFlag.reason.replace(/_/g, ' ')}</p>
+          </div>
+        )}
+
+        {/* Comment */}
+        {selectedFlag.comment && (
+          <div>
+            <p className="text-xs font-medium text-gray-500 mb-2">DETALII</p>
+            <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedFlag.comment}</p>
+          </div>
+        )}
+
+        {/* Reporter */}
+        <div>
+          <p className="text-xs font-medium text-gray-500 mb-2">RAPORTAT DE</p>
+          <p className="text-sm text-gray-900">{selectedFlag.flaggedByName || 'Anonim'}</p>
+          <p className="text-xs text-gray-500">{timeAgo(new Date(selectedFlag.createdAt))}</p>
+        </div>
+
+        {/* Review Notes */}
+        {selectedFlag.status === 'pending' && (
+          <div>
+            <label htmlFor="reviewNotes" className="block text-xs font-medium text-gray-500 mb-2">
+              NOTE DE REVIZUIRE (OPȚIONAL)
+            </label>
+            <textarea
+              id="reviewNotes"
+              value={reviewNotes}
+              onChange={e => setReviewNotes(e.target.value)}
+              rows={3}
+              maxLength={2000}
+              placeholder="Adaugă note despre decizia ta..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+            />
+          </div>
+        )}
+
+        {/* Edit Card Button (for card flags) */}
+        {selectedFlag.type === 'card' && 'cardFront' in selectedFlag && (
+          <div className="pt-4 border-t">
+            <button
+              onClick={openEditCardModal}
+              disabled={isLoadingCard}
+              className="w-full px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              <Edit size={18} /> {isLoadingCard ? 'Se încarcă...' : 'Editează Card'}
+            </button>
+            <p className="text-xs text-gray-500 mt-2 text-center">
+              Editarea va rezolva automat raportul
+            </p>
+          </div>
+        )}
+
+        {/* Actions */}
+        {selectedFlag.status === 'pending' && (
+          <div className="space-y-2 pt-4 border-t">
+            <button
+              onClick={() => handleUpdateStatus(selectedFlag.id, 'under_review')}
+              disabled={isUpdating}
+              className="w-full px-4 py-2 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
+            >
+              Marchează în revizuire
+            </button>
+            <button
+              onClick={() => handleUpdateStatus(selectedFlag.id, 'resolved')}
+              disabled={isUpdating}
+              className="w-full px-4 py-2 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors disabled:opacity-50"
+            >
+              Rezolvă raportul
+            </button>
+            <button
+              onClick={() => handleUpdateStatus(selectedFlag.id, 'dismissed')}
+              disabled={isUpdating}
+              className="w-full px-4 py-2 bg-gray-600 text-white rounded-xl font-medium hover:bg-gray-700 transition-colors disabled:opacity-50"
+            >
+              Respinge raportul
+            </button>
+          </div>
+        )}
+
+        {/* Review Info (if already reviewed) */}
+        {selectedFlag.status !== 'pending' && selectedFlag.reviewedByName && (
+          <div className="pt-4 border-t">
+            <p className="text-xs font-medium text-gray-500 mb-2">REVIZUIT DE</p>
+            <p className="text-sm text-gray-900">{selectedFlag.reviewedByName}</p>
+            {selectedFlag.reviewedAt && (
+              <p className="text-xs text-gray-500">{timeAgo(new Date(selectedFlag.reviewedAt))}</p>
+            )}
+            {selectedFlag.reviewNotes && (
+              <p className="text-sm text-gray-700 mt-2 p-3 bg-gray-50 rounded-lg">
+                {selectedFlag.reviewNotes}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
     );
   };
 
@@ -273,7 +431,7 @@ export const ModerationDashboard: React.FC = () => {
                     className={`bg-white rounded-2xl p-6 shadow-sm cursor-pointer transition-all hover:shadow-md ${
                       selectedFlag?.id === flag.id ? 'ring-2 ring-indigo-500' : ''
                     }`}
-                    onClick={() => setSelectedFlag(flag)}
+                    onClick={() => handleSelectFlag(flag)}
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-2">
@@ -318,154 +476,12 @@ export const ModerationDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Details Panel */}
-          <div className="lg:col-span-1">
+          {/* Details Panel — Desktop only (hidden on mobile, shown on lg+) */}
+          <div className="hidden lg:block lg:col-span-1">
             {selectedFlag ? (
               <div className="bg-white rounded-2xl p-6 shadow-sm sticky top-6">
                 <h2 className="text-lg font-bold text-gray-900 mb-4">Detalii raport</h2>
-
-                <div className="space-y-4">
-                  {/* Type & Status */}
-                  <div>
-                    <p className="text-xs font-medium text-gray-500 mb-2">TIP & STATUS</p>
-                    <div className="flex gap-2">
-                      <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium">
-                        {selectedFlag.type === 'card' ? 'Card' : 'Deck'}
-                      </span>
-                      {getStatusBadge(selectedFlag.status)}
-                    </div>
-                  </div>
-
-                  {/* Content */}
-                  <div>
-                    <p className="text-xs font-medium text-gray-500 mb-2">CONȚINUT</p>
-                    <p className="text-sm font-medium text-gray-900">{selectedFlag.deckTitle}</p>
-                    {selectedFlag.type === 'card' && 'cardFront' in selectedFlag && (
-                      <div className="mt-2 p-3 bg-gray-50 rounded-lg space-y-2">
-                        <div>
-                          <p className="text-xs font-medium text-gray-600">Față:</p>
-                          <p className="text-sm text-gray-900">{selectedFlag.cardFront}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs font-medium text-gray-600">Spate:</p>
-                          <p className="text-sm text-gray-900">{selectedFlag.cardBack}</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Reason */}
-                  {'reason' in selectedFlag && selectedFlag.reason && (
-                    <div>
-                      <p className="text-xs font-medium text-gray-500 mb-2">MOTIV</p>
-                      <p className="text-sm text-gray-900">
-                        {selectedFlag.reason.replace(/_/g, ' ')}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Comment */}
-                  {selectedFlag.comment && (
-                    <div>
-                      <p className="text-xs font-medium text-gray-500 mb-2">DETALII</p>
-                      <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                        {selectedFlag.comment}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Reporter */}
-                  <div>
-                    <p className="text-xs font-medium text-gray-500 mb-2">RAPORTAT DE</p>
-                    <p className="text-sm text-gray-900">
-                      {selectedFlag.flaggedByName || 'Anonim'}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {timeAgo(new Date(selectedFlag.createdAt))}
-                    </p>
-                  </div>
-
-                  {/* Review Notes */}
-                  {selectedFlag.status === 'pending' && (
-                    <div>
-                      <label
-                        htmlFor="reviewNotes"
-                        className="block text-xs font-medium text-gray-500 mb-2"
-                      >
-                        NOTE DE REVIZUIRE (OPȚIONAL)
-                      </label>
-                      <textarea
-                        id="reviewNotes"
-                        value={reviewNotes}
-                        onChange={e => setReviewNotes(e.target.value)}
-                        rows={3}
-                        maxLength={2000}
-                        placeholder="Adaugă note despre decizia ta..."
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
-                      />
-                    </div>
-                  )}
-
-                  {/* Edit Card Button (for card flags) */}
-                  {selectedFlag.type === 'card' && 'cardFront' in selectedFlag && (
-                    <div className="pt-4 border-t">
-                      <button
-                        onClick={openEditCardModal}
-                        className="w-full px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
-                      >
-                        <Edit size={18} /> Editează Card
-                      </button>
-                      <p className="text-xs text-gray-500 mt-2 text-center">
-                        Editarea va rezolva automat raportul
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Actions */}
-                  {selectedFlag.status === 'pending' && (
-                    <div className="space-y-2 pt-4 border-t">
-                      <button
-                        onClick={() => handleUpdateStatus(selectedFlag.id, 'under_review')}
-                        disabled={isUpdating}
-                        className="w-full px-4 py-2 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
-                      >
-                        Marchează în revizuire
-                      </button>
-                      <button
-                        onClick={() => handleUpdateStatus(selectedFlag.id, 'resolved')}
-                        disabled={isUpdating}
-                        className="w-full px-4 py-2 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors disabled:opacity-50"
-                      >
-                        Rezolvă raportul
-                      </button>
-                      <button
-                        onClick={() => handleUpdateStatus(selectedFlag.id, 'dismissed')}
-                        disabled={isUpdating}
-                        className="w-full px-4 py-2 bg-gray-600 text-white rounded-xl font-medium hover:bg-gray-700 transition-colors disabled:opacity-50"
-                      >
-                        Respinge raportul
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Review Info (if already reviewed) */}
-                  {selectedFlag.status !== 'pending' && selectedFlag.reviewedByName && (
-                    <div className="pt-4 border-t">
-                      <p className="text-xs font-medium text-gray-500 mb-2">REVIZUIT DE</p>
-                      <p className="text-sm text-gray-900">{selectedFlag.reviewedByName}</p>
-                      {selectedFlag.reviewedAt && (
-                        <p className="text-xs text-gray-500">
-                          {timeAgo(new Date(selectedFlag.reviewedAt))}
-                        </p>
-                      )}
-                      {selectedFlag.reviewNotes && (
-                        <p className="text-sm text-gray-700 mt-2 p-3 bg-gray-50 rounded-lg">
-                          {selectedFlag.reviewNotes}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
+                {renderDetailsContent()}
               </div>
             ) : (
               <div className="bg-white rounded-2xl p-8 shadow-sm text-center">
@@ -476,103 +492,42 @@ export const ModerationDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Edit Card Modal */}
-        {editCardModalOpen && (
+        {/* Details Panel — Mobile overlay (shown on mobile when a flag is selected) */}
+        {selectedFlag && mobileDetailsOpen && (
           <div
-            className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in"
-            onClick={() => setEditCardModalOpen(false)}
+            className="fixed inset-0 bg-black/50 z-[90] lg:hidden backdrop-blur-sm"
+            onClick={() => setMobileDetailsOpen(false)}
           >
             <div
-              className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl animate-scale-up"
+              className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl max-h-[85vh] overflow-y-auto animate-slide-up"
               onClick={e => e.stopPropagation()}
             >
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="font-bold text-lg">Editează Card</h3>
-                <button
-                  onClick={() => setEditCardModalOpen(false)}
-                  className="text-gray-400 hover:text-gray-900"
-                >
-                  <X size={20} />
-                </button>
+              {/* Drag handle */}
+              <div className="sticky top-0 bg-white rounded-t-2xl pt-3 pb-2 px-6 border-b border-gray-100 z-10">
+                <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-3" />
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-bold text-gray-900">Detalii raport</h2>
+                  <button
+                    onClick={() => setMobileDetailsOpen(false)}
+                    className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <X size={20} className="text-gray-500" />
+                  </button>
+                </div>
               </div>
-
-              <form
-                onSubmit={e => {
-                  e.preventDefault();
-                  handleSaveCardEdit();
-                }}
-                className="space-y-4"
-              >
-                <div>
-                  <label
-                    htmlFor="edit-card-front"
-                    className="block text-xs font-bold text-gray-500 uppercase mb-2"
-                  >
-                    Față (Întrebare)
-                  </label>
-                  <textarea
-                    id="edit-card-front"
-                    className="w-full border-2 border-gray-100 rounded-xl p-3 font-medium focus:border-indigo-500 outline-none resize-none"
-                    rows={3}
-                    value={editCardFront}
-                    onChange={e => setEditCardFront(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="edit-card-back"
-                    className="block text-xs font-bold text-gray-500 uppercase mb-2"
-                  >
-                    Spate (Răspuns)
-                  </label>
-                  <textarea
-                    id="edit-card-back"
-                    className="w-full border-2 border-gray-100 rounded-xl p-3 font-medium focus:border-indigo-500 outline-none resize-none"
-                    rows={3}
-                    value={editCardBack}
-                    onChange={e => setEditCardBack(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="edit-card-context"
-                    className="block text-xs font-bold text-gray-500 uppercase mb-2"
-                  >
-                    Context (Opțional)
-                  </label>
-                  <input
-                    id="edit-card-context"
-                    type="text"
-                    className="w-full border-2 border-gray-100 rounded-xl p-3 font-medium focus:border-indigo-500 outline-none"
-                    value={editCardContext}
-                    onChange={e => setEditCardContext(e.target.value)}
-                    placeholder="Ex: propoziție exemplu"
-                  />
-                </div>
-
-                <div className="flex gap-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => setEditCardModalOpen(false)}
-                    className="flex-1 px-4 py-2 bg-white border-2 border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-colors"
-                  >
-                    Anulează
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSavingCard}
-                    className="flex-1 px-4 py-2 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-                  >
-                    <Save size={18} /> {isSavingCard ? 'Se salvează...' : 'Salvează'}
-                  </button>
-                </div>
-              </form>
+              <div className="p-6">{renderDetailsContent()}</div>
             </div>
           </div>
+        )}
+
+        {/* Unified EditCardModal */}
+        {editCard && (
+          <EditCardModal
+            card={editCard}
+            onClose={() => setEditCard(null)}
+            onSave={handleCardSaved}
+            existingTags={existingTags}
+          />
         )}
       </div>
     </div>
