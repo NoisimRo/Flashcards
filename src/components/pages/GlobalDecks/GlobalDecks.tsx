@@ -13,14 +13,16 @@ import {
   Star,
   ThumbsUp,
   Flag,
+  List,
 } from 'lucide-react';
-import { getDecks } from '../../../api/decks';
+import { getDecks, getDeck } from '../../../api/decks';
 import type { DeckWithCards as APIDeck } from '../../../types';
-import type { Deck } from '../../../types';
+import type { Deck, DeckWithCards } from '../../../types';
 import { useToast } from '../../ui/Toast';
 import { getSubjectDisplayName } from '../../../constants/subjects';
 import { ReviewModal } from '../../reviews/ReviewModal';
 import { FlagModal } from '../../flags/FlagModal';
+import { EditCardsModal } from '../DeckList/EditCardsModal';
 import { useAuth } from '../../../store/AuthContext';
 
 interface GlobalDecksProps {
@@ -42,6 +44,10 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [selectedDeckForFlag, setSelectedDeckForFlag] = useState<Deck | null>(null);
   const [selectedDeckForReview, setSelectedDeckForReview] = useState<Deck | null>(null);
+  const [editCardsModalOpen, setEditCardsModalOpen] = useState(false);
+  const [editCardsModalDeck, setEditCardsModalDeck] = useState<DeckWithCards | null>(null);
+
+  const isTeacherOrAdmin = user?.role === 'teacher' || user?.role === 'admin';
 
   // Fetch public decks on mount
   useEffect(() => {
@@ -139,6 +145,28 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
       toast.success(t('toast.deckCopied', { title: deck.title }));
     } else {
       toast.info(t('toast.copyNotAvailable'));
+    }
+  };
+
+  const openEditCardsModal = async (deck: APIDeck) => {
+    try {
+      const response = await getDeck(deck.id);
+      if (response.success && response.data) {
+        const deckWithCards: DeckWithCards = {
+          ...response.data,
+          subject: response.data.subjectName || response.data.subject,
+          masteredCards: 0,
+          cards: response.data.cards,
+        };
+        setEditCardsModalDeck(deckWithCards);
+        setEditCardsModalOpen(true);
+        setActiveMenuId(null);
+      } else {
+        throw new Error('Failed to load deck cards');
+      }
+    } catch (error) {
+      console.error('Error loading deck cards:', error);
+      toast.error(t('toast.generalError'));
     }
   };
 
@@ -341,6 +369,18 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
 
                           {activeMenuId === deck.id && (
                             <div className="absolute right-0 top-8 bg-white shadow-xl rounded-xl p-2 min-w-[180px] z-10 border border-gray-100 animate-fade-in">
+                              {/* Edit cards - Only for teachers and admins */}
+                              {isTeacherOrAdmin && deck.totalCards > 0 && (
+                                <button
+                                  onClick={e => {
+                                    e.stopPropagation();
+                                    openEditCardsModal(deck);
+                                  }}
+                                  className="w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg flex items-center gap-2 font-medium"
+                                >
+                                  <List size={16} /> {t('menu.editCards')}
+                                </button>
+                              )}
                               {/* Lasă o recenzie - Only for non-owners */}
                               {!isOwner && (
                                 <button
@@ -476,6 +516,27 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
           }}
         />
       )}
+
+      {/* Edit Cards Modal (Teacher/Admin) */}
+      <EditCardsModal
+        isOpen={editCardsModalOpen}
+        deck={editCardsModalDeck}
+        onClose={() => {
+          setEditCardsModalOpen(false);
+          setEditCardsModalDeck(null);
+        }}
+        onDeckUpdate={updatedDeck => {
+          // Update local deck list with the edited cards
+          setDecks(prev =>
+            prev.map(d =>
+              d.id === updatedDeck.id
+                ? { ...d, cards: updatedDeck.cards, totalCards: updatedDeck.cards.length }
+                : d
+            )
+          );
+          setEditCardsModalDeck(updatedDeck);
+        }}
+      />
     </div>
   );
 };

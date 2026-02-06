@@ -33,7 +33,8 @@
   },
   "menu": {
     "leaveReview": "Leave a review",
-    "report": "Report deck"
+    "report": "Report deck",
+    "editCards": "Edit cards"
   },
   "toast": {
     "deckCopied": "Deck \"{{title}}\" has been copied to your collection!",

@@ -108,7 +108,18 @@
     "tagsPlaceholder": "Scrie o etichetă și apasă Enter...",
     "bulkEdit": "Editare în masă",
     "bulkTagsLabel": "Atribuie etichete la {{count}} carduri selectate",
-    "applyTags": "Aplică Etichete"
+    "applyTags": "Aplică Etichete",
+    "searchPlaceholder": "Caută carduri...",
+    "filterByType": "Toate Tipurile",
+    "selectAll": "Selectează Tot",
+    "deselectAll": "Deselectează Tot",
+    "bulkChangeType": "Schimbă Tipul",
+    "bulkTypeLabel": "Schimbă tipul pentru {{count}} carduri selectate",
+    "applyType": "Aplică Tipul",
+    "typeStandard": "Standard",
+    "typeQuiz": "Quiz",
+    "typeAnswer": "Răspuns Scris",
+    "typeMultipleAnswer": "Răspuns Multiplu"
   },
   "loading": {
     "message": "Se generează carduri...",
@@ -151,7 +162,9 @@
     "cardsAdded": "{{count}} carduri adăugate cu succes",
     "openEditCards": "Se deschide editorul de carduri...",
     "bulkTagsApplied": "Etichete aplicate la {{count}} carduri",
-    "bulkTagsError": "Eroare la aplicarea etichetelor"
+    "bulkTagsError": "Eroare la aplicarea etichetelor",
+    "bulkTypeApplied": "Tipul schimbat pentru {{count}} carduri",
+    "bulkTypeError": "Eroare la schimbarea tipului de card"
   },
   "guestPrompt": {
     "createDeck": {

@@ -101,7 +101,23 @@
     "addNewCard": "Aggiungi Nuova Carta",
     "question": "Domanda:",
     "answer": "Risposta:",
-    "contextLabel": "Contesto:"
+    "contextLabel": "Contesto:",
+    "tags": "Tag",
+    "tagsPlaceholder": "Scrivi un tag e premi Invio...",
+    "bulkEdit": "Modifica in blocco",
+    "bulkTagsLabel": "Assegna tag a {{count}} carte selezionate",
+    "applyTags": "Applica Tag",
+    "searchPlaceholder": "Cerca carte...",
+    "filterByType": "Tutti i Tipi",
+    "selectAll": "Seleziona Tutto",
+    "deselectAll": "Deseleziona Tutto",
+    "bulkChangeType": "Cambia Tipo",
+    "bulkTypeLabel": "Cambia tipo per {{count}} carte selezionate",
+    "applyType": "Applica Tipo",
+    "typeStandard": "Standard",
+    "typeQuiz": "Quiz",
+    "typeAnswer": "Risposta Scritta",
+    "typeMultipleAnswer": "Risposta Multipla"
   },
   "loading": {
     "message": "Generazione carte in corso..."
@@ -133,7 +149,11 @@
     "importError": "Errore nell'importazione delle carte",
     "fileReadError": "Errore nella lettura del file",
     "cardsAdded": "{{count}} carte aggiunte con successo",
-    "openEditCards": "Apertura editor carte..."
+    "openEditCards": "Apertura editor carte...",
+    "bulkTagsApplied": "Tag applicati a {{count}} carte",
+    "bulkTagsError": "Errore nell'applicazione dei tag",
+    "bulkTypeApplied": "Tipo cambiato per {{count}} carte",
+    "bulkTypeError": "Errore nel cambio tipo carta"
   },
   "guestPrompt": {
     "createDeck": {

@@ -33,7 +33,8 @@
   },
   "menu": {
     "leaveReview": "Lascia una recensione",
-    "report": "Segnala mazzo"
+    "report": "Segnala mazzo",
+    "editCards": "Modifica carte"
   },
   "toast": {
     "deckCopied": "Il mazzo \"{{title}}\" è stato copiato nella tua collezione!",

@@ -33,7 +33,8 @@
   },
   "menu": {
     "leaveReview": "Lasă o recenzie",
-    "report": "Raportează deck"
+    "report": "Raportează deck",
+    "editCards": "Editează carduri"
   },
   "toast": {
     "deckCopied": "Deck-ul \"{{title}}\" a fost copiat în colecția ta!",
