@@ -119,6 +119,32 @@
     "typeAnswer": "Type Answer",
     "typeMultipleAnswer": "Multiple Answer"
   },
+  "editCardModal": {
+    "title": "Edit Card",
+    "cardType": "Card Type",
+    "typeStandard": "Standard (Flip)",
+    "typeQuiz": "Quiz (Single Choice)",
+    "typeMultipleAnswer": "Multiple Answer",
+    "typeAnswer": "Type Answer",
+    "front": "Question (Front)",
+    "back": "Answer (Back)",
+    "context": "Context / Hint (Optional)",
+    "contextPlaceholder": "Additional explanation...",
+    "optionsLabel": "Options",
+    "optionsSingle": "(one correct answer)",
+    "optionsMultiple": "(multiple correct answers)",
+    "optionPlaceholder": "Option {{number}}",
+    "addOption": "Add option",
+    "tags": "Tags",
+    "save": "Save",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "errorRequired": "Question and answer are required.",
+    "errorMinOptions": "At least 2 options are required.",
+    "errorNoCorrect": "Select at least one correct answer.",
+    "errorSave": "Error saving the card.",
+    "errorPermission": "Error saving the card. Check permissions."
+  },
   "loading": {
     "message": "Generating cards..."
   },

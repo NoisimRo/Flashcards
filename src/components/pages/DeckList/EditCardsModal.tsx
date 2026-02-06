@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, DeckWithCards } from '../../../types';
-import { Plus, X, Edit, Trash2, Save, Tags, Search, Filter } from 'lucide-react';
+import { Plus, X, Edit, Trash2, Tags, Search, Filter } from 'lucide-react';
 import {
   createCard,
   updateCard,
@@ -11,6 +11,7 @@ import {
 import { useToast } from '../../ui/Toast';
 import { TagInput } from '../../ui/TagInput';
 import { getTagColor } from '../../../utils/tagColors';
+import { EditCardModal } from '../../study-session/modals/EditCardModal';
 
 type CardType = 'standard' | 'type-answer' | 'quiz' | 'multiple-answer';
 
@@ -35,6 +36,14 @@ interface EditCardsModalProps {
   onDeckUpdate: (deck: DeckWithCards) => void;
 }
 
+/** Extract all unique tags from a deck's cards */
+function extractLocalTags(deck: DeckWithCards | null): string[] {
+  if (!deck) return [];
+  const tagSet = new Set<string>();
+  deck.cards.forEach(c => (c.tags || []).forEach(t => tagSet.add(t)));
+  return Array.from(tagSet).sort();
+}
+
 export const EditCardsModal: React.FC<EditCardsModalProps> = ({
   isOpen,
   deck,
@@ -44,37 +53,38 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
   const { t } = useTranslation('decks');
   const toast = useToast();
 
-  // Edit card state
-  const [editingCardId, setEditingCardId] = useState<string | null>(null);
-  const [editCardFront, setEditCardFront] = useState('');
-  const [editCardBack, setEditCardBack] = useState('');
-  const [editCardContext, setEditCardContext] = useState('');
-  const [editCardType, setEditCardType] = useState<CardType>('standard');
-  const [editCardOptions, setEditCardOptions] = useState<string[]>(['', '', '', '']);
-  const [editCardCorrectIndex, setEditCardCorrectIndex] = useState(0);
-  const [editCardCorrectIndices, setEditCardCorrectIndices] = useState<number[]>([]);
-  const [isSavingCard, setIsSavingCard] = useState(false);
-  const [editCardTags, setEditCardTags] = useState<string[]>([]);
+  // Individual card editing via EditCardModal
+  const [editingCard, setEditingCard] = useState<Card | null>(null);
+
+  // Tag suggestion state
   const [existingTags, setExistingTags] = useState<string[]>([]);
-  const [allExistingTags, setAllExistingTags] = useState<string[]>([]);
 
   // Search & Filter state
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<CardType | 'all'>('all');
 
-  // Fetch existing tags for autocomplete (deck-level for individual editing)
+  // Saving state (for bulk operations)
+  const [isSavingCard, setIsSavingCard] = useState(false);
+
+  // Fetch tags for autocomplete: combine API tags + local deck tags
   useEffect(() => {
     if (isOpen && deck) {
-      getCardTags(deck.id).then(response => {
-        if (response.success && response.data) {
-          setExistingTags(response.data);
-        }
-      });
-      // Fetch all tags from database for bulk mode suggestions
-      getCardTags().then(response => {
-        if (response.success && response.data) {
-          setAllExistingTags(response.data);
-        }
+      const localTags = extractLocalTags(deck);
+
+      // Fetch deck-level tags from API
+      const deckTagsPromise = getCardTags(deck.id).then(response =>
+        response.success && response.data ? response.data : []
+      );
+
+      // Fetch all user tags from API
+      const allTagsPromise = getCardTags().then(response =>
+        response.success && response.data ? response.data : []
+      );
+
+      Promise.all([deckTagsPromise, allTagsPromise]).then(([deckTags, allTags]) => {
+        // Merge all sources: API deck tags + API all tags + local card tags
+        const merged = new Set<string>([...deckTags, ...allTags, ...localTags]);
+        setExistingTags(Array.from(merged).sort());
       });
     }
   }, [isOpen, deck]);
@@ -95,104 +105,21 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
     });
   }, [deck, searchQuery, filterType]);
 
-  const startEditCard = (card: Card) => {
-    setEditingCardId(card.id);
-    setEditCardFront(card.front);
-    setEditCardBack(card.back);
-    setEditCardContext(card.context || '');
-    setEditCardType(card.type);
-    setEditCardTags(card.tags || []);
-    if (card.type === 'quiz' && card.options && card.options.length > 0) {
-      setEditCardOptions([...card.options]);
-      setEditCardCorrectIndex(card.correctOptionIndices?.[0] || 0);
-      setEditCardCorrectIndices([]);
-    } else if (
-      (card.type === 'multiple-answer' || card.type === 'type-answer') &&
-      card.options &&
-      card.options.length > 0
-    ) {
-      setEditCardOptions([...card.options]);
-      setEditCardCorrectIndices(card.correctOptionIndices || []);
-      setEditCardCorrectIndex(0);
-    } else {
-      setEditCardOptions(['', '', '', '']);
-      setEditCardCorrectIndex(0);
-      setEditCardCorrectIndices([]);
-    }
-  };
+  // Handle save from EditCardModal
+  const handleCardSaved = (updatedCard: Card) => {
+    if (!deck) return;
 
-  const cancelEditCard = () => {
-    setEditingCardId(null);
-    setEditCardFront('');
-    setEditCardBack('');
-    setEditCardContext('');
-    setEditCardTags([]);
-  };
+    const updatedCards = deck.cards.map(card => (card.id === updatedCard.id ? updatedCard : card));
+    const updatedDeck = { ...deck, cards: updatedCards };
+    onDeckUpdate(updatedDeck);
+    setEditingCard(null);
 
-  const saveEditCard = async () => {
-    if (!deck || !editingCardId) return;
+    // Refresh tags from the updated cards
+    const tagSet = new Set(existingTags);
+    (updatedCard.tags || []).forEach(t => tagSet.add(t));
+    setExistingTags(Array.from(tagSet).sort());
 
-    setIsSavingCard(true);
-    try {
-      const updateData: Record<string, unknown> = {
-        front: editCardFront,
-        back: editCardBack,
-        context: editCardContext || undefined,
-        type: editCardType,
-        tags: editCardTags,
-      };
-
-      // Add options fields for quiz, multiple-answer, and type-answer
-      if (editCardType === 'quiz') {
-        updateData.options = editCardOptions.filter(opt => opt.trim() !== '');
-        updateData.correctOptionIndices = [editCardCorrectIndex]; // Single index in array
-      } else if (editCardType === 'multiple-answer' || editCardType === 'type-answer') {
-        updateData.options = editCardOptions.filter(opt => opt.trim() !== '');
-        updateData.correctOptionIndices = editCardCorrectIndices;
-      }
-
-      const response = await updateCard(deck.id, editingCardId, updateData);
-
-      if (response.success) {
-        // Update local state with API response
-        const updatedCards = deck.cards.map(card =>
-          card.id === editingCardId
-            ? {
-                ...card,
-                front: editCardFront,
-                back: editCardBack,
-                context: editCardContext,
-                type: editCardType,
-                tags: editCardTags,
-                options:
-                  editCardType === 'quiz' ||
-                  editCardType === 'multiple-answer' ||
-                  editCardType === 'type-answer'
-                    ? editCardOptions
-                    : undefined,
-                correctOptionIndices:
-                  editCardType === 'quiz'
-                    ? [editCardCorrectIndex]
-                    : editCardType === 'multiple-answer' || editCardType === 'type-answer'
-                      ? editCardCorrectIndices
-                      : undefined,
-              }
-            : card
-        );
-
-        const updatedDeck = { ...deck, cards: updatedCards };
-        onDeckUpdate(updatedDeck);
-        cancelEditCard();
-        toast.success(t('toast.cardUpdated'));
-      } else {
-        toast.error(response.error?.message || t('toast.cardUpdateError'));
-      }
-    } catch (error) {
-      console.error('Error updating card:', error);
-      toast.error(t('toast.cardUpdateError'));
-    } finally {
-      setIsSavingCard(false);
-    }
+    toast.success(t('toast.cardUpdated'));
   };
 
   const handleDeleteCard = async (cardId: string) => {
@@ -242,7 +169,7 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
           totalCards: updatedCards.length,
         };
         onDeckUpdate(updatedDeck);
-        startEditCard(newCard);
+        setEditingCard(newCard);
         toast.success(t('toast.cardAdded'));
       } else {
         toast.error(response.error?.message || t('toast.cardAddError'));
@@ -265,12 +192,10 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
     const allSelected = filteredIds.every(id => bulkSelectedCardIds.has(id));
 
     if (allSelected) {
-      // Deselect all filtered
       const newSet = new Set(bulkSelectedCardIds);
       filteredIds.forEach(id => newSet.delete(id));
       setBulkSelectedCardIds(newSet);
     } else {
-      // Select all filtered
       const newSet = new Set(bulkSelectedCardIds);
       filteredIds.forEach(id => newSet.add(id));
       setBulkSelectedCardIds(newSet);
@@ -287,7 +212,6 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
       const updates = Array.from(bulkSelectedCardIds).map(cardId => {
         const card = deck.cards.find(c => c.id === cardId);
         if (!card) return null;
-        // Merge existing tags with new tags (case-insensitive dedup)
         const mergedTags = [...(card.tags || [])];
         bulkTags.forEach(newTag => {
           if (!mergedTags.some(t => t.toLowerCase() === newTag.toLowerCase())) {
@@ -307,7 +231,6 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
 
       await Promise.all(updates.filter(Boolean));
 
-      // Update local state
       const updatedCards = deck.cards.map(card => {
         if (bulkSelectedCardIds.has(card.id)) {
           const mergedTags = [...(card.tags || [])];
@@ -322,14 +245,15 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
       });
       onDeckUpdate({ ...deck, cards: updatedCards });
 
-      // Refresh existing tags for autocomplete
-      const tagSet = new Set<string>();
+      // Refresh existing tags
+      const tagSet = new Set(existingTags);
       updatedCards.forEach(c => (c.tags || []).forEach(t => tagSet.add(t)));
       setExistingTags(Array.from(tagSet).sort());
 
+      const count = bulkSelectedCardIds.size;
       setBulkSelectedCardIds(new Set());
       setBulkTags([]);
-      toast.success(t('toast.bulkTagsApplied', { count: bulkSelectedCardIds.size }));
+      toast.success(t('toast.bulkTagsApplied', { count }));
     } catch (error) {
       console.error('Bulk tag error:', error);
       toast.error(t('toast.bulkTagsError'));
@@ -358,7 +282,6 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
 
       await Promise.all(updates.filter(Boolean));
 
-      // Update local state
       const updatedCards = deck.cards.map(card => {
         if (bulkSelectedCardIds.has(card.id)) {
           return { ...card, type: bulkType };
@@ -379,7 +302,7 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
   };
 
   const handleClose = () => {
-    cancelEditCard();
+    setEditingCard(null);
     setIsBulkMode(false);
     setBulkSelectedCardIds(new Set());
     setBulkTags([]);
@@ -390,7 +313,6 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
 
   if (!isOpen || !deck) return null;
 
-  // Find original index for each filtered card
   const getOriginalIndex = (cardId: string) => deck.cards.findIndex(c => c.id === cardId);
 
   return (
@@ -509,305 +431,87 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
                   key={card.id}
                   className="bg-gray-50 rounded-xl p-4 border border-gray-200 hover:border-indigo-300 transition-colors"
                 >
-                  {editingCardId === card.id ? (
-                    // Edit Mode
-                    <div className="space-y-3">
-                      <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-                          {t('editCardsModal.front')}
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full border-2 border-gray-200 bg-white rounded-lg p-2 font-medium focus:border-indigo-500 outline-none"
-                          value={editCardFront}
-                          onChange={e => setEditCardFront(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-                          {t('editCardsModal.back')}
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full border-2 border-gray-200 bg-white rounded-lg p-2 font-medium focus:border-indigo-500 outline-none"
-                          value={editCardBack}
-                          onChange={e => setEditCardBack(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-                          {t('editCardsModal.context')}
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full border-2 border-gray-200 bg-white rounded-lg p-2 font-medium focus:border-indigo-500 outline-none"
-                          value={editCardContext}
-                          onChange={e => setEditCardContext(e.target.value)}
-                          placeholder={t('editCardsModal.contextPlaceholder')}
-                        />
-                      </div>
-
-                      {/* Tags */}
-                      <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-                          {t('editCardsModal.tags')}
-                        </label>
-                        <TagInput
-                          tags={editCardTags}
-                          onChange={setEditCardTags}
-                          existingTags={existingTags}
-                          placeholder={t('editCardsModal.tagsPlaceholder')}
-                        />
-                      </div>
-
-                      {/* Card Type Selection */}
-                      <div>
-                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-                          {t('editCardsModal.cardType')}
-                        </label>
-                        <select
-                          className="w-full border-2 border-gray-200 bg-white rounded-lg p-2 font-medium focus:border-indigo-500 outline-none"
-                          value={editCardType}
-                          onChange={e => setEditCardType(e.target.value as CardType)}
+                  {/* View Mode (always shown - edit opens as separate modal) */}
+                  <div>
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex items-center gap-2">
+                        {isBulkMode && (
+                          <input
+                            type="checkbox"
+                            checked={bulkSelectedCardIds.has(card.id)}
+                            onChange={() => {
+                              const newSet = new Set(bulkSelectedCardIds);
+                              if (newSet.has(card.id)) newSet.delete(card.id);
+                              else newSet.add(card.id);
+                              setBulkSelectedCardIds(newSet);
+                            }}
+                            className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                          />
+                        )}
+                        <span className="text-xs font-bold text-gray-400 uppercase">
+                          {t('editCardsModal.cardNumber', { number: originalIndex + 1 })}
+                        </span>
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-xs font-semibold ${CARD_TYPE_COLORS[card.type]}`}
                         >
-                          <option value="standard">{t('modal.standard')}</option>
-                          <option value="type-answer">{t('modal.typeAnswer')}</option>
-                          <option value="quiz">{t('modal.quiz')}</option>
-                          <option value="multiple-answer">{t('modal.multipleAnswer')}</option>
-                        </select>
+                          {t(CARD_TYPE_LABELS[card.type])}
+                        </span>
                       </div>
-
-                      {/* Quiz Options (only for quiz type) */}
-                      {editCardType === 'quiz' && (
-                        <div className="space-y-2">
-                          <label className="block text-xs font-bold text-gray-500 uppercase">
-                            {t('editCardsModal.quizOptions')}
-                          </label>
-                          {editCardOptions.map((option, idx) => (
-                            <div key={idx} className="flex items-center gap-2">
-                              <input
-                                type="radio"
-                                name="correctOption"
-                                checked={editCardCorrectIndex === idx}
-                                onChange={() => setEditCardCorrectIndex(idx)}
-                                className="w-4 h-4 text-indigo-600"
-                              />
-                              <input
-                                type="text"
-                                className="flex-1 border-2 border-gray-200 bg-white rounded-lg p-2 text-sm font-medium focus:border-indigo-500 outline-none"
-                                value={option}
-                                onChange={e => {
-                                  const newOptions = [...editCardOptions];
-                                  newOptions[idx] = e.target.value;
-                                  setEditCardOptions(newOptions);
-                                }}
-                                placeholder={t('editCardsModal.option', { number: idx + 1 })}
-                              />
-                            </div>
-                          ))}
-                          <p className="text-xs text-gray-500">
-                            {t('editCardsModal.selectCorrect')}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Multiple Answer Options (only for multiple-answer type) */}
-                      {editCardType === 'multiple-answer' && (
-                        <div className="space-y-2">
-                          <label className="block text-xs font-bold text-gray-500 uppercase">
-                            {t('editCardsModal.multipleAnswerOptions')}
-                          </label>
-                          {editCardOptions.map((option, idx) => (
-                            <div key={idx} className="flex items-center gap-2">
-                              <input
-                                type="checkbox"
-                                checked={editCardCorrectIndices.includes(idx)}
-                                onChange={() => {
-                                  setEditCardCorrectIndices(prev =>
-                                    prev.includes(idx)
-                                      ? prev.filter(i => i !== idx)
-                                      : [...prev, idx]
-                                  );
-                                }}
-                                className="w-4 h-4 text-indigo-600 rounded"
-                              />
-                              <input
-                                type="text"
-                                className="flex-1 border-2 border-gray-200 bg-white rounded-lg p-2 text-sm font-medium focus:border-indigo-500 outline-none"
-                                value={option}
-                                onChange={e => {
-                                  const newOptions = [...editCardOptions];
-                                  newOptions[idx] = e.target.value;
-                                  setEditCardOptions(newOptions);
-                                }}
-                                placeholder={t('editCardsModal.option', { number: idx + 1 })}
-                              />
-                            </div>
-                          ))}
-                          <p className="text-xs text-gray-500">
-                            {t('editCardsModal.selectMultipleCorrect')}
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Type-Answer Options (correct answers + pitfalls) */}
-                      {editCardType === 'type-answer' && (
-                        <div className="space-y-2">
-                          <label className="block text-xs font-bold text-gray-500 uppercase">
-                            {t('editCardsModal.typeAnswerOptions', {
-                              defaultValue: 'Răspunsuri Acceptate & Capcane',
-                            })}
-                          </label>
-                          {editCardOptions.map((option, idx) => (
-                            <div key={idx} className="flex items-center gap-2">
-                              <input
-                                type="checkbox"
-                                checked={editCardCorrectIndices.includes(idx)}
-                                onChange={() => {
-                                  setEditCardCorrectIndices(prev =>
-                                    prev.includes(idx)
-                                      ? prev.filter(i => i !== idx)
-                                      : [...prev, idx]
-                                  );
-                                }}
-                                className="w-4 h-4 text-green-600 rounded"
-                              />
-                              <input
-                                type="text"
-                                className={`flex-1 border-2 bg-white rounded-lg p-2 text-sm font-medium focus:border-indigo-500 outline-none ${
-                                  editCardCorrectIndices.includes(idx)
-                                    ? 'border-green-300'
-                                    : option.trim()
-                                      ? 'border-red-200'
-                                      : 'border-gray-200'
-                                }`}
-                                value={option}
-                                onChange={e => {
-                                  const newOptions = [...editCardOptions];
-                                  newOptions[idx] = e.target.value;
-                                  setEditCardOptions(newOptions);
-                                }}
-                                placeholder={
-                                  editCardCorrectIndices.includes(idx)
-                                    ? t('editCardsModal.correctAnswer', {
-                                        defaultValue: `Răspuns corect ${idx + 1}`,
-                                      })
-                                    : t('editCardsModal.pitfall', {
-                                        defaultValue: `Capcană / Greșeală frecventă ${idx + 1}`,
-                                      })
-                                }
-                              />
-                            </div>
-                          ))}
-                          <p className="text-xs text-gray-500">
-                            {t('editCardsModal.typeAnswerOptionsHelp', {
-                              defaultValue:
-                                'Bifează răspunsurile corecte. Cele nebifate sunt capcane/greșeli frecvente.',
-                            })}
-                          </p>
-                        </div>
-                      )}
-
                       <div className="flex gap-2">
                         <button
-                          onClick={saveEditCard}
-                          disabled={isSavingCard}
-                          className="flex-1 bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                          onClick={() => setEditingCard(card)}
+                          className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                          title={t('editCardsModal.edit')}
                         >
-                          <Save size={16} />{' '}
-                          {isSavingCard ? t('editCardsModal.saving') : t('editCardsModal.save')}
+                          <Edit size={16} />
                         </button>
                         <button
-                          onClick={cancelEditCard}
-                          className="flex-1 bg-white border-2 border-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
+                          onClick={() => handleDeleteCard(card.id)}
+                          className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title={t('editCardsModal.delete')}
                         >
-                          {t('editCardsModal.cancel')}
+                          <Trash2 size={16} />
                         </button>
                       </div>
                     </div>
-                  ) : (
-                    // View Mode
-                    <div>
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="flex items-center gap-2">
-                          {isBulkMode && (
-                            <input
-                              type="checkbox"
-                              checked={bulkSelectedCardIds.has(card.id)}
-                              onChange={() => {
-                                const newSet = new Set(bulkSelectedCardIds);
-                                if (newSet.has(card.id)) newSet.delete(card.id);
-                                else newSet.add(card.id);
-                                setBulkSelectedCardIds(newSet);
-                              }}
-                              className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                            />
-                          )}
-                          <span className="text-xs font-bold text-gray-400 uppercase">
-                            {t('editCardsModal.cardNumber', { number: originalIndex + 1 })}
-                          </span>
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-xs font-semibold ${CARD_TYPE_COLORS[card.type]}`}
-                          >
-                            {t(CARD_TYPE_LABELS[card.type])}
-                          </span>
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => startEditCard(card)}
-                            className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                            title={t('editCardsModal.edit')}
-                          >
-                            <Edit size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteCard(card.id)}
-                            className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title={t('editCardsModal.delete')}
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
+                    <div className="space-y-2">
+                      <div>
+                        <p className="text-xs font-bold text-gray-500">
+                          {t('editCardsModal.question')}
+                        </p>
+                        <p className="text-sm font-medium text-gray-900">{card.front}</p>
                       </div>
-                      <div className="space-y-2">
+                      <div>
+                        <p className="text-xs font-bold text-gray-500">
+                          {t('editCardsModal.answer')}
+                        </p>
+                        <p className="text-sm font-medium text-gray-900">{card.back}</p>
+                      </div>
+                      {card.context && (
                         <div>
                           <p className="text-xs font-bold text-gray-500">
-                            {t('editCardsModal.question')}
+                            {t('editCardsModal.contextLabel')}
                           </p>
-                          <p className="text-sm font-medium text-gray-900">{card.front}</p>
+                          <p className="text-sm text-gray-600 italic">{card.context}</p>
                         </div>
-                        <div>
-                          <p className="text-xs font-bold text-gray-500">
-                            {t('editCardsModal.answer')}
-                          </p>
-                          <p className="text-sm font-medium text-gray-900">{card.back}</p>
+                      )}
+                      {card.tags && card.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mt-1">
+                          {card.tags.map((tag, i) => {
+                            const color = getTagColor(tag);
+                            return (
+                              <span
+                                key={i}
+                                className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${color.bg} ${color.text}`}
+                              >
+                                {tag}
+                              </span>
+                            );
+                          })}
                         </div>
-                        {card.context && (
-                          <div>
-                            <p className="text-xs font-bold text-gray-500">
-                              {t('editCardsModal.contextLabel')}
-                            </p>
-                            <p className="text-sm text-gray-600 italic">{card.context}</p>
-                          </div>
-                        )}
-                        {card.tags && card.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5 mt-1">
-                            {card.tags.map((tag, i) => {
-                              const color = getTagColor(tag);
-                              return (
-                                <span
-                                  key={i}
-                                  className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${color.bg} ${color.text}`}
-                                >
-                                  {tag}
-                                </span>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
               );
             })
@@ -825,7 +529,7 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
               <TagInput
                 tags={bulkTags}
                 onChange={setBulkTags}
-                existingTags={allExistingTags}
+                existingTags={existingTags}
                 placeholder={t('editCardsModal.tagsPlaceholder')}
               />
               <button
@@ -877,6 +581,16 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Individual Card Editor Modal */}
+      {editingCard && (
+        <EditCardModal
+          card={editingCard}
+          onClose={() => setEditingCard(null)}
+          onSave={handleCardSaved}
+          existingTags={existingTags}
+        />
+      )}
     </div>
   );
 };

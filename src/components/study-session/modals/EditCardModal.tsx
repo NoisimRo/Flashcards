@@ -1,27 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 import { X, Plus, Trash2 } from 'lucide-react';
 import { Card, CardType } from '../../../types/models';
 import { updateCard, UpdateCardRequest } from '../../../api/cards';
+import { TagInput } from '../../ui/TagInput';
 
 interface EditCardModalProps {
   card: Card;
   onClose: () => void;
   onSave: (updatedCard: Card) => void;
+  existingTags?: string[];
 }
 
-const CARD_TYPES: { value: CardType; label: string }[] = [
-  { value: 'standard', label: 'Standard (Flip)' },
-  { value: 'quiz', label: 'Quiz (Alegere unică)' },
-  { value: 'multiple-answer', label: 'Răspuns multiplu' },
-  { value: 'type-answer', label: 'Scrie răspunsul' },
-];
-
 /**
- * EditCardModal - Lightweight single-card editor for use during study sessions.
- * Allows teachers and admins to edit all card fields in real-time.
+ * EditCardModal - Unified single-card editor used across the app.
+ * Used in study sessions, EditCardsModal (MyDecks & GlobalDecks), etc.
+ * Allows editing all card fields: type, front, back, context, options, tags.
  */
-export const EditCardModal: React.FC<EditCardModalProps> = ({ card, onClose, onSave }) => {
+export const EditCardModal: React.FC<EditCardModalProps> = ({
+  card,
+  onClose,
+  onSave,
+  existingTags = [],
+}) => {
+  const { t } = useTranslation('decks');
+
   const [front, setFront] = useState(card.front);
   const [back, setBack] = useState(card.back);
   const [context, setContext] = useState(card.context || '');
@@ -31,7 +35,6 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({ card, onClose, onS
     card.correctOptionIndices || []
   );
   const [tags, setTags] = useState<string[]>(card.tags || []);
-  const [tagInput, setTagInput] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -77,32 +80,20 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({ card, onClose, onS
     }
   };
 
-  const handleAddTag = () => {
-    const trimmed = tagInput.trim();
-    if (trimmed && !tags.includes(trimmed)) {
-      setTags([...tags, trimmed]);
-      setTagInput('');
-    }
-  };
-
-  const handleRemoveTag = (tag: string) => {
-    setTags(tags.filter(t => t !== tag));
-  };
-
   const handleSave = async () => {
     if (!front.trim() || !back.trim()) {
-      setError('Întrebarea și răspunsul sunt obligatorii.');
+      setError(t('editCardModal.errorRequired'));
       return;
     }
 
     if (hasOptions) {
       const nonEmptyOptions = options.filter(o => o.trim());
       if (nonEmptyOptions.length < 2) {
-        setError('Minim 2 opțiuni sunt necesare.');
+        setError(t('editCardModal.errorMinOptions'));
         return;
       }
       if (correctOptionIndices.length === 0) {
-        setError('Selectează cel puțin un răspuns corect.');
+        setError(t('editCardModal.errorNoCorrect'));
         return;
       }
     }
@@ -137,14 +128,21 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({ card, onClose, onS
           tags: data.tags,
         });
       } else {
-        setError('Eroare la salvarea cardului.');
+        setError(t('editCardModal.errorSave'));
       }
     } catch {
-      setError('Eroare la salvarea cardului. Verifică permisiunile.');
+      setError(t('editCardModal.errorPermission'));
     } finally {
       setSaving(false);
     }
   };
+
+  const cardTypes = [
+    { value: 'standard' as CardType, label: t('editCardModal.typeStandard') },
+    { value: 'quiz' as CardType, label: t('editCardModal.typeQuiz') },
+    { value: 'multiple-answer' as CardType, label: t('editCardModal.typeMultipleAnswer') },
+    { value: 'type-answer' as CardType, label: t('editCardModal.typeAnswer') },
+  ];
 
   const modal = (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -154,7 +152,7 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({ card, onClose, onS
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-900">Editează Card</h2>
+          <h2 className="text-xl font-bold text-gray-900">{t('editCardModal.title')}</h2>
           <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
             <X size={20} className="text-gray-500" />
           </button>
@@ -170,13 +168,15 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({ card, onClose, onS
 
           {/* Card Type */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Tip card</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              {t('editCardModal.cardType')}
+            </label>
             <select
               value={type}
               onChange={e => setType(e.target.value as CardType)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
             >
-              {CARD_TYPES.map(ct => (
+              {cardTypes.map(ct => (
                 <option key={ct.value} value={ct.value}>
                   {ct.label}
                 </option>
@@ -187,7 +187,7 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({ card, onClose, onS
           {/* Front (Question) */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Întrebare (Front)
+              {t('editCardModal.front')}
             </label>
             <textarea
               value={front}
@@ -199,7 +199,9 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({ card, onClose, onS
 
           {/* Back (Answer) */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Răspuns (Back)</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              {t('editCardModal.back')}
+            </label>
             <textarea
               value={back}
               onChange={e => setBack(e.target.value)}
@@ -211,23 +213,25 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({ card, onClose, onS
           {/* Context */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1">
-              Context / Indiciu (opțional)
+              {t('editCardModal.context')}
             </label>
             <textarea
               value={context}
               onChange={e => setContext(e.target.value)}
               rows={2}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
-              placeholder="Explicație suplimentară..."
+              placeholder={t('editCardModal.contextPlaceholder')}
             />
           </div>
 
-          {/* Options (for quiz and multiple-answer) */}
+          {/* Options (for quiz, multiple-answer, type-answer) */}
           {hasOptions && (
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Opțiuni{' '}
-                {type === 'quiz' ? '(o singură variantă corectă)' : '(mai multe variante corecte)'}
+                {t('editCardModal.optionsLabel')}{' '}
+                {type === 'quiz'
+                  ? t('editCardModal.optionsSingle')
+                  : t('editCardModal.optionsMultiple')}
               </label>
               <div className="space-y-2">
                 {options.map((option, index) => (
@@ -243,7 +247,7 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({ card, onClose, onS
                       type="text"
                       value={option}
                       onChange={e => handleOptionChange(index, e.target.value)}
-                      placeholder={`Opțiunea ${index + 1}`}
+                      placeholder={t('editCardModal.optionPlaceholder', { number: index + 1 })}
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                     />
                     {options.length > 2 && (
@@ -262,49 +266,22 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({ card, onClose, onS
                 className="mt-2 flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-700 font-medium"
               >
                 <Plus size={16} />
-                Adaugă opțiune
+                {t('editCardModal.addOption')}
               </button>
             </div>
           )}
 
           {/* Tags */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Etichete</label>
-            <div className="flex flex-wrap gap-2 mb-2">
-              {tags.map(tag => (
-                <span
-                  key={tag}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700 text-sm font-medium"
-                >
-                  {tag}
-                  <button onClick={() => handleRemoveTag(tag)} className="hover:text-indigo-900">
-                    <X size={14} />
-                  </button>
-                </span>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={tagInput}
-                onChange={e => setTagInput(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAddTag();
-                  }
-                }}
-                placeholder="Adaugă etichetă..."
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-              />
-              <button
-                onClick={handleAddTag}
-                disabled={!tagInput.trim()}
-                className="px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                Adaugă
-              </button>
-            </div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              {t('editCardModal.tags')}
+            </label>
+            <TagInput
+              tags={tags}
+              onChange={setTags}
+              existingTags={existingTags}
+              placeholder={t('editCardsModal.tagsPlaceholder')}
+            />
           </div>
         </div>
 
@@ -314,14 +291,14 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({ card, onClose, onS
             onClick={onClose}
             className="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors"
           >
-            Anulează
+            {t('editCardModal.cancel')}
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
             className="px-5 py-2.5 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {saving ? 'Se salvează...' : 'Salvează'}
+            {saving ? t('editCardModal.saving') : t('editCardModal.save')}
           </button>
         </div>
       </div>

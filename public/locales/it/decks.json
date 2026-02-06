@@ -119,6 +119,32 @@
     "typeAnswer": "Risposta Scritta",
     "typeMultipleAnswer": "Risposta Multipla"
   },
+  "editCardModal": {
+    "title": "Modifica Carta",
+    "cardType": "Tipo carta",
+    "typeStandard": "Standard (Flip)",
+    "typeQuiz": "Quiz (Scelta singola)",
+    "typeMultipleAnswer": "Risposta multipla",
+    "typeAnswer": "Scrivi la risposta",
+    "front": "Domanda (Fronte)",
+    "back": "Risposta (Retro)",
+    "context": "Contesto / Suggerimento (opzionale)",
+    "contextPlaceholder": "Spiegazione aggiuntiva...",
+    "optionsLabel": "Opzioni",
+    "optionsSingle": "(una sola risposta corretta)",
+    "optionsMultiple": "(più risposte corrette)",
+    "optionPlaceholder": "Opzione {{number}}",
+    "addOption": "Aggiungi opzione",
+    "tags": "Tag",
+    "save": "Salva",
+    "saving": "Salvataggio...",
+    "cancel": "Annulla",
+    "errorRequired": "Domanda e risposta sono obbligatorie.",
+    "errorMinOptions": "Sono necessarie almeno 2 opzioni.",
+    "errorNoCorrect": "Seleziona almeno una risposta corretta.",
+    "errorSave": "Errore nel salvataggio della carta.",
+    "errorPermission": "Errore nel salvataggio della carta. Controlla i permessi."
+  },
   "loading": {
     "message": "Generazione carte in corso..."
   },
