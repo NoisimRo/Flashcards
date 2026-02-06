@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Shield, Filter, Eye, CheckCircle, XCircle, Clock, Edit, X } from 'lucide-react';
 import { useToast } from '../ui/Toast';
 import { getFlags, updateFlagStatus, type Flag, type FlagStatus } from '../../api/flags';
-import { getCard, getCardTags } from '../../api/cards';
+import { getCardTags } from '../../api/cards';
+import { getDeckCards } from '../../api/studySessions';
 import { EditCardModal } from '../study-session/modals/EditCardModal';
-import type { Card, CardType, CardFlag } from '../../types/models';
+import type { Card, CardFlag } from '../../types/models';
 
 type FlagTypeFilter = 'all' | 'card' | 'deck';
 
@@ -151,47 +152,35 @@ export const ModerationDashboard: React.FC = () => {
     setIsLoadingCard(true);
 
     try {
-      // Fetch full card data for the unified editor
-      const response = await getCard(cardFlag.deckId, cardFlag.cardId);
-      if (response.success && response.data) {
-        setEditCard(response.data as Card);
+      // Fetch all cards for the deck, then find the specific card
+      // (no single-card GET endpoint exists on the server)
+      const [cardsResponse, tagsResponse] = await Promise.all([
+        getDeckCards(cardFlag.deckId),
+        getCardTags(cardFlag.deckId),
+      ]);
 
-        // Load tags for autocomplete
-        const tagsResponse = await getCardTags(cardFlag.deckId);
-        if (tagsResponse.success && tagsResponse.data) {
-          setExistingTags(tagsResponse.data);
+      if (cardsResponse.success && cardsResponse.data?.cards) {
+        const fullCard = cardsResponse.data.cards.find((c: Card) => c.id === cardFlag.cardId) as
+          | Card
+          | undefined;
+
+        if (fullCard) {
+          setEditCard(fullCard);
+        } else {
+          toast.error('Eroare', 'Cardul nu a fost găsit în deck');
+          return;
         }
       } else {
-        // Fallback: construct Card from flag data if API fails
-        const fallbackCard: Card = {
-          id: cardFlag.cardId,
-          deckId: cardFlag.deckId,
-          front: cardFlag.cardFront || '',
-          back: cardFlag.cardBack || '',
-          context: cardFlag.cardContext || '',
-          type: (cardFlag.cardType as CardType) || 'standard',
-          position: 0,
-          createdAt: cardFlag.createdAt,
-          updatedAt: cardFlag.updatedAt,
-        };
-        setEditCard(fallbackCard);
+        toast.error('Eroare', 'Nu s-au putut încărca datele cardului');
+        return;
+      }
+
+      if (tagsResponse.success && tagsResponse.data) {
+        setExistingTags(tagsResponse.data);
       }
     } catch (error) {
       console.error('Error loading card for edit:', error);
-      // Fallback: construct Card from flag data
-      const cardFlag2 = selectedFlag as CardFlag;
-      const fallbackCard: Card = {
-        id: cardFlag2.cardId,
-        deckId: cardFlag2.deckId,
-        front: cardFlag2.cardFront || '',
-        back: cardFlag2.cardBack || '',
-        context: cardFlag2.cardContext || '',
-        type: (cardFlag2.cardType as CardType) || 'standard',
-        position: 0,
-        createdAt: cardFlag2.createdAt,
-        updatedAt: cardFlag2.updatedAt,
-      };
-      setEditCard(fallbackCard);
+      toast.error('Eroare', 'A apărut o eroare la încărcarea cardului');
     } finally {
       setIsLoadingCard(false);
     }
