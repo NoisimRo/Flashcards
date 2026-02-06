@@ -121,6 +121,32 @@
     "typeAnswer": "Răspuns Scris",
     "typeMultipleAnswer": "Răspuns Multiplu"
   },
+  "editCardModal": {
+    "title": "Editează Card",
+    "cardType": "Tip card",
+    "typeStandard": "Standard (Flip)",
+    "typeQuiz": "Quiz (Alegere unică)",
+    "typeMultipleAnswer": "Răspuns multiplu",
+    "typeAnswer": "Scrie răspunsul",
+    "front": "Întrebare (Front)",
+    "back": "Răspuns (Back)",
+    "context": "Context / Indiciu (opțional)",
+    "contextPlaceholder": "Explicație suplimentară...",
+    "optionsLabel": "Opțiuni",
+    "optionsSingle": "(o singură variantă corectă)",
+    "optionsMultiple": "(mai multe variante corecte)",
+    "optionPlaceholder": "Opțiunea {{number}}",
+    "addOption": "Adaugă opțiune",
+    "tags": "Etichete",
+    "save": "Salvează",
+    "saving": "Se salvează...",
+    "cancel": "Anulează",
+    "errorRequired": "Întrebarea și răspunsul sunt obligatorii.",
+    "errorMinOptions": "Minim 2 opțiuni sunt necesare.",
+    "errorNoCorrect": "Selectează cel puțin un răspuns corect.",
+    "errorSave": "Eroare la salvarea cardului.",
+    "errorPermission": "Eroare la salvarea cardului. Verifică permisiunile."
+  },
   "loading": {
     "message": "Se generează carduri...",
     "dealerMessages": [
