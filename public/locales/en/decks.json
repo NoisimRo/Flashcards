@@ -106,7 +106,18 @@
     "tagsPlaceholder": "Type a tag and press Enter...",
     "bulkEdit": "Bulk Edit",
     "bulkTagsLabel": "Assign tags to {{count}} selected cards",
-    "applyTags": "Apply Tags"
+    "applyTags": "Apply Tags",
+    "searchPlaceholder": "Search cards...",
+    "filterByType": "All Types",
+    "selectAll": "Select All",
+    "deselectAll": "Deselect All",
+    "bulkChangeType": "Change Type",
+    "bulkTypeLabel": "Change type for {{count}} selected cards",
+    "applyType": "Apply Type",
+    "typeStandard": "Standard",
+    "typeQuiz": "Quiz",
+    "typeAnswer": "Type Answer",
+    "typeMultipleAnswer": "Multiple Answer"
   },
   "loading": {
     "message": "Generating cards..."
@@ -140,7 +151,9 @@
     "cardsAdded": "Added {{count}} cards successfully",
     "openEditCards": "Opening card editor...",
     "bulkTagsApplied": "Tags applied to {{count}} cards",
-    "bulkTagsError": "Error applying tags"
+    "bulkTagsError": "Error applying tags",
+    "bulkTypeApplied": "Type changed for {{count}} cards",
+    "bulkTypeError": "Error changing card type"
   },
   "guestPrompt": {
     "createDeck": {

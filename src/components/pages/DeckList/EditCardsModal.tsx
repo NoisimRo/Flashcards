@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, DeckWithCards } from '../../../types';
-import { Plus, X, Edit, Trash2, Save, Tags } from 'lucide-react';
+import { Plus, X, Edit, Trash2, Save, Tags, Search, Filter } from 'lucide-react';
 import {
   createCard,
   updateCard,
@@ -11,6 +11,22 @@ import {
 import { useToast } from '../../ui/Toast';
 import { TagInput } from '../../ui/TagInput';
 import { getTagColor } from '../../../utils/tagColors';
+
+type CardType = 'standard' | 'type-answer' | 'quiz' | 'multiple-answer';
+
+const CARD_TYPE_LABELS: Record<CardType, string> = {
+  standard: 'editCardsModal.typeStandard',
+  quiz: 'editCardsModal.typeQuiz',
+  'type-answer': 'editCardsModal.typeAnswer',
+  'multiple-answer': 'editCardsModal.typeMultipleAnswer',
+};
+
+const CARD_TYPE_COLORS: Record<CardType, string> = {
+  standard: 'bg-gray-100 text-gray-700',
+  quiz: 'bg-purple-100 text-purple-700',
+  'type-answer': 'bg-blue-100 text-blue-700',
+  'multiple-answer': 'bg-amber-100 text-amber-700',
+};
 
 interface EditCardsModalProps {
   isOpen: boolean;
@@ -33,17 +49,20 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
   const [editCardFront, setEditCardFront] = useState('');
   const [editCardBack, setEditCardBack] = useState('');
   const [editCardContext, setEditCardContext] = useState('');
-  const [editCardType, setEditCardType] = useState<
-    'standard' | 'type-answer' | 'quiz' | 'multiple-answer'
-  >('standard');
+  const [editCardType, setEditCardType] = useState<CardType>('standard');
   const [editCardOptions, setEditCardOptions] = useState<string[]>(['', '', '', '']);
   const [editCardCorrectIndex, setEditCardCorrectIndex] = useState(0);
   const [editCardCorrectIndices, setEditCardCorrectIndices] = useState<number[]>([]);
   const [isSavingCard, setIsSavingCard] = useState(false);
   const [editCardTags, setEditCardTags] = useState<string[]>([]);
   const [existingTags, setExistingTags] = useState<string[]>([]);
+  const [allExistingTags, setAllExistingTags] = useState<string[]>([]);
 
-  // Fetch existing tags for autocomplete
+  // Search & Filter state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterType, setFilterType] = useState<CardType | 'all'>('all');
+
+  // Fetch existing tags for autocomplete (deck-level for individual editing)
   useEffect(() => {
     if (isOpen && deck) {
       getCardTags(deck.id).then(response => {
@@ -51,8 +70,30 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
           setExistingTags(response.data);
         }
       });
+      // Fetch all tags from database for bulk mode suggestions
+      getCardTags().then(response => {
+        if (response.success && response.data) {
+          setAllExistingTags(response.data);
+        }
+      });
     }
   }, [isOpen, deck]);
+
+  // Filtered cards based on search and type filter
+  const filteredCards = useMemo(() => {
+    if (!deck) return [];
+    return deck.cards.filter(card => {
+      const matchesSearch =
+        searchQuery === '' ||
+        card.front.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        card.back.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (card.context && card.context.toLowerCase().includes(searchQuery.toLowerCase()));
+
+      const matchesType = filterType === 'all' || card.type === filterType;
+
+      return matchesSearch && matchesType;
+    });
+  }, [deck, searchQuery, filterType]);
 
   const startEditCard = (card: Card) => {
     setEditingCardId(card.id);
@@ -216,6 +257,28 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
   const [isBulkMode, setIsBulkMode] = useState(false);
   const [bulkSelectedCardIds, setBulkSelectedCardIds] = useState<Set<string>>(new Set());
   const [bulkTags, setBulkTags] = useState<string[]>([]);
+  const [bulkType, setBulkType] = useState<CardType>('standard');
+
+  // Select all visible (filtered) cards
+  const handleSelectAll = () => {
+    const filteredIds = filteredCards.map(c => c.id);
+    const allSelected = filteredIds.every(id => bulkSelectedCardIds.has(id));
+
+    if (allSelected) {
+      // Deselect all filtered
+      const newSet = new Set(bulkSelectedCardIds);
+      filteredIds.forEach(id => newSet.delete(id));
+      setBulkSelectedCardIds(newSet);
+    } else {
+      // Select all filtered
+      const newSet = new Set(bulkSelectedCardIds);
+      filteredIds.forEach(id => newSet.add(id));
+      setBulkSelectedCardIds(newSet);
+    }
+  };
+
+  const allFilteredSelected =
+    filteredCards.length > 0 && filteredCards.every(c => bulkSelectedCardIds.has(c.id));
 
   const handleBulkApplyTags = async () => {
     if (!deck || bulkSelectedCardIds.size === 0 || bulkTags.length === 0) return;
@@ -275,15 +338,60 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
     }
   };
 
+  const handleBulkChangeType = async () => {
+    if (!deck || bulkSelectedCardIds.size === 0) return;
+    setIsSavingCard(true);
+    try {
+      const updates = Array.from(bulkSelectedCardIds).map(cardId => {
+        const card = deck.cards.find(c => c.id === cardId);
+        if (!card) return null;
+        return updateCard(deck.id, cardId, {
+          front: card.front,
+          back: card.back,
+          context: card.context,
+          type: bulkType,
+          options: card.options,
+          correctOptionIndices: card.correctOptionIndices,
+          tags: card.tags,
+        });
+      });
+
+      await Promise.all(updates.filter(Boolean));
+
+      // Update local state
+      const updatedCards = deck.cards.map(card => {
+        if (bulkSelectedCardIds.has(card.id)) {
+          return { ...card, type: bulkType };
+        }
+        return card;
+      });
+      onDeckUpdate({ ...deck, cards: updatedCards });
+
+      const count = bulkSelectedCardIds.size;
+      setBulkSelectedCardIds(new Set());
+      toast.success(t('toast.bulkTypeApplied', { count }));
+    } catch (error) {
+      console.error('Bulk type change error:', error);
+      toast.error(t('toast.bulkTypeError'));
+    } finally {
+      setIsSavingCard(false);
+    }
+  };
+
   const handleClose = () => {
     cancelEditCard();
     setIsBulkMode(false);
     setBulkSelectedCardIds(new Set());
     setBulkTags([]);
+    setSearchQuery('');
+    setFilterType('all');
     onClose();
   };
 
   if (!isOpen || !deck) return null;
+
+  // Find original index for each filtered card
+  const getOriginalIndex = (cardId: string) => deck.cards.findIndex(c => c.id === cardId);
 
   return (
     <div
@@ -328,6 +436,59 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
           </div>
         </div>
 
+        {/* Search & Filter Bar */}
+        <div className="px-6 pt-4 pb-2 flex flex-col sm:flex-row gap-2 border-b border-gray-50">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+            <input
+              type="text"
+              placeholder={t('editCardsModal.searchPlaceholder')}
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+          </div>
+          <div className="relative">
+            <select
+              value={filterType}
+              onChange={e => setFilterType(e.target.value as CardType | 'all')}
+              className="pl-3 pr-8 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white appearance-none"
+            >
+              <option value="all">{t('editCardsModal.filterByType')}</option>
+              <option value="standard">{t('editCardsModal.typeStandard')}</option>
+              <option value="quiz">{t('editCardsModal.typeQuiz')}</option>
+              <option value="type-answer">{t('editCardsModal.typeAnswer')}</option>
+              <option value="multiple-answer">{t('editCardsModal.typeMultipleAnswer')}</option>
+            </select>
+            <Filter
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+              size={14}
+            />
+          </div>
+        </div>
+
+        {/* Select All (only in bulk mode) */}
+        {isBulkMode && filteredCards.length > 0 && (
+          <div className="px-6 py-2 flex items-center gap-2 border-b border-gray-100 bg-gray-50">
+            <input
+              type="checkbox"
+              checked={allFilteredSelected}
+              onChange={handleSelectAll}
+              className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+            />
+            <span className="text-sm font-medium text-gray-600">
+              {allFilteredSelected
+                ? t('editCardsModal.deselectAll')
+                : t('editCardsModal.selectAll')}
+            </span>
+            {bulkSelectedCardIds.size > 0 && (
+              <span className="text-xs text-indigo-600 font-semibold ml-auto">
+                {bulkSelectedCardIds.size} / {deck.cards.length}
+              </span>
+            )}
+          </div>
+        )}
+
         {/* Cards List */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
           {deck.cards.length === 0 ? (
@@ -335,333 +496,374 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
               <p className="font-medium">{t('editCardsModal.noCards')}</p>
               <p className="text-sm mt-1">{t('editCardsModal.addFirstCard')}</p>
             </div>
+          ) : filteredCards.length === 0 ? (
+            <div className="text-center py-12 text-gray-400">
+              <Search className="mx-auto mb-3 text-gray-300" size={32} />
+              <p className="font-medium">{t('editCardsModal.noCards')}</p>
+            </div>
           ) : (
-            deck.cards.map((card, index) => (
-              <div
-                key={card.id}
-                className="bg-gray-50 rounded-xl p-4 border border-gray-200 hover:border-indigo-300 transition-colors"
-              >
-                {editingCardId === card.id ? (
-                  // Edit Mode
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-                        {t('editCardsModal.front')}
-                      </label>
-                      <input
-                        type="text"
-                        className="w-full border-2 border-gray-200 bg-white rounded-lg p-2 font-medium focus:border-indigo-500 outline-none"
-                        value={editCardFront}
-                        onChange={e => setEditCardFront(e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-                        {t('editCardsModal.back')}
-                      </label>
-                      <input
-                        type="text"
-                        className="w-full border-2 border-gray-200 bg-white rounded-lg p-2 font-medium focus:border-indigo-500 outline-none"
-                        value={editCardBack}
-                        onChange={e => setEditCardBack(e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-                        {t('editCardsModal.context')}
-                      </label>
-                      <input
-                        type="text"
-                        className="w-full border-2 border-gray-200 bg-white rounded-lg p-2 font-medium focus:border-indigo-500 outline-none"
-                        value={editCardContext}
-                        onChange={e => setEditCardContext(e.target.value)}
-                        placeholder={t('editCardsModal.contextPlaceholder')}
-                      />
-                    </div>
-
-                    {/* Tags */}
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-                        {t('editCardsModal.tags')}
-                      </label>
-                      <TagInput
-                        tags={editCardTags}
-                        onChange={setEditCardTags}
-                        existingTags={existingTags}
-                        placeholder={t('editCardsModal.tagsPlaceholder')}
-                      />
-                    </div>
-
-                    {/* Card Type Selection */}
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-                        {t('editCardsModal.cardType')}
-                      </label>
-                      <select
-                        className="w-full border-2 border-gray-200 bg-white rounded-lg p-2 font-medium focus:border-indigo-500 outline-none"
-                        value={editCardType}
-                        onChange={e =>
-                          setEditCardType(
-                            e.target.value as
-                              | 'standard'
-                              | 'type-answer'
-                              | 'quiz'
-                              | 'multiple-answer'
-                          )
-                        }
-                      >
-                        <option value="standard">{t('modal.standard')}</option>
-                        <option value="type-answer">{t('modal.typeAnswer')}</option>
-                        <option value="quiz">{t('modal.quiz')}</option>
-                        <option value="multiple-answer">{t('modal.multipleAnswer')}</option>
-                      </select>
-                    </div>
-
-                    {/* Quiz Options (only for quiz type) */}
-                    {editCardType === 'quiz' && (
-                      <div className="space-y-2">
-                        <label className="block text-xs font-bold text-gray-500 uppercase">
-                          {t('editCardsModal.quizOptions')}
+            filteredCards.map(card => {
+              const originalIndex = getOriginalIndex(card.id);
+              return (
+                <div
+                  key={card.id}
+                  className="bg-gray-50 rounded-xl p-4 border border-gray-200 hover:border-indigo-300 transition-colors"
+                >
+                  {editingCardId === card.id ? (
+                    // Edit Mode
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
+                          {t('editCardsModal.front')}
                         </label>
-                        {editCardOptions.map((option, idx) => (
-                          <div key={idx} className="flex items-center gap-2">
-                            <input
-                              type="radio"
-                              name="correctOption"
-                              checked={editCardCorrectIndex === idx}
-                              onChange={() => setEditCardCorrectIndex(idx)}
-                              className="w-4 h-4 text-indigo-600"
-                            />
-                            <input
-                              type="text"
-                              className="flex-1 border-2 border-gray-200 bg-white rounded-lg p-2 text-sm font-medium focus:border-indigo-500 outline-none"
-                              value={option}
-                              onChange={e => {
-                                const newOptions = [...editCardOptions];
-                                newOptions[idx] = e.target.value;
-                                setEditCardOptions(newOptions);
-                              }}
-                              placeholder={t('editCardsModal.option', { number: idx + 1 })}
-                            />
-                          </div>
-                        ))}
-                        <p className="text-xs text-gray-500">{t('editCardsModal.selectCorrect')}</p>
+                        <input
+                          type="text"
+                          className="w-full border-2 border-gray-200 bg-white rounded-lg p-2 font-medium focus:border-indigo-500 outline-none"
+                          value={editCardFront}
+                          onChange={e => setEditCardFront(e.target.value)}
+                        />
                       </div>
-                    )}
-
-                    {/* Multiple Answer Options (only for multiple-answer type) */}
-                    {editCardType === 'multiple-answer' && (
-                      <div className="space-y-2">
-                        <label className="block text-xs font-bold text-gray-500 uppercase">
-                          {t('editCardsModal.multipleAnswerOptions')}
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
+                          {t('editCardsModal.back')}
                         </label>
-                        {editCardOptions.map((option, idx) => (
-                          <div key={idx} className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              checked={editCardCorrectIndices.includes(idx)}
-                              onChange={() => {
-                                setEditCardCorrectIndices(prev =>
-                                  prev.includes(idx) ? prev.filter(i => i !== idx) : [...prev, idx]
-                                );
-                              }}
-                              className="w-4 h-4 text-indigo-600 rounded"
-                            />
-                            <input
-                              type="text"
-                              className="flex-1 border-2 border-gray-200 bg-white rounded-lg p-2 text-sm font-medium focus:border-indigo-500 outline-none"
-                              value={option}
-                              onChange={e => {
-                                const newOptions = [...editCardOptions];
-                                newOptions[idx] = e.target.value;
-                                setEditCardOptions(newOptions);
-                              }}
-                              placeholder={t('editCardsModal.option', { number: idx + 1 })}
-                            />
-                          </div>
-                        ))}
-                        <p className="text-xs text-gray-500">
-                          {t('editCardsModal.selectMultipleCorrect')}
-                        </p>
+                        <input
+                          type="text"
+                          className="w-full border-2 border-gray-200 bg-white rounded-lg p-2 font-medium focus:border-indigo-500 outline-none"
+                          value={editCardBack}
+                          onChange={e => setEditCardBack(e.target.value)}
+                        />
                       </div>
-                    )}
-
-                    {/* Type-Answer Options (correct answers + pitfalls) */}
-                    {editCardType === 'type-answer' && (
-                      <div className="space-y-2">
-                        <label className="block text-xs font-bold text-gray-500 uppercase">
-                          {t('editCardsModal.typeAnswerOptions', {
-                            defaultValue: 'Răspunsuri Acceptate & Capcane',
-                          })}
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
+                          {t('editCardsModal.context')}
                         </label>
-                        {editCardOptions.map((option, idx) => (
-                          <div key={idx} className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              checked={editCardCorrectIndices.includes(idx)}
-                              onChange={() => {
-                                setEditCardCorrectIndices(prev =>
-                                  prev.includes(idx) ? prev.filter(i => i !== idx) : [...prev, idx]
-                                );
-                              }}
-                              className="w-4 h-4 text-green-600 rounded"
-                            />
-                            <input
-                              type="text"
-                              className={`flex-1 border-2 bg-white rounded-lg p-2 text-sm font-medium focus:border-indigo-500 outline-none ${
-                                editCardCorrectIndices.includes(idx)
-                                  ? 'border-green-300'
-                                  : option.trim()
-                                    ? 'border-red-200'
-                                    : 'border-gray-200'
-                              }`}
-                              value={option}
-                              onChange={e => {
-                                const newOptions = [...editCardOptions];
-                                newOptions[idx] = e.target.value;
-                                setEditCardOptions(newOptions);
-                              }}
-                              placeholder={
-                                editCardCorrectIndices.includes(idx)
-                                  ? t('editCardsModal.correctAnswer', {
-                                      defaultValue: `Răspuns corect ${idx + 1}`,
-                                    })
-                                  : t('editCardsModal.pitfall', {
-                                      defaultValue: `Capcană / Greșeală frecventă ${idx + 1}`,
-                                    })
-                              }
-                            />
-                          </div>
-                        ))}
-                        <p className="text-xs text-gray-500">
-                          {t('editCardsModal.typeAnswerOptionsHelp', {
-                            defaultValue:
-                              'Bifează răspunsurile corecte. Cele nebifate sunt capcane/greșeli frecvente.',
-                          })}
-                        </p>
+                        <input
+                          type="text"
+                          className="w-full border-2 border-gray-200 bg-white rounded-lg p-2 font-medium focus:border-indigo-500 outline-none"
+                          value={editCardContext}
+                          onChange={e => setEditCardContext(e.target.value)}
+                          placeholder={t('editCardsModal.contextPlaceholder')}
+                        />
                       </div>
-                    )}
 
-                    <div className="flex gap-2">
-                      <button
-                        onClick={saveEditCard}
-                        disabled={isSavingCard}
-                        className="flex-1 bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-                      >
-                        <Save size={16} />{' '}
-                        {isSavingCard ? t('editCardsModal.saving') : t('editCardsModal.save')}
-                      </button>
-                      <button
-                        onClick={cancelEditCard}
-                        className="flex-1 bg-white border-2 border-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
-                      >
-                        {t('editCardsModal.cancel')}
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  // View Mode
-                  <div>
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="flex items-center gap-2">
-                        {isBulkMode && (
-                          <input
-                            type="checkbox"
-                            checked={bulkSelectedCardIds.has(card.id)}
-                            onChange={() => {
-                              const newSet = new Set(bulkSelectedCardIds);
-                              if (newSet.has(card.id)) newSet.delete(card.id);
-                              else newSet.add(card.id);
-                              setBulkSelectedCardIds(newSet);
-                            }}
-                            className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                          />
-                        )}
-                        <span className="text-xs font-bold text-gray-400 uppercase">
-                          {t('editCardsModal.cardNumber', { number: index + 1 })}
-                        </span>
+                      {/* Tags */}
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
+                          {t('editCardsModal.tags')}
+                        </label>
+                        <TagInput
+                          tags={editCardTags}
+                          onChange={setEditCardTags}
+                          existingTags={existingTags}
+                          placeholder={t('editCardsModal.tagsPlaceholder')}
+                        />
                       </div>
+
+                      {/* Card Type Selection */}
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
+                          {t('editCardsModal.cardType')}
+                        </label>
+                        <select
+                          className="w-full border-2 border-gray-200 bg-white rounded-lg p-2 font-medium focus:border-indigo-500 outline-none"
+                          value={editCardType}
+                          onChange={e => setEditCardType(e.target.value as CardType)}
+                        >
+                          <option value="standard">{t('modal.standard')}</option>
+                          <option value="type-answer">{t('modal.typeAnswer')}</option>
+                          <option value="quiz">{t('modal.quiz')}</option>
+                          <option value="multiple-answer">{t('modal.multipleAnswer')}</option>
+                        </select>
+                      </div>
+
+                      {/* Quiz Options (only for quiz type) */}
+                      {editCardType === 'quiz' && (
+                        <div className="space-y-2">
+                          <label className="block text-xs font-bold text-gray-500 uppercase">
+                            {t('editCardsModal.quizOptions')}
+                          </label>
+                          {editCardOptions.map((option, idx) => (
+                            <div key={idx} className="flex items-center gap-2">
+                              <input
+                                type="radio"
+                                name="correctOption"
+                                checked={editCardCorrectIndex === idx}
+                                onChange={() => setEditCardCorrectIndex(idx)}
+                                className="w-4 h-4 text-indigo-600"
+                              />
+                              <input
+                                type="text"
+                                className="flex-1 border-2 border-gray-200 bg-white rounded-lg p-2 text-sm font-medium focus:border-indigo-500 outline-none"
+                                value={option}
+                                onChange={e => {
+                                  const newOptions = [...editCardOptions];
+                                  newOptions[idx] = e.target.value;
+                                  setEditCardOptions(newOptions);
+                                }}
+                                placeholder={t('editCardsModal.option', { number: idx + 1 })}
+                              />
+                            </div>
+                          ))}
+                          <p className="text-xs text-gray-500">
+                            {t('editCardsModal.selectCorrect')}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Multiple Answer Options (only for multiple-answer type) */}
+                      {editCardType === 'multiple-answer' && (
+                        <div className="space-y-2">
+                          <label className="block text-xs font-bold text-gray-500 uppercase">
+                            {t('editCardsModal.multipleAnswerOptions')}
+                          </label>
+                          {editCardOptions.map((option, idx) => (
+                            <div key={idx} className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                checked={editCardCorrectIndices.includes(idx)}
+                                onChange={() => {
+                                  setEditCardCorrectIndices(prev =>
+                                    prev.includes(idx)
+                                      ? prev.filter(i => i !== idx)
+                                      : [...prev, idx]
+                                  );
+                                }}
+                                className="w-4 h-4 text-indigo-600 rounded"
+                              />
+                              <input
+                                type="text"
+                                className="flex-1 border-2 border-gray-200 bg-white rounded-lg p-2 text-sm font-medium focus:border-indigo-500 outline-none"
+                                value={option}
+                                onChange={e => {
+                                  const newOptions = [...editCardOptions];
+                                  newOptions[idx] = e.target.value;
+                                  setEditCardOptions(newOptions);
+                                }}
+                                placeholder={t('editCardsModal.option', { number: idx + 1 })}
+                              />
+                            </div>
+                          ))}
+                          <p className="text-xs text-gray-500">
+                            {t('editCardsModal.selectMultipleCorrect')}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Type-Answer Options (correct answers + pitfalls) */}
+                      {editCardType === 'type-answer' && (
+                        <div className="space-y-2">
+                          <label className="block text-xs font-bold text-gray-500 uppercase">
+                            {t('editCardsModal.typeAnswerOptions', {
+                              defaultValue: 'Răspunsuri Acceptate & Capcane',
+                            })}
+                          </label>
+                          {editCardOptions.map((option, idx) => (
+                            <div key={idx} className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                checked={editCardCorrectIndices.includes(idx)}
+                                onChange={() => {
+                                  setEditCardCorrectIndices(prev =>
+                                    prev.includes(idx)
+                                      ? prev.filter(i => i !== idx)
+                                      : [...prev, idx]
+                                  );
+                                }}
+                                className="w-4 h-4 text-green-600 rounded"
+                              />
+                              <input
+                                type="text"
+                                className={`flex-1 border-2 bg-white rounded-lg p-2 text-sm font-medium focus:border-indigo-500 outline-none ${
+                                  editCardCorrectIndices.includes(idx)
+                                    ? 'border-green-300'
+                                    : option.trim()
+                                      ? 'border-red-200'
+                                      : 'border-gray-200'
+                                }`}
+                                value={option}
+                                onChange={e => {
+                                  const newOptions = [...editCardOptions];
+                                  newOptions[idx] = e.target.value;
+                                  setEditCardOptions(newOptions);
+                                }}
+                                placeholder={
+                                  editCardCorrectIndices.includes(idx)
+                                    ? t('editCardsModal.correctAnswer', {
+                                        defaultValue: `Răspuns corect ${idx + 1}`,
+                                      })
+                                    : t('editCardsModal.pitfall', {
+                                        defaultValue: `Capcană / Greșeală frecventă ${idx + 1}`,
+                                      })
+                                }
+                              />
+                            </div>
+                          ))}
+                          <p className="text-xs text-gray-500">
+                            {t('editCardsModal.typeAnswerOptionsHelp', {
+                              defaultValue:
+                                'Bifează răspunsurile corecte. Cele nebifate sunt capcane/greșeli frecvente.',
+                            })}
+                          </p>
+                        </div>
+                      )}
+
                       <div className="flex gap-2">
                         <button
-                          onClick={() => startEditCard(card)}
-                          className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                          title={t('editCardsModal.edit')}
+                          onClick={saveEditCard}
+                          disabled={isSavingCard}
+                          className="flex-1 bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                         >
-                          <Edit size={16} />
+                          <Save size={16} />{' '}
+                          {isSavingCard ? t('editCardsModal.saving') : t('editCardsModal.save')}
                         </button>
                         <button
-                          onClick={() => handleDeleteCard(card.id)}
-                          className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title={t('editCardsModal.delete')}
+                          onClick={cancelEditCard}
+                          className="flex-1 bg-white border-2 border-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
                         >
-                          <Trash2 size={16} />
+                          {t('editCardsModal.cancel')}
                         </button>
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <div>
-                        <p className="text-xs font-bold text-gray-500">
-                          {t('editCardsModal.question')}
-                        </p>
-                        <p className="text-sm font-medium text-gray-900">{card.front}</p>
+                  ) : (
+                    // View Mode
+                    <div>
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex items-center gap-2">
+                          {isBulkMode && (
+                            <input
+                              type="checkbox"
+                              checked={bulkSelectedCardIds.has(card.id)}
+                              onChange={() => {
+                                const newSet = new Set(bulkSelectedCardIds);
+                                if (newSet.has(card.id)) newSet.delete(card.id);
+                                else newSet.add(card.id);
+                                setBulkSelectedCardIds(newSet);
+                              }}
+                              className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                          )}
+                          <span className="text-xs font-bold text-gray-400 uppercase">
+                            {t('editCardsModal.cardNumber', { number: originalIndex + 1 })}
+                          </span>
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-xs font-semibold ${CARD_TYPE_COLORS[card.type]}`}
+                          >
+                            {t(CARD_TYPE_LABELS[card.type])}
+                          </span>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => startEditCard(card)}
+                            className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                            title={t('editCardsModal.edit')}
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteCard(card.id)}
+                            className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title={t('editCardsModal.delete')}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-xs font-bold text-gray-500">
-                          {t('editCardsModal.answer')}
-                        </p>
-                        <p className="text-sm font-medium text-gray-900">{card.back}</p>
-                      </div>
-                      {card.context && (
+                      <div className="space-y-2">
                         <div>
                           <p className="text-xs font-bold text-gray-500">
-                            {t('editCardsModal.contextLabel')}
+                            {t('editCardsModal.question')}
                           </p>
-                          <p className="text-sm text-gray-600 italic">{card.context}</p>
+                          <p className="text-sm font-medium text-gray-900">{card.front}</p>
                         </div>
-                      )}
-                      {card.tags && card.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mt-1">
-                          {card.tags.map((tag, i) => {
-                            const color = getTagColor(tag);
-                            return (
-                              <span
-                                key={i}
-                                className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${color.bg} ${color.text}`}
-                              >
-                                {tag}
-                              </span>
-                            );
-                          })}
+                        <div>
+                          <p className="text-xs font-bold text-gray-500">
+                            {t('editCardsModal.answer')}
+                          </p>
+                          <p className="text-sm font-medium text-gray-900">{card.back}</p>
                         </div>
-                      )}
+                        {card.context && (
+                          <div>
+                            <p className="text-xs font-bold text-gray-500">
+                              {t('editCardsModal.contextLabel')}
+                            </p>
+                            <p className="text-sm text-gray-600 italic">{card.context}</p>
+                          </div>
+                        )}
+                        {card.tags && card.tags.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 mt-1">
+                            {card.tags.map((tag, i) => {
+                              const color = getTagColor(tag);
+                              return (
+                                <span
+                                  key={i}
+                                  className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${color.bg} ${color.text}`}
+                                >
+                                  {tag}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            ))
+                  )}
+                </div>
+              );
+            })
           )}
         </div>
 
-        {/* Bulk Tag Editor */}
+        {/* Bulk Edit Panel */}
         {isBulkMode && bulkSelectedCardIds.size > 0 && (
-          <div className="p-4 bg-indigo-50 border-t border-indigo-200">
-            <p className="text-sm font-semibold text-indigo-800 mb-2">
-              {t('editCardsModal.bulkTagsLabel', { count: bulkSelectedCardIds.size })}
-            </p>
-            <TagInput
-              tags={bulkTags}
-              onChange={setBulkTags}
-              existingTags={existingTags}
-              placeholder={t('editCardsModal.tagsPlaceholder')}
-            />
-            <button
-              onClick={handleBulkApplyTags}
-              disabled={isSavingCard || bulkTags.length === 0}
-              className="mt-2 bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors text-sm disabled:opacity-50 flex items-center gap-2"
-            >
-              <Tags size={14} />
-              {isSavingCard ? t('editCardsModal.saving') : t('editCardsModal.applyTags')}
-            </button>
+          <div className="p-4 bg-indigo-50 border-t border-indigo-200 space-y-3">
+            {/* Bulk Tags */}
+            <div>
+              <p className="text-sm font-semibold text-indigo-800 mb-2">
+                {t('editCardsModal.bulkTagsLabel', { count: bulkSelectedCardIds.size })}
+              </p>
+              <TagInput
+                tags={bulkTags}
+                onChange={setBulkTags}
+                existingTags={allExistingTags}
+                placeholder={t('editCardsModal.tagsPlaceholder')}
+              />
+              <button
+                onClick={handleBulkApplyTags}
+                disabled={isSavingCard || bulkTags.length === 0}
+                className="mt-2 bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors text-sm disabled:opacity-50 flex items-center gap-2"
+              >
+                <Tags size={14} />
+                {isSavingCard ? t('editCardsModal.saving') : t('editCardsModal.applyTags')}
+              </button>
+            </div>
+
+            {/* Bulk Type Change */}
+            <div className="border-t border-indigo-200 pt-3">
+              <p className="text-sm font-semibold text-indigo-800 mb-2">
+                {t('editCardsModal.bulkTypeLabel', { count: bulkSelectedCardIds.size })}
+              </p>
+              <div className="flex gap-2">
+                <select
+                  value={bulkType}
+                  onChange={e => setBulkType(e.target.value as CardType)}
+                  className="flex-1 border border-indigo-200 bg-white rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="standard">{t('editCardsModal.typeStandard')}</option>
+                  <option value="quiz">{t('editCardsModal.typeQuiz')}</option>
+                  <option value="type-answer">{t('editCardsModal.typeAnswer')}</option>
+                  <option value="multiple-answer">{t('editCardsModal.typeMultipleAnswer')}</option>
+                </select>
+                <button
+                  onClick={handleBulkChangeType}
+                  disabled={isSavingCard}
+                  className="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors text-sm disabled:opacity-50 flex items-center gap-2"
+                >
+                  <Filter size={14} />
+                  {isSavingCard ? t('editCardsModal.saving') : t('editCardsModal.applyType')}
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
