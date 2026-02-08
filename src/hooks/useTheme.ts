@@ -24,7 +24,9 @@ function getStoredThemeMode(): ThemeMode {
   try {
     const stored = localStorage.getItem(THEME_MODE_KEY);
     if (stored === 'light' || stored === 'night') return stored;
-  } catch {}
+  } catch {
+    // localStorage may be unavailable (SSR, privacy mode)
+  }
   return DEFAULT_MODE;
 }
 
@@ -33,7 +35,9 @@ function getStoredAccentTheme(): AccentTheme {
     const stored = localStorage.getItem(ACCENT_THEME_KEY);
     if (['violet', 'gold', 'silver', 'emerald', 'rose'].includes(stored || ''))
       return stored as AccentTheme;
-  } catch {}
+  } catch {
+    // localStorage may be unavailable (SSR, privacy mode)
+  }
   return DEFAULT_ACCENT;
 }
 
