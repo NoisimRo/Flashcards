@@ -541,7 +541,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         </div>
                       )}
                     </div>
-                    <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-2 rounded-full overflow-hidden"
+                      style={{ backgroundColor: 'var(--border-secondary)' }}
+                    >
                       <div
                         className={`h-full bg-gradient-to-r ${challenge.color} transition-all duration-500`}
                         style={{ width: `${progress}%` }}
@@ -571,7 +574,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <div className="grid grid-cols-7 gap-1.5">
               {activityCalendar.map((day, idx) => {
                 const intensityColors = [
-                  'bg-gray-100',
+                  'bg-[var(--bg-tertiary)]',
                   'bg-green-200',
                   'bg-green-400',
                   'bg-green-600',
@@ -597,7 +600,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 {[0, 1, 2, 3].map(i => (
                   <div
                     key={i}
-                    className={`w-3 h-3 rounded-sm ${['bg-gray-100', 'bg-green-200', 'bg-green-400', 'bg-green-600'][i]}`}
+                    className={`w-3 h-3 rounded-sm ${['bg-[var(--bg-tertiary)]', 'bg-green-200', 'bg-green-400', 'bg-green-600'][i]}`}
                   />
                 ))}
               </div>

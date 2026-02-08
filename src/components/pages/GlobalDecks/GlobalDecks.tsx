@@ -201,8 +201,8 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
     return (
       <div className="p-6 md:p-8 h-full flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-indigo-600 mx-auto mb-4" />
-          <p className="text-gray-600 font-medium">{t('loading')}</p>
+          <Loader2 className="w-12 h-12 animate-spin text-[var(--color-accent)] mx-auto mb-4" />
+          <p className="text-[var(--text-secondary)] font-medium">{t('loading')}</p>
         </div>
       </div>
     );
@@ -212,55 +212,58 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
     <div className="p-6 md:p-8 space-y-8 h-full overflow-y-auto">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">{t('header.title')}</h1>
-        <p className="text-gray-500 mt-2">{t('header.subtitle')}</p>
+        <h1 className="text-3xl font-bold text-[var(--text-primary)]">{t('header.title')}</h1>
+        <p className="text-[var(--text-tertiary)] mt-2">{t('header.subtitle')}</p>
       </div>
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-[#F8F6F1] p-4 rounded-xl">
+        <div className="bg-[var(--bg-secondary)] p-4 rounded-xl">
           <div className="flex items-center gap-3">
-            <BookOpen className="text-indigo-600" size={24} />
+            <BookOpen className="text-[var(--color-accent)]" size={24} />
             <div>
-              <p className="text-2xl font-bold text-gray-900">{decks.length}</p>
-              <p className="text-xs text-gray-500">{t('stats.decksAvailable')}</p>
+              <p className="text-2xl font-bold text-[var(--text-primary)]">{decks.length}</p>
+              <p className="text-xs text-[var(--text-tertiary)]">{t('stats.decksAvailable')}</p>
             </div>
           </div>
         </div>
-        <div className="bg-[#F8F6F1] p-4 rounded-xl">
+        <div className="bg-[var(--bg-secondary)] p-4 rounded-xl">
           <div className="flex items-center gap-3">
-            <Users className="text-blue-600" size={24} />
+            <Users className="text-blue-500" size={24} />
             <div>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-2xl font-bold text-[var(--text-primary)]">
                 {new Set(decks.map(d => d.ownerId)).size}
               </p>
-              <p className="text-xs text-gray-500">{t('stats.creators')}</p>
+              <p className="text-xs text-[var(--text-tertiary)]">{t('stats.creators')}</p>
             </div>
           </div>
         </div>
-        <div className="bg-[#F8F6F1] p-4 rounded-xl">
+        <div className="bg-[var(--bg-secondary)] p-4 rounded-xl">
           <div className="flex items-center gap-3">
-            <Filter className="text-green-600" size={24} />
+            <Filter className="text-green-500" size={24} />
             <div>
-              <p className="text-2xl font-bold text-gray-900">{subjects.length}</p>
-              <p className="text-xs text-gray-500">{t('stats.subjects')}</p>
+              <p className="text-2xl font-bold text-[var(--text-primary)]">{subjects.length}</p>
+              <p className="text-xs text-[var(--text-tertiary)]">{t('stats.subjects')}</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+      <div className="bg-[var(--card-bg)] p-6 rounded-2xl shadow-sm border border-[var(--card-border)]">
         <div className="flex flex-col md:flex-row gap-4">
           {/* Search Bar */}
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+              size={20}
+            />
             <input
               type="text"
               placeholder={t('search.placeholder')}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-3 border border-[var(--input-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-ring)] focus:border-transparent bg-[var(--input-bg)] text-[var(--text-primary)]"
             />
           </div>
 
@@ -268,7 +271,7 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
           <select
             value={selectedSubject}
             onChange={e => setSelectedSubject(e.target.value)}
-            className="px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white"
+            className="px-4 py-3 border border-[var(--input-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-ring)] focus:border-transparent bg-[var(--input-bg)] text-[var(--text-primary)]"
           >
             <option value="all">{t('search.allSubjects')}</option>
             {subjects.map(subject => (
@@ -282,7 +285,7 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
           <select
             value={selectedDifficulty}
             onChange={e => setSelectedDifficulty(e.target.value)}
-            className="px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white"
+            className="px-4 py-3 border border-[var(--input-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-ring)] focus:border-transparent bg-[var(--input-bg)] text-[var(--text-primary)]"
           >
             <option value="all">{t('search.allLevels')}</option>
             {difficulties.map(difficulty => (
@@ -295,7 +298,7 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
 
         {/* Active Filters Summary */}
         {(searchQuery || selectedSubject !== 'all' || selectedDifficulty !== 'all') && (
-          <div className="mt-4 flex items-center gap-2 text-sm text-gray-600">
+          <div className="mt-4 flex items-center gap-2 text-sm text-[var(--text-secondary)]">
             <Filter size={16} />
             <span>
               {t('search.showing', { filtered: filteredDecks.length, total: decks.length })}
@@ -306,7 +309,7 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
                 setSelectedSubject('all');
                 setSelectedDifficulty('all');
               }}
-              className="ml-auto text-indigo-600 hover:text-indigo-700 font-medium"
+              className="ml-auto text-[var(--color-accent-text)] hover:opacity-80 font-medium"
             >
               {t('search.resetFilters')}
             </button>
@@ -316,10 +319,12 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
 
       {/* Decks Grouped by Subject */}
       {Object.keys(decksBySubject).length === 0 ? (
-        <div className="bg-[#F8F6F1] rounded-2xl p-12 text-center">
-          <BookOpen className="mx-auto mb-4 text-gray-300" size={48} />
-          <h3 className="text-lg font-bold text-gray-600 mb-2">{t('empty.title')}</h3>
-          <p className="text-gray-500 text-sm">{t('empty.subtitle')}</p>
+        <div className="bg-[var(--bg-secondary)] rounded-2xl p-12 text-center">
+          <BookOpen className="mx-auto mb-4 text-[var(--text-muted)]" size={48} />
+          <h3 className="text-lg font-bold text-[var(--text-secondary)] mb-2">
+            {t('empty.title')}
+          </h3>
+          <p className="text-[var(--text-tertiary)] text-sm">{t('empty.subtitle')}</p>
         </div>
       ) : (
         Object.entries(decksBySubject)
@@ -329,8 +334,8 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
               {/* Subject Header */}
               <div className="flex items-center gap-3">
                 <div className={`w-1 h-8 ${getSubjectColor(subject)} rounded-full`}></div>
-                <h2 className="text-2xl font-bold text-gray-900">{subject}</h2>
-                <span className="text-sm text-gray-500 font-medium">
+                <h2 className="text-2xl font-bold text-[var(--text-primary)]">{subject}</h2>
+                <span className="text-sm text-[var(--text-tertiary)] font-medium">
                   ({subjectDecks.length}{' '}
                   {subjectDecks.length === 1 ? t('deckCard.deck') : t('deckCard.decks')})
                 </span>
@@ -344,16 +349,18 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
                   return (
                     <div
                       key={deck.id}
-                      className="bg-white border-2 border-gray-100 rounded-2xl p-6 hover:border-indigo-300 hover:shadow-lg transition-all group relative"
+                      className="bg-[var(--card-bg)] border-2 border-[var(--card-border)] rounded-2xl p-6 hover:border-[var(--color-accent)] hover:shadow-lg transition-all group relative"
                     >
                       {/* Rating Display (top-right, before menu) */}
                       {deck.averageRating && deck.averageRating > 0 && (
-                        <div className="absolute top-4 right-12 flex items-center gap-1 bg-white px-2 py-1 rounded-full shadow-sm border border-gray-100">
+                        <div className="absolute top-4 right-12 flex items-center gap-1 bg-[var(--bg-elevated)] px-2 py-1 rounded-full shadow-sm border border-[var(--border-subtle)]">
                           <Star size={14} className="fill-yellow-400 text-yellow-400" />
-                          <span className="text-sm font-semibold text-gray-700">
+                          <span className="text-sm font-semibold text-[var(--text-secondary)]">
                             {deck.averageRating.toFixed(1)}
                           </span>
-                          <span className="text-xs text-gray-500">({deck.reviewCount})</span>
+                          <span className="text-xs text-[var(--text-tertiary)]">
+                            ({deck.reviewCount})
+                          </span>
                         </div>
                       )}
 
@@ -362,13 +369,13 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
                         <div className="relative">
                           <button
                             onClick={e => toggleMenu(e, deck.id)}
-                            className="p-1 text-gray-400 hover:text-gray-900 rounded-full hover:bg-gray-200 transition-colors"
+                            className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded-full hover:bg-[var(--bg-tertiary)] transition-colors"
                           >
                             <MoreVertical size={18} />
                           </button>
 
                           {activeMenuId === deck.id && (
-                            <div className="absolute right-0 top-8 bg-white shadow-xl rounded-xl p-2 min-w-[180px] z-10 border border-gray-100 animate-fade-in">
+                            <div className="absolute right-0 top-8 bg-[var(--bg-elevated)] shadow-xl rounded-xl p-2 min-w-[180px] z-10 border border-[var(--border-subtle)] animate-fade-in">
                               {/* Edit cards - Only for teachers and admins */}
                               {isTeacherOrAdmin && deck.totalCards > 0 && (
                                 <button
@@ -376,7 +383,7 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
                                     e.stopPropagation();
                                     openEditCardsModal(deck);
                                   }}
-                                  className="w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg flex items-center gap-2 font-medium"
+                                  className="w-full text-left px-3 py-2 text-sm text-blue-500 hover:bg-[var(--bg-surface-hover)] rounded-lg flex items-center gap-2 font-medium"
                                 >
                                   <List size={16} /> {t('menu.editCards')}
                                 </button>
@@ -390,7 +397,7 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
                                     setReviewModalOpen(true);
                                     setActiveMenuId(null);
                                   }}
-                                  className="w-full text-left px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg flex items-center gap-2 font-medium"
+                                  className="w-full text-left px-3 py-2 text-sm text-[var(--color-accent-text)] hover:bg-[var(--color-accent-light)] rounded-lg flex items-center gap-2 font-medium"
                                 >
                                   <ThumbsUp size={16} /> {t('menu.leaveReview')}
                                 </button>
@@ -404,7 +411,7 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
                                     setFlagModalOpen(true);
                                     setActiveMenuId(null);
                                   }}
-                                  className="w-full text-left px-3 py-2 text-sm text-orange-600 hover:bg-orange-50 rounded-lg flex items-center gap-2 font-medium"
+                                  className="w-full text-left px-3 py-2 text-sm text-orange-500 hover:bg-orange-500/10 rounded-lg flex items-center gap-2 font-medium"
                                 >
                                   <Flag size={16} /> {t('menu.report')}
                                 </button>
@@ -421,9 +428,11 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
                         >
                           {subject}
                         </span>
-                        <h3 className="text-lg font-bold text-gray-900 mb-1 pr-8">{deck.title}</h3>
-                        <p className="text-sm text-gray-500 mb-2">{deck.topic}</p>
-                        <p className="text-xs text-gray-400 flex items-center gap-1">
+                        <h3 className="text-lg font-bold text-[var(--text-primary)] mb-1 pr-8">
+                          {deck.title}
+                        </h3>
+                        <p className="text-sm text-[var(--text-tertiary)] mb-2">{deck.topic}</p>
+                        <p className="text-xs text-[var(--text-muted)] flex items-center gap-1">
                           <Users size={12} />
                           {t('deckCard.createdBy')}{' '}
                           <span className="font-medium">
@@ -433,8 +442,8 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
                       </div>
 
                       {/* Deck Info */}
-                      <div className="mb-4 bg-gray-50 rounded-xl p-3">
-                        <div className="flex justify-between text-xs text-gray-600">
+                      <div className="mb-4 bg-[var(--bg-tertiary)] rounded-xl p-3">
+                        <div className="flex justify-between text-xs text-[var(--text-secondary)]">
                           <span>{t('deckCard.cards', { count: deck.totalCards })}</span>
                           <span>{t('deckCard.level', { level: deck.difficulty })}</span>
                         </div>
@@ -444,14 +453,14 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
                       <div className="flex gap-2">
                         <button
                           onClick={() => onStartSession(convertToDeck(deck))}
-                          className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg active:scale-95"
+                          className="flex-1 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg active:scale-95"
                         >
                           <Play size={16} fill="currentColor" />
                           <span>{t('deckCard.study')}</span>
                         </button>
                         <button
                           onClick={() => handleCopyDeck(deck)}
-                          className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2"
+                          className="bg-[var(--bg-tertiary)] hover:bg-[var(--bg-surface-hover)] text-[var(--text-secondary)] font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2"
                           title={t('deckCard.copy')}
                         >
                           <Copy size={16} />
@@ -460,7 +469,7 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
 
                       {/* Last Updated */}
                       {deck.updatedAt && (
-                        <p className="text-xs text-gray-400 text-center mt-3">
+                        <p className="text-xs text-[var(--text-muted)] text-center mt-3">
                           {t('deckCard.updated', {
                             date: new Date(deck.updatedAt).toLocaleDateString(i18n.language),
                           })}

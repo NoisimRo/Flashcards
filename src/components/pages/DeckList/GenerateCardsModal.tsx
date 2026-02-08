@@ -407,7 +407,7 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto p-8 shadow-2xl animate-scale-up relative"
+        className="bg-[var(--bg-surface)] rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto p-8 shadow-2xl animate-scale-up relative"
         onClick={e => e.stopPropagation()}
       >
         {/* "The Dealer's Table" Loading Overlay */}
@@ -444,7 +444,7 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
           </div>
         )}
 
-        <h2 className="text-2xl font-bold mb-6 text-gray-900">
+        <h2 className="text-2xl font-bold mb-6 text-[var(--text-primary)]">
           {mode === 'edit'
             ? t('modal.editDeck')
             : mode === 'generate'
@@ -458,11 +458,11 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
           {/* Row 1: Subject (2/3) + Language (1/3) */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="sm:col-span-2">
-              <label className="block text-sm font-bold text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">
                 {t('modal.subject')}
               </label>
               <select
-                className="w-full border-2 border-gray-100 bg-gray-50 rounded-xl p-3 font-medium outline-none focus:border-indigo-500 transition-colors"
+                className="w-full border-2 border-[var(--border-subtle)] bg-[var(--bg-tertiary)] rounded-xl p-3 font-medium outline-none focus:border-[var(--color-accent)] transition-colors text-[var(--text-primary)]"
                 value={subject}
                 onChange={e => setSubject(e.target.value)}
               >
@@ -474,11 +474,11 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
               </select>
             </div>
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">
                 {t('modal.language')}
               </label>
               <select
-                className="w-full border-2 border-gray-100 bg-gray-50 rounded-xl p-3 font-medium outline-none focus:border-indigo-500 transition-colors"
+                className="w-full border-2 border-[var(--border-subtle)] bg-[var(--bg-tertiary)] rounded-xl p-3 font-medium outline-none focus:border-[var(--color-accent)] transition-colors text-[var(--text-primary)]"
                 value={selectedLanguage}
                 onChange={e => setSelectedLanguage(e.target.value)}
               >
@@ -493,12 +493,12 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
 
           {/* Row 2: Title/Topic (full width) */}
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">
+            <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">
               {t('modal.titleLabel')}
             </label>
             <input
               type="text"
-              className="w-full border-2 border-gray-100 bg-gray-50 rounded-xl p-3 font-medium outline-none focus:border-indigo-500 transition-colors"
+              className="w-full border-2 border-[var(--border-subtle)] bg-[var(--bg-tertiary)] rounded-xl p-3 font-medium outline-none focus:border-[var(--color-accent)] transition-colors text-[var(--text-primary)]"
               placeholder={t('modal.titlePlaceholder')}
               value={title}
               onChange={e => setTitle(e.target.value)}
@@ -511,7 +511,7 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
               {/* Row 3: Number of Cards (50%) + Difficulty (50%) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                  <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">
                     {importMode === 'ai' ? t('modal.numberOfCardsAI') : t('modal.numberOfCards')}
                   </label>
                   <input
@@ -520,21 +520,21 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
                     max="50"
                     value={numberOfCards}
                     onChange={e => setNumberOfCards(parseInt(e.target.value) || 10)}
-                    className="w-full border-2 border-gray-100 bg-gray-50 rounded-xl p-3 font-medium outline-none focus:border-indigo-500 transition-colors disabled:opacity-50"
+                    className="w-full border-2 border-[var(--border-subtle)] bg-[var(--bg-tertiary)] rounded-xl p-3 font-medium outline-none focus:border-[var(--color-accent)] transition-colors text-[var(--text-primary)] disabled:opacity-50"
                     disabled={importMode !== 'ai'}
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-[var(--text-tertiary)] mt-1">
                     {importMode === 'ai'
                       ? t('modal.cardsRecommendation')
                       : t('modal.cardsFromFile')}
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                  <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">
                     {t('modal.difficultyLabel')}
                   </label>
                   <select
-                    className="w-full border-2 border-gray-100 bg-gray-50 rounded-xl p-3 font-medium outline-none focus:border-indigo-500 transition-colors"
+                    className="w-full border-2 border-[var(--border-subtle)] bg-[var(--bg-tertiary)] rounded-xl p-3 font-medium outline-none focus:border-[var(--color-accent)] transition-colors text-[var(--text-primary)]"
                     value={difficulty}
                     onChange={e => setDifficulty(e.target.value as Difficulty)}
                   >
@@ -549,7 +549,7 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
 
               {(mode === 'create' || mode === 'addCards') && (
                 <div className="pt-2">
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                  <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">
                     {mode === 'addCards' ? t('modal.addMethod') : t('modal.creationMethod')}
                   </label>
                   <div className="grid grid-cols-3 gap-3">
@@ -558,8 +558,8 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
                       onClick={() => setImportMode('ai')}
                       className={`p-3 rounded-xl border-2 text-sm flex flex-col items-center gap-1 font-bold transition-all ${
                         importMode === 'ai'
-                          ? 'bg-indigo-50 border-indigo-500 text-indigo-700'
-                          : 'border-gray-100 text-gray-500 hover:bg-gray-50'
+                          ? 'bg-[var(--color-accent-light)] border-[var(--color-accent)] text-[var(--color-accent-text)]'
+                          : 'border-[var(--border-subtle)] text-[var(--text-tertiary)] hover:bg-[var(--bg-surface-hover)]'
                       }`}
                     >
                       <Sparkles size={20} /> {t('modal.aiAuto')}
@@ -569,8 +569,8 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
                       onClick={() => setImportMode('file')}
                       className={`p-3 rounded-xl border-2 text-sm flex flex-col items-center gap-1 font-bold transition-all ${
                         importMode === 'file'
-                          ? 'bg-indigo-50 border-indigo-500 text-indigo-700'
-                          : 'border-gray-100 text-gray-500 hover:bg-gray-50'
+                          ? 'bg-[var(--color-accent-light)] border-[var(--color-accent)] text-[var(--color-accent-text)]'
+                          : 'border-[var(--border-subtle)] text-[var(--text-tertiary)] hover:bg-[var(--bg-surface-hover)]'
                       }`}
                     >
                       <Upload size={20} /> {t('modal.import')}
@@ -580,8 +580,8 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
                       onClick={() => setImportMode('manual')}
                       className={`p-3 rounded-xl border-2 text-sm flex flex-col items-center gap-1 font-bold transition-all ${
                         importMode === 'manual'
-                          ? 'bg-indigo-50 border-indigo-500 text-indigo-700'
-                          : 'border-gray-100 text-gray-500 hover:bg-gray-50'
+                          ? 'bg-[var(--color-accent-light)] border-[var(--color-accent)] text-[var(--color-accent-text)]'
+                          : 'border-[var(--border-subtle)] text-[var(--text-tertiary)] hover:bg-[var(--bg-surface-hover)]'
                       }`}
                     >
                       <Plus size={20} /> {t('modal.manual')}
@@ -593,96 +593,112 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
               {importMode === 'ai' && (
                 <>
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-3">
+                    <label className="block text-sm font-bold text-[var(--text-secondary)] mb-3">
                       {t('modal.cardTypes')}
                     </label>
                     <div className="space-y-2">
-                      <label className="flex items-center gap-3 cursor-pointer p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                      <label className="flex items-center gap-3 cursor-pointer p-3 bg-[var(--bg-tertiary)] rounded-xl hover:bg-[var(--bg-surface-hover)] transition-colors">
                         <input
                           type="checkbox"
                           checked={selectedCardTypes.includes('standard')}
                           onChange={() => toggleCardType('standard')}
-                          className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                          className="w-5 h-5 rounded border-[var(--border-primary)] text-[var(--color-accent)] focus:ring-[var(--color-accent-ring)]"
                         />
                         <div className="flex-1">
-                          <span className="font-semibold text-gray-900">{t('modal.standard')}</span>
-                          <p className="text-xs text-gray-600">{t('modal.standardDesc')}</p>
+                          <span className="font-semibold text-[var(--text-primary)]">
+                            {t('modal.standard')}
+                          </span>
+                          <p className="text-xs text-[var(--text-secondary)]">
+                            {t('modal.standardDesc')}
+                          </p>
                         </div>
                       </label>
 
-                      <label className="flex items-center gap-3 cursor-pointer p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                      <label className="flex items-center gap-3 cursor-pointer p-3 bg-[var(--bg-tertiary)] rounded-xl hover:bg-[var(--bg-surface-hover)] transition-colors">
                         <input
                           type="checkbox"
                           checked={selectedCardTypes.includes('quiz')}
                           onChange={() => toggleCardType('quiz')}
-                          className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                          className="w-5 h-5 rounded border-[var(--border-primary)] text-[var(--color-accent)] focus:ring-[var(--color-accent-ring)]"
                         />
                         <div className="flex-1">
-                          <span className="font-semibold text-gray-900">{t('modal.quiz')}</span>
-                          <p className="text-xs text-gray-600">{t('modal.quizDesc')}</p>
+                          <span className="font-semibold text-[var(--text-primary)]">
+                            {t('modal.quiz')}
+                          </span>
+                          <p className="text-xs text-[var(--text-secondary)]">
+                            {t('modal.quizDesc')}
+                          </p>
                         </div>
                       </label>
 
-                      <label className="flex items-center gap-3 cursor-pointer p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                      <label className="flex items-center gap-3 cursor-pointer p-3 bg-[var(--bg-tertiary)] rounded-xl hover:bg-[var(--bg-surface-hover)] transition-colors">
                         <input
                           type="checkbox"
                           checked={selectedCardTypes.includes('type-answer')}
                           onChange={() => toggleCardType('type-answer')}
-                          className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                          className="w-5 h-5 rounded border-[var(--border-primary)] text-[var(--color-accent)] focus:ring-[var(--color-accent-ring)]"
                         />
                         <div className="flex-1">
-                          <span className="font-semibold text-gray-900">
+                          <span className="font-semibold text-[var(--text-primary)]">
                             {t('modal.typeAnswer')}
                           </span>
-                          <p className="text-xs text-gray-600">{t('modal.typeAnswerDesc')}</p>
+                          <p className="text-xs text-[var(--text-secondary)]">
+                            {t('modal.typeAnswerDesc')}
+                          </p>
                         </div>
                       </label>
 
-                      <label className="flex items-center gap-3 cursor-pointer p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                      <label className="flex items-center gap-3 cursor-pointer p-3 bg-[var(--bg-tertiary)] rounded-xl hover:bg-[var(--bg-surface-hover)] transition-colors">
                         <input
                           type="checkbox"
                           checked={selectedCardTypes.includes('multiple-answer')}
                           onChange={() => toggleCardType('multiple-answer')}
-                          className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                          className="w-5 h-5 rounded border-[var(--border-primary)] text-[var(--color-accent)] focus:ring-[var(--color-accent-ring)]"
                         />
                         <div className="flex-1">
-                          <span className="font-semibold text-gray-900">
+                          <span className="font-semibold text-[var(--text-primary)]">
                             {t('modal.multipleAnswer')}
                           </span>
-                          <p className="text-xs text-gray-600">{t('modal.multipleAnswerDesc')}</p>
+                          <p className="text-xs text-[var(--text-secondary)]">
+                            {t('modal.multipleAnswerDesc')}
+                          </p>
                         </div>
                       </label>
                     </div>
-                    <p className="text-xs text-gray-500 mt-2">{t('modal.deselectCardType')}</p>
+                    <p className="text-xs text-[var(--text-tertiary)] mt-2">
+                      {t('modal.deselectCardType')}
+                    </p>
                   </div>
 
                   {/* Extra Context textarea */}
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                    <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">
                       {t('modal.extraContext')}
                     </label>
                     <textarea
-                      className="w-full border-2 border-gray-100 bg-gray-50 rounded-xl p-3 font-medium outline-none focus:border-indigo-500 transition-colors min-h-[120px] resize-y"
+                      className="w-full border-2 border-[var(--border-subtle)] bg-[var(--bg-tertiary)] rounded-xl p-3 font-medium outline-none focus:border-[var(--color-accent)] transition-colors text-[var(--text-primary)] min-h-[120px] resize-y"
                       placeholder={t('modal.extraContextPlaceholder')}
                       value={extraContext}
                       onChange={e => setExtraContext(e.target.value)}
                       maxLength={2000}
                     />
-                    <p className="text-xs text-gray-500 mt-1">{t('modal.extraContextHelper')}</p>
+                    <p className="text-xs text-[var(--text-tertiary)] mt-1">
+                      {t('modal.extraContextHelper')}
+                    </p>
                   </div>
                 </>
               )}
 
               {importMode === 'file' && (mode === 'create' || mode === 'addCards') && (
                 <div className="space-y-4">
-                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center bg-gray-50">
+                  <div className="border-2 border-dashed border-[var(--border-primary)] rounded-xl p-6 text-center bg-[var(--bg-tertiary)]">
                     <input
                       type="file"
                       accept=".txt,.csv"
                       onChange={handleFileSelect}
-                      className="w-full text-sm text-gray-500"
+                      className="w-full text-sm text-[var(--text-tertiary)]"
                     />
-                    <p className="text-xs text-gray-400 mt-2 font-medium">
+                    <p className="text-xs text-[var(--text-muted)] mt-2 font-medium">
                       {t('modal.fileImport')}
                     </p>
                     {selectedFile && (
@@ -713,7 +729,7 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 bg-white border-2 border-gray-200 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-50 transition-colors"
+              className="flex-1 bg-[var(--bg-surface)] border-2 border-[var(--border-secondary)] text-[var(--text-secondary)] font-bold py-3 rounded-xl hover:bg-[var(--bg-surface-hover)] transition-colors"
             >
               {t('modal.cancel')}
             </button>
@@ -725,7 +741,7 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
                   !fileContent &&
                   (mode === 'create' || mode === 'addCards'))
               }
-              className="flex-1 bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800 transition-colors flex justify-center items-center gap-2 shadow-lg hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-[var(--color-accent)] text-white font-bold py-3 rounded-xl hover:bg-[var(--color-accent-hover)] transition-colors flex justify-center items-center gap-2 shadow-lg hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isGenerating ? (
                 <Loader2 className="animate-spin" />

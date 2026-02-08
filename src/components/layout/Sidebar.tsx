@@ -83,7 +83,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="flex items-center gap-3 mb-8">
           <div
             className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${
-              isGuest ? 'bg-gray-300 text-gray-600' : ''
+              isGuest ? 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)]' : ''
             }`}
             style={
               !isGuest
@@ -148,7 +148,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Guest CTA */}
         {isGuest && onRegisterClick && onLoginClick && (
-          <div className="mb-6 bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-4 text-white space-y-3">
+          <div
+            className="mb-6 rounded-xl p-4 text-white space-y-3"
+            style={{ background: 'var(--color-accent-gradient)' }}
+          >
             <p className="text-sm opacity-90">{t('guestCta.message')}</p>
             <button
               onClick={onRegisterClick}
@@ -240,7 +243,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {/* Toggle Switch */}
             <div
               className={`relative w-10 h-5 rounded-full transition-colors duration-300 ${
-                isNight ? '' : 'bg-gray-300'
+                isNight ? '' : 'bg-[var(--border-primary)]'
               }`}
               style={isNight ? { backgroundColor: 'var(--color-accent)' } : undefined}
             >

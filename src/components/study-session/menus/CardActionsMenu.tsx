@@ -67,20 +67,20 @@ export const CardActionsMenu: React.FC<CardActionsMenuProps> = ({
             e.stopPropagation();
             setIsOpen(!isOpen);
           }}
-          className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          className="p-2 rounded-lg hover:bg-[var(--bg-tertiary)] transition-colors"
           title="Acțiuni card"
         >
-          <MoreVertical size={20} className="text-gray-600" />
+          <MoreVertical size={20} className="text-[var(--text-secondary)]" />
         </button>
 
         {/* Dropdown Menu */}
         {isOpen && (
-          <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-50">
+          <div className="absolute right-0 mt-2 w-48 bg-[var(--bg-elevated)] rounded-xl shadow-lg border border-[var(--border-subtle)] py-1 z-50">
             {/* Edit Option (only for owners/teachers) */}
             {canEditDelete && onEdit && (
               <button
                 onClick={handleEdit}
-                className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-gray-50 transition-colors text-gray-700 font-medium"
+                className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-[var(--bg-surface-hover)] transition-colors text-[var(--text-secondary)] font-medium"
               >
                 <Edit size={18} />
                 Editează
@@ -91,7 +91,7 @@ export const CardActionsMenu: React.FC<CardActionsMenuProps> = ({
             {canEditDelete && onDelete && (
               <button
                 onClick={handleDelete}
-                className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-red-50 transition-colors text-red-600 font-medium"
+                className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-red-500/10 transition-colors text-red-500 font-medium"
               >
                 <Trash2 size={18} />
                 Șterge
@@ -99,12 +99,14 @@ export const CardActionsMenu: React.FC<CardActionsMenuProps> = ({
             )}
 
             {/* Divider if both edit/delete and flag are shown */}
-            {canEditDelete && (onEdit || onDelete) && <div className="my-1 h-px bg-gray-200"></div>}
+            {canEditDelete && (onEdit || onDelete) && (
+              <div className="my-1 h-px bg-[var(--border-secondary)]"></div>
+            )}
 
             {/* Flag Option (available to all) */}
             <button
               onClick={handleFlag}
-              className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-orange-50 transition-colors text-orange-600 font-medium"
+              className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-orange-500/10 transition-colors text-orange-500 font-medium"
             >
               <Flag size={18} />
               Raportează

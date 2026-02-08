@@ -46,20 +46,22 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, deckId, deckTi
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-scale-up"
+        className="bg-[var(--bg-surface)] rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-scale-up"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+        <div className="p-6 border-b border-[var(--border-subtle)] flex justify-between items-center">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">{t('exportModal.title')}</h2>
-            <p className="text-sm text-gray-500 mt-1">
+            <h2 className="text-2xl font-bold text-[var(--text-primary)]">
+              {t('exportModal.title')}
+            </h2>
+            <p className="text-sm text-[var(--text-tertiary)] mt-1">
               {t('exportModal.subtitle', { title: deckTitle })}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-900 p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="text-[var(--text-muted)] hover:text-[var(--text-primary)] p-2 hover:bg-[var(--bg-tertiary)] rounded-full transition-colors"
           >
             <X size={24} />
           </button>
@@ -69,7 +71,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, deckId, deckTi
         <div className="p-6 space-y-6">
           {/* Format Selection */}
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-3">
+            <label className="block text-sm font-bold text-[var(--text-secondary)] mb-3">
               {t('exportModal.selectFormat')}
             </label>
             <div className="grid grid-cols-2 gap-3">
@@ -79,12 +81,12 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, deckId, deckTi
                 className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 font-bold transition-all ${
                   selectedFormat === 'csv'
                     ? 'bg-indigo-50 border-indigo-500 text-indigo-700'
-                    : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                    : 'border-[var(--border-secondary)] text-[var(--text-tertiary)] hover:bg-[var(--bg-surface-hover)]'
                 }`}
               >
                 <FileSpreadsheet size={24} />
                 <span>CSV</span>
-                <span className="text-xs font-normal text-gray-500">
+                <span className="text-xs font-normal text-[var(--text-tertiary)]">
                   {t('exportModal.csvDesc')}
                 </span>
               </button>
@@ -94,12 +96,12 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, deckId, deckTi
                 className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 font-bold transition-all ${
                   selectedFormat === 'txt'
                     ? 'bg-indigo-50 border-indigo-500 text-indigo-700'
-                    : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                    : 'border-[var(--border-secondary)] text-[var(--text-tertiary)] hover:bg-[var(--bg-surface-hover)]'
                 }`}
               >
                 <FileText size={24} />
                 <span>TXT</span>
-                <span className="text-xs font-normal text-gray-500">
+                <span className="text-xs font-normal text-[var(--text-tertiary)]">
                   {t('exportModal.txtDesc')}
                 </span>
               </button>
@@ -108,29 +110,33 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, deckId, deckTi
 
           {/* Include Progress Option */}
           {selectedFormat === 'csv' && (
-            <label className="flex items-center gap-3 cursor-pointer p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+            <label className="flex items-center gap-3 cursor-pointer p-3 bg-[var(--bg-tertiary)] rounded-xl hover:bg-[var(--bg-tertiary)] transition-colors">
               <input
                 type="checkbox"
                 checked={includeProgress}
                 onChange={e => setIncludeProgress(e.target.checked)}
-                className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                className="w-5 h-5 rounded border-[var(--input-border)] text-[var(--color-accent-text)] focus:ring-[var(--color-accent-ring)]"
               />
               <div className="flex-1">
-                <span className="font-semibold text-gray-900">
+                <span className="font-semibold text-[var(--text-primary)]">
                   {t('exportModal.includeProgress')}
                 </span>
-                <p className="text-xs text-gray-600">{t('exportModal.includeProgressDesc')}</p>
+                <p className="text-xs text-[var(--text-secondary)]">
+                  {t('exportModal.includeProgressDesc')}
+                </p>
               </div>
             </label>
           )}
 
           {/* Format Preview */}
-          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-            <p className="text-sm font-bold text-gray-700 mb-2">{t('exportModal.previewTitle')}</p>
-            <div className="bg-white border border-gray-200 rounded-lg p-3 font-mono text-xs text-gray-600 overflow-x-auto whitespace-nowrap">
+          <div className="bg-[var(--bg-tertiary)] border border-[var(--border-secondary)] rounded-xl p-4">
+            <p className="text-sm font-bold text-[var(--text-secondary)] mb-2">
+              {t('exportModal.previewTitle')}
+            </p>
+            <div className="bg-[var(--bg-surface)] border border-[var(--border-secondary)] rounded-lg p-3 font-mono text-xs text-[var(--text-secondary)] overflow-x-auto whitespace-nowrap">
               {selectedFormat === 'csv' ? (
                 <div className="space-y-1">
-                  <div className="text-gray-400">
+                  <div className="text-[var(--text-muted)]">
                     {includeProgress
                       ? 'Front,Back,Context,Type,Options,CorrectOptionIndex,Status,EaseFactor,Interval'
                       : 'Front,Back,Context,Type,Options,CorrectOptionIndex'}
@@ -153,23 +159,25 @@ export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, deckId, deckTi
                 </div>
               )}
             </div>
-            <p className="text-xs text-gray-500 mt-2">{t('exportModal.previewNote')}</p>
+            <p className="text-xs text-[var(--text-tertiary)] mt-2">
+              {t('exportModal.previewNote')}
+            </p>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-gray-100 flex gap-4">
+        <div className="p-6 border-t border-[var(--border-subtle)] flex gap-4">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 bg-white border-2 border-gray-200 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-50 transition-colors"
+            className="flex-1 bg-[var(--bg-surface)] border-2 border-[var(--border-secondary)] text-[var(--text-secondary)] font-bold py-3 rounded-xl hover:bg-[var(--bg-surface-hover)] transition-colors"
           >
             {t('modal.cancel')}
           </button>
           <button
             onClick={handleExport}
             disabled={isExporting}
-            className="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+            className="flex-1 bg-[var(--color-accent)] text-white font-bold py-3 rounded-xl hover:bg-[var(--color-accent-hover)] transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {isExporting ? (
               <Loader2 className="animate-spin" size={20} />

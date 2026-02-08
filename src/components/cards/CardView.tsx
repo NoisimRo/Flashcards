@@ -44,20 +44,20 @@ export const CardView: React.FC<CardViewProps> = ({
 
   return (
     <div
-      className={`bg-white border border-gray-200 rounded-xl p-4 relative group hover:shadow-md transition-shadow ${className}`}
+      className={`bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl p-4 relative group hover:shadow-md transition-shadow ${className}`}
     >
       {/* Three-dot menu */}
       <div className="absolute top-3 right-3">
         <button
           onClick={toggleMenu}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+          className="p-2 hover:bg-[var(--bg-tertiary)] rounded-lg transition-colors opacity-0 group-hover:opacity-100"
         >
-          <MoreVertical size={18} className="text-gray-600" />
+          <MoreVertical size={18} className="text-[var(--text-secondary)]" />
         </button>
 
         {activeMenu && (
           <div
-            className="absolute right-0 top-10 bg-white shadow-xl rounded-xl p-2 min-w-[180px] z-10 border border-gray-100 animate-fade-in"
+            className="absolute right-0 top-10 bg-[var(--bg-elevated)] shadow-xl rounded-xl p-2 min-w-[180px] z-10 border border-[var(--border-subtle)] animate-fade-in"
             onClick={e => e.stopPropagation()}
           >
             {canEdit && onEdit && (
@@ -67,7 +67,7 @@ export const CardView: React.FC<CardViewProps> = ({
                   onEdit();
                   setActiveMenu(false);
                 }}
-                className="w-full text-left px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg flex items-center gap-2 font-medium"
+                className="w-full text-left px-3 py-2 text-sm text-[var(--color-accent-text)] hover:bg-[var(--color-accent-light)] rounded-lg flex items-center gap-2 font-medium"
               >
                 <Edit size={16} /> Modifică
               </button>
@@ -80,7 +80,7 @@ export const CardView: React.FC<CardViewProps> = ({
                   onDelete();
                   setActiveMenu(false);
                 }}
-                className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2 font-medium"
+                className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-500/10 rounded-lg flex items-center gap-2 font-medium"
               >
                 <Trash2 size={16} /> Șterge
               </button>
@@ -93,7 +93,7 @@ export const CardView: React.FC<CardViewProps> = ({
                   onFlag();
                   setActiveMenu(false);
                 }}
-                className="w-full text-left px-3 py-2 text-sm text-orange-600 hover:bg-orange-50 rounded-lg flex items-center gap-2 font-medium"
+                className="w-full text-left px-3 py-2 text-sm text-orange-500 hover:bg-orange-500/10 rounded-lg flex items-center gap-2 font-medium"
               >
                 <Flag size={16} /> Raportează card
               </button>
@@ -105,19 +105,19 @@ export const CardView: React.FC<CardViewProps> = ({
       {/* Card content */}
       <div className="pr-8">
         <div className="mb-3">
-          <p className="text-xs font-medium text-gray-500 mb-1">FAȚĂ</p>
-          <p className="text-gray-900 font-medium">{card.front}</p>
+          <p className="text-xs font-medium text-[var(--text-tertiary)] mb-1">FAȚĂ</p>
+          <p className="text-[var(--text-primary)] font-medium">{card.front}</p>
         </div>
 
         <div>
-          <p className="text-xs font-medium text-gray-500 mb-1">SPATE</p>
-          <p className="text-gray-700">{card.back}</p>
+          <p className="text-xs font-medium text-[var(--text-tertiary)] mb-1">SPATE</p>
+          <p className="text-[var(--text-secondary)]">{card.back}</p>
         </div>
 
         {card.context && (
-          <div className="mt-3 pt-3 border-t border-gray-100">
-            <p className="text-xs font-medium text-gray-500 mb-1">CONTEXT</p>
-            <p className="text-sm text-gray-600">{card.context}</p>
+          <div className="mt-3 pt-3 border-t border-[var(--border-subtle)]">
+            <p className="text-xs font-medium text-[var(--text-tertiary)] mb-1">CONTEXT</p>
+            <p className="text-sm text-[var(--text-secondary)]">{card.context}</p>
           </div>
         )}
 

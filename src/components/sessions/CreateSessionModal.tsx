@@ -212,7 +212,7 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 hover:bg-[var(--bg-tertiary)] rounded-full transition-colors"
           >
             <X size={24} />
           </button>
@@ -222,7 +222,7 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
         <div className="p-6 space-y-6">
           {/* Selection Method */}
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-3">
+            <label className="block text-sm font-bold text-[var(--text-secondary)] mb-3">
               {t('create.method.label')}
             </label>
             <div className="grid grid-cols-2 gap-3">
@@ -232,12 +232,12 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                 className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${
                   selectionMethod === 'random'
                     ? 'border-[var(--color-accent)]'
-                    : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                    : 'border-[var(--border-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)]'
                 }`}
               >
                 <Shuffle size={24} />
                 <span className="font-semibold text-sm">{t('create.method.random.title')}</span>
-                <p className="text-xs text-center text-gray-500 mt-1 leading-tight">
+                <p className="text-xs text-center text-[var(--text-tertiary)] mt-1 leading-tight">
                   {t('create.method.random.description')}
                 </p>
               </button>
@@ -248,12 +248,12 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                 className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${
                   selectionMethod === 'smart'
                     ? 'border-[var(--color-accent)]'
-                    : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                    : 'border-[var(--border-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)]'
                 }`}
               >
                 <Brain size={24} />
                 <span className="font-semibold text-sm">{t('create.method.smart.title')}</span>
-                <p className="text-xs text-center text-gray-500 mt-1 leading-tight">
+                <p className="text-xs text-center text-[var(--text-tertiary)] mt-1 leading-tight">
                   {t('create.method.smart.description')}
                 </p>
               </button>
@@ -264,12 +264,12 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                 className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${
                   selectionMethod === 'manual'
                     ? 'border-[var(--color-accent)]'
-                    : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                    : 'border-[var(--border-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)]'
                 }`}
               >
                 <CheckSquare size={24} />
                 <span className="font-semibold text-sm">{t('create.method.manual.title')}</span>
-                <p className="text-xs text-center text-gray-500 mt-1 leading-tight">
+                <p className="text-xs text-center text-[var(--text-tertiary)] mt-1 leading-tight">
                   {t('create.method.manual.description')}
                 </p>
               </button>
@@ -280,12 +280,12 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                 className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${
                   selectionMethod === 'all'
                     ? 'border-[var(--color-accent)]'
-                    : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                    : 'border-[var(--border-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)]'
                 }`}
               >
                 <List size={24} />
                 <span className="font-semibold text-sm">{t('create.method.all.title')}</span>
-                <p className="text-xs text-center text-gray-500 mt-1 leading-tight">
+                <p className="text-xs text-center text-[var(--text-tertiary)] mt-1 leading-tight">
                   {t('create.method.all.description')}
                 </p>
               </button>
@@ -295,7 +295,7 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
           {/* Card Count (for random/smart) */}
           {(selectionMethod === 'random' || selectionMethod === 'smart') && (
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">
                 {t('create.cardCount.label')}: {cardCount}
               </label>
               <input
@@ -304,14 +304,14 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                 max={sliderMax}
                 value={Math.min(cardCount, sliderMax)}
                 onChange={e => setCardCount(parseInt(e.target.value))}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                className="w-full h-2 bg-[var(--border-secondary)] rounded-lg appearance-none cursor-pointer"
                 disabled={noCardsAvailable}
               />
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <div className="flex justify-between text-xs text-[var(--text-tertiary)] mt-1">
                 <span>{t('create.cardCount.min')}</span>
                 <span>{t('create.cardCount.max', { count: Math.min(50, availableCards) })}</span>
               </div>
-              <p className="text-sm text-gray-600 mt-2">
+              <p className="text-sm text-[var(--text-secondary)] mt-2">
                 {loadingCount ? '...' : t('create.cardCount.available', { count: availableCards })}
               </p>
             </div>
@@ -324,13 +324,13 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                 type="checkbox"
                 checked={excludeMastered}
                 onChange={e => setExcludeMastered(e.target.checked)}
-                className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mt-0.5"
+                className="w-5 h-5 rounded border-[var(--border-primary)] text-[var(--color-accent)] focus:ring-[var(--color-accent-ring)] mt-0.5"
               />
               <div className="flex-1">
-                <span className="font-semibold text-gray-900">
+                <span className="font-semibold text-[var(--text-primary)]">
                   {t('create.options.excludeMastered.label')}
                 </span>
-                <p className="text-xs text-gray-600">
+                <p className="text-xs text-[var(--text-secondary)]">
                   {t('create.options.excludeMastered.description')}
                 </p>
               </div>
@@ -340,13 +340,13 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                 type="checkbox"
                 checked={excludeActiveSessionCards}
                 onChange={e => setExcludeActiveSessionCards(e.target.checked)}
-                className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mt-0.5"
+                className="w-5 h-5 rounded border-[var(--border-primary)] text-[var(--color-accent)] focus:ring-[var(--color-accent-ring)] mt-0.5"
               />
               <div className="flex-1">
-                <span className="font-semibold text-gray-900">
+                <span className="font-semibold text-[var(--text-primary)]">
                   {t('create.options.excludeActiveSessions.label')}
                 </span>
-                <p className="text-xs text-gray-600">
+                <p className="text-xs text-[var(--text-secondary)]">
                   {t('create.options.excludeActiveSessions.description')}
                 </p>
               </div>
@@ -367,9 +367,9 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
 
           {/* Manual Card Selection */}
           {selectionMethod === 'manual' && (
-            <div className="border-2 border-indigo-200 rounded-xl p-4 bg-indigo-50">
+            <div className="border-2 border-[var(--color-accent)]/30 rounded-xl p-4 bg-[var(--color-accent-light)]">
               <div className="flex justify-between items-center mb-3">
-                <h4 className="font-semibold text-gray-900">
+                <h4 className="font-semibold text-[var(--text-primary)]">
                   {t('create.manual.title', { count: selectedCardIds.length })}
                 </h4>
                 {deckCards.length > 0 && (
@@ -380,7 +380,7 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                         selectedCardIds.length === deckCards.length ? [] : deckCards.map(c => c.id)
                       )
                     }
-                    className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                    className="text-sm text-[var(--color-accent-text)] hover:opacity-80 font-medium"
                   >
                     {selectedCardIds.length === deckCards.length
                       ? t('create.manual.deselectAll')
@@ -392,7 +392,7 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
               {/* Topic filter pills */}
               {availableTags.length > 0 && (
                 <div className="mb-3">
-                  <h5 className="text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-1">
+                  <h5 className="text-xs font-bold text-[var(--text-tertiary)] uppercase mb-2 flex items-center gap-1">
                     <Tag size={12} />
                     {t('create.manual.filterByTopics')}
                   </h5>
@@ -411,8 +411,8 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                           }
                           className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                             isSelected
-                              ? `${color.bg} ${color.text} ring-2 ring-indigo-400`
-                              : 'bg-white text-gray-500 hover:bg-gray-100 border border-gray-200'
+                              ? `${color.bg} ${color.text} ring-2 ring-[var(--color-accent)]`
+                              : 'bg-[var(--bg-surface)] text-[var(--text-tertiary)] hover:bg-[var(--bg-surface-hover)] border border-[var(--border-secondary)]'
                           }`}
                         >
                           {tag}
@@ -426,7 +426,7 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                           setSelectedTags([]);
                           setSelectedCardIds([]);
                         }}
-                        className="text-xs text-gray-500 hover:text-gray-700 underline ml-1"
+                        className="text-xs text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] underline ml-1"
                       >
                         {t('create.manual.clearFilters')}
                       </button>
@@ -436,11 +436,11 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
               )}
 
               {loadingCards ? (
-                <p className="text-sm text-gray-600 text-center py-4">
+                <p className="text-sm text-[var(--text-secondary)] text-center py-4">
                   {t('create.manual.loading')}
                 </p>
               ) : deckCards.length === 0 ? (
-                <p className="text-sm text-gray-600 text-center py-4">
+                <p className="text-sm text-[var(--text-secondary)] text-center py-4">
                   {t('create.manual.noCards')}
                 </p>
               ) : (
@@ -448,19 +448,19 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
                   {deckCards.map((card, index) => (
                     <label
                       key={card.id}
-                      className="flex items-start gap-3 p-3 bg-white rounded-lg hover:bg-gray-50 cursor-pointer transition-colors border border-gray-200"
+                      className="flex items-start gap-3 p-3 bg-[var(--bg-surface)] rounded-lg hover:bg-[var(--bg-surface-hover)] cursor-pointer transition-colors border border-[var(--border-secondary)]"
                     >
                       <input
                         type="checkbox"
                         checked={selectedCardIds.includes(card.id)}
                         onChange={() => toggleCardSelection(card.id)}
-                        className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mt-0.5"
+                        className="w-5 h-5 rounded border-[var(--border-primary)] text-[var(--color-accent)] focus:ring-[var(--color-accent-ring)] mt-0.5"
                       />
                       <div className="flex-1 min-w-0">
-                        <span className="text-xs font-semibold text-gray-500">
+                        <span className="text-xs font-semibold text-[var(--text-tertiary)]">
                           {t('create.manual.cardNumber', { number: index + 1 })}
                         </span>
-                        <p className="text-sm text-gray-900 truncate">{card.front}</p>
+                        <p className="text-sm text-[var(--text-primary)] truncate">{card.front}</p>
                       </div>
                     </label>
                   ))}

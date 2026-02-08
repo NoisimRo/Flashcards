@@ -119,7 +119,7 @@ const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-accent)]"></div>
       </div>
     );
   }
@@ -129,17 +129,18 @@ const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({
     if (decks.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center py-16 px-4">
-          <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-3xl p-12 max-w-md w-full text-center shadow-lg">
-            <Layers size={64} className="mx-auto text-indigo-600 mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">
+          <div className="bg-[var(--color-accent-light)] rounded-3xl p-12 max-w-md w-full text-center shadow-lg">
+            <Layers size={64} className="mx-auto text-[var(--color-accent)] mb-4" />
+            <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-3">
               Creează prima colecție de flashcards
             </h2>
-            <p className="text-gray-600 mb-6">
+            <p className="text-[var(--text-secondary)] mb-6">
               Pentru a începe o sesiune de studiu, mai întâi trebuie să creezi un deck cu carduri.
             </p>
             <button
               onClick={onCreateDeck}
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 flex items-center gap-2 mx-auto"
+              className="text-white font-bold py-3 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 flex items-center gap-2 mx-auto"
+              style={{ background: 'var(--color-accent-gradient)' }}
             >
               <Plus size={20} />
               Deck nou
@@ -152,10 +153,12 @@ const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({
     // Scenario B: Decks exist but no active sessions
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4">
-        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-3xl p-12 max-w-md w-full text-center shadow-lg">
-          <Brain size={64} className="mx-auto text-green-600 mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">Creează o sesiune de studiu</h2>
-          <p className="text-gray-600 mb-6">
+        <div className="bg-green-500/10 rounded-3xl p-12 max-w-md w-full text-center shadow-lg">
+          <Brain size={64} className="mx-auto text-green-500 mb-4" />
+          <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-3">
+            Creează o sesiune de studiu
+          </h2>
+          <p className="text-[var(--text-secondary)] mb-6">
             Nu ai nicio sesiune activă. Începe o sesiune nouă pentru a învăța!
           </p>
           <button
@@ -165,7 +168,7 @@ const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({
                 onChangeView('decks');
               }
             }}
-            className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 flex items-center gap-2 mx-auto"
+            className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 flex items-center gap-2 mx-auto"
           >
             <Plus size={20} />
             Sesiune nouă
@@ -179,8 +182,8 @@ const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({
     <div className="p-6 md:p-8 space-y-8 h-full overflow-y-auto">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Sesiuni Active</h1>
-          <p className="text-gray-500">
+          <h1 className="text-3xl font-bold text-[var(--text-primary)]">Sesiuni Active</h1>
+          <p className="text-[var(--text-tertiary)]">
             {activeSessions.length} sesiuni de învățare în desfășurare
           </p>
         </div>
@@ -196,7 +199,7 @@ const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({
           return (
             <div
               key={session.id}
-              className="bg-[#F8F6F1] p-6 rounded-3xl relative group hover:shadow-md transition-shadow flex flex-col"
+              className="bg-[var(--card-bg)] p-6 rounded-3xl relative group hover:shadow-md transition-shadow flex flex-col border border-[var(--card-border)]"
             >
               {/* Watermark Icon */}
               <div className="absolute top-6 right-6 opacity-10 pointer-events-none">
@@ -208,13 +211,13 @@ const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({
                 <div className="relative">
                   <button
                     onClick={e => toggleMenu(e, session.id)}
-                    className="p-1 text-gray-400 hover:text-gray-900 rounded-full hover:bg-gray-200 transition-colors"
+                    className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded-full hover:bg-[var(--bg-tertiary)] transition-colors"
                   >
                     <MoreVertical size={18} />
                   </button>
 
                   {activeMenuId === session.id && (
-                    <div className="absolute right-0 top-8 bg-white shadow-xl rounded-xl p-2 min-w-[180px] z-10 border border-gray-100 animate-fade-in">
+                    <div className="absolute right-0 top-8 bg-[var(--bg-elevated)] shadow-xl rounded-xl p-2 min-w-[180px] z-10 border border-[var(--border-subtle)] animate-fade-in">
                       {/* Abandonează sesiunea */}
                       <button
                         onClick={e => {
@@ -222,7 +225,7 @@ const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({
                           handleAbandon(session.id, session.title);
                           setActiveMenuId(null);
                         }}
-                        className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2 font-medium"
+                        className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-500/10 rounded-lg flex items-center gap-2 font-medium"
                       >
                         <Trash2 size={16} /> Abandonează sesiunea
                       </button>
@@ -232,15 +235,15 @@ const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({
               </div>
 
               {/* Row 1 (H3): Category + Topic */}
-              <h3 className="text-2xl font-bold text-gray-900 mb-2 relative z-10 pr-16">
+              <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-2 relative z-10 pr-16">
                 {session.deck?.subjectName || 'Sesiune'}
                 {session.deck?.topic ? ` • ${session.deck.topic}` : ''}
               </h3>
 
               {/* Row 2: Metadata - Cards Count | Method */}
-              <div className="flex items-center gap-2 mb-4 text-sm text-gray-600 font-medium">
+              <div className="flex items-center gap-2 mb-4 text-sm text-[var(--text-secondary)] font-medium">
                 <span>{session.totalCards} carduri</span>
-                <span className="text-gray-400">|</span>
+                <span className="text-[var(--text-muted)]">|</span>
                 <div className={`flex items-center gap-1 ${methodColor}`}>
                   <MethodIcon size={16} />
                   <span className="capitalize">{session.selectionMethod}</span>
@@ -259,7 +262,7 @@ const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({
                       stroke="currentColor"
                       strokeWidth="8"
                       fill="none"
-                      className="text-gray-200"
+                      className="text-[var(--border-secondary)]"
                     />
                     {/* Progress circle */}
                     <circle
@@ -271,14 +274,16 @@ const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({
                       fill="none"
                       strokeDasharray={`${2 * Math.PI * 56}`}
                       strokeDashoffset={`${2 * Math.PI * 56 * (1 - progress / 100)}`}
-                      className="text-indigo-600 transition-all duration-500"
+                      className="text-[var(--color-accent)] transition-all duration-500"
                       strokeLinecap="round"
                     />
                   </svg>
                   {/* Center text */}
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-3xl font-bold text-gray-900">{progress}%</span>
-                    <span className="text-xs text-gray-500 font-medium">
+                    <span className="text-3xl font-bold text-[var(--text-primary)]">
+                      {progress}%
+                    </span>
+                    <span className="text-xs text-[var(--text-tertiary)] font-medium">
                       {session.currentCardIndex}/{session.totalCards}
                     </span>
                   </div>
@@ -287,17 +292,19 @@ const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({
 
               {/* Answer Stats */}
               <div className="text-center mb-4">
-                <div className="text-sm text-gray-600 font-medium space-x-3">
-                  <span className="text-green-600">✓ {stats.correct} știute</span>
-                  <span className="text-red-600">✗ {stats.incorrect} greșite</span>
-                  <span className="text-gray-500">⊘ {stats.skipped} sărite</span>
+                <div className="text-sm text-[var(--text-secondary)] font-medium space-x-3">
+                  <span className="text-green-500">✓ {stats.correct} știute</span>
+                  <span className="text-red-500">✗ {stats.incorrect} greșite</span>
+                  <span className="text-[var(--text-tertiary)]">⊘ {stats.skipped} sărite</span>
                 </div>
               </div>
 
               {/* Time Info */}
-              <div className="bg-white/70 rounded-xl p-3 text-center mb-6">
-                <p className="text-xs text-gray-500 font-medium mb-1">Timp petrecut</p>
-                <p className="text-lg font-bold text-gray-900">
+              <div className="bg-[var(--bg-surface)]/70 rounded-xl p-3 text-center mb-6 border border-[var(--border-subtle)]">
+                <p className="text-xs text-[var(--text-tertiary)] font-medium mb-1">
+                  Timp petrecut
+                </p>
+                <p className="text-lg font-bold text-[var(--text-primary)]">
                   {formatDuration(session.durationSeconds)}
                 </p>
               </div>
@@ -306,7 +313,7 @@ const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({
               <div className="flex gap-2 mt-auto">
                 <button
                   onClick={() => onResumeSession(session.id)}
-                  className="w-full bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2"
+                  className="w-full bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2"
                 >
                   <Play size={18} fill="currentColor" /> Continuă
                 </button>
