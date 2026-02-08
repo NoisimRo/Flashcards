@@ -436,13 +436,18 @@ export const DeckList: React.FC<DeckListProps> = ({
                     e.stopPropagation();
                     onStartSession(deck);
                   }}
-                  className="flex-1 bg-[var(--bg-tertiary)] hover:bg-[var(--bg-surface-hover)] text-[var(--text-primary)] font-bold py-2.5 px-2 rounded-xl transition-all flex items-center justify-center gap-1 text-xs disabled:opacity-50 disabled:cursor-not-allowed border border-[var(--border-primary)]"
+                  className="flex-1 font-bold py-2.5 px-2 rounded-xl transition-all flex items-center justify-center gap-1 text-xs disabled:opacity-50 disabled:cursor-not-allowed border"
+                  style={{
+                    backgroundColor: 'var(--bg-surface)',
+                    borderColor: 'var(--border-primary)',
+                    color: 'var(--text-secondary)',
+                  }}
                   disabled={deck.totalCards === 0}
                   title={
                     deck.totalCards > 0 ? t('deckCard.createSession') : t('deckCard.addCardsFirst')
                   }
                 >
-                  <Play size={16} fill="currentColor" /> {t('deckCard.session')}
+                  <Play size={16} /> {t('deckCard.session')}
                 </button>
               </div>
             </div>

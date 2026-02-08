@@ -11,8 +11,8 @@ export const XPIndicator: React.FC = () => {
 
   return (
     <div className="flex items-center gap-1 flex-shrink-0">
-      <Zap size={18} className="text-yellow-600" fill="currentColor" />
-      <span className="font-bold text-yellow-700 text-sm">+{sessionXP}</span>
+      <Zap size={18} className="text-yellow-500" fill="currentColor" />
+      <span className="font-bold text-yellow-500 text-sm">+{sessionXP}</span>
     </div>
   );
 };

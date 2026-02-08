@@ -22,11 +22,11 @@ const CARD_TYPE_LABELS: Record<CardType, string> = {
   'multiple-answer': 'editCardsModal.typeMultipleAnswer',
 };
 
-const CARD_TYPE_COLORS: Record<CardType, string> = {
-  standard: 'bg-gray-100 text-gray-700',
-  quiz: 'bg-purple-100 text-purple-700',
-  'type-answer': 'bg-blue-100 text-blue-700',
-  'multiple-answer': 'bg-amber-100 text-amber-700',
+const CARD_TYPE_STYLES: Record<CardType, { bg: string; text: string }> = {
+  standard: { bg: 'var(--bg-tertiary)', text: 'var(--text-secondary)' },
+  quiz: { bg: 'rgba(168, 85, 247, 0.15)', text: '#a855f7' },
+  'type-answer': { bg: 'rgba(59, 130, 246, 0.15)', text: '#3b82f6' },
+  'multiple-answer': { bg: 'rgba(245, 158, 11, 0.15)', text: '#f59e0b' },
 };
 
 interface EditCardsModalProps {
@@ -344,11 +344,17 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
                 setBulkSelectedCardIds(new Set());
                 setBulkTags([]);
               }}
-              className={`text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
+              className="text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5"
+              style={
                 isBulkMode
-                  ? 'bg-indigo-100 text-indigo-700'
-                  : 'text-[var(--text-tertiary)] hover:bg-[var(--bg-tertiary)]'
-              }`}
+                  ? {
+                      backgroundColor: 'var(--color-accent-light)',
+                      color: 'var(--color-accent-text)',
+                    }
+                  : {
+                      color: 'var(--text-tertiary)',
+                    }
+              }
             >
               <Tags size={16} />
               {t('editCardsModal.bulkEdit')}
@@ -427,7 +433,7 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
             </div>
           ) : filteredCards.length === 0 ? (
             <div className="text-center py-12 text-[var(--text-muted)]">
-              <Search className="mx-auto mb-3 text-gray-300" size={32} />
+              <Search className="mx-auto mb-3" size={32} style={{ color: 'var(--text-muted)' }} />
               <p className="font-medium">{t('editCardsModal.noCards')}</p>
             </div>
           ) : (
@@ -436,7 +442,12 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
               return (
                 <div
                   key={card.id}
-                  className="bg-[var(--bg-tertiary)] rounded-xl p-4 border border-[var(--border-secondary)] hover:border-indigo-300 transition-colors"
+                  className="bg-[var(--bg-tertiary)] rounded-xl p-4 border border-[var(--border-secondary)] transition-colors"
+                  style={{ ['--tw-border-opacity' as string]: 1 }}
+                  onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--color-accent)')}
+                  onMouseLeave={e =>
+                    (e.currentTarget.style.borderColor = 'var(--border-secondary)')
+                  }
                 >
                   {/* View Mode (always shown - edit opens as separate modal) */}
                   <div>
@@ -459,7 +470,11 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
                           {t('editCardsModal.cardNumber', { number: originalIndex + 1 })}
                         </span>
                         <span
-                          className={`px-2 py-0.5 rounded-full text-xs font-semibold ${CARD_TYPE_COLORS[card.type]}`}
+                          className="px-2 py-0.5 rounded-full text-xs font-semibold"
+                          style={{
+                            backgroundColor: CARD_TYPE_STYLES[card.type].bg,
+                            color: CARD_TYPE_STYLES[card.type].text,
+                          }}
                         >
                           {t(CARD_TYPE_LABELS[card.type])}
                         </span>
@@ -467,14 +482,27 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
                       <div className="flex gap-2">
                         <button
                           onClick={() => setEditingCard(card)}
-                          className="p-1.5 text-[var(--color-accent-text)] hover:bg-indigo-50 rounded-lg transition-colors"
+                          className="p-1.5 rounded-lg transition-colors"
+                          style={{ color: 'var(--color-accent-text)' }}
+                          onMouseEnter={e =>
+                            (e.currentTarget.style.backgroundColor = 'var(--color-accent-subtle)')
+                          }
+                          onMouseLeave={e =>
+                            (e.currentTarget.style.backgroundColor = 'transparent')
+                          }
                           title={t('editCardsModal.edit')}
                         >
                           <Edit size={16} />
                         </button>
                         <button
                           onClick={() => handleDeleteCard(card.id)}
-                          className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-1.5 text-red-500 rounded-lg transition-colors"
+                          onMouseEnter={e =>
+                            (e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)')
+                          }
+                          onMouseLeave={e =>
+                            (e.currentTarget.style.backgroundColor = 'transparent')
+                          }
                           title={t('editCardsModal.delete')}
                         >
                           <Trash2 size={16} />
@@ -533,10 +561,19 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
 
         {/* Bulk Edit Panel */}
         {isBulkMode && bulkSelectedCardIds.size > 0 && (
-          <div className="p-4 bg-indigo-50 border-t border-indigo-200 space-y-3">
+          <div
+            className="p-4 border-t space-y-3"
+            style={{
+              backgroundColor: 'var(--color-accent-subtle)',
+              borderColor: 'var(--border-secondary)',
+            }}
+          >
             {/* Bulk Tags */}
             <div>
-              <p className="text-sm font-semibold text-indigo-800 mb-2">
+              <p
+                className="text-sm font-semibold mb-2"
+                style={{ color: 'var(--color-accent-text)' }}
+              >
                 {t('editCardsModal.bulkTagsLabel', { count: bulkSelectedCardIds.size })}
               </p>
               <TagInput
@@ -556,15 +593,24 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
             </div>
 
             {/* Bulk Type Change */}
-            <div className="border-t border-indigo-200 pt-3">
-              <p className="text-sm font-semibold text-indigo-800 mb-2">
+            <div className="border-t pt-3" style={{ borderColor: 'var(--border-secondary)' }}>
+              <p
+                className="text-sm font-semibold mb-2"
+                style={{ color: 'var(--color-accent-text)' }}
+              >
                 {t('editCardsModal.bulkTypeLabel', { count: bulkSelectedCardIds.size })}
               </p>
               <div className="flex gap-2">
                 <select
                   value={bulkType}
                   onChange={e => setBulkType(e.target.value as CardType)}
-                  className="flex-1 border border-indigo-200 bg-white rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-ring)]"
+                  className="flex-1 rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-ring)]"
+                  style={{
+                    backgroundColor: 'var(--input-bg)',
+                    borderWidth: '1px',
+                    borderColor: 'var(--input-border)',
+                    color: 'var(--text-primary)',
+                  }}
                 >
                   <option value="standard">{t('editCardsModal.typeStandard')}</option>
                   <option value="quiz">{t('editCardsModal.typeQuiz')}</option>
