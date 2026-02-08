@@ -149,11 +149,20 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
                   type="button"
                   onClick={() => setRole('student')}
                   className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border-2 font-medium transition-all ${
-                    role === 'student'
-                      ? 'border-gray-900 bg-gray-900 text-white'
-                      : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                    role === 'student' ? 'text-white' : 'hover:border-[var(--border-primary)]'
                   }`}
-                  style={role !== 'student' ? { backgroundColor: 'var(--bg-surface)' } : undefined}
+                  style={
+                    role === 'student'
+                      ? {
+                          backgroundColor: 'var(--color-accent)',
+                          borderColor: 'var(--color-accent)',
+                        }
+                      : {
+                          backgroundColor: 'var(--bg-surface)',
+                          borderColor: 'var(--border-secondary)',
+                          color: 'var(--text-secondary)',
+                        }
+                  }
                 >
                   <GraduationCap size={20} />
                   Elev
@@ -162,11 +171,20 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
                   type="button"
                   onClick={() => setRole('teacher')}
                   className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border-2 font-medium transition-all ${
-                    role === 'teacher'
-                      ? 'border-gray-900 bg-gray-900 text-white'
-                      : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                    role === 'teacher' ? 'text-white' : 'hover:border-[var(--border-primary)]'
                   }`}
-                  style={role !== 'teacher' ? { backgroundColor: 'var(--bg-surface)' } : undefined}
+                  style={
+                    role === 'teacher'
+                      ? {
+                          backgroundColor: 'var(--color-accent)',
+                          borderColor: 'var(--color-accent)',
+                        }
+                      : {
+                          backgroundColor: 'var(--bg-surface)',
+                          borderColor: 'var(--border-secondary)',
+                          color: 'var(--text-secondary)',
+                        }
+                  }
                 >
                   <User size={20} />
                   Profesor
@@ -243,7 +261,8 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gray-900 hover:bg-gray-800 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ backgroundColor: 'var(--color-accent)' }}
             >
               {isLoading ? (
                 <>

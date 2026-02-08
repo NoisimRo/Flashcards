@@ -101,7 +101,10 @@ export const Settings: React.FC<SettingsProps> = ({
 
       {/* Guest CTA Banner */}
       {isGuest && (
-        <div className="bg-gradient-to-r from-gray-900 to-gray-800 p-6 rounded-3xl mb-6 text-white">
+        <div
+          className="p-6 rounded-3xl mb-6 text-white"
+          style={{ background: 'var(--color-accent-gradient)' }}
+        >
           <h3 className="text-xl font-bold mb-2">{t('guestBanner.title')}</h3>
           <p className="text-white/80 text-sm mb-4">{t('guestBanner.message')}</p>
           <div className="flex gap-3">

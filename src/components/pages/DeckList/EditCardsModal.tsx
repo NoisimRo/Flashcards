@@ -321,14 +321,16 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
       onClick={handleClose}
     >
       <div
-        className="bg-white rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-hidden shadow-2xl animate-scale-up flex flex-col"
+        className="bg-[var(--bg-surface)] rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-hidden shadow-2xl animate-scale-up flex flex-col"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+        <div className="p-6 border-b border-[var(--border-subtle)] flex justify-between items-center">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">{t('editCardsModal.title')}</h2>
-            <p className="text-sm text-gray-500 mt-1">
+            <h2 className="text-2xl font-bold text-[var(--text-primary)]">
+              {t('editCardsModal.title')}
+            </h2>
+            <p className="text-sm text-[var(--text-tertiary)] mt-1">
               {t('editCardsModal.subtitle', {
                 title: deck.title,
                 count: deck.cards.length,
@@ -343,7 +345,9 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
                 setBulkTags([]);
               }}
               className={`text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
-                isBulkMode ? 'bg-indigo-100 text-indigo-700' : 'text-gray-500 hover:bg-gray-100'
+                isBulkMode
+                  ? 'bg-indigo-100 text-indigo-700'
+                  : 'text-[var(--text-tertiary)] hover:bg-[var(--bg-tertiary)]'
               }`}
             >
               <Tags size={16} />
@@ -351,7 +355,7 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
             </button>
             <button
               onClick={handleClose}
-              className="text-gray-400 hover:text-gray-900 p-2 hover:bg-gray-100 rounded-full transition-colors"
+              className="text-[var(--text-muted)] hover:text-[var(--text-primary)] p-2 hover:bg-[var(--bg-tertiary)] rounded-full transition-colors"
             >
               <X size={24} />
             </button>
@@ -359,22 +363,25 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
         </div>
 
         {/* Search & Filter Bar */}
-        <div className="px-6 pt-4 pb-2 flex flex-col sm:flex-row gap-2 border-b border-gray-50">
+        <div className="px-6 pt-4 pb-2 flex flex-col sm:flex-row gap-2 border-b border-[var(--border-subtle)]">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+              size={16}
+            />
             <input
               type="text"
               placeholder={t('editCardsModal.searchPlaceholder')}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full pl-9 pr-3 py-2 border border-[var(--input-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-ring)] focus:border-transparent bg-[var(--input-bg)]"
             />
           </div>
           <div className="relative">
             <select
               value={filterType}
               onChange={e => setFilterType(e.target.value as CardType | 'all')}
-              className="pl-3 pr-8 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white appearance-none"
+              className="pl-3 pr-8 py-2 border border-[var(--input-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-ring)] focus:border-transparent bg-[var(--input-bg)] appearance-none"
             >
               <option value="all">{t('editCardsModal.filterByType')}</option>
               <option value="standard">{t('editCardsModal.typeStandard')}</option>
@@ -383,7 +390,7 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
               <option value="multiple-answer">{t('editCardsModal.typeMultipleAnswer')}</option>
             </select>
             <Filter
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
               size={14}
             />
           </div>
@@ -391,20 +398,20 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
 
         {/* Select All (only in bulk mode) */}
         {isBulkMode && filteredCards.length > 0 && (
-          <div className="px-6 py-2 flex items-center gap-2 border-b border-gray-100 bg-gray-50">
+          <div className="px-6 py-2 flex items-center gap-2 border-b border-[var(--border-subtle)] bg-[var(--bg-tertiary)]">
             <input
               type="checkbox"
               checked={allFilteredSelected}
               onChange={handleSelectAll}
-              className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+              className="w-5 h-5 rounded border-[var(--input-border)] text-[var(--color-accent-text)] focus:ring-[var(--color-accent-ring)]"
             />
-            <span className="text-sm font-medium text-gray-600">
+            <span className="text-sm font-medium text-[var(--text-secondary)]">
               {allFilteredSelected
                 ? t('editCardsModal.deselectAll')
                 : t('editCardsModal.selectAll')}
             </span>
             {bulkSelectedCardIds.size > 0 && (
-              <span className="text-xs text-indigo-600 font-semibold ml-auto">
+              <span className="text-xs text-[var(--color-accent-text)] font-semibold ml-auto">
                 {bulkSelectedCardIds.size} / {deck.cards.length}
               </span>
             )}
@@ -414,12 +421,12 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
         {/* Cards List */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
           {deck.cards.length === 0 ? (
-            <div className="text-center py-12 text-gray-400">
+            <div className="text-center py-12 text-[var(--text-muted)]">
               <p className="font-medium">{t('editCardsModal.noCards')}</p>
               <p className="text-sm mt-1">{t('editCardsModal.addFirstCard')}</p>
             </div>
           ) : filteredCards.length === 0 ? (
-            <div className="text-center py-12 text-gray-400">
+            <div className="text-center py-12 text-[var(--text-muted)]">
               <Search className="mx-auto mb-3 text-gray-300" size={32} />
               <p className="font-medium">{t('editCardsModal.noCards')}</p>
             </div>
@@ -429,7 +436,7 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
               return (
                 <div
                   key={card.id}
-                  className="bg-gray-50 rounded-xl p-4 border border-gray-200 hover:border-indigo-300 transition-colors"
+                  className="bg-[var(--bg-tertiary)] rounded-xl p-4 border border-[var(--border-secondary)] hover:border-indigo-300 transition-colors"
                 >
                   {/* View Mode (always shown - edit opens as separate modal) */}
                   <div>
@@ -445,10 +452,10 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
                               else newSet.add(card.id);
                               setBulkSelectedCardIds(newSet);
                             }}
-                            className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                            className="w-5 h-5 rounded border-[var(--input-border)] text-[var(--color-accent-text)] focus:ring-[var(--color-accent-ring)]"
                           />
                         )}
-                        <span className="text-xs font-bold text-gray-400 uppercase">
+                        <span className="text-xs font-bold text-[var(--text-muted)] uppercase">
                           {t('editCardsModal.cardNumber', { number: originalIndex + 1 })}
                         </span>
                         <span
@@ -460,7 +467,7 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
                       <div className="flex gap-2">
                         <button
                           onClick={() => setEditingCard(card)}
-                          className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                          className="p-1.5 text-[var(--color-accent-text)] hover:bg-indigo-50 rounded-lg transition-colors"
                           title={t('editCardsModal.edit')}
                         >
                           <Edit size={16} />
@@ -476,23 +483,29 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
                     </div>
                     <div className="space-y-2">
                       <div>
-                        <p className="text-xs font-bold text-gray-500">
+                        <p className="text-xs font-bold text-[var(--text-tertiary)]">
                           {t('editCardsModal.question')}
                         </p>
-                        <p className="text-sm font-medium text-gray-900">{card.front}</p>
+                        <p className="text-sm font-medium text-[var(--text-primary)]">
+                          {card.front}
+                        </p>
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-gray-500">
+                        <p className="text-xs font-bold text-[var(--text-tertiary)]">
                           {t('editCardsModal.answer')}
                         </p>
-                        <p className="text-sm font-medium text-gray-900">{card.back}</p>
+                        <p className="text-sm font-medium text-[var(--text-primary)]">
+                          {card.back}
+                        </p>
                       </div>
                       {card.context && (
                         <div>
-                          <p className="text-xs font-bold text-gray-500">
+                          <p className="text-xs font-bold text-[var(--text-tertiary)]">
                             {t('editCardsModal.contextLabel')}
                           </p>
-                          <p className="text-sm text-gray-600 italic">{card.context}</p>
+                          <p className="text-sm text-[var(--text-secondary)] italic">
+                            {card.context}
+                          </p>
                         </div>
                       )}
                       {card.tags && card.tags.length > 0 && (
@@ -535,7 +548,7 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
               <button
                 onClick={handleBulkApplyTags}
                 disabled={isSavingCard || bulkTags.length === 0}
-                className="mt-2 bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors text-sm disabled:opacity-50 flex items-center gap-2"
+                className="mt-2 bg-[var(--color-accent)] text-white font-bold py-2 px-4 rounded-lg hover:bg-[var(--color-accent-hover)] transition-colors text-sm disabled:opacity-50 flex items-center gap-2"
               >
                 <Tags size={14} />
                 {isSavingCard ? t('editCardsModal.saving') : t('editCardsModal.applyTags')}
@@ -551,7 +564,7 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
                 <select
                   value={bulkType}
                   onChange={e => setBulkType(e.target.value as CardType)}
-                  className="flex-1 border border-indigo-200 bg-white rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="flex-1 border border-indigo-200 bg-white rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-ring)]"
                 >
                   <option value="standard">{t('editCardsModal.typeStandard')}</option>
                   <option value="quiz">{t('editCardsModal.typeQuiz')}</option>
@@ -561,7 +574,7 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
                 <button
                   onClick={handleBulkChangeType}
                   disabled={isSavingCard}
-                  className="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors text-sm disabled:opacity-50 flex items-center gap-2"
+                  className="bg-[var(--color-accent)] text-white font-bold py-2 px-4 rounded-lg hover:bg-[var(--color-accent-hover)] transition-colors text-sm disabled:opacity-50 flex items-center gap-2"
                 >
                   <Filter size={14} />
                   {isSavingCard ? t('editCardsModal.saving') : t('editCardsModal.applyType')}
@@ -572,10 +585,10 @@ export const EditCardsModal: React.FC<EditCardsModalProps> = ({
         )}
 
         {/* Footer */}
-        <div className="p-6 border-t border-gray-100">
+        <div className="p-6 border-t border-[var(--border-subtle)]">
           <button
             onClick={addNewCard}
-            className="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
+            className="w-full bg-[var(--color-accent)] text-white font-bold py-3 rounded-xl hover:bg-[var(--color-accent-hover)] transition-colors flex items-center justify-center gap-2"
           >
             <Plus size={20} /> {t('editCardsModal.addNewCard')}
           </button>

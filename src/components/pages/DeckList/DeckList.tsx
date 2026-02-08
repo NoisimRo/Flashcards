@@ -208,12 +208,12 @@ export const DeckList: React.FC<DeckListProps> = ({
     <div className="p-6 md:p-8 space-y-8 h-full overflow-y-auto">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">{t('header.title')}</h1>
-          <p className="text-gray-500">{t('header.subtitle')}</p>
+          <h1 className="text-3xl font-bold text-[var(--text-primary)]">{t('header.title')}</h1>
+          <p className="text-[var(--text-tertiary)]">{t('header.subtitle')}</p>
         </div>
         <button
           onClick={openCreateModal}
-          className="bg-gray-900 hover:bg-gray-800 text-white px-5 py-3 rounded-xl flex items-center gap-2 font-bold shadow-lg transition-all hover:-translate-y-1"
+          className="bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white px-5 py-3 rounded-xl flex items-center gap-2 font-bold shadow-lg transition-all hover:-translate-y-1"
         >
           <Plus size={20} /> {t('header.newDeck')}
         </button>
@@ -223,13 +223,16 @@ export const DeckList: React.FC<DeckListProps> = ({
         {/* Create Card (Visual Placeholder) */}
         <div
           onClick={openCreateModal}
-          className="border-2 border-dashed border-gray-300 rounded-3xl flex flex-col items-center justify-center p-8 cursor-pointer hover:border-gray-900 hover:bg-gray-50 transition-all group min-h-[200px]"
+          className="border-2 border-dashed border-[var(--border-primary)] rounded-3xl flex flex-col items-center justify-center p-8 cursor-pointer hover:border-[var(--color-accent)] hover:bg-[var(--bg-surface-hover)] transition-all group min-h-[200px]"
         >
-          <div className="w-16 h-16 bg-[#F8F6F1] rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-            <Plus className="text-gray-400 group-hover:text-gray-900" size={32} />
+          <div className="w-16 h-16 bg-[var(--bg-secondary)] rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            <Plus
+              className="text-[var(--text-muted)] group-hover:text-[var(--text-primary)]"
+              size={32}
+            />
           </div>
-          <h3 className="font-bold text-gray-900 text-lg">{t('header.newDeck')}</h3>
-          <p className="text-center text-gray-500 text-sm mt-2">
+          <h3 className="font-bold text-[var(--text-primary)] text-lg">{t('header.newDeck')}</h3>
+          <p className="text-center text-[var(--text-tertiary)] text-sm mt-2">
             {t('modal.import')} CSV/TXT sau {t('modal.aiAuto')}
           </p>
         </div>
@@ -244,16 +247,16 @@ export const DeckList: React.FC<DeckListProps> = ({
           return (
             <div
               key={deck.id}
-              className="bg-[#F8F6F1] p-6 rounded-3xl relative group hover:shadow-md transition-shadow flex flex-col"
+              className="bg-[var(--card-bg)] p-6 rounded-3xl relative group hover:shadow-md transition-shadow flex flex-col border border-[var(--card-border)]"
             >
               {/* Rating Display (top-right, before menu) */}
               {deck.averageRating && deck.averageRating > 0 && (
-                <div className="absolute top-4 right-12 flex items-center gap-1 bg-white px-2 py-1 rounded-full shadow-sm">
+                <div className="absolute top-4 right-12 flex items-center gap-1 bg-[var(--bg-elevated)] px-2 py-1 rounded-full shadow-sm border border-[var(--border-subtle)]">
                   <Star size={14} className="fill-yellow-400 text-yellow-400" />
-                  <span className="text-sm font-semibold text-gray-700">
+                  <span className="text-sm font-semibold text-[var(--text-secondary)]">
                     {deck.averageRating.toFixed(1)}
                   </span>
-                  <span className="text-xs text-gray-500">({deck.reviewCount})</span>
+                  <span className="text-xs text-[var(--text-tertiary)]">({deck.reviewCount})</span>
                 </div>
               )}
 
@@ -262,13 +265,13 @@ export const DeckList: React.FC<DeckListProps> = ({
                 <div className="relative">
                   <button
                     onClick={e => toggleMenu(e, deck.id)}
-                    className="p-1 text-gray-400 hover:text-gray-900 rounded-full hover:bg-gray-200 transition-colors"
+                    className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded-full hover:bg-[var(--bg-tertiary)] transition-colors"
                   >
                     <MoreVertical size={18} />
                   </button>
 
                   {activeMenuId === deck.id && (
-                    <div className="absolute right-0 top-8 bg-white shadow-xl rounded-xl p-2 min-w-[180px] z-10 border border-gray-100 animate-fade-in">
+                    <div className="absolute right-0 top-8 bg-[var(--bg-elevated)] shadow-xl rounded-xl p-2 min-w-[180px] z-10 border border-[var(--border-subtle)] animate-fade-in">
                       {/* Resetează progresul - Only show if has progress */}
                       {hasProgress && onResetDeck && deck.totalCards > 0 && (
                         <button
@@ -277,7 +280,7 @@ export const DeckList: React.FC<DeckListProps> = ({
                             onResetDeck(deck.id);
                             setActiveMenuId(null);
                           }}
-                          className="w-full text-left px-3 py-2 text-sm text-orange-600 hover:bg-orange-50 rounded-lg flex items-center gap-2 font-medium"
+                          className="w-full text-left px-3 py-2 text-sm text-orange-500 hover:bg-orange-500/10 rounded-lg flex items-center gap-2 font-medium"
                         >
                           <RotateCcw size={16} /> {t('menu.resetProgress')}
                         </button>
@@ -288,7 +291,7 @@ export const DeckList: React.FC<DeckListProps> = ({
                           e.stopPropagation();
                           openEditModal(deck);
                         }}
-                        className="w-full text-left px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg flex items-center gap-2 font-medium"
+                        className="w-full text-left px-3 py-2 text-sm text-[var(--color-accent-text)] hover:bg-[var(--color-accent-light)] rounded-lg flex items-center gap-2 font-medium"
                       >
                         <Edit size={16} /> {t('menu.editDeck')}
                       </button>
@@ -299,7 +302,7 @@ export const DeckList: React.FC<DeckListProps> = ({
                             e.stopPropagation();
                             openEditCardsModal(deck);
                           }}
-                          className="w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg flex items-center gap-2 font-medium"
+                          className="w-full text-left px-3 py-2 text-sm text-blue-500 hover:bg-blue-500/10 rounded-lg flex items-center gap-2 font-medium"
                         >
                           <List size={16} /> {t('menu.editCards')}
                         </button>
@@ -311,7 +314,7 @@ export const DeckList: React.FC<DeckListProps> = ({
                             e.stopPropagation();
                             openExportModal(deck);
                           }}
-                          className="w-full text-left px-3 py-2 text-sm text-green-600 hover:bg-green-50 rounded-lg flex items-center gap-2 font-medium"
+                          className="w-full text-left px-3 py-2 text-sm text-green-500 hover:bg-green-500/10 rounded-lg flex items-center gap-2 font-medium"
                         >
                           <Download size={16} /> {t('menu.exportDeck')}
                         </button>
@@ -325,7 +328,7 @@ export const DeckList: React.FC<DeckListProps> = ({
                             setReviewModalOpen(true);
                             setActiveMenuId(null);
                           }}
-                          className="w-full text-left px-3 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg flex items-center gap-2 font-medium"
+                          className="w-full text-left px-3 py-2 text-sm text-[var(--color-accent-text)] hover:bg-[var(--color-accent-light)] rounded-lg flex items-center gap-2 font-medium"
                         >
                           <ThumbsUp size={16} /> {t('menu.leaveReview')}
                         </button>
@@ -339,7 +342,7 @@ export const DeckList: React.FC<DeckListProps> = ({
                             setFlagModalOpen(true);
                             setActiveMenuId(null);
                           }}
-                          className="w-full text-left px-3 py-2 text-sm text-orange-600 hover:bg-orange-50 rounded-lg flex items-center gap-2 font-medium"
+                          className="w-full text-left px-3 py-2 text-sm text-orange-500 hover:bg-orange-500/10 rounded-lg flex items-center gap-2 font-medium"
                         >
                           <Flag size={16} /> {t('menu.reportDeck')}
                         </button>
@@ -353,7 +356,7 @@ export const DeckList: React.FC<DeckListProps> = ({
                           }
                           setActiveMenuId(null);
                         }}
-                        className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2 font-medium border-t border-gray-100 mt-1 pt-2"
+                        className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-500/10 rounded-lg flex items-center gap-2 font-medium border-t border-[var(--border-subtle)] mt-1 pt-2"
                       >
                         <Trash2 size={16} /> {t('menu.deleteDeck')}
                       </button>
@@ -363,7 +366,9 @@ export const DeckList: React.FC<DeckListProps> = ({
               </div>
 
               {/* Header: Title/Theme */}
-              <h3 className="text-2xl font-bold text-gray-900 mb-3 pr-8">{deck.title}</h3>
+              <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-3 pr-8">
+                {deck.title}
+              </h3>
 
               {/* Body: Category Badge (left) + Difficulty Badge (right) */}
               <div className="flex justify-between items-center mb-4">
@@ -374,25 +379,25 @@ export const DeckList: React.FC<DeckListProps> = ({
                       ? 'bg-blue-500'
                       : deck.subject === 'Istorie'
                         ? 'bg-orange-500'
-                        : 'bg-gray-900'
+                        : 'bg-[var(--color-accent)]'
                   }`}
                 >
                   {deck.subject}
                 </span>
-                <span className="px-3 py-1 rounded-full text-xs font-medium text-gray-600 bg-gray-200">
+                <span className="px-3 py-1 rounded-full text-xs font-medium text-[var(--text-secondary)] bg-[var(--bg-tertiary)]">
                   {deck.difficulty} - {getDifficultyLabel(deck.difficulty)}
                 </span>
               </div>
 
               {/* Footer Stats: Total | In Study | Mastered */}
-              <div className="text-sm text-gray-600 mb-4 font-medium">
+              <div className="text-sm text-[var(--text-secondary)] mb-4 font-medium">
                 {t('deckCard.totalCards', { count: deck.totalCards })} |{' '}
                 {t('deckCard.inStudy', { count: inStudy })} |{' '}
                 {t('deckCard.mastered', { count: deck.masteredCards })}
               </div>
 
               {/* Progress Bar */}
-              <div className="w-full bg-gray-200 h-2 rounded-full mb-6 overflow-hidden">
+              <div className="w-full bg-[var(--border-secondary)] h-2 rounded-full mb-6 overflow-hidden">
                 <div
                   className="bg-green-500 h-2 rounded-full transition-all"
                   style={{ width: `${percentage}%` }}
@@ -407,7 +412,7 @@ export const DeckList: React.FC<DeckListProps> = ({
                     e.stopPropagation();
                     openGenerateCardsModal(deck);
                   }}
-                  className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-2 rounded-xl transition-all flex items-center justify-center gap-1 text-xs"
+                  className="flex-1 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white font-bold py-2.5 px-2 rounded-xl transition-all flex items-center justify-center gap-1 text-xs"
                   title={t('deckCard.generate')}
                 >
                   <Sparkles size={16} /> {t('deckCard.generateShort')}
@@ -431,7 +436,7 @@ export const DeckList: React.FC<DeckListProps> = ({
                     e.stopPropagation();
                     onStartSession(deck);
                   }}
-                  className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-bold py-2.5 px-2 rounded-xl transition-all flex items-center justify-center gap-1 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 bg-[var(--bg-tertiary)] hover:bg-[var(--bg-surface-hover)] text-[var(--text-primary)] font-bold py-2.5 px-2 rounded-xl transition-all flex items-center justify-center gap-1 text-xs disabled:opacity-50 disabled:cursor-not-allowed border border-[var(--border-primary)]"
                   disabled={deck.totalCards === 0}
                   title={
                     deck.totalCards > 0 ? t('deckCard.createSession') : t('deckCard.addCardsFirst')

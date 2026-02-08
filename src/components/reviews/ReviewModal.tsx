@@ -36,12 +36,12 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
     e.preventDefault();
 
     if (rating === 0) {
-      toast.error('Rating obligatoriu', 'Te rog selectează un rating de la 1 la 5 stele');
+      toast.error('Rating obligatoriu', 'Te rog selecteaza un rating de la 1 la 5 stele');
       return;
     }
 
     if (comment.length > 1000) {
-      toast.error('Comentariu prea lung', 'Comentariul nu poate depăși 1000 de caractere');
+      toast.error('Comentariu prea lung', 'Comentariul nu poate depasi 1000 de caractere');
       return;
     }
 
@@ -52,7 +52,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
         // Update existing review
         const response = await updateReview(existingReview.id, { rating, comment });
         if (response.success) {
-          toast.success('Recenzie actualizată!', 'Recenzia ta a fost actualizată cu succes');
+          toast.success('Recenzie actualizata!', 'Recenzia ta a fost actualizata cu succes');
           onSuccess?.();
           onClose();
         } else {
@@ -62,7 +62,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
         // Create new review
         const response = await createReview({ deckId, rating, comment });
         if (response.success) {
-          toast.success('Recenzie trimisă!', 'Mulțumim pentru feedback-ul tău!');
+          toast.success('Recenzie trimisa!', 'Multumim pentru feedback-ul tau!');
           onSuccess?.();
           onClose();
         } else {
@@ -71,7 +71,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
       }
     } catch (error) {
       console.error('Error submitting review:', error);
-      toast.error('Eroare', 'A apărut o eroare la trimiterea recenziei');
+      toast.error('Eroare', 'A aparut o eroare la trimiterea recenziei');
     } finally {
       setIsSubmitting(false);
     }
@@ -83,22 +83,22 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl animate-scale-up"
+        className="bg-[var(--bg-surface)] rounded-3xl max-w-lg w-full p-6 shadow-2xl animate-scale-up"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">
-              {existingReview ? 'Editează recenzia' : 'Lasă o recenzie'}
+            <h2 className="text-2xl font-bold text-[var(--text-primary)]">
+              {existingReview ? 'Editeaza recenzia' : 'Lasa o recenzie'}
             </h2>
-            <p className="text-sm text-gray-500 mt-1">{deckTitle}</p>
+            <p className="text-sm text-[var(--text-tertiary)] mt-1">{deckTitle}</p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 hover:bg-[var(--bg-tertiary)] rounded-full transition-colors"
           >
-            <X size={24} className="text-gray-500" />
+            <X size={24} className="text-[var(--text-tertiary)]" />
           </button>
         </div>
 
@@ -106,14 +106,14 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Rating */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-3">
               Rating <span className="text-red-500">*</span>
             </label>
             <div className="flex justify-center">
               <StarRating rating={rating} onRatingChange={setRating} size={32} />
             </div>
             {rating > 0 && (
-              <p className="text-center text-sm text-gray-500 mt-2">
+              <p className="text-center text-sm text-[var(--text-tertiary)] mt-2">
                 {rating === 1 && 'Foarte slab'}
                 {rating === 2 && 'Slab'}
                 {rating === 3 && 'Acceptabil'}
@@ -125,8 +125,11 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
 
           {/* Comment */}
           <div>
-            <label htmlFor="comment" className="block text-sm font-medium text-gray-700 mb-2">
-              Comentariu (opțional)
+            <label
+              htmlFor="comment"
+              className="block text-sm font-medium text-[var(--text-secondary)] mb-2"
+            >
+              Comentariu (optional)
             </label>
             <textarea
               id="comment"
@@ -134,12 +137,12 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
               onChange={e => setComment(e.target.value)}
               rows={4}
               maxLength={1000}
-              placeholder="Împărtășește-ne părerea ta despre acest deck..."
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+              placeholder="Impartaseste-ne parerea ta despre acest deck..."
+              className="w-full px-4 py-3 border border-[var(--input-border)] rounded-xl focus:ring-2 focus:ring-[var(--color-accent-ring)] focus:border-transparent resize-none bg-[var(--input-bg)]"
             />
             <div className="flex justify-between items-center mt-2">
-              <p className="text-xs text-gray-500">Maxim 1000 de caractere</p>
-              <p className="text-xs text-gray-500">{comment.length}/1000</p>
+              <p className="text-xs text-[var(--text-tertiary)]">Maxim 1000 de caractere</p>
+              <p className="text-xs text-[var(--text-tertiary)]">{comment.length}/1000</p>
             </div>
           </div>
 
@@ -149,19 +152,19 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
+              className="flex-1 px-6 py-3 border border-[var(--border-primary)] text-[var(--text-secondary)] rounded-xl font-medium hover:bg-[var(--bg-surface-hover)] transition-colors disabled:opacity-50"
             >
-              Anulează
+              Anuleaza
             </button>
             <button
               type="submit"
               disabled={isSubmitting || rating === 0}
-              className="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-6 py-3 bg-[var(--color-accent)] text-white rounded-xl font-medium hover:bg-[var(--color-accent-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting
                 ? 'Se trimite...'
                 : existingReview
-                  ? 'Actualizează'
+                  ? 'Actualizeaza'
                   : 'Trimite recenzia'}
             </button>
           </div>

@@ -91,9 +91,9 @@ export const ReviewsList: React.FC<ReviewsListProps> = ({ deckId, onReviewDelete
     return (
       <div className="space-y-4">
         {[1, 2, 3].map(i => (
-          <div key={i} className="bg-gray-100 rounded-xl p-4 animate-pulse">
-            <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-            <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+          <div key={i} className="bg-[var(--bg-tertiary)] rounded-xl p-4 animate-pulse">
+            <div className="h-4 bg-[var(--border-secondary)] rounded w-1/4 mb-2"></div>
+            <div className="h-3 bg-[var(--border-secondary)] rounded w-3/4"></div>
           </div>
         ))}
       </div>
@@ -103,8 +103,8 @@ export const ReviewsList: React.FC<ReviewsListProps> = ({ deckId, onReviewDelete
   if (reviews.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500 text-lg">Nu există recenzii încă</p>
-        <p className="text-gray-400 text-sm mt-2">Fii primul care lasă o recenzie!</p>
+        <p className="text-[var(--text-tertiary)] text-lg">Nu există recenzii încă</p>
+        <p className="text-[var(--text-muted)] text-sm mt-2">Fii primul care lasă o recenzie!</p>
       </div>
     );
   }
@@ -114,7 +114,7 @@ export const ReviewsList: React.FC<ReviewsListProps> = ({ deckId, onReviewDelete
       {reviews.map(review => (
         <div
           key={review.id}
-          className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow"
+          className="bg-[var(--bg-surface)] border border-[var(--border-secondary)] rounded-xl p-4 hover:shadow-md transition-shadow"
         >
           {/* Header */}
           <div className="flex items-start justify-between mb-3">
@@ -127,12 +127,16 @@ export const ReviewsList: React.FC<ReviewsListProps> = ({ deckId, onReviewDelete
                 />
               ) : (
                 <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                  <User size={20} className="text-indigo-600" />
+                  <User size={20} className="text-[var(--color-accent-text)]" />
                 </div>
               )}
               <div>
-                <p className="font-medium text-gray-900">{review.userName || 'Utilizator'}</p>
-                <p className="text-xs text-gray-500">{timeAgo(new Date(review.createdAt))}</p>
+                <p className="font-medium text-[var(--text-primary)]">
+                  {review.userName || 'Utilizator'}
+                </p>
+                <p className="text-xs text-[var(--text-tertiary)]">
+                  {timeAgo(new Date(review.createdAt))}
+                </p>
               </div>
             </div>
 
@@ -156,7 +160,7 @@ export const ReviewsList: React.FC<ReviewsListProps> = ({ deckId, onReviewDelete
 
           {/* Comment */}
           {review.comment && (
-            <p className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
+            <p className="text-[var(--text-secondary)] text-sm leading-relaxed whitespace-pre-wrap">
               {review.comment}
             </p>
           )}
@@ -169,17 +173,17 @@ export const ReviewsList: React.FC<ReviewsListProps> = ({ deckId, onReviewDelete
           <button
             onClick={() => setPage(page - 1)}
             disabled={page === 1}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 border border-[var(--border-primary)] rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Anterior
           </button>
-          <span className="px-4 py-2 text-sm text-gray-600">
+          <span className="px-4 py-2 text-sm text-[var(--text-secondary)]">
             Pagina {page} din {totalPages}
           </span>
           <button
             onClick={() => setPage(page + 1)}
             disabled={page >= totalPages}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 border border-[var(--border-primary)] rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Următoarea
           </button>

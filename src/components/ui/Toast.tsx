@@ -177,7 +177,7 @@ function ToastItem({ toast, onRemove }: ToastItemProps) {
 
       <button
         onClick={() => onRemove(toast.id)}
-        className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+        className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors flex-shrink-0"
       >
         <X className="w-4 h-4" />
       </button>
