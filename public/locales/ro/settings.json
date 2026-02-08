@@ -36,6 +36,15 @@
     "saveChanges": "Salvează modificările",
     "cancel": "Anulează"
   },
+  "appearance": {
+    "title": "Aspect",
+    "themeMode": "Mod temă",
+    "themeModeDesc": "Alege între modul zi și modul noapte",
+    "lightMode": "Zi",
+    "nightMode": "Noapte",
+    "accentTheme": "Culoare accent",
+    "accentThemeDesc": "Alege culoarea principală a aplicației"
+  },
   "logout": {
     "title": "Deconectare",
     "message": "Te vei deconecta din cont și vei fi redirecționat către pagina de autentificare.",

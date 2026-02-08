@@ -31,6 +31,7 @@ export const GUEST_USER: User = {
     soundEnabled: true,
     animationsEnabled: true,
     theme: 'light',
+    accentTheme: 'violet',
     language: 'ro',
   },
   // Metadata

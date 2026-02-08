@@ -21,6 +21,10 @@
     "totalXP": "{{xp}} XP total",
     "progress": "{{current}} / {{next}}"
   },
+  "nightMode": {
+    "on": "Mod Noapte",
+    "off": "Mod Zi"
+  },
   "guestCta": {
     "message": "Creează un cont <1>gratuit</1> pentru a salva progresul și a debloca funcții avansate!",
     "createAccount": "Cont nou",

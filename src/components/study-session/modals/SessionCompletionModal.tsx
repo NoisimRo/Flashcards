@@ -114,8 +114,9 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
         className={`rounded-3xl shadow-2xl max-w-md w-full p-6 animate-scale-up max-h-[90vh] overflow-y-auto ${
           isPerfect
             ? 'bg-gradient-to-br from-yellow-50 via-amber-50 to-yellow-100 border-2 border-yellow-400'
-            : 'bg-white'
+            : ''
         }`}
+        style={!isPerfect ? { backgroundColor: 'var(--completion-modal-bg)' } : undefined}
         onClick={e => e.stopPropagation()}
       >
         {/* XP Earned + Score summary */}
@@ -126,15 +127,20 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
                 <Trophy className="w-7 h-7 text-white" />
               </div>
             ) : (
-              <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center">
-                <CheckCircle className="w-7 h-7 text-indigo-600" />
+              <div
+                className="w-12 h-12 rounded-full flex items-center justify-center"
+                style={{ backgroundColor: 'var(--color-accent-light)' }}
+              >
+                <CheckCircle className="w-7 h-7" style={{ color: 'var(--color-accent)' }} />
               </div>
             )}
             <div>
-              <div className="text-lg font-bold text-gray-900">
+              <div className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
                 {correctCount}/{totalCards} corecte
               </div>
-              <div className="text-sm text-gray-500">Scor: {score}%</div>
+              <div className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                Scor: {score}%
+              </div>
             </div>
           </div>
           {xpEarned > 0 && (
@@ -212,7 +218,8 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
           {/* Save & Exit (without syncing) */}
           <button
             onClick={onSaveAndExit}
-            className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-4 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 active:scale-98"
+            className="w-full font-bold py-4 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 active:scale-98"
+            style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
           >
             <Save size={20} />
             Salveaza & Iesi
@@ -221,7 +228,8 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
           {/* Finish & Exit (sync to backend) */}
           <button
             onClick={onFinishAndExit}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 active:scale-98"
+            className="w-full text-white font-bold py-4 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 active:scale-98"
+            style={{ backgroundColor: 'var(--color-accent)' }}
           >
             <CheckCircle size={20} />
             Finalizeaza & Iesi
@@ -229,7 +237,7 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
         </div>
 
         {/* Helper Text */}
-        <p className="text-xs text-gray-500 text-center mt-4">
+        <p className="text-xs text-center mt-4" style={{ color: 'var(--text-muted)' }}>
           &ldquo;Salveaza & Iesi&rdquo; pastreaza progresul pentru mai tarziu.
           <br />
           &ldquo;Finalizeaza & Iesi&rdquo; marcheaza sesiunea ca completa.
@@ -253,17 +261,20 @@ const TagProgressBar: React.FC<{
   const priorityLabel = tag.accuracy === 0 ? 'Prioritate critica' : null;
 
   return (
-    <div className="rounded-xl bg-gray-50 p-3">
+    <div className="rounded-xl p-3" style={{ backgroundColor: 'var(--bg-secondary)' }}>
       <div className="flex items-center justify-between mb-2">
         <span className={`text-xs font-semibold px-2 py-0.5 rounded-md ${colorClass}`}>
           {tag.tag}
         </span>
-        <span className="text-sm font-bold text-gray-700">
+        <span className="text-sm font-bold" style={{ color: 'var(--text-secondary)' }}>
           {tag.correct}/{tag.total} ({tag.accuracy}%)
         </span>
       </div>
       {/* Progress bar */}
-      <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+      <div
+        className="w-full h-2 rounded-full overflow-hidden"
+        style={{ backgroundColor: 'var(--bg-tertiary)' }}
+      >
         <div
           className={`h-full rounded-full transition-all duration-500 ${barColor}`}
           style={{ width: `${Math.max(tag.accuracy, 2)}%` }}
