@@ -14,6 +14,7 @@ import CreateSessionModal from './src/components/sessions/CreateSessionModal';
 import { useAuthActions } from './src/hooks/useAuthActions';
 import { useSessionManagement } from './src/hooks/useSessionManagement';
 import { clearGuestToken } from './src/utils/guestMode';
+import { useTheme } from './src/hooks/useTheme';
 
 /**
  * Main App Content Component
@@ -23,6 +24,8 @@ import { clearGuestToken } from './src/utils/guestMode';
 function AppContent() {
   const { t } = useTranslation();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  // Initialize theme system (applies CSS classes to <html>)
+  useTheme();
   const { fetchDecks } = useDecksStore();
   const {
     showAuthPage,
@@ -61,7 +64,7 @@ function AppContent() {
   // Loading state
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin text-gray-900 mx-auto mb-4" />
           <p className="text-gray-600 font-medium">{t('app.loading')}</p>
@@ -122,7 +125,7 @@ function App() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center">
+        <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <Loader2 className="w-12 h-12 animate-spin text-gray-900 mx-auto mb-4" />
             <p className="text-gray-600 font-medium">Loading...</p>

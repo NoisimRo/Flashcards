@@ -266,19 +266,19 @@ export const Dashboard: React.FC<DashboardProps> = ({
     {
       name: 'XP',
       value: stats.progressPercentage,
-      fill: '#8b5cf6',
+      fill: 'var(--color-accent)',
     },
   ];
 
   return (
-    <div className="min-h-screen h-screen overflow-y-auto bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+    <div className="min-h-screen h-screen overflow-y-auto" style={{ background: 'var(--dashboard-bg)' }}>
       <div className="p-6 md:p-8 space-y-6 max-w-7xl mx-auto">
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
           {/* User Info with Level Badge */}
           <div className="flex items-start gap-4">
             <div className="relative">
-              <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl flex items-center justify-center text-2xl font-bold text-white shadow-lg">
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold text-white shadow-lg" style={{ background: 'var(--color-accent-gradient)' }}>
                 {user.name.charAt(0).toUpperCase()}
               </div>
               <div className="absolute -bottom-1 -right-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-md flex items-center gap-1">
@@ -287,30 +287,30 @@ export const Dashboard: React.FC<DashboardProps> = ({
               </div>
             </div>
             <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-bold bg-clip-text text-transparent" style={{ backgroundImage: 'var(--color-accent-gradient)' }}>
                 {t('header.welcome', { name: user.name })}
               </h1>
-              <p className="text-gray-600 font-medium mt-1">
+              <p className="font-medium mt-1" style={{ color: 'var(--text-tertiary)' }}>
                 {t('header.level', { level: stats.level })} ·{' '}
                 {t('header.totalXP', { xp: stats.totalXP.toLocaleString(i18n.language) })}
               </p>
               {/* XP Progress Bar */}
               <div className="mt-3 w-64">
                 <div className="flex justify-between items-center text-xs font-semibold mb-1">
-                  <span className="text-purple-600">
+                  <span style={{ color: 'var(--color-accent)' }}>
                     {t('header.xpProgress', { current: stats.currentXP })}
                   </span>
-                  <span className="text-gray-400">
+                  <span style={{ color: 'var(--text-muted)' }}>
                     {t('header.xpNext', { next: stats.xpForNextLevel })}
                   </span>
                 </div>
-                <div className="h-2 bg-gray-200 rounded-full overflow-hidden shadow-inner">
+                <div className="h-2 rounded-full overflow-hidden shadow-inner" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
                   <div
-                    className="h-full bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500 rounded-full transition-all duration-1000 ease-out shadow-lg"
-                    style={{ width: `${stats.progressPercentage}%` }}
+                    className="h-full rounded-full transition-all duration-1000 ease-out shadow-lg"
+                    style={{ width: `${stats.progressPercentage}%`, background: 'var(--color-accent-gradient)' }}
                   />
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
                   {stats.xpNeeded > 0
                     ? t('header.xpToNextLevel', { xp: stats.xpNeeded, level: stats.level + 1 })
                     : t('header.levelUp')}
@@ -335,14 +335,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   onChangeView('sessions');
                 }
               }}
-              className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              className="text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              style={{ background: 'var(--color-accent-gradient)' }}
             >
               <Brain size={20} />
               {t('buttons.startSession')}
             </button>
             <button
               onClick={() => onChangeView('leaderboard')}
-              className="bg-white hover:bg-gray-50 text-gray-700 px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all shadow-md hover:shadow-lg border border-gray-200"
+              className="px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all shadow-md hover:shadow-lg"
+              style={{ backgroundColor: 'var(--bg-surface)', color: 'var(--text-secondary)', borderWidth: '1px', borderColor: 'var(--border-secondary)' }}
             >
               <Trophy size={20} className="text-yellow-500" />
               {t('buttons.leaderboard')}
@@ -367,20 +369,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
 
           {/* Sesiuni active */}
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow border border-blue-100 relative overflow-hidden">
+          <div className="p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow relative overflow-hidden" style={{ background: 'var(--dashboard-stat-bg)', borderWidth: '1px', borderColor: 'var(--border-secondary)' }}>
             <div className="absolute top-1/2 right-4 -translate-y-1/2 opacity-10">
-              <BookOpen size={120} className="text-blue-600" />
+              <BookOpen size={120} style={{ color: 'var(--color-accent)' }} />
             </div>
             <div className="relative z-10 flex flex-col">
-              <div className="text-5xl font-bold text-gray-900 mb-2">
+              <div className="text-5xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
                 {cardStats?.activeSessions !== undefined
                   ? cardStats.activeSessions
                   : activeSessions.length}
               </div>
-              <div className="text-base font-bold text-gray-700 mb-1">
+              <div className="text-base font-bold mb-1" style={{ color: 'var(--text-secondary)' }}>
                 {t('stats.activeSessions')}
               </div>
-              <div className="text-sm text-gray-500">
+              <div className="text-sm" style={{ color: 'var(--text-muted)' }}>
                 {cardStats?.totalDecks || stats.activeDecksCount} {t('stats.decksCreated')} |{' '}
                 {cardStats?.inStudy || 0} {t('stats.cardsInStudy')}
               </div>
@@ -388,14 +390,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
 
           {/* Success Rate */}
-          <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow border border-purple-100 relative overflow-hidden">
+          <div className="p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow relative overflow-hidden" style={{ background: 'var(--dashboard-stat-bg)', borderWidth: '1px', borderColor: 'var(--border-secondary)' }}>
             <div className="absolute top-1/2 right-4 -translate-y-1/2 opacity-10">
-              <TrendingUp size={120} className="text-purple-600" />
+              <TrendingUp size={120} style={{ color: 'var(--color-accent)' }} />
             </div>
             <div className="relative z-10 flex flex-col">
-              <div className="text-5xl font-bold text-gray-900 mb-2">{stats.successRate}</div>
-              <div className="text-base font-bold text-gray-700 mb-1">{t('stats.successRate')}</div>
-              <div className="text-sm text-gray-500">
+              <div className="text-5xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>{stats.successRate}</div>
+              <div className="text-base font-bold mb-1" style={{ color: 'var(--text-secondary)' }}>{t('stats.successRate')}</div>
+              <div className="text-sm" style={{ color: 'var(--text-muted)' }}>
                 {stats.totalCorrectAnswers} {t('stats.correct')} | {stats.totalAnswers}{' '}
                 {t('stats.completed')}
               </div>
@@ -403,18 +405,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
 
           {/* Time Spent */}
-          <div className="bg-gradient-to-br from-cyan-50 to-blue-50 p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow border border-cyan-100 relative overflow-hidden">
+          <div className="p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow relative overflow-hidden" style={{ background: 'var(--dashboard-stat-bg)', borderWidth: '1px', borderColor: 'var(--border-secondary)' }}>
             <div className="absolute top-1/2 right-4 -translate-y-1/2 opacity-10">
-              <Clock size={120} className="text-cyan-600" />
+              <Clock size={120} style={{ color: 'var(--color-accent)' }} />
             </div>
             <div className="relative z-10 flex flex-col">
-              <div className="text-5xl font-bold text-gray-900 mb-2">
+              <div className="text-5xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
                 {stats.totalTimeSpentFormatted}
               </div>
-              <div className="text-base font-bold text-gray-700 mb-1">
+              <div className="text-base font-bold mb-1" style={{ color: 'var(--text-secondary)' }}>
                 {t('stats.totalStudyTime')}
               </div>
-              <div className="text-sm text-gray-500">
+              <div className="text-sm" style={{ color: 'var(--text-muted)' }}>
                 {studyTimeStats.todayMinutes} {t('stats.minutes')} - {studyTimeStats.todayFormatted}{' '}
                 | {studyTimeStats.weeklyMinutes} {t('stats.minutes')} - {studyTimeStats.weekRange}
               </div>
@@ -425,11 +427,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* Daily Challenges & Study Streak */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Daily Challenges */}
-          <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+          <div className="lg:col-span-2 p-6 rounded-2xl shadow-lg" style={{ backgroundColor: 'var(--card-bg)', borderWidth: '1px', borderColor: 'var(--card-border)' }}>
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
-                <Target className="text-indigo-600" size={24} />
-                <h2 className="text-xl font-bold text-gray-900">{t('dailyChallenges.title')}</h2>
+                <Target style={{ color: 'var(--color-accent)' }} size={24} />
+                <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>{t('dailyChallenges.title')}</h2>
               </div>
               <Sparkles className="text-yellow-500" size={20} />
             </div>
@@ -444,8 +446,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     className={`p-4 rounded-xl border-2 transition-all ${
                       completed
                         ? 'bg-green-50 border-green-200'
-                        : 'bg-gray-50 border-gray-200 hover:border-gray-300'
+                        : ''
                     }`}
+                    style={!completed ? { backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-secondary)' } : undefined}
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-3">
@@ -454,7 +457,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         </div>
                         <div>
                           <h3
-                            className="font-bold text-gray-900"
+                            className="font-bold"
+                            style={{ color: 'var(--text-primary)' }}
                             title={
                               challenge.descriptionKey
                                 ? String(t(challenge.descriptionKey))
@@ -465,7 +469,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                               ? String(t(challenge.titleKey, challenge.titleParams || {}))
                               : challenge.title}
                           </h3>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
                             {challenge.progress}/{challenge.target} ·{' '}
                             {t('dailyChallenges.reward', { xp: challenge.reward })}
                           </p>
@@ -491,10 +495,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
 
           {/* Study Streak Calendar */}
-          <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+          <div className="p-6 rounded-2xl shadow-lg" style={{ backgroundColor: 'var(--card-bg)', borderWidth: '1px', borderColor: 'var(--card-border)' }}>
             <div className="flex items-center gap-2 mb-4">
               <Flame className="text-orange-500" size={20} />
-              <h2 className="text-lg font-bold text-gray-900">{t('activityCalendar.title')}</h2>
+              <h2 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{t('activityCalendar.title')}</h2>
             </div>
             <div className="grid grid-cols-7 gap-1.5">
               {activityCalendar.map((day, idx) => {
@@ -516,7 +520,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 );
               })}
             </div>
-            <div className="flex items-center justify-between mt-4 text-xs text-gray-500">
+            <div className="flex items-center justify-between mt-4 text-xs" style={{ color: 'var(--text-muted)' }}>
               <span>{t('activityCalendar.less')}</span>
               <div className="flex gap-1">
                 {[0, 1, 2, 3].map(i => (
@@ -532,13 +536,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
 
         {/* Continue Learning - Active Sessions Preview */}
-        <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+        <div className="p-6 rounded-2xl shadow-lg" style={{ backgroundColor: 'var(--card-bg)', borderWidth: '1px', borderColor: 'var(--card-border)' }}>
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">{t('continueLearning.title')}</h2>
+            <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>{t('continueLearning.title')}</h2>
             {activeSessions.length > 3 && (
               <button
                 onClick={() => onChangeView('sessions')}
-                className="text-indigo-600 hover:text-indigo-700 font-semibold text-sm flex items-center gap-1"
+                className="font-semibold text-sm flex items-center gap-1"
+                style={{ color: 'var(--color-accent)' }}
               >
                 {t('buttons.viewAll')}
                 <ChevronRight size={16} />
@@ -557,14 +562,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 return (
                   <div
                     key={session.id}
-                    className="group p-5 rounded-xl border-2 border-indigo-200 hover:border-indigo-400 hover:shadow-lg transition-all cursor-pointer bg-gradient-to-br from-indigo-50 to-white"
+                    className="group p-5 rounded-xl border-2 hover:shadow-lg transition-all cursor-pointer"
+                    style={{ borderColor: 'var(--border-secondary)', backgroundColor: 'var(--bg-surface)' }}
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
-                        <h3 className="font-bold text-gray-900 group-hover:text-indigo-600 transition-colors mb-1">
+                        <h3 className="font-bold transition-colors mb-1" style={{ color: 'var(--text-primary)' }}>
                           {session.deck?.title || t('continueLearning.activeSession')}
                         </h3>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
                           {t('continueLearning.cardsRemaining', { cards: cardsRemaining })} |{' '}
                           {t('continueLearning.percentComplete', { percent: progress })}
                         </p>
@@ -575,7 +581,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                             cx="28"
                             cy="28"
                             r="24"
-                            stroke="#E0E7FF"
+                            stroke="var(--bg-tertiary)"
                             strokeWidth="4"
                             fill="transparent"
                           />
@@ -583,7 +589,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                             cx="28"
                             cy="28"
                             r="24"
-                            stroke="#6366F1"
+                            stroke="var(--color-accent)"
                             strokeWidth="4"
                             fill="transparent"
                             strokeDasharray={150.8}
@@ -591,7 +597,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                             className="transition-all duration-1000"
                           />
                         </svg>
-                        <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-indigo-600">
+                        <span className="absolute inset-0 flex items-center justify-center text-xs font-bold" style={{ color: 'var(--color-accent)' }}>
                           {progress}%
                         </span>
                       </div>
@@ -605,7 +611,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           onChangeView('sessions');
                         }
                       }}
-                      className="w-full mt-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-2 px-4 rounded-lg font-semibold text-sm transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                      className="w-full mt-3 text-white py-2 px-4 rounded-lg font-semibold text-sm transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                      style={{ background: 'var(--color-accent-gradient)' }}
                     >
                       <Brain size={16} />
                       {t('buttons.continueSession')}
@@ -615,17 +622,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
               })}
             </div>
           ) : (
-            <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-white rounded-xl border-2 border-dashed border-gray-200">
-              <Brain size={48} className="mx-auto mb-4 text-gray-400" />
-              <h3 className="text-lg font-bold text-gray-900 mb-2">
+            <div className="text-center py-12 rounded-xl border-2 border-dashed" style={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-secondary)' }}>
+              <Brain size={48} className="mx-auto mb-4" style={{ color: 'var(--text-muted)' }} />
+              <h3 className="text-lg font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
                 {t('continueLearning.noActiveSessions')}
               </h3>
-              <p className="text-sm text-gray-500 mb-4">
+              <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
                 {t('continueLearning.noActiveSessionsDescription')}
               </p>
               <button
                 onClick={() => onChangeView('decks')}
-                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl flex items-center gap-2 mx-auto"
+                className="text-white px-6 py-3 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl flex items-center gap-2 mx-auto"
+                style={{ background: 'var(--color-accent-gradient)' }}
               >
                 <Brain size={20} />
                 {t('buttons.startSession')}
@@ -637,7 +645,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* Study Recommendations & Achievements */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Study Recommendations */}
-          <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-6 rounded-2xl shadow-xl text-white">
+          <div className="p-6 rounded-2xl shadow-xl text-white" style={{ background: 'var(--color-accent-gradient)' }}>
             <div className="flex items-center gap-2 mb-4">
               <Zap size={24} />
               <h2 className="text-xl font-bold">{t('recommendations.title')}</h2>
@@ -677,10 +685,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
 
           {/* Recent Achievements */}
-          <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+          <div className="p-6 rounded-2xl shadow-lg" style={{ backgroundColor: 'var(--card-bg)', borderWidth: '1px', borderColor: 'var(--card-border)' }}>
             <div className="flex items-center gap-2 mb-4">
               <Award className="text-yellow-500" size={24} />
-              <h2 className="text-xl font-bold text-gray-900">{t('recentAchievements.title')}</h2>
+              <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>{t('recentAchievements.title')}</h2>
             </div>
             <div className="space-y-3">
               {recentAchievements.length > 0 ? (
@@ -691,8 +699,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   >
                     <div className="text-3xl">{achievement.icon}</div>
                     <div className="flex-1">
-                      <h3 className="font-bold text-gray-900">{achievement.title}</h3>
-                      <p className="text-xs text-gray-600">
+                      <h3 className="font-bold" style={{ color: 'var(--text-primary)' }}>{achievement.title}</h3>
+                      <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
                         {t('recentAchievements.unlockedRecently')}
                       </p>
                     </div>
@@ -700,7 +708,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   </div>
                 ))
               ) : (
-                <div className="text-center py-8 text-gray-400">
+                <div className="text-center py-8" style={{ color: 'var(--text-muted)' }}>
                   <Trophy size={32} className="mx-auto mb-2 opacity-50" />
                   <p className="text-sm">{t('recentAchievements.startStudying')}</p>
                 </div>

@@ -9,7 +9,7 @@
     <style>
       body {
         font-family: 'Plus Jakarta Sans', sans-serif;
-        background-color: #FDFBF7; /* Cream background from mockups */
+        background-color: var(--bg-primary, #FDFBF7);
       }
       
       /* 3D Flip Utilities */
@@ -32,14 +32,14 @@
         width: 8px;
       }
       ::-webkit-scrollbar-track {
-        background: transparent;
+        background: var(--scrollbar-track, transparent);
       }
       ::-webkit-scrollbar-thumb {
-        background: #D1D5DB;
+        background: var(--scrollbar-thumb, #D1D5DB);
         border-radius: 4px;
       }
       ::-webkit-scrollbar-thumb:hover {
-        background: #9CA3AF;
+        background: var(--scrollbar-thumb-hover, #9CA3AF);
       }
 
       /* Gamification Animations */
@@ -120,9 +120,25 @@
   }
 }
 </script>
+<link rel="stylesheet" href="/src/themes.css">
 <link rel="stylesheet" href="/index.css">
 </head>
   <body>
+    <!-- Flash prevention: apply theme classes before React hydrates -->
+    <script>
+      (function() {
+        try {
+          var mode = localStorage.getItem('flashcards-theme-mode') || 'light';
+          var accent = localStorage.getItem('flashcards-accent-theme') || 'violet';
+          var html = document.documentElement;
+          html.classList.add('theme-' + mode);
+          html.classList.add('accent-' + accent);
+          html.style.colorScheme = mode === 'night' ? 'dark' : 'light';
+        } catch(e) {
+          document.documentElement.classList.add('theme-light', 'accent-violet');
+        }
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

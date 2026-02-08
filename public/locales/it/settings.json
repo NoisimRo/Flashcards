@@ -36,6 +36,15 @@
     "saveChanges": "Salva modifiche",
     "cancel": "Annulla"
   },
+  "appearance": {
+    "title": "Aspetto",
+    "themeMode": "Modalità tema",
+    "themeModeDesc": "Scegli tra modalità giorno e modalità notte",
+    "lightMode": "Giorno",
+    "nightMode": "Notte",
+    "accentTheme": "Colore accento",
+    "accentThemeDesc": "Scegli il colore principale dell'app"
+  },
   "logout": {
     "title": "Disconnetti",
     "message": "Verrai disconnesso e reindirizzato alla pagina di accesso.",

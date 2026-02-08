@@ -183,13 +183,18 @@ export const SessionStatsPieChart: React.FC<SessionStatsPieChartProps> = ({
         {/* Center label with percentage */}
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
           <div
-            className={`font-bold text-gray-900 ${
+            className={`font-bold ${
               size === 'small' ? 'text-sm' : size === 'medium' ? 'text-xl' : 'text-3xl'
             }`}
+            style={{ color: 'var(--text-primary)' }}
           >
             {percentage}%
           </div>
-          {size !== 'small' && <div className="text-xs text-gray-500 font-medium">corect</div>}
+          {size !== 'small' && (
+            <div className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
+              corect
+            </div>
+          )}
         </div>
 
         {/* Tooltips */}

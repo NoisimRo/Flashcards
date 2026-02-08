@@ -21,6 +21,10 @@
     "totalXP": "{{xp}} total XP",
     "progress": "{{current}} / {{next}}"
   },
+  "nightMode": {
+    "on": "Night Mode",
+    "off": "Day Mode"
+  },
   "guestCta": {
     "message": "Create a <1>free</1> account to save progress and unlock advanced features!",
     "createAccount": "New Account",

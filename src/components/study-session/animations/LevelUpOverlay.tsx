@@ -80,10 +80,16 @@ export const LevelUpOverlay: React.FC<LevelUpOverlayProps> = ({
       {/* Level up content */}
       <div className="animate-level-up flex flex-col items-center gap-4">
         <div className="text-7xl">🎉</div>
-        <h2 className="text-6xl font-black text-indigo-600 tracking-tighter drop-shadow-2xl bg-white/95 backdrop-blur px-10 py-6 rounded-3xl border-4 border-indigo-400 shadow-2xl">
+        <h2
+          className="text-6xl font-black tracking-tighter drop-shadow-2xl backdrop-blur px-10 py-6 rounded-3xl border-4 shadow-2xl"
+          style={{ color: 'var(--color-accent)', backgroundColor: 'var(--bg-surface)', borderColor: 'var(--color-accent)' }}
+        >
           LEVEL {newLevel}
         </h2>
-        <p className="text-lg font-semibold text-white/90 bg-indigo-600/80 px-6 py-2 rounded-xl shadow-lg">
+        <p
+          className="text-lg font-semibold text-white/90 px-6 py-2 rounded-xl shadow-lg"
+          style={{ backgroundColor: 'var(--color-accent)' }}
+        >
           Nivel {oldLevel} → {newLevel}
         </p>
       </div>

@@ -1,0 +1,268 @@
+/* ============================================
+   FLASHCARDS THEME SYSTEM
+   Dual-layer: Base Mode (light/night) + Accent Theme (violet/gold/silver)
+
+   SCALABILITY:
+   - To add a new base mode: copy .theme-night and change the variable values
+   - To add a new accent: copy .accent-violet and change the 4 accent variables
+   ============================================ */
+
+/* ============================================
+   LAYER 1: BASE MODES
+   Controls: backgrounds, surfaces, text, borders, overlays
+   ============================================ */
+
+/* --- LIGHT MODE (default) --- */
+.theme-light {
+  /* Backgrounds */
+  --bg-primary: #FDFBF7;
+  --bg-secondary: #F8F6F1;
+  --bg-tertiary: #EFECE5;
+  --bg-surface: #FFFFFF;
+  --bg-surface-hover: #F9FAFB;
+  --bg-elevated: #FFFFFF;
+
+  /* Text */
+  --text-primary: #111827;
+  --text-secondary: #374151;
+  --text-tertiary: #6B7280;
+  --text-muted: #9CA3AF;
+  --text-inverse: #FFFFFF;
+
+  /* Borders */
+  --border-primary: #E5E0D5;
+  --border-secondary: #E5E7EB;
+  --border-subtle: #F3F4F6;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+
+  /* Overlay */
+  --overlay-bg: rgba(0, 0, 0, 0.5);
+  --overlay-backdrop: blur(4px);
+
+  /* Inputs */
+  --input-bg: #FFFFFF;
+  --input-border: #D1D5DB;
+  --input-focus-ring: var(--color-accent);
+
+  /* Scrollbar */
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: #D1D5DB;
+  --scrollbar-thumb-hover: #9CA3AF;
+
+  /* Sidebar */
+  --sidebar-bg: #F8F6F1;
+  --sidebar-border: #E5E0D5;
+  --sidebar-item-active-bg: #FFFFFF;
+  --sidebar-item-hover-bg: #EFECE5;
+
+  /* Cards / Tiles */
+  --card-bg: #FFFFFF;
+  --card-border: #E5E7EB;
+  --card-hover-shadow: var(--shadow-lg);
+
+  /* Dashboard gradients */
+  --dashboard-bg: linear-gradient(to bottom right, #EEF2FF, #FFFFFF, #FAF5FF);
+  --dashboard-stat-bg: linear-gradient(to bottom right, #F0F9FF, #EEF2FF);
+
+  /* Specific component tokens */
+  --completion-modal-bg: #FFFFFF;
+  --completion-modal-perfect-bg: linear-gradient(to bottom right, #FEFCE8, #FEF3C7, #FEF9C3);
+  --tag-bar-bg: #F9FAFB;
+}
+
+/* --- NIGHT MODE --- */
+.theme-night {
+  /* Backgrounds */
+  --bg-primary: #0F1117;
+  --bg-secondary: #1A1D27;
+  --bg-tertiary: #252833;
+  --bg-surface: #1E2130;
+  --bg-surface-hover: #252833;
+  --bg-elevated: #252833;
+
+  /* Text */
+  --text-primary: #F3F4F6;
+  --text-secondary: #D1D5DB;
+  --text-tertiary: #9CA3AF;
+  --text-muted: #6B7280;
+  --text-inverse: #111827;
+
+  /* Borders */
+  --border-primary: #2D3140;
+  --border-secondary: #374151;
+  --border-subtle: #1F2937;
+
+  /* Shadows (subtler in dark mode) */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+
+  /* Overlay */
+  --overlay-bg: rgba(0, 0, 0, 0.7);
+  --overlay-backdrop: blur(8px);
+
+  /* Inputs */
+  --input-bg: #1A1D27;
+  --input-border: #374151;
+  --input-focus-ring: var(--color-accent);
+
+  /* Scrollbar */
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: #374151;
+  --scrollbar-thumb-hover: #4B5563;
+
+  /* Sidebar */
+  --sidebar-bg: #1A1D27;
+  --sidebar-border: #2D3140;
+  --sidebar-item-active-bg: #252833;
+  --sidebar-item-hover-bg: #252833;
+
+  /* Cards / Tiles */
+  --card-bg: #1E2130;
+  --card-border: #2D3140;
+  --card-hover-shadow: var(--shadow-lg);
+
+  /* Dashboard gradients */
+  --dashboard-bg: linear-gradient(to bottom right, #0F1117, #151822, #13111F);
+  --dashboard-stat-bg: linear-gradient(to bottom right, #1A1D27, #1E2130);
+
+  /* Specific component tokens */
+  --completion-modal-bg: #1E2130;
+  --completion-modal-perfect-bg: linear-gradient(to bottom right, #1E2130, #252833, #1E2130);
+  --tag-bar-bg: #252833;
+}
+
+
+/* ============================================
+   LAYER 2: ACCENT THEMES
+   Controls: primary action colors, progress bars, highlights
+   Each accent defines exactly 4 variables for easy extension.
+   ============================================ */
+
+/* --- VIOLET (default) --- */
+.accent-violet {
+  --color-accent: #7C3AED;
+  --color-accent-hover: #6D28D9;
+  --color-accent-light: #EDE9FE;
+  --color-accent-gradient: linear-gradient(to right, #7C3AED, #6366F1);
+  --color-accent-text: #7C3AED;
+  --color-accent-subtle: rgba(124, 58, 237, 0.1);
+  --color-accent-ring: rgba(124, 58, 237, 0.5);
+}
+
+.theme-night .accent-violet,
+.theme-night.accent-violet {
+  --color-accent-light: rgba(124, 58, 237, 0.15);
+  --color-accent-subtle: rgba(124, 58, 237, 0.08);
+}
+
+/* --- GOLD (future-ready) --- */
+.accent-gold {
+  --color-accent: #D97706;
+  --color-accent-hover: #B45309;
+  --color-accent-light: #FEF3C7;
+  --color-accent-gradient: linear-gradient(to right, #D97706, #F59E0B);
+  --color-accent-text: #D97706;
+  --color-accent-subtle: rgba(217, 119, 6, 0.1);
+  --color-accent-ring: rgba(217, 119, 6, 0.5);
+}
+
+.theme-night .accent-gold,
+.theme-night.accent-gold {
+  --color-accent-light: rgba(217, 119, 6, 0.15);
+  --color-accent-subtle: rgba(217, 119, 6, 0.08);
+}
+
+/* --- SILVER (future-ready) --- */
+.accent-silver {
+  --color-accent: #6B7280;
+  --color-accent-hover: #4B5563;
+  --color-accent-light: #F3F4F6;
+  --color-accent-gradient: linear-gradient(to right, #6B7280, #9CA3AF);
+  --color-accent-text: #6B7280;
+  --color-accent-subtle: rgba(107, 114, 128, 0.1);
+  --color-accent-ring: rgba(107, 114, 128, 0.5);
+}
+
+.theme-night .accent-silver,
+.theme-night.accent-silver {
+  --color-accent-light: rgba(107, 114, 128, 0.15);
+  --color-accent-subtle: rgba(107, 114, 128, 0.08);
+}
+
+/* --- EMERALD (future-ready) --- */
+.accent-emerald {
+  --color-accent: #059669;
+  --color-accent-hover: #047857;
+  --color-accent-light: #D1FAE5;
+  --color-accent-gradient: linear-gradient(to right, #059669, #10B981);
+  --color-accent-text: #059669;
+  --color-accent-subtle: rgba(5, 150, 105, 0.1);
+  --color-accent-ring: rgba(5, 150, 105, 0.5);
+}
+
+.theme-night .accent-emerald,
+.theme-night.accent-emerald {
+  --color-accent-light: rgba(5, 150, 105, 0.15);
+  --color-accent-subtle: rgba(5, 150, 105, 0.08);
+}
+
+/* --- ROSE (future-ready) --- */
+.accent-rose {
+  --color-accent: #E11D48;
+  --color-accent-hover: #BE123C;
+  --color-accent-light: #FFE4E6;
+  --color-accent-gradient: linear-gradient(to right, #E11D48, #F43F5E);
+  --color-accent-text: #E11D48;
+  --color-accent-subtle: rgba(225, 29, 72, 0.1);
+  --color-accent-ring: rgba(225, 29, 72, 0.5);
+}
+
+.theme-night .accent-rose,
+.theme-night.accent-rose {
+  --color-accent-light: rgba(225, 29, 72, 0.15);
+  --color-accent-subtle: rgba(225, 29, 72, 0.08);
+}
+
+
+/* ============================================
+   UTILITY CLASSES
+   Semantic classes that map to CSS variables
+   for use across components
+   ============================================ */
+
+/* Background utilities */
+.bg-themed-primary { background-color: var(--bg-primary); }
+.bg-themed-secondary { background-color: var(--bg-secondary); }
+.bg-themed-surface { background-color: var(--bg-surface); }
+.bg-themed-elevated { background-color: var(--bg-elevated); }
+
+/* Text utilities */
+.text-themed-primary { color: var(--text-primary); }
+.text-themed-secondary { color: var(--text-secondary); }
+.text-themed-tertiary { color: var(--text-tertiary); }
+.text-themed-muted { color: var(--text-muted); }
+
+/* Border utilities */
+.border-themed { border-color: var(--border-primary); }
+.border-themed-secondary { border-color: var(--border-secondary); }
+
+/* Accent utilities */
+.bg-accent { background-color: var(--color-accent); }
+.bg-accent-light { background-color: var(--color-accent-light); }
+.text-accent { color: var(--color-accent-text); }
+.border-accent { border-color: var(--color-accent); }
+
+/* Transition for smooth theme switching */
+.theme-transition,
+.theme-transition *,
+.theme-transition *::before,
+.theme-transition *::after {
+  transition: background-color 0.3s ease, color 0.2s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
+}

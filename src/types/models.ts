@@ -208,6 +208,7 @@ export interface UserPreferences {
   soundEnabled: boolean;
   animationsEnabled: boolean;
   theme: 'light' | 'dark' | 'system';
+  accentTheme?: 'violet' | 'gold' | 'silver' | 'emerald' | 'rose';
   language: 'ro' | 'en';
 }
 

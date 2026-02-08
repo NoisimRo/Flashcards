@@ -32,37 +32,39 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: 'var(--bg-primary)' }}>
       <div className="w-full max-w-md">
         {/* Logo & Title */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-900 rounded-2xl mb-4 text-5xl">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 text-5xl" style={{ background: 'var(--color-accent-gradient)' }}>
             {t('brand.emoji')}
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">{t('brand.name')}</h1>
-          <p className="text-gray-500 mt-2">{t('brand.topic')}</p>
+          <h1 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>{t('brand.name')}</h1>
+          <p className="mt-2" style={{ color: 'var(--text-muted)' }}>{t('brand.topic')}</p>
         </div>
 
         {/* Login Form */}
-        <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('auth:login.title')}</h2>
+        <div className="rounded-3xl p-8 shadow-xl" style={{ backgroundColor: 'var(--bg-surface)', borderWidth: '1px', borderColor: 'var(--border-secondary)' }}>
+          <h2 className="text-2xl font-bold mb-6" style={{ color: 'var(--text-primary)' }}>{t('auth:login.title')}</h2>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email */}
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">
+              <label className="block text-sm font-bold mb-2" style={{ color: 'var(--text-secondary)' }}>
                 {t('auth:login.emailLabel')}
               </label>
               <div className="relative">
                 <Mail
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                  className="absolute left-4 top-1/2 -translate-y-1/2"
+                  style={{ color: 'var(--text-muted)' }}
                   size={20}
                 />
                 <input
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  className="w-full pl-12 pr-4 py-4 border-2 border-gray-100 bg-gray-50 rounded-xl font-medium outline-none focus:border-gray-900 transition-colors"
+                  className="w-full pl-12 pr-4 py-4 border-2 rounded-xl font-medium outline-none transition-colors"
+                  style={{ backgroundColor: 'var(--input-bg)', borderColor: 'var(--border-secondary)', color: 'var(--text-primary)' }}
                   placeholder={t('auth:login.emailPlaceholder')}
                 />
               </div>
@@ -70,19 +72,21 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">
+              <label className="block text-sm font-bold mb-2" style={{ color: 'var(--text-secondary)' }}>
                 {t('auth:login.passwordLabel')}
               </label>
               <div className="relative">
                 <Lock
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                  className="absolute left-4 top-1/2 -translate-y-1/2"
+                  style={{ color: 'var(--text-muted)' }}
                   size={20}
                 />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-12 py-4 border-2 border-gray-100 bg-gray-50 rounded-xl font-medium outline-none focus:border-gray-900 transition-colors"
+                  className="w-full pl-12 pr-12 py-4 border-2 rounded-xl font-medium outline-none transition-colors"
+                  style={{ backgroundColor: 'var(--input-bg)', borderColor: 'var(--border-secondary)', color: 'var(--text-primary)' }}
                   placeholder={t('auth:login.passwordPlaceholder')}
                 />
                 <button
@@ -121,11 +125,12 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
 
           {/* Switch to Register */}
           <div className="mt-6">
-            <p className="text-center text-gray-600">
+            <p className="text-center" style={{ color: 'var(--text-tertiary)' }}>
               {t('auth:login.noAccount')}{' '}
               <button
                 onClick={onSwitchToRegister}
-                className="text-gray-900 font-bold hover:underline"
+                className="font-bold hover:underline"
+                style={{ color: 'var(--color-accent)' }}
               >
                 {t('auth:login.registerLink')}
               </button>
@@ -134,7 +139,7 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-gray-400 text-sm mt-6">{t('brand.slogan')}</p>
+        <p className="text-center text-sm mt-6" style={{ color: 'var(--text-muted)' }}>{t('brand.slogan')}</p>
       </div>
     </div>
   );

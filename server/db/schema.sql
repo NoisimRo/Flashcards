@@ -58,6 +58,7 @@ CREATE TABLE users (
         "soundEnabled": true,
         "animationsEnabled": true,
         "theme": "light",
+        "accentTheme": "violet",
         "language": "ro"
     }'::jsonb,
 

@@ -145,16 +145,17 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({
   ];
 
   const modal = (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center backdrop-blur-sm" style={{ backgroundColor: 'var(--overlay-bg)' }}>
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4"
+        className="rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4"
+        style={{ backgroundColor: 'var(--bg-surface)' }}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-900">{t('editCardModal.title')}</h2>
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-            <X size={20} className="text-gray-500" />
+        <div className="flex items-center justify-between p-6" style={{ borderBottomWidth: '1px', borderBottomColor: 'var(--border-secondary)' }}>
+          <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>{t('editCardModal.title')}</h2>
+          <button onClick={onClose} className="p-2 rounded-lg transition-colors" style={{ color: 'var(--text-muted)' }}>
+            <X size={20} />
           </button>
         </div>
 
@@ -168,13 +169,13 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({
 
           {/* Card Type */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
+            <label className="block text-sm font-semibold mb-1">
               {t('editCardModal.cardType')}
             </label>
             <select
               value={type}
               onChange={e => setType(e.target.value as CardType)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-[var(--color-accent)]"
             >
               {cardTypes.map(ct => (
                 <option key={ct.value} value={ct.value}>
@@ -186,40 +187,40 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({
 
           {/* Front (Question) */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
+            <label className="block text-sm font-semibold mb-1">
               {t('editCardModal.front')}
             </label>
             <textarea
               value={front}
               onChange={e => setFront(e.target.value)}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+              className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-[var(--color-accent)] resize-none"
             />
           </div>
 
           {/* Back (Answer) */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
+            <label className="block text-sm font-semibold mb-1">
               {t('editCardModal.back')}
             </label>
             <textarea
               value={back}
               onChange={e => setBack(e.target.value)}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+              className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-[var(--color-accent)] resize-none"
             />
           </div>
 
           {/* Context */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
+            <label className="block text-sm font-semibold mb-1">
               {t('editCardModal.context')}
             </label>
             <textarea
               value={context}
               onChange={e => setContext(e.target.value)}
               rows={2}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
+              className="w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-[var(--color-accent)] resize-none"
               placeholder={t('editCardModal.contextPlaceholder')}
             />
           </div>
@@ -248,7 +249,7 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({
                       value={option}
                       onChange={e => handleOptionChange(index, e.target.value)}
                       placeholder={t('editCardModal.optionPlaceholder', { number: index + 1 })}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                      className="flex-1 px-3 py-2 rounded-lg focus:ring-2 focus:ring-[var(--color-accent)] text-sm"
                     />
                     {options.length > 2 && (
                       <button
@@ -273,7 +274,7 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({
 
           {/* Tags */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">
+            <label className="block text-sm font-semibold mb-1">
               {t('editCardModal.tags')}
             </label>
             <TagInput
@@ -286,17 +287,19 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200">
+        <div className="flex items-center justify-end gap-3 p-6" style={{ borderTopWidth: '1px', borderTopColor: 'var(--border-secondary)' }}>
           <button
             onClick={onClose}
-            className="px-5 py-2.5 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-colors"
+            className="px-5 py-2.5 font-medium rounded-lg transition-colors"
+            style={{ color: 'var(--text-secondary)' }}
           >
             {t('editCardModal.cancel')}
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-5 py-2.5 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-5 py-2.5 text-white font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            style={{ backgroundColor: 'var(--color-accent)' }}
           >
             {saving ? t('editCardModal.saving') : t('editCardModal.save')}
           </button>

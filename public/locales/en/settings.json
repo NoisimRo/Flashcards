@@ -36,6 +36,15 @@
     "saveChanges": "Save changes",
     "cancel": "Cancel"
   },
+  "appearance": {
+    "title": "Appearance",
+    "themeMode": "Theme mode",
+    "themeModeDesc": "Choose between day mode and night mode",
+    "lightMode": "Day",
+    "nightMode": "Night",
+    "accentTheme": "Accent color",
+    "accentThemeDesc": "Choose the primary color of the app"
+  },
   "logout": {
     "title": "Sign out",
     "message": "You will be signed out and redirected to the login page.",
