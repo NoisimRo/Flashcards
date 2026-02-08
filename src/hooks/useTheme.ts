@@ -75,9 +75,9 @@ export function useTheme() {
       const userTheme = user.preferences.theme;
       const userAccent = (user.preferences as any).accentTheme;
 
-      // Map 'dark' from old schema to 'night'
+      // Map 'dark' from DB to 'night' for UI
       const resolvedMode: ThemeMode =
-        userTheme === 'dark' || userTheme === 'night' ? 'night' : 'light';
+        userTheme === 'dark' ? 'night' : 'light';
       const resolvedAccent: AccentTheme =
         userAccent && ['violet', 'gold', 'silver', 'emerald', 'rose'].includes(userAccent)
           ? userAccent
