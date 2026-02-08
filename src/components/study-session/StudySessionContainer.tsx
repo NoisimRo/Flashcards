@@ -565,7 +565,12 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
 
               <button
                 onClick={handleRestart}
-                className="flex items-center gap-2 px-3 py-2 text-sm text-orange-600 hover:bg-orange-50 rounded-lg font-medium transition-all active:scale-95"
+                className="flex items-center gap-2 px-3 py-2 text-sm text-orange-500 rounded-lg font-medium transition-all active:scale-95"
+                style={{ ['--hover-bg' as string]: 'rgba(249, 115, 22, 0.1)' }}
+                onMouseEnter={e =>
+                  (e.currentTarget.style.backgroundColor = 'rgba(249, 115, 22, 0.1)')
+                }
+                onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
                 title="Restartează sesiunea"
               >
                 <RotateCcw size={18} />
@@ -574,7 +579,11 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
 
               <button
                 onClick={() => setShowCompletionModal(true)}
-                className="flex items-center gap-2 px-3 py-2 text-sm text-green-600 hover:bg-green-50 rounded-lg font-medium transition-all active:scale-95"
+                className="flex items-center gap-2 px-3 py-2 text-sm text-green-500 rounded-lg font-medium transition-all active:scale-95"
+                onMouseEnter={e =>
+                  (e.currentTarget.style.backgroundColor = 'rgba(34, 197, 94, 0.1)')
+                }
+                onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
                 title="Finalizează sesiunea"
               >
                 <CheckCircle size={18} />
@@ -584,11 +593,21 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
           </div>
 
           {/* Session Title */}
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+          <div
+            className="rounded-xl shadow-sm p-6"
+            style={{
+              backgroundColor: 'var(--card-bg)',
+              borderWidth: '1px',
+              borderColor: 'var(--card-border)',
+            }}
+          >
+            <h1 className="text-2xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
               {currentSession.deck?.title || currentSession.title || 'Sesiune de studiu'}
               {currentSession.deck?.difficulty && (
-                <span className="ml-2 text-lg font-semibold text-indigo-600">
+                <span
+                  className="ml-2 text-lg font-semibold"
+                  style={{ color: 'var(--color-accent-text)' }}
+                >
                   • {currentSession.deck.difficulty}
                 </span>
               )}

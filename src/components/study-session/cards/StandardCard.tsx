@@ -108,10 +108,11 @@ export const StandardCard: React.FC<StandardCardProps> = ({
         >
           {/* Front Face */}
           <div
-            className="absolute inset-0 bg-white rounded-2xl p-8 flex flex-col justify-center items-center"
+            className="absolute inset-0 rounded-2xl p-8 flex flex-col justify-center items-center"
             style={{
               backfaceVisibility: 'hidden',
               WebkitBackfaceVisibility: 'hidden',
+              backgroundColor: 'var(--study-card-front-bg)',
             }}
           >
             {/* Lightbulb Hint Button (top-left) */}
@@ -173,15 +174,24 @@ export const StandardCard: React.FC<StandardCardProps> = ({
 
             {/* Front Content */}
             <div className="text-center px-4">
-              <div className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide">
+              <div
+                className="text-sm font-semibold mb-4 uppercase tracking-wide"
+                style={{ color: 'var(--text-tertiary)' }}
+              >
                 Întrebare
               </div>
-              <div className="text-2xl font-bold text-gray-900">{card.front}</div>
+              <div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
+                {card.front}
+              </div>
             </div>
 
             {/* Sticky Navigation Footer (front) - Always visible */}
             <div
-              className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white/90 backdrop-blur rounded-b-2xl"
+              className="absolute bottom-0 left-0 right-0 p-4 border-t backdrop-blur rounded-b-2xl"
+              style={{
+                borderColor: 'var(--border-secondary)',
+                backgroundColor: 'var(--study-card-footer-bg)',
+              }}
               onClick={e => e.stopPropagation()}
             >
               <div className="flex items-center justify-between gap-2">
@@ -189,11 +199,11 @@ export const StandardCard: React.FC<StandardCardProps> = ({
                 <button
                   onClick={onUndo}
                   disabled={isFirstCard}
-                  className={`p-2 rounded-lg transition-all ${
-                    isFirstCard
-                      ? 'text-gray-300 cursor-not-allowed'
-                      : 'text-gray-600 hover:bg-gray-100 active:scale-95'
-                  }`}
+                  className="p-2 rounded-lg transition-all active:scale-95"
+                  style={{
+                    color: isFirstCard ? 'var(--text-muted)' : 'var(--text-secondary)',
+                    cursor: isFirstCard ? 'not-allowed' : 'pointer',
+                  }}
                   title="Înapoi"
                 >
                   <ChevronLeft size={20} />
@@ -212,7 +222,11 @@ export const StandardCard: React.FC<StandardCardProps> = ({
                     </button>
                     <button
                       onClick={handleShow}
-                      className="flex items-center gap-2 px-6 py-2 bg-indigo-100 text-indigo-700 rounded-lg font-semibold hover:bg-indigo-200 transition-all active:scale-95"
+                      className="flex items-center gap-2 px-6 py-2 rounded-lg font-semibold transition-all active:scale-95"
+                      style={{
+                        backgroundColor: 'var(--color-accent-light)',
+                        color: 'var(--color-accent-text)',
+                      }}
                     >
                       <Eye size={18} />
                       Arată
@@ -223,7 +237,11 @@ export const StandardCard: React.FC<StandardCardProps> = ({
                   <div className="flex gap-2 flex-1 justify-center">
                     <button
                       onClick={handleShow}
-                      className="flex items-center gap-2 px-6 py-2 bg-indigo-100 text-indigo-700 rounded-lg font-semibold hover:bg-indigo-200 transition-all active:scale-95"
+                      className="flex items-center gap-2 px-6 py-2 rounded-lg font-semibold transition-all active:scale-95"
+                      style={{
+                        backgroundColor: 'var(--color-accent-light)',
+                        color: 'var(--color-accent-text)',
+                      }}
                     >
                       <Eye size={18} />
                       Arată
@@ -258,11 +276,12 @@ export const StandardCard: React.FC<StandardCardProps> = ({
 
           {/* Back Face */}
           <div
-            className="absolute inset-0 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-8 flex flex-col justify-center items-center"
+            className="absolute inset-0 rounded-2xl p-8 flex flex-col justify-center items-center"
             style={{
               backfaceVisibility: 'hidden',
               WebkitBackfaceVisibility: 'hidden',
               transform: 'rotateY(180deg)',
+              background: 'var(--study-card-back-bg)',
             }}
           >
             {/* Status Label (top-center) - Sticky */}
@@ -299,16 +318,28 @@ export const StandardCard: React.FC<StandardCardProps> = ({
             {/* Back Content */}
             <div className="text-center px-4">
               <>
-                <div className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide">
+                <div
+                  className="text-sm font-semibold mb-4 uppercase tracking-wide"
+                  style={{ color: 'var(--text-tertiary)' }}
+                >
                   Răspuns
                 </div>
-                <div className="text-2xl font-bold text-gray-900 animate-fade-in">{card.back}</div>
+                <div
+                  className="text-2xl font-bold animate-fade-in"
+                  style={{ color: 'var(--text-primary)' }}
+                >
+                  {card.back}
+                </div>
               </>
             </div>
 
             {/* Sticky Navigation Footer (back) */}
             <div
-              className="absolute bottom-0 left-0 right-0 p-4 border-t border-indigo-200 bg-indigo-50/90 backdrop-blur rounded-b-2xl"
+              className="absolute bottom-0 left-0 right-0 p-4 border-t backdrop-blur rounded-b-2xl"
+              style={{
+                borderColor: 'var(--study-card-back-footer-border)',
+                backgroundColor: 'var(--study-card-back-footer-bg)',
+              }}
               onClick={e => e.stopPropagation()}
             >
               <div className="flex items-center justify-between gap-2">
@@ -316,11 +347,11 @@ export const StandardCard: React.FC<StandardCardProps> = ({
                 <button
                   onClick={onUndo}
                   disabled={isFirstCard}
-                  className={`p-2 rounded-lg transition-all ${
-                    isFirstCard
-                      ? 'text-gray-300 cursor-not-allowed'
-                      : 'text-gray-600 hover:bg-gray-100 active:scale-95'
-                  }`}
+                  className="p-2 rounded-lg transition-all active:scale-95"
+                  style={{
+                    color: isFirstCard ? 'var(--text-muted)' : 'var(--text-secondary)',
+                    cursor: isFirstCard ? 'not-allowed' : 'pointer',
+                  }}
                   title="Înapoi"
                 >
                   <ChevronLeft size={20} />
@@ -350,7 +381,8 @@ export const StandardCard: React.FC<StandardCardProps> = ({
                   ) : (
                     <button
                       onClick={onNext}
-                      className="flex items-center gap-2 px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-all active:scale-95"
+                      className="flex items-center gap-2 px-6 py-2 text-white rounded-lg font-semibold transition-all active:scale-95"
+                      style={{ backgroundColor: 'var(--color-accent)' }}
                     >
                       Următorul
                       <ChevronRight size={18} />

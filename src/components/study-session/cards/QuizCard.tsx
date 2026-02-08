@@ -115,7 +115,10 @@ export const QuizCard: React.FC<QuizCardProps> = ({
   return (
     <div className="w-full max-w-2xl mx-auto">
       {/* Card Container - use min-height for dynamic content */}
-      <div className="relative bg-white rounded-2xl shadow-xl min-h-[500px] flex flex-col">
+      <div
+        className="relative rounded-2xl shadow-xl min-h-[500px] flex flex-col"
+        style={{ backgroundColor: 'var(--study-card-front-bg)' }}
+      >
         {/* Lightbulb Hint Button (top-left) */}
         {card.context && !hintRevealed && !isAnswered && (
           <div className="absolute top-4 left-4 z-10">
@@ -177,7 +180,9 @@ export const QuizCard: React.FC<QuizCardProps> = ({
         <div className="p-8 pb-24 flex-1 overflow-y-auto">
           {/* Question */}
           <div className="mt-4 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 text-center">{card.front}</h2>
+            <h2 className="text-2xl font-bold text-center" style={{ color: 'var(--text-primary)' }}>
+              {card.front}
+            </h2>
           </div>
 
           {/* Options - flex column with proper gap */}
@@ -195,12 +200,12 @@ export const QuizCard: React.FC<QuizCardProps> = ({
                   disabled={isAnswered}
                   className={`w-full text-left p-4 rounded-xl border-2 transition-all font-medium ${
                     showCorrect
-                      ? 'border-green-500 bg-green-50 text-green-900'
+                      ? 'border-green-500 text-[var(--option-correct-text)]'
                       : showIncorrect
-                        ? 'border-red-500 bg-red-50 text-red-900'
+                        ? 'border-red-500 text-[var(--option-incorrect-text)]'
                         : isSelected
-                          ? 'border-indigo-600 bg-indigo-50 text-indigo-900'
-                          : 'border-gray-200 hover:border-indigo-300 hover:bg-gray-50 text-gray-900'
+                          ? 'border-[var(--color-accent)] text-[var(--option-selected-text)]'
+                          : 'border-[var(--option-default-border)] hover:border-[var(--option-hover-border)] text-[var(--text-primary)]'
                   } ${isAnswered ? 'cursor-not-allowed' : 'cursor-pointer active:scale-98'}`}
                 >
                   <div className="flex items-center justify-between">
@@ -215,16 +220,20 @@ export const QuizCard: React.FC<QuizCardProps> = ({
         </div>
 
         {/* Sticky Navigation Footer - Always visible */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white/90 backdrop-blur rounded-b-2xl">
+        <div
+          className="absolute bottom-0 left-0 right-0 p-4 border-t backdrop-blur rounded-b-2xl"
+          style={{
+            borderColor: 'var(--border-secondary)',
+            backgroundColor: 'var(--study-card-footer-bg)',
+          }}
+        >
           <div className="flex items-center justify-between gap-2">
             {/* Left: Back Button */}
             <button
               onClick={onUndo}
               disabled={isFirstCard}
               className={`p-2 rounded-lg transition-all ${
-                isFirstCard
-                  ? 'text-gray-300 cursor-not-allowed'
-                  : 'text-gray-600 hover:bg-gray-100 active:scale-95'
+                isFirstCard ? 'cursor-not-allowed' : 'active:scale-95'
               }`}
               title="Înapoi"
             >
@@ -247,7 +256,8 @@ export const QuizCard: React.FC<QuizCardProps> = ({
               ) : (
                 <button
                   onClick={handleManualNext}
-                  className="flex items-center gap-2 px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-all active:scale-95"
+                  className="flex items-center gap-2 px-6 py-2 text-white rounded-lg font-semibold transition-all active:scale-95"
+                  style={{ backgroundColor: 'var(--color-accent)' }}
                 >
                   Următorul
                   <ChevronRight size={18} />
@@ -264,7 +274,7 @@ export const QuizCard: React.FC<QuizCardProps> = ({
             ) : (
               <button
                 onClick={onSkip}
-                className="flex items-center gap-2 px-4 py-2 text-yellow-700 hover:bg-yellow-50 rounded-lg transition-all active:scale-95"
+                className="flex items-center gap-2 px-4 py-2 text-yellow-600 rounded-lg transition-all active:scale-95"
               >
                 <SkipForward size={18} />
                 <span className="hidden sm:inline">Sari</span>

@@ -252,10 +252,11 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
         >
           {/* Front Face */}
           <div
-            className="absolute inset-0 bg-white rounded-2xl p-8 flex flex-col justify-center"
+            className="absolute inset-0 rounded-2xl p-8 flex flex-col justify-center"
             style={{
               backfaceVisibility: 'hidden',
               WebkitBackfaceVisibility: 'hidden',
+              backgroundColor: 'var(--study-card-front-bg)',
             }}
           >
             {/* Lightbulb Hint Button (top-left) */}
@@ -317,16 +318,27 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
 
             {/* Front Content */}
             <div className="mb-8">
-              <div className="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wide text-center">
+              <div
+                className="text-sm font-semibold mb-3 uppercase tracking-wide text-center"
+                style={{ color: 'var(--text-tertiary)' }}
+              >
                 Completează Răspunsul
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 text-center">{card.front}</h2>
+              <h2
+                className="text-2xl font-bold text-center"
+                style={{ color: 'var(--text-primary)' }}
+              >
+                {card.front}
+              </h2>
             </div>
 
             {/* Answer Input Form */}
             <form onSubmit={handleSubmit}>
               <div className="mb-6">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label
+                  className="block text-sm font-semibold mb-2"
+                  style={{ color: 'var(--text-secondary)' }}
+                >
                   Răspunsul tău:
                 </label>
                 <div className="relative">
@@ -338,22 +350,33 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
                     className={`w-full px-5 py-4 pr-14 rounded-xl border-2 focus:outline-none focus:ring-2 transition-all text-base ${
                       showResult
                         ? isCorrect || cardAnswer === 'correct'
-                          ? 'border-green-500 bg-green-50'
-                          : 'border-red-500 bg-red-50'
-                        : 'border-gray-300 focus:border-indigo-600 focus:ring-indigo-200'
+                          ? 'border-[var(--input-correct-border)]'
+                          : 'border-[var(--input-incorrect-border)]'
+                        : 'focus:ring-[var(--color-accent-ring)]'
                     }`}
+                    style={{
+                      backgroundColor: showResult
+                        ? isCorrect || cardAnswer === 'correct'
+                          ? 'var(--input-correct-bg)'
+                          : 'var(--input-incorrect-bg)'
+                        : 'var(--input-bg)',
+                      borderColor: showResult ? undefined : 'var(--input-default-border)',
+                      color: 'var(--text-primary)',
+                    }}
                     autoFocus
                   />
                   <button
                     type="submit"
                     disabled={!userAnswer.trim()}
-                    className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all ${
-                      !userAnswer.trim()
-                        ? 'text-gray-400 cursor-not-allowed'
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all active:scale-95"
+                    style={{
+                      color: !userAnswer.trim()
+                        ? 'var(--text-muted)'
                         : isPracticeMode
-                          ? 'text-green-600 hover:bg-green-50 active:scale-95'
-                          : 'text-indigo-600 hover:bg-indigo-50 active:scale-95'
-                    }`}
+                          ? '#22c55e'
+                          : 'var(--color-accent)',
+                      cursor: !userAnswer.trim() ? 'not-allowed' : 'pointer',
+                    }}
                     title={isPracticeMode ? 'Practică (fără XP)' : 'Trimite răspunsul'}
                   >
                     <Send size={20} />
@@ -363,16 +386,22 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
             </form>
 
             {/* Navigation Buttons (front) - Always visible */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white/90 backdrop-blur rounded-b-2xl">
+            <div
+              className="absolute bottom-0 left-0 right-0 p-4 border-t backdrop-blur rounded-b-2xl"
+              style={{
+                borderColor: 'var(--border-secondary)',
+                backgroundColor: 'var(--study-card-footer-bg)',
+              }}
+            >
               <div className="flex items-center justify-between gap-2">
                 <button
                   onClick={handleManualUndo}
                   disabled={isFirstCard}
-                  className={`p-2 rounded-lg transition-all ${
-                    isFirstCard
-                      ? 'text-gray-300 cursor-not-allowed'
-                      : 'text-gray-600 hover:bg-gray-100 active:scale-95'
-                  }`}
+                  className="p-2 rounded-lg transition-all active:scale-95"
+                  style={{
+                    color: isFirstCard ? 'var(--text-muted)' : 'var(--text-secondary)',
+                    cursor: isFirstCard ? 'not-allowed' : 'pointer',
+                  }}
                   title="Înapoi"
                 >
                   <ChevronLeft size={20} />
@@ -391,7 +420,8 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
                   ) : (
                     <button
                       onClick={handleManualNext}
-                      className="flex items-center gap-2 px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-all active:scale-95"
+                      className="flex items-center gap-2 px-6 py-2 text-white rounded-lg font-semibold transition-all active:scale-95"
+                      style={{ backgroundColor: 'var(--color-accent)' }}
                     >
                       Următorul
                       <ChevronRight size={18} />
@@ -408,7 +438,7 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
                 ) : (
                   <button
                     onClick={onSkip}
-                    className="flex items-center gap-2 px-4 py-2 text-yellow-700 hover:bg-yellow-50 rounded-lg transition-all active:scale-95"
+                    className="flex items-center gap-2 px-4 py-2 text-yellow-600 rounded-lg transition-all active:scale-95"
                   >
                     <SkipForward size={18} />
                     <span className="hidden sm:inline">Sari</span>
@@ -420,11 +450,12 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
 
           {/* Back Face */}
           <div
-            className="absolute inset-0 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-8 flex flex-col justify-center items-center"
+            className="absolute inset-0 rounded-2xl p-8 flex flex-col justify-center items-center"
             style={{
               backfaceVisibility: 'hidden',
               WebkitBackfaceVisibility: 'hidden',
               transform: 'rotateY(180deg)',
+              background: 'var(--study-card-back-bg)',
             }}
           >
             {/* Status Label (top-center) - Sticky */}
@@ -460,7 +491,10 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
 
             {/* Back Content */}
             <div className="text-center w-full px-4">
-              <div className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide">
+              <div
+                className="text-sm font-semibold mb-4 uppercase tracking-wide"
+                style={{ color: 'var(--text-tertiary)' }}
+              >
                 Răspuns
               </div>
 
@@ -510,26 +544,46 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
               )}
 
               {/* Feedback / Explanation (card.back) */}
-              <div className="p-3 bg-indigo-50 border-2 border-indigo-200 rounded-lg">
-                <div className="flex items-center justify-center gap-2 text-indigo-700 mb-1">
+              <div
+                className="p-3 border-2 rounded-lg"
+                style={{
+                  backgroundColor: 'var(--explanation-bg)',
+                  borderColor: 'var(--explanation-border)',
+                }}
+              >
+                <div
+                  className="flex items-center justify-center gap-2 mb-1"
+                  style={{ color: 'var(--explanation-text)' }}
+                >
                   <Lightbulb size={18} />
                   <span className="text-xs font-bold uppercase">Explicație</span>
                 </div>
-                <div className="text-base font-medium text-indigo-800 text-center">{card.back}</div>
+                <div
+                  className="text-base font-medium text-center"
+                  style={{ color: 'var(--explanation-text)' }}
+                >
+                  {card.back}
+                </div>
               </div>
             </div>
 
             {/* Navigation Buttons (back) - Always visible */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-indigo-200 bg-indigo-50/90 backdrop-blur rounded-b-2xl">
+            <div
+              className="absolute bottom-0 left-0 right-0 p-4 border-t backdrop-blur rounded-b-2xl"
+              style={{
+                borderColor: 'var(--study-card-back-footer-border)',
+                backgroundColor: 'var(--study-card-back-footer-bg)',
+              }}
+            >
               <div className="flex items-center justify-between gap-2">
                 <button
                   onClick={handleManualUndo}
                   disabled={isFirstCard}
-                  className={`p-2 rounded-lg transition-all ${
-                    isFirstCard
-                      ? 'text-gray-300 cursor-not-allowed'
-                      : 'text-gray-600 hover:bg-gray-100 active:scale-95'
-                  }`}
+                  className="p-2 rounded-lg transition-all active:scale-95"
+                  style={{
+                    color: isFirstCard ? 'var(--text-muted)' : 'var(--text-secondary)',
+                    cursor: isFirstCard ? 'not-allowed' : 'pointer',
+                  }}
                   title="Înapoi"
                 >
                   <ChevronLeft size={20} />
@@ -547,7 +601,8 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
                 ) : (
                   <button
                     onClick={handleManualNext}
-                    className="flex items-center gap-2 px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-all active:scale-95"
+                    className="flex items-center gap-2 px-6 py-2 text-white rounded-lg font-semibold transition-all active:scale-95"
+                    style={{ backgroundColor: 'var(--color-accent)' }}
                   >
                     Următorul
                     <ChevronRight size={18} />

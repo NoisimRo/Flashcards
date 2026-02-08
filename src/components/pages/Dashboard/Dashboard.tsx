@@ -223,7 +223,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
       .map(a => ({
         icon: getAchievementEmoji(a.icon),
         title: a.title,
-        color: a.color || 'bg-gray-100',
       }));
   }, [achievements]);
 
@@ -497,16 +496,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 return (
                   <div
                     key={challenge.id}
-                    className={`p-4 rounded-xl border-2 transition-all ${
-                      completed ? 'bg-green-50 border-green-200' : ''
-                    }`}
+                    className="p-4 rounded-xl border-2 transition-all"
                     style={
-                      !completed
+                      completed
                         ? {
+                            backgroundColor: 'var(--challenge-complete-bg)',
+                            borderColor: 'var(--challenge-complete-border)',
+                          }
+                        : {
                             backgroundColor: 'var(--bg-secondary)',
                             borderColor: 'var(--border-secondary)',
                           }
-                        : undefined
                     }
                   >
                     <div className="flex items-center justify-between mb-3">
@@ -573,19 +573,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
             <div className="grid grid-cols-7 gap-1.5">
               {activityCalendar.map((day, idx) => {
-                const intensityColors = [
-                  'bg-[var(--bg-tertiary)]',
-                  'bg-green-200',
-                  'bg-green-400',
-                  'bg-green-600',
-                ];
+                const intensityOpacities = [0, 0.3, 0.6, 1];
                 const tooltipText = day.studied
                   ? `${day.date}\n${t('activityCalendar.cardsLearned', { cards: day.cardsLearned })}\n${t('activityCalendar.timeSpent', { minutes: day.timeSpent })}`
                   : day.date;
                 return (
                   <div
                     key={idx}
-                    className={`aspect-square rounded-md ${intensityColors[day.intensity]} transition-all hover:scale-110 cursor-pointer`}
+                    className="aspect-square rounded-md transition-all hover:scale-110 cursor-pointer"
+                    style={
+                      day.intensity === 0
+                        ? { backgroundColor: 'var(--bg-tertiary)' }
+                        : {
+                            backgroundColor: 'var(--color-accent)',
+                            opacity: intensityOpacities[day.intensity],
+                          }
+                    }
                     title={tooltipText}
                   />
                 );
@@ -597,12 +600,23 @@ export const Dashboard: React.FC<DashboardProps> = ({
             >
               <span>{t('activityCalendar.less')}</span>
               <div className="flex gap-1">
-                {[0, 1, 2, 3].map(i => (
-                  <div
-                    key={i}
-                    className={`w-3 h-3 rounded-sm ${['bg-[var(--bg-tertiary)]', 'bg-green-200', 'bg-green-400', 'bg-green-600'][i]}`}
-                  />
-                ))}
+                {[0, 1, 2, 3].map(i => {
+                  const legendOpacities = [0, 0.3, 0.6, 1];
+                  return (
+                    <div
+                      key={i}
+                      className="w-3 h-3 rounded-sm"
+                      style={
+                        i === 0
+                          ? { backgroundColor: 'var(--bg-tertiary)' }
+                          : {
+                              backgroundColor: 'var(--color-accent)',
+                              opacity: legendOpacities[i],
+                            }
+                      }
+                    />
+                  );
+                })}
               </div>
               <span>{t('activityCalendar.more')}</span>
             </div>
@@ -805,7 +819,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 recentAchievements.map((achievement, idx) => (
                   <div
                     key={idx}
-                    className={`${achievement.color} p-4 rounded-xl flex items-center gap-3 hover:scale-105 transition-transform cursor-pointer`}
+                    className="p-4 rounded-xl flex items-center gap-3 hover:scale-105 transition-transform cursor-pointer border"
+                    style={{
+                      backgroundColor: 'var(--color-accent-subtle)',
+                      borderColor: 'var(--border-secondary)',
+                    }}
                   >
                     <div className="text-3xl">{achievement.icon}</div>
                     <div className="flex-1">

@@ -73,6 +73,40 @@
   --completion-modal-bg: #ffffff;
   --completion-modal-perfect-bg: linear-gradient(to bottom right, #fefce8, #fef3c7, #fef9c3);
   --tag-bar-bg: #f9fafb;
+
+  /* Study card faces */
+  --study-card-front-bg: #ffffff;
+  --study-card-back-bg: linear-gradient(to bottom right, #eef2ff, #faf5ff);
+  --study-card-footer-bg: rgba(255, 255, 255, 0.9);
+  --study-card-back-footer-bg: rgba(238, 242, 255, 0.9);
+  --study-card-back-footer-border: #c7d2fe;
+
+  /* Quiz/option feedback */
+  --option-default-border: #e5e7eb;
+  --option-hover-bg: #f9fafb;
+  --option-hover-border: #a5b4fc;
+  --option-correct-bg: #f0fdf4;
+  --option-correct-text: #14532d;
+  --option-incorrect-bg: #fef2f2;
+  --option-incorrect-text: #7f1d1d;
+  --option-selected-bg: #eef2ff;
+  --option-selected-text: #312e81;
+
+  /* Challenge completed state */
+  --challenge-complete-bg: #f0fdf4;
+  --challenge-complete-border: #bbf7d0;
+
+  /* Type answer input */
+  --input-correct-bg: #f0fdf4;
+  --input-correct-border: #22c55e;
+  --input-incorrect-bg: #fef2f2;
+  --input-incorrect-border: #ef4444;
+  --input-default-border: #d1d5db;
+
+  /* Explanation / back content boxes */
+  --explanation-bg: #eef2ff;
+  --explanation-border: #c7d2fe;
+  --explanation-text: #3730a3;
 }
 
 /* --- NIGHT MODE --- */
@@ -136,6 +170,40 @@
   --completion-modal-bg: #1e2130;
   --completion-modal-perfect-bg: linear-gradient(to bottom right, #1e2130, #252833, #1e2130);
   --tag-bar-bg: #252833;
+
+  /* Study card faces */
+  --study-card-front-bg: #1e2130;
+  --study-card-back-bg: linear-gradient(to bottom right, #1a1d27, #252833);
+  --study-card-footer-bg: rgba(30, 33, 48, 0.95);
+  --study-card-back-footer-bg: rgba(37, 40, 51, 0.95);
+  --study-card-back-footer-border: #374151;
+
+  /* Quiz/option feedback */
+  --option-default-border: #374151;
+  --option-hover-bg: #252833;
+  --option-hover-border: var(--color-accent, #6366f1);
+  --option-correct-bg: rgba(34, 197, 94, 0.12);
+  --option-correct-text: #86efac;
+  --option-incorrect-bg: rgba(239, 68, 68, 0.12);
+  --option-incorrect-text: #fca5a5;
+  --option-selected-bg: var(--color-accent-subtle, rgba(124, 58, 237, 0.08));
+  --option-selected-text: var(--color-accent-text, #a78bfa);
+
+  /* Challenge completed state */
+  --challenge-complete-bg: rgba(34, 197, 94, 0.1);
+  --challenge-complete-border: rgba(34, 197, 94, 0.25);
+
+  /* Type answer input */
+  --input-correct-bg: rgba(34, 197, 94, 0.1);
+  --input-correct-border: #22c55e;
+  --input-incorrect-bg: rgba(239, 68, 68, 0.1);
+  --input-incorrect-border: #ef4444;
+  --input-default-border: #4b5563;
+
+  /* Explanation / back content boxes */
+  --explanation-bg: rgba(99, 102, 241, 0.1);
+  --explanation-border: rgba(99, 102, 241, 0.25);
+  --explanation-text: #a5b4fc;
 }
 
 /* ============================================

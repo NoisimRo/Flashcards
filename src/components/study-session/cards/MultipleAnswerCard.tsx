@@ -157,13 +157,14 @@ export const MultipleAnswerCard: React.FC<MultipleAnswerCardProps> = ({
     <div className="w-full max-w-2xl mx-auto">
       {/* Card Container - with glow effect on answer */}
       <div
-        className={`relative bg-white rounded-2xl shadow-xl min-h-[500px] flex flex-col transition-all duration-500 border-2 ${
+        className={`relative rounded-2xl shadow-xl min-h-[500px] flex flex-col transition-all duration-500 border-2 ${
           showResult && isCorrect === true
             ? 'border-green-500 shadow-[0_0_25px_rgba(34,197,94,0.5)]'
             : showResult && isCorrect === false
               ? 'border-red-500 shadow-[0_0_25px_rgba(239,68,68,0.5)]'
               : 'border-transparent'
         }`}
+        style={{ backgroundColor: 'var(--study-card-front-bg)' }}
       >
         {/* Lightbulb Hint Button (top-left) */}
         {card.context && !hintRevealed && !isAnswered && (
@@ -226,7 +227,9 @@ export const MultipleAnswerCard: React.FC<MultipleAnswerCardProps> = ({
         <div className="p-8 pb-24 flex-1 overflow-y-auto">
           {/* Question */}
           <div className="mt-4 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 text-center">{card.front}</h2>
+            <h2 className="text-2xl font-bold text-center" style={{ color: 'var(--text-primary)' }}>
+              {card.front}
+            </h2>
           </div>
 
           {/* Options with Checkboxes */}
@@ -245,12 +248,12 @@ export const MultipleAnswerCard: React.FC<MultipleAnswerCardProps> = ({
                   disabled={isAnswered}
                   className={`w-full text-left p-4 rounded-xl border-2 transition-all font-medium ${
                     showCorrectHighlight
-                      ? 'border-green-500 bg-green-50 text-green-900'
+                      ? 'border-green-500 text-[var(--option-correct-text)]'
                       : showIncorrect
-                        ? 'border-red-500 bg-red-50 text-red-900'
+                        ? 'border-red-500 text-[var(--option-incorrect-text)]'
                         : isSelected
-                          ? 'border-indigo-600 bg-indigo-50 text-indigo-900'
-                          : 'border-gray-200 hover:border-indigo-300 hover:bg-gray-50 text-gray-900'
+                          ? 'border-[var(--color-accent)] text-[var(--option-selected-text)]'
+                          : 'border-[var(--option-default-border)] text-[var(--text-primary)]'
                   } ${isAnswered ? 'cursor-not-allowed' : 'cursor-pointer active:scale-98'}`}
                 >
                   <div className="flex items-center justify-between">
@@ -263,13 +266,14 @@ export const MultipleAnswerCard: React.FC<MultipleAnswerCardProps> = ({
                               ? 'text-green-600'
                               : showIncorrect
                                 ? 'text-red-600'
-                                : 'text-indigo-600'
+                                : 'text-[var(--color-accent-text)]'
                           }
                         />
                       ) : (
                         <Square
                           size={20}
-                          className={showMissed ? 'text-green-600' : 'text-gray-400'}
+                          className={showMissed ? 'text-green-600' : ''}
+                          style={!showMissed ? { color: 'var(--text-muted)' } : undefined}
                         />
                       )}
                       <span>{option}</span>
@@ -287,26 +291,41 @@ export const MultipleAnswerCard: React.FC<MultipleAnswerCardProps> = ({
 
           {/* Back Explanation - shown immediately after answering */}
           {showResult && card.back && (
-            <div className="mt-4 p-4 rounded-xl bg-indigo-50 border-2 border-indigo-200">
-              <div className="text-sm font-semibold text-indigo-600 mb-2 uppercase tracking-wide">
+            <div
+              className="mt-4 p-4 rounded-xl border-2"
+              style={{
+                backgroundColor: 'var(--explanation-bg)',
+                borderColor: 'var(--explanation-border)',
+              }}
+            >
+              <div
+                className="text-sm font-semibold mb-2 uppercase tracking-wide"
+                style={{ color: 'var(--explanation-text)' }}
+              >
                 Explicație
               </div>
-              <p className="text-gray-800 font-medium">{card.back}</p>
+              <p className="font-medium" style={{ color: 'var(--text-primary)' }}>
+                {card.back}
+              </p>
             </div>
           )}
         </div>
 
         {/* Sticky Navigation Footer */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white/90 backdrop-blur rounded-b-2xl">
+        <div
+          className="absolute bottom-0 left-0 right-0 p-4 border-t backdrop-blur rounded-b-2xl"
+          style={{
+            borderColor: 'var(--border-secondary)',
+            backgroundColor: 'var(--study-card-footer-bg)',
+          }}
+        >
           <div className="flex items-center justify-between gap-2">
             {/* Left: Back Button */}
             <button
               onClick={onUndo}
               disabled={isFirstCard}
               className={`p-2 rounded-lg transition-all ${
-                isFirstCard
-                  ? 'text-gray-300 cursor-not-allowed'
-                  : 'text-gray-600 hover:bg-gray-100 active:scale-95'
+                isFirstCard ? 'cursor-not-allowed' : 'active:scale-95'
               }`}
               title="Înapoi"
             >
@@ -317,7 +336,8 @@ export const MultipleAnswerCard: React.FC<MultipleAnswerCardProps> = ({
             {!isAnswered && selectedMultipleOptions.length > 0 && (
               <button
                 onClick={handleSubmitAnswer}
-                className="px-6 py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 transition-all active:scale-95 shadow-lg"
+                className="px-6 py-2 text-white rounded-lg font-bold transition-all active:scale-95 shadow-lg"
+                style={{ backgroundColor: 'var(--color-accent)' }}
               >
                 Răspunde
               </button>
@@ -339,7 +359,8 @@ export const MultipleAnswerCard: React.FC<MultipleAnswerCardProps> = ({
               ) : (
                 <button
                   onClick={handleManualNext}
-                  className="flex items-center gap-2 px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-all active:scale-95"
+                  className="flex items-center gap-2 px-6 py-2 text-white rounded-lg font-semibold transition-all active:scale-95"
+                  style={{ backgroundColor: 'var(--color-accent)' }}
                 >
                   Următorul
                   <ChevronRight size={18} />
@@ -356,7 +377,7 @@ export const MultipleAnswerCard: React.FC<MultipleAnswerCardProps> = ({
             ) : (
               <button
                 onClick={onSkip}
-                className="flex items-center gap-2 px-4 py-2 text-yellow-700 hover:bg-yellow-50 rounded-lg transition-all active:scale-95"
+                className="flex items-center gap-2 px-4 py-2 text-yellow-600 rounded-lg transition-all active:scale-95"
               >
                 <SkipForward size={18} />
                 <span className="hidden sm:inline">Sari</span>

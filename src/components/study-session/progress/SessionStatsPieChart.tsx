@@ -96,11 +96,15 @@ export const SessionStatsPieChart: React.FC<SessionStatsPieChartProps> = ({
             cy={radius}
             r={radius - 4}
             fill="none"
-            stroke="#E5E7EB"
+            stroke="var(--border-secondary)"
             strokeWidth="8"
           />
         </svg>
-        {showLegend && <div className="text-xs text-gray-400 font-medium">Fără răspunsuri</div>}
+        {showLegend && (
+          <div className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
+            Fără răspunsuri
+          </div>
+        )}
       </div>
     );
   }
@@ -173,7 +177,7 @@ export const SessionStatsPieChart: React.FC<SessionStatsPieChartProps> = ({
           {unansweredCount > 0 && (
             <path
               d={createArc(unansweredStart, unansweredEnd, radius)}
-              fill="#E5E7EB"
+              fill="var(--border-secondary)"
               className="cursor-pointer hover:opacity-80 transition-opacity"
               onClick={() => handleSegmentClick('unanswered')}
             />
@@ -228,14 +232,21 @@ export const SessionStatsPieChart: React.FC<SessionStatsPieChartProps> = ({
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                <div className="flex items-center gap-1 text-sm text-gray-700">
+                <div
+                  className="flex items-center gap-1 text-sm"
+                  style={{ color: 'var(--text-secondary)' }}
+                >
                   <Check size={14} />
                   <span>Corecte</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-gray-900">{correctCount}</span>
-                <span className="text-xs text-gray-500">({correctPercent.toFixed(0)}%)</span>
+                <span className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
+                  {correctCount}
+                </span>
+                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                  ({correctPercent.toFixed(0)}%)
+                </span>
               </div>
             </div>
           )}
@@ -245,14 +256,21 @@ export const SessionStatsPieChart: React.FC<SessionStatsPieChartProps> = ({
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                <div className="flex items-center gap-1 text-sm text-gray-700">
+                <div
+                  className="flex items-center gap-1 text-sm"
+                  style={{ color: 'var(--text-secondary)' }}
+                >
                   <X size={14} />
                   <span>Greșite</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-gray-900">{incorrectCount}</span>
-                <span className="text-xs text-gray-500">({incorrectPercent.toFixed(0)}%)</span>
+                <span className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
+                  {incorrectCount}
+                </span>
+                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                  ({incorrectPercent.toFixed(0)}%)
+                </span>
               </div>
             </div>
           )}
@@ -262,14 +280,21 @@ export const SessionStatsPieChart: React.FC<SessionStatsPieChartProps> = ({
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                <div className="flex items-center gap-1 text-sm text-gray-700">
+                <div
+                  className="flex items-center gap-1 text-sm"
+                  style={{ color: 'var(--text-secondary)' }}
+                >
                   <SkipForward size={14} />
                   <span>Sărite</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-gray-900">{skippedCount}</span>
-                <span className="text-xs text-gray-500">({skippedPercent.toFixed(0)}%)</span>
+                <span className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
+                  {skippedCount}
+                </span>
+                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                  ({skippedPercent.toFixed(0)}%)
+                </span>
               </div>
             </div>
           )}

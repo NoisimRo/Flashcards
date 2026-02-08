@@ -107,11 +107,13 @@ export const TagInput: React.FC<TagInputProps> = ({
   return (
     <div className="relative">
       <div
-        className={`flex flex-wrap gap-1.5 p-2 border-2 bg-white rounded-xl min-h-[42px] transition-colors ${
-          disabled
-            ? 'border-gray-100 bg-gray-50 opacity-60'
-            : 'border-gray-200 focus-within:border-indigo-500'
-        }`}
+        className="flex flex-wrap gap-1.5 p-2 border-2 rounded-xl min-h-[42px] transition-colors"
+        style={{
+          backgroundColor: disabled ? 'var(--bg-tertiary)' : 'var(--input-bg)',
+          borderColor: disabled ? 'var(--border-subtle)' : 'var(--input-border)',
+          opacity: disabled ? 0.6 : 1,
+        }}
+        onClick={() => !disabled && inputRef.current?.focus()}
       >
         {tags.map((tag, i) => {
           const color = getTagColor(tag);
@@ -150,12 +152,19 @@ export const TagInput: React.FC<TagInputProps> = ({
             }}
             placeholder={tags.length === 0 ? placeholder : ''}
             className="flex-1 min-w-[80px] outline-none text-sm bg-transparent"
+            style={{ color: 'var(--text-primary)' }}
           />
         )}
       </div>
       {/* Autocomplete dropdown */}
       {showSuggestions && (
-        <div className="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-40 overflow-y-auto">
+        <div
+          className="absolute z-20 w-full mt-1 rounded-xl shadow-lg max-h-40 overflow-y-auto border"
+          style={{
+            backgroundColor: 'var(--bg-elevated)',
+            borderColor: 'var(--border-secondary)',
+          }}
+        >
           {filteredSuggestions.map((suggestion, idx) => {
             const color = getTagColor(suggestion);
             return (
@@ -164,9 +173,11 @@ export const TagInput: React.FC<TagInputProps> = ({
                 type="button"
                 onMouseDown={e => e.preventDefault()}
                 onClick={() => addTag(suggestion)}
-                className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 transition-colors ${
-                  idx === highlightedIndex ? 'bg-indigo-50' : 'hover:bg-gray-50'
-                }`}
+                className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 transition-colors"
+                style={{
+                  backgroundColor:
+                    idx === highlightedIndex ? 'var(--color-accent-subtle)' : 'transparent',
+                }}
               >
                 <span
                   className={`px-2 py-0.5 rounded-full text-xs font-semibold ${color.bg} ${color.text}`}

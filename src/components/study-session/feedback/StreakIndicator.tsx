@@ -26,7 +26,7 @@ export const StreakIndicator: React.FC = () => {
         }`}
         fill={isHotStreak ? 'currentColor' : 'none'}
       />
-      <span className="font-bold text-orange-700 text-sm">{streak}</span>
+      <span className="font-bold text-orange-500 text-sm">{streak}</span>
     </div>
   );
 };
