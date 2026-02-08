@@ -51,7 +51,10 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: 'var(--bg-primary)' }}>
+    <div
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{ backgroundColor: 'var(--bg-primary)' }}
+    >
       <div className="w-full max-w-md">
         {/* Logo & Title */}
         <div className="text-center mb-8">
@@ -72,7 +75,11 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
         {/* Register Form */}
         <div
           className="rounded-3xl p-8 shadow-xl"
-          style={{ backgroundColor: 'var(--bg-surface)', borderWidth: '1px', borderColor: 'var(--border-secondary)' }}
+          style={{
+            backgroundColor: 'var(--bg-surface)',
+            borderWidth: '1px',
+            borderColor: 'var(--border-secondary)',
+          }}
         >
           <h2 className="text-2xl font-bold mb-6" style={{ color: 'var(--text-primary)' }}>
             {t('auth:register.title')}
@@ -81,7 +88,10 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Name */}
             <div>
-              <label className="block text-sm font-bold mb-2" style={{ color: 'var(--text-secondary)' }}>
+              <label
+                className="block text-sm font-bold mb-2"
+                style={{ color: 'var(--text-secondary)' }}
+              >
                 {t('auth:register.nameLabel')}
               </label>
               <div className="relative">
@@ -103,7 +113,10 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
 
             {/* Email */}
             <div>
-              <label className="block text-sm font-bold mb-2" style={{ color: 'var(--text-secondary)' }}>
+              <label
+                className="block text-sm font-bold mb-2"
+                style={{ color: 'var(--text-secondary)' }}
+              >
                 Email
               </label>
               <div className="relative">
@@ -125,7 +138,10 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
 
             {/* Role Selection */}
             <div>
-              <label className="block text-sm font-bold mb-2" style={{ color: 'var(--text-secondary)' }}>
+              <label
+                className="block text-sm font-bold mb-2"
+                style={{ color: 'var(--text-secondary)' }}
+              >
                 Sunt
               </label>
               <div className="grid grid-cols-2 gap-3">
@@ -160,7 +176,10 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-bold mb-2" style={{ color: 'var(--text-secondary)' }}>
+              <label
+                className="block text-sm font-bold mb-2"
+                style={{ color: 'var(--text-secondary)' }}
+              >
                 Parolă
               </label>
               <div className="relative">
@@ -190,7 +209,10 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
 
             {/* Confirm Password */}
             <div>
-              <label className="block text-sm font-bold mb-2" style={{ color: 'var(--text-secondary)' }}>
+              <label
+                className="block text-sm font-bold mb-2"
+                style={{ color: 'var(--text-secondary)' }}
+              >
                 Confirmă parola
               </label>
               <div className="relative">
@@ -236,9 +258,17 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
 
           {/* Divider */}
           <div className="flex items-center gap-4 my-6">
-            <div className="flex-1 h-px" style={{ backgroundColor: 'var(--border-secondary)' }}></div>
-            <span className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>sau</span>
-            <div className="flex-1 h-px" style={{ backgroundColor: 'var(--border-secondary)' }}></div>
+            <div
+              className="flex-1 h-px"
+              style={{ backgroundColor: 'var(--border-secondary)' }}
+            ></div>
+            <span className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>
+              sau
+            </span>
+            <div
+              className="flex-1 h-px"
+              style={{ backgroundColor: 'var(--border-secondary)' }}
+            ></div>
           </div>
 
           {/* Switch to Login */}

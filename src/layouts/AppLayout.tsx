@@ -21,11 +21,18 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
   const isGuest = !isAuthenticated;
 
   return (
-    <div className="flex h-screen overflow-hidden font-sans" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-secondary)' }}>
+    <div
+      className="flex h-screen overflow-hidden font-sans"
+      style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-secondary)' }}
+    >
       {/* Mobile Menu Toggle */}
       <button
         className="md:hidden fixed top-4 right-4 z-[60] p-2 rounded-lg shadow-md"
-        style={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-secondary)', borderWidth: '1px' }}
+        style={{
+          backgroundColor: 'var(--bg-surface)',
+          borderColor: 'var(--border-secondary)',
+          borderWidth: '1px',
+        }}
         onClick={() => setMobileMenuOpen(!isMobileMenuOpen)}
         aria-label="Toggle menu"
       >

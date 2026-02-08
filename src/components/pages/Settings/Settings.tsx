@@ -1,7 +1,18 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { User } from '../../../types';
-import { User as UserIcon, Moon, Sun, Check, Save, LogOut, LogIn, UserPlus, Globe, Palette } from 'lucide-react';
+import {
+  User as UserIcon,
+  Moon,
+  Sun,
+  Check,
+  Save,
+  LogOut,
+  LogIn,
+  UserPlus,
+  Globe,
+  Palette,
+} from 'lucide-react';
 import { useTheme, type AccentTheme } from '../../../hooks/useTheme';
 
 interface SettingsProps {
@@ -13,11 +24,36 @@ interface SettingsProps {
 }
 
 const ACCENT_OPTIONS: { id: AccentTheme; label: string; color: string; gradient: string }[] = [
-  { id: 'violet', label: 'Violet', color: '#7C3AED', gradient: 'linear-gradient(135deg, #7C3AED, #6366F1)' },
-  { id: 'gold', label: 'Gold', color: '#D97706', gradient: 'linear-gradient(135deg, #D97706, #F59E0B)' },
-  { id: 'silver', label: 'Silver', color: '#6B7280', gradient: 'linear-gradient(135deg, #6B7280, #9CA3AF)' },
-  { id: 'emerald', label: 'Emerald', color: '#059669', gradient: 'linear-gradient(135deg, #059669, #10B981)' },
-  { id: 'rose', label: 'Rose', color: '#E11D48', gradient: 'linear-gradient(135deg, #E11D48, #F43F5E)' },
+  {
+    id: 'violet',
+    label: 'Violet',
+    color: '#7C3AED',
+    gradient: 'linear-gradient(135deg, #7C3AED, #6366F1)',
+  },
+  {
+    id: 'gold',
+    label: 'Gold',
+    color: '#D97706',
+    gradient: 'linear-gradient(135deg, #D97706, #F59E0B)',
+  },
+  {
+    id: 'silver',
+    label: 'Silver',
+    color: '#6B7280',
+    gradient: 'linear-gradient(135deg, #6B7280, #9CA3AF)',
+  },
+  {
+    id: 'emerald',
+    label: 'Emerald',
+    color: '#059669',
+    gradient: 'linear-gradient(135deg, #059669, #10B981)',
+  },
+  {
+    id: 'rose',
+    label: 'Rose',
+    color: '#E11D48',
+    gradient: 'linear-gradient(135deg, #E11D48, #F43F5E)',
+  },
 ];
 
 export const Settings: React.FC<SettingsProps> = ({
@@ -92,7 +128,10 @@ export const Settings: React.FC<SettingsProps> = ({
         className="p-8 rounded-3xl mb-6 shadow-sm"
         style={{ backgroundColor: 'var(--bg-secondary)' }}
       >
-        <h3 className="flex items-center gap-2 text-xl font-bold mb-6" style={{ color: 'var(--text-primary)' }}>
+        <h3
+          className="flex items-center gap-2 text-xl font-bold mb-6"
+          style={{ color: 'var(--text-primary)' }}
+        >
           <Palette style={{ color: 'var(--color-accent)' }} />
           {t('appearance.title', 'Aspect')}
         </h3>
@@ -100,8 +139,15 @@ export const Settings: React.FC<SettingsProps> = ({
         <div className="space-y-6">
           {/* Night Mode Toggle */}
           <div>
-            <h4 className="font-bold mb-2 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-              {isNight ? <Moon size={18} style={{ color: 'var(--color-accent)' }} /> : <Sun size={18} style={{ color: 'var(--color-accent)' }} />}
+            <h4
+              className="font-bold mb-2 flex items-center gap-2"
+              style={{ color: 'var(--text-primary)' }}
+            >
+              {isNight ? (
+                <Moon size={18} style={{ color: 'var(--color-accent)' }} />
+              ) : (
+                <Sun size={18} style={{ color: 'var(--color-accent)' }} />
+              )}
               {t('appearance.themeMode', 'Mod temă')}
             </h4>
             <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
@@ -111,9 +157,7 @@ export const Settings: React.FC<SettingsProps> = ({
               {/* Light mode card */}
               <button
                 onClick={() => setMode('light')}
-                className={`p-4 rounded-xl border-2 transition-all ${
-                  !isNight ? 'shadow-md' : ''
-                }`}
+                className={`p-4 rounded-xl border-2 transition-all ${!isNight ? 'shadow-md' : ''}`}
                 style={{
                   borderColor: !isNight ? 'var(--color-accent)' : 'var(--border-secondary)',
                   backgroundColor: !isNight ? 'var(--color-accent-light)' : 'var(--bg-surface)',
@@ -131,9 +175,7 @@ export const Settings: React.FC<SettingsProps> = ({
               {/* Night mode card */}
               <button
                 onClick={() => setMode('night')}
-                className={`p-4 rounded-xl border-2 transition-all ${
-                  isNight ? 'shadow-md' : ''
-                }`}
+                className={`p-4 rounded-xl border-2 transition-all ${isNight ? 'shadow-md' : ''}`}
                 style={{
                   borderColor: isNight ? 'var(--color-accent)' : 'var(--border-secondary)',
                   backgroundColor: isNight ? 'var(--color-accent-light)' : 'var(--bg-surface)',
@@ -153,7 +195,10 @@ export const Settings: React.FC<SettingsProps> = ({
 
           {/* Accent Theme Selector */}
           <div>
-            <h4 className="font-bold mb-2 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+            <h4
+              className="font-bold mb-2 flex items-center gap-2"
+              style={{ color: 'var(--text-primary)' }}
+            >
               <Palette size={18} style={{ color: 'var(--color-accent)' }} />
               {t('appearance.accentTheme', 'Culoare accent')}
             </h4>
@@ -177,7 +222,10 @@ export const Settings: React.FC<SettingsProps> = ({
                     className="w-8 h-8 rounded-full shadow-sm transition-transform"
                     style={{ background: option.gradient }}
                   />
-                  <span className="text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>
+                  <span
+                    className="text-xs font-semibold"
+                    style={{ color: 'var(--text-secondary)' }}
+                  >
                     {option.label}
                   </span>
                   {accent === option.id && (
@@ -200,7 +248,10 @@ export const Settings: React.FC<SettingsProps> = ({
         className={`p-8 rounded-3xl mb-6 shadow-sm ${isGuest ? 'opacity-60 pointer-events-none' : ''}`}
         style={{ backgroundColor: 'var(--bg-secondary)' }}
       >
-        <h3 className="flex items-center gap-2 text-xl font-bold mb-6" style={{ color: 'var(--text-primary)' }}>
+        <h3
+          className="flex items-center gap-2 text-xl font-bold mb-6"
+          style={{ color: 'var(--text-primary)' }}
+        >
           <UserIcon style={{ color: 'var(--color-accent)' }} /> {t('profile.title')}
           {isGuest && (
             <span className="text-sm font-normal text-orange-600">
@@ -211,7 +262,10 @@ export const Settings: React.FC<SettingsProps> = ({
 
         <div className="space-y-4 max-w-lg">
           <div>
-            <label className="block text-sm mb-1 font-medium" style={{ color: 'var(--text-muted)' }}>
+            <label
+              className="block text-sm mb-1 font-medium"
+              style={{ color: 'var(--text-muted)' }}
+            >
               {t('profile.nameLabel')}
             </label>
             <input
@@ -230,7 +284,10 @@ export const Settings: React.FC<SettingsProps> = ({
             />
           </div>
           <div>
-            <label className="block text-sm mb-1 font-medium" style={{ color: 'var(--text-muted)' }}>
+            <label
+              className="block text-sm mb-1 font-medium"
+              style={{ color: 'var(--text-muted)' }}
+            >
               {t('profile.emailLabel')}
             </label>
             <input
@@ -249,7 +306,10 @@ export const Settings: React.FC<SettingsProps> = ({
             />
           </div>
           {!isGuest && (
-            <button className="text-sm font-bold transition-colors" style={{ color: 'var(--color-accent)' }}>
+            <button
+              className="text-sm font-bold transition-colors"
+              style={{ color: 'var(--color-accent)' }}
+            >
               {t('profile.changePassword')}
             </button>
           )}
@@ -261,7 +321,10 @@ export const Settings: React.FC<SettingsProps> = ({
         className={`p-8 rounded-3xl mb-6 shadow-sm ${isGuest ? 'opacity-60 pointer-events-none' : ''}`}
         style={{ backgroundColor: 'var(--bg-secondary)' }}
       >
-        <h3 className="flex items-center gap-2 text-xl font-bold mb-6" style={{ color: 'var(--text-primary)' }}>
+        <h3
+          className="flex items-center gap-2 text-xl font-bold mb-6"
+          style={{ color: 'var(--text-primary)' }}
+        >
           <Moon style={{ color: 'var(--color-accent)' }} /> {t('preferences.title')}
           {isGuest && (
             <span className="text-sm font-normal text-orange-600">
@@ -272,7 +335,10 @@ export const Settings: React.FC<SettingsProps> = ({
 
         <div className="space-y-6">
           <div>
-            <h4 className="font-bold mb-2 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+            <h4
+              className="font-bold mb-2 flex items-center gap-2"
+              style={{ color: 'var(--text-primary)' }}
+            >
               <Globe size={18} style={{ color: 'var(--color-accent)' }} />
               {t('preferences.language')}
             </h4>
@@ -286,8 +352,14 @@ export const Settings: React.FC<SettingsProps> = ({
                   onClick={() => handleLanguageChange(lang.code)}
                   className="p-3 rounded-xl border-2 transition-all"
                   style={{
-                    borderColor: i18n.language === lang.code ? 'var(--color-accent)' : 'var(--border-secondary)',
-                    backgroundColor: i18n.language === lang.code ? 'var(--color-accent-light)' : 'var(--bg-surface)',
+                    borderColor:
+                      i18n.language === lang.code
+                        ? 'var(--color-accent)'
+                        : 'var(--border-secondary)',
+                    backgroundColor:
+                      i18n.language === lang.code
+                        ? 'var(--color-accent-light)'
+                        : 'var(--bg-surface)',
                   }}
                 >
                   <div className="text-2xl mb-1">{lang.flag}</div>

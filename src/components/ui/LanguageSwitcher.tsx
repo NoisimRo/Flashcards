@@ -37,7 +37,11 @@ export const LanguageSwitcher: React.FC = () => {
       {/* Dropdown */}
       <div
         className="absolute right-0 mt-2 w-48 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50"
-        style={{ backgroundColor: 'var(--bg-elevated)', borderWidth: '1px', borderColor: 'var(--border-secondary)' }}
+        style={{
+          backgroundColor: 'var(--bg-elevated)',
+          borderWidth: '1px',
+          borderColor: 'var(--border-secondary)',
+        }}
       >
         {languages.map(lang => (
           <button
@@ -53,8 +57,14 @@ export const LanguageSwitcher: React.FC = () => {
             }}
           >
             <span className="text-2xl">{lang.flag}</span>
-            <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{lang.name}</span>
-            {lang.code === i18n.language && <span className="ml-auto" style={{ color: 'var(--color-accent)' }}>✓</span>}
+            <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+              {lang.name}
+            </span>
+            {lang.code === i18n.language && (
+              <span className="ml-auto" style={{ color: 'var(--color-accent)' }}>
+                ✓
+              </span>
+            )}
           </button>
         ))}
       </div>

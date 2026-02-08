@@ -122,7 +122,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* XP Bar - only for logged in users */}
         {!isGuest && (
           <div className="mb-8">
-            <div className="flex justify-between text-xs font-semibold mb-1" style={{ color: 'var(--text-tertiary)' }}>
+            <div
+              className="flex justify-between text-xs font-semibold mb-1"
+              style={{ color: 'var(--text-tertiary)' }}
+            >
               <span>{t('xp.label')}</span>
               <span>
                 {t('xp.progress', {
@@ -131,7 +134,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 })}
               </span>
             </div>
-            <div className="h-2 w-full rounded-full overflow-hidden" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
+            <div
+              className="h-2 w-full rounded-full overflow-hidden"
+              style={{ backgroundColor: 'var(--bg-tertiary)' }}
+            >
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{ width: `${xpPercentage}%`, background: 'var(--color-accent-gradient)' }}
@@ -209,13 +215,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </nav>
 
         {/* Night Mode Toggle */}
-        <div className="pt-4 mt-4" style={{ borderTopWidth: '1px', borderTopColor: 'var(--border-primary)' }}>
+        <div
+          className="pt-4 mt-4"
+          style={{ borderTopWidth: '1px', borderTopColor: 'var(--border-primary)' }}
+        >
           <button
             onClick={toggleMode}
             className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all"
             style={{ color: 'var(--text-secondary)' }}
             onMouseEnter={e => {
-              (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--sidebar-item-hover-bg)';
+              (e.currentTarget as HTMLElement).style.backgroundColor =
+                'var(--sidebar-item-hover-bg)';
             }}
             onMouseLeave={e => {
               (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';

@@ -82,7 +82,11 @@ export const LevelUpOverlay: React.FC<LevelUpOverlayProps> = ({
         <div className="text-7xl">🎉</div>
         <h2
           className="text-6xl font-black tracking-tighter drop-shadow-2xl backdrop-blur px-10 py-6 rounded-3xl border-4 shadow-2xl"
-          style={{ color: 'var(--color-accent)', backgroundColor: 'var(--bg-surface)', borderColor: 'var(--color-accent)' }}
+          style={{
+            color: 'var(--color-accent)',
+            backgroundColor: 'var(--bg-surface)',
+            borderColor: 'var(--color-accent)',
+          }}
         >
           LEVEL {newLevel}
         </h2>

@@ -127,7 +127,10 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
                 <Trophy className="w-7 h-7 text-white" />
               </div>
             ) : (
-              <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--color-accent-light)' }}>
+              <div
+                className="w-12 h-12 rounded-full flex items-center justify-center"
+                style={{ backgroundColor: 'var(--color-accent-light)' }}
+              >
                 <CheckCircle className="w-7 h-7" style={{ color: 'var(--color-accent)' }} />
               </div>
             )}
@@ -135,7 +138,9 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
               <div className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
                 {correctCount}/{totalCards} corecte
               </div>
-              <div className="text-sm" style={{ color: 'var(--text-muted)' }}>Scor: {score}%</div>
+              <div className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                Scor: {score}%
+              </div>
             </div>
           </div>
           {xpEarned > 0 && (
@@ -266,7 +271,10 @@ const TagProgressBar: React.FC<{
         </span>
       </div>
       {/* Progress bar */}
-      <div className="w-full h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--bg-tertiary)' }}>
+      <div
+        className="w-full h-2 rounded-full overflow-hidden"
+        style={{ backgroundColor: 'var(--bg-tertiary)' }}
+      >
         <div
           className={`h-full rounded-full transition-all duration-500 ${barColor}`}
           style={{ width: `${Math.max(tag.accuracy, 2)}%` }}

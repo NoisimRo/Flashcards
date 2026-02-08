@@ -185,13 +185,30 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
   const noCardsAvailable = availableCards === 0 && !loadingCount;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'var(--overlay-bg)' }}>
-      <div className="rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl" style={{ backgroundColor: 'var(--bg-surface)' }}>
+    <div
+      className="fixed inset-0 flex items-center justify-center z-50 p-4"
+      style={{ backgroundColor: 'var(--overlay-bg)' }}
+    >
+      <div
+        className="rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+        style={{ backgroundColor: 'var(--bg-surface)' }}
+      >
         {/* Header */}
-        <div className="p-6 flex justify-between items-center sticky top-0" style={{ borderBottomWidth: '1px', borderBottomColor: 'var(--border-secondary)', backgroundColor: 'var(--bg-surface)' }}>
+        <div
+          className="p-6 flex justify-between items-center sticky top-0"
+          style={{
+            borderBottomWidth: '1px',
+            borderBottomColor: 'var(--border-secondary)',
+            backgroundColor: 'var(--bg-surface)',
+          }}
+        >
           <div>
-            <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{t('create.title')}</h2>
-            <p className="text-sm mt-1" style={{ color: 'var(--text-tertiary)' }}>{deck.title}</p>
+            <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
+              {t('create.title')}
+            </h2>
+            <p className="text-sm mt-1" style={{ color: 'var(--text-tertiary)' }}>
+              {deck.title}
+            </p>
           </div>
           <button
             onClick={onClose}
@@ -454,7 +471,10 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-6 flex gap-3" style={{ borderTopWidth: '1px', borderTopColor: 'var(--border-secondary)' }}>
+        <div
+          className="p-6 flex gap-3"
+          style={{ borderTopWidth: '1px', borderTopColor: 'var(--border-secondary)' }}
+        >
           <button
             onClick={onClose}
             className="flex-1 px-6 py-3 border-2 font-semibold rounded-xl transition-colors"

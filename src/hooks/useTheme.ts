@@ -50,7 +50,13 @@ export function applyThemeToDOM(mode: ThemeMode, accent: AccentTheme) {
 
   // Remove old theme classes
   html.classList.remove('theme-light', 'theme-night');
-  html.classList.remove('accent-violet', 'accent-gold', 'accent-silver', 'accent-emerald', 'accent-rose');
+  html.classList.remove(
+    'accent-violet',
+    'accent-gold',
+    'accent-silver',
+    'accent-emerald',
+    'accent-rose'
+  );
 
   // Apply new classes
   html.classList.add(`theme-${mode}`);
@@ -80,8 +86,7 @@ export function useTheme() {
       const userAccent = (user.preferences as any).accentTheme;
 
       // Map 'dark' from DB to 'night' for UI
-      const resolvedMode: ThemeMode =
-        userTheme === 'dark' ? 'night' : 'light';
+      const resolvedMode: ThemeMode = userTheme === 'dark' ? 'night' : 'light';
       const resolvedAccent: AccentTheme =
         userAccent && ['violet', 'gold', 'silver', 'emerald', 'rose'].includes(userAccent)
           ? userAccent

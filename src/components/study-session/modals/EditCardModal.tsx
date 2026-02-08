@@ -145,16 +145,28 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({
   ];
 
   const modal = (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center backdrop-blur-sm" style={{ backgroundColor: 'var(--overlay-bg)' }}>
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center backdrop-blur-sm"
+      style={{ backgroundColor: 'var(--overlay-bg)' }}
+    >
       <div
         className="rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4"
         style={{ backgroundColor: 'var(--bg-surface)' }}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6" style={{ borderBottomWidth: '1px', borderBottomColor: 'var(--border-secondary)' }}>
-          <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>{t('editCardModal.title')}</h2>
-          <button onClick={onClose} className="p-2 rounded-lg transition-colors" style={{ color: 'var(--text-muted)' }}>
+        <div
+          className="flex items-center justify-between p-6"
+          style={{ borderBottomWidth: '1px', borderBottomColor: 'var(--border-secondary)' }}
+        >
+          <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
+            {t('editCardModal.title')}
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg transition-colors"
+            style={{ color: 'var(--text-muted)' }}
+          >
             <X size={20} />
           </button>
         </div>
@@ -187,9 +199,7 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({
 
           {/* Front (Question) */}
           <div>
-            <label className="block text-sm font-semibold mb-1">
-              {t('editCardModal.front')}
-            </label>
+            <label className="block text-sm font-semibold mb-1">{t('editCardModal.front')}</label>
             <textarea
               value={front}
               onChange={e => setFront(e.target.value)}
@@ -200,9 +210,7 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({
 
           {/* Back (Answer) */}
           <div>
-            <label className="block text-sm font-semibold mb-1">
-              {t('editCardModal.back')}
-            </label>
+            <label className="block text-sm font-semibold mb-1">{t('editCardModal.back')}</label>
             <textarea
               value={back}
               onChange={e => setBack(e.target.value)}
@@ -213,9 +221,7 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({
 
           {/* Context */}
           <div>
-            <label className="block text-sm font-semibold mb-1">
-              {t('editCardModal.context')}
-            </label>
+            <label className="block text-sm font-semibold mb-1">{t('editCardModal.context')}</label>
             <textarea
               value={context}
               onChange={e => setContext(e.target.value)}
@@ -274,9 +280,7 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({
 
           {/* Tags */}
           <div>
-            <label className="block text-sm font-semibold mb-1">
-              {t('editCardModal.tags')}
-            </label>
+            <label className="block text-sm font-semibold mb-1">{t('editCardModal.tags')}</label>
             <TagInput
               tags={tags}
               onChange={setTags}
@@ -287,7 +291,10 @@ export const EditCardModal: React.FC<EditCardModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 p-6" style={{ borderTopWidth: '1px', borderTopColor: 'var(--border-secondary)' }}>
+        <div
+          className="flex items-center justify-end gap-3 p-6"
+          style={{ borderTopWidth: '1px', borderTopColor: 'var(--border-secondary)' }}
+        >
           <button
             onClick={onClose}
             className="px-5 py-2.5 font-medium rounded-lg transition-colors"
