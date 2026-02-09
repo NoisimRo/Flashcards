@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { CardActionsMenu } from '../menus/CardActionsMenu';
 import { HintOverlay } from '../shared/HintOverlay';
+import { shuffleIndices } from '../../../utils/shuffle';
 
 interface MultipleAnswerCardProps {
   card: Card;
@@ -63,6 +64,8 @@ export const MultipleAnswerCard: React.FC<MultipleAnswerCardProps> = ({
   const [hasAnswered, setHasAnswered] = React.useState(hasAnsweredProp);
   const [isCorrect, setIsCorrect] = React.useState<boolean | null>(null);
   const [autoAdvanceTimer, setAutoAdvanceTimer] = React.useState<NodeJS.Timeout | null>(null);
+
+  const shuffledIndices = React.useMemo(() => shuffleIndices(card.options?.length ?? 0), [card.id]);
 
   // Reset local state when card changes
   React.useEffect(() => {
@@ -234,17 +237,18 @@ export const MultipleAnswerCard: React.FC<MultipleAnswerCardProps> = ({
 
           {/* Options with Checkboxes */}
           <div className="flex flex-col gap-3">
-            {card.options?.map((option, index) => {
-              const isSelected = selectedMultipleOptions.includes(index);
-              const isCorrectOption = correctIndices.includes(index);
+            {shuffledIndices.map(dataIndex => {
+              const option = card.options?.[dataIndex];
+              const isSelected = selectedMultipleOptions.includes(dataIndex);
+              const isCorrectOption = correctIndices.includes(dataIndex);
               const showCorrectHighlight = showResult && isCorrectOption;
               const showIncorrect = showResult && isSelected && !isCorrectOption;
               const showMissed = showResult && isCorrectOption && !isSelected;
 
               return (
                 <button
-                  key={index}
-                  onClick={() => handleOptionToggle(index)}
+                  key={dataIndex}
+                  onClick={() => handleOptionToggle(dataIndex)}
                   disabled={isAnswered}
                   className={`w-full text-left p-4 rounded-xl border-2 transition-all font-medium ${
                     showCorrectHighlight
