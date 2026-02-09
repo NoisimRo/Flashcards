@@ -2,7 +2,8 @@ import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { User } from '../../../types';
 import { LeaderboardEntry } from '../../../api/users';
-import { Flame, Medal, Users } from 'lucide-react';
+import { Flame, Medal, Trophy, Users } from 'lucide-react';
+import { AVATARS } from '../Settings/AvatarPicker';
 
 interface LeaderboardProps {
   entries: LeaderboardEntry[];
@@ -142,7 +143,9 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
       {/* Leaderboard Table */}
       <div className="bg-[var(--card-bg)] rounded-2xl shadow-sm overflow-hidden">
         <div className="grid grid-cols-12 gap-4 p-4 border-b border-[var(--border-subtle)] bg-[var(--bg-tertiary)] text-[var(--text-tertiary)] font-bold text-sm">
-          <div className="col-span-2 md:col-span-1 text-center">{t('table.position')}</div>
+          <div className="col-span-2 md:col-span-1 flex items-center justify-center gap-1">
+            <Trophy size={14} className="text-yellow-500" />
+          </div>
           <div className="col-span-6 md:col-span-5">{t('table.user')}</div>
           <div className="col-span-2 text-center hidden md:block">{t('table.level')}</div>
           <div className="col-span-2 text-center">{t('table.totalXP')}</div>
@@ -166,12 +169,13 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
             </div>
 
             <div className="col-span-6 md:col-span-5 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[var(--bg-tertiary)] flex items-center justify-center text-sm font-bold text-[var(--text-secondary)]">
-                {entry.name
-                  .split(' ')
-                  .map(n => n[0])
-                  .join('')
-                  .toUpperCase()}
+              <div className="w-10 h-10 rounded-full bg-[var(--bg-tertiary)] flex items-center justify-center text-lg font-bold text-[var(--text-secondary)]">
+                {entry.avatar && entry.avatar !== 'default'
+                  ? (() => {
+                      const av = AVATARS.find(a => a.id === entry.avatar);
+                      return av ? av.emoji : entry.name.charAt(0).toUpperCase();
+                    })()
+                  : entry.name.charAt(0).toUpperCase()}
               </div>
               <div>
                 <p

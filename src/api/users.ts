@@ -9,6 +9,7 @@ export interface LeaderboardEntry {
   id: string;
   position: number;
   name: string;
+  avatar?: string;
   level: number;
   xpTotal: number;
   streak: number;
@@ -61,4 +62,8 @@ export async function activateStreakShield(userId: string) {
   return api.post<{ streakShieldActive: boolean; xpDeducted: number }>(
     `/users/${userId}/activate-streak-shield`
   );
+}
+
+export async function deactivateStreakShield(userId: string) {
+  return api.post<{ streakShieldActive: boolean }>(`/users/${userId}/deactivate-streak-shield`);
 }

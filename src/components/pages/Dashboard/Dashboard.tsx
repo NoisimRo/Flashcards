@@ -209,6 +209,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
       diamond: '💎',
       crown: '👑',
       calendar: '📅',
+      moon: '🌙',
+      sunrise: '🌅',
+      award: '🏅',
+      trophy: '🏆',
+      medal: '🎖️',
+      coins: '🪙',
+      gem: '💠',
+      sparkles: '✨',
+      timer: '⏱️',
+      brain: '🧠',
+      'book-check': '📖',
     };
     return emojiMap[iconName] || '🏆';
   };
@@ -226,6 +237,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       .map(a => ({
         icon: getAchievementEmoji(a.icon),
         title: a.title,
+        xpReward: a.xpReward,
       }));
   }, [achievements]);
 
@@ -854,7 +866,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         {t('recentAchievements.unlockedRecently')}
                       </p>
                     </div>
-                    <Star className="text-yellow-500" size={20} fill="#EAB308" />
+                    <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-yellow-500/10">
+                      <Zap size={14} className="text-yellow-500" />
+                      <span className="text-xs font-bold text-yellow-500">
+                        +{achievement.xpReward}
+                      </span>
+                    </div>
                   </div>
                 ))
               ) : (
