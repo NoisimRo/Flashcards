@@ -14,8 +14,12 @@ import {
   ThumbsUp,
   Flag,
   List,
+  Trash2,
+  Edit,
+  EyeOff,
+  Eye,
 } from 'lucide-react';
-import { getDecks, getDeck } from '../../../api/decks';
+import { getDecks, getDeck, deleteDeck, updateDeck } from '../../../api/decks';
 import type { DeckWithCards as APIDeck } from '../../../types';
 import type { Deck, DeckWithCards } from '../../../types';
 import { useToast } from '../../ui/Toast';
@@ -39,6 +43,7 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSubject, setSelectedSubject] = useState<string>('all');
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
+  const [selectedRating, setSelectedRating] = useState<string>('all');
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [flagModalOpen, setFlagModalOpen] = useState(false);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
@@ -109,9 +114,20 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
       const matchesDifficulty =
         selectedDifficulty === 'all' || deck.difficulty === selectedDifficulty;
 
-      return matchesSearch && matchesSubject && matchesDifficulty;
+      // Rating filter
+      let matchesRating = true;
+      if (selectedRating !== 'all') {
+        const minRating = parseFloat(selectedRating);
+        if (minRating === 5) {
+          matchesRating = (deck.averageRating ?? 0) >= 4.5;
+        } else {
+          matchesRating = (deck.averageRating ?? 0) >= minRating;
+        }
+      }
+
+      return matchesSearch && matchesSubject && matchesDifficulty && matchesRating;
     });
-  }, [decks, searchQuery, selectedSubject, selectedDifficulty]);
+  }, [decks, searchQuery, selectedSubject, selectedDifficulty, selectedRating]);
 
   // Group decks by subject
   const decksBySubject = useMemo(() => {
@@ -146,6 +162,52 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
     } else {
       toast.info(t('toast.copyNotAvailable'));
     }
+  };
+
+  const refreshDecks = async () => {
+    try {
+      const response = await getDecks({
+        publicOnly: true,
+        sortBy: 'createdAt',
+        sortOrder: 'desc',
+      });
+      if (response.success && response.data) {
+        setDecks(response.data);
+      }
+    } catch (error) {
+      console.error('Error refreshing decks:', error);
+    }
+  };
+
+  const handleDeleteDeck = async (deck: APIDeck) => {
+    if (!confirm(t('menu.deleteConfirm', { title: deck.title }))) return;
+    try {
+      await deleteDeck(deck.id);
+      setDecks(prev => prev.filter(d => d.id !== deck.id));
+      toast.success(t('toast.deckDeleted', { title: deck.title }));
+    } catch (error) {
+      console.error('Error deleting deck:', error);
+      toast.error(t('toast.generalError'));
+    }
+    setActiveMenuId(null);
+  };
+
+  const handleToggleVisibility = async (deck: APIDeck) => {
+    try {
+      await updateDeck(deck.id, { isPublic: !deck.isPublic });
+      if (!deck.isPublic) {
+        // Was private, now public — refresh to show it
+        await refreshDecks();
+      } else {
+        // Was public, now private — remove from list
+        setDecks(prev => prev.filter(d => d.id !== deck.id));
+      }
+      toast.success(t('toast.visibilityChanged'));
+    } catch (error) {
+      console.error('Error toggling visibility:', error);
+      toast.error(t('toast.generalError'));
+    }
+    setActiveMenuId(null);
   };
 
   const openEditCardsModal = async (deck: APIDeck) => {
@@ -294,10 +356,26 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
               </option>
             ))}
           </select>
+
+          {/* Rating Filter */}
+          <select
+            value={selectedRating}
+            onChange={e => setSelectedRating(e.target.value)}
+            className="px-4 py-3 border border-[var(--input-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-ring)] focus:border-transparent bg-[var(--input-bg)] text-[var(--text-primary)]"
+          >
+            <option value="all">{t('search.allRatings')}</option>
+            <option value="5">{t('search.stars', { count: 5 })}</option>
+            <option value="4">{t('search.starsAndAbove', { count: 4 })}</option>
+            <option value="3">{t('search.starsAndAbove', { count: 3 })}</option>
+            <option value="2">{t('search.starsAndAbove', { count: 2 })}</option>
+          </select>
         </div>
 
         {/* Active Filters Summary */}
-        {(searchQuery || selectedSubject !== 'all' || selectedDifficulty !== 'all') && (
+        {(searchQuery ||
+          selectedSubject !== 'all' ||
+          selectedDifficulty !== 'all' ||
+          selectedRating !== 'all') && (
           <div className="mt-4 flex items-center gap-2 text-sm text-[var(--text-secondary)]">
             <Filter size={16} />
             <span>
@@ -308,6 +386,7 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
                 setSearchQuery('');
                 setSelectedSubject('all');
                 setSelectedDifficulty('all');
+                setSelectedRating('all');
               }}
               className="ml-auto text-[var(--color-accent-text)] hover:opacity-80 font-medium"
             >
@@ -341,8 +420,16 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
                 </span>
               </div>
 
-              {/* Deck Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Deck Grid - adaptive columns based on deck count */}
+              <div
+                className={`grid gap-4 ${
+                  subjectDecks.length === 1
+                    ? 'grid-cols-1 max-w-md'
+                    : subjectDecks.length === 2
+                      ? 'grid-cols-1 md:grid-cols-2 max-w-3xl'
+                      : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+                }`}
+              >
                 {subjectDecks.map(deck => {
                   const isOwner = user && deck.ownerId === user.id;
 
@@ -388,6 +475,26 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
                                   <List size={16} /> {t('menu.editCards')}
                                 </button>
                               )}
+                              {/* Toggle visibility - Admin only */}
+                              {user?.role === 'admin' && (
+                                <button
+                                  onClick={e => {
+                                    e.stopPropagation();
+                                    handleToggleVisibility(deck);
+                                  }}
+                                  className="w-full text-left px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)] rounded-lg flex items-center gap-2 font-medium"
+                                >
+                                  {deck.isPublic ? (
+                                    <>
+                                      <EyeOff size={16} /> {t('menu.makePrivate')}
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Eye size={16} /> {t('menu.makePublic')}
+                                    </>
+                                  )}
+                                </button>
+                              )}
                               {/* Lasă o recenzie - Only for non-owners */}
                               {!isOwner && (
                                 <button
@@ -414,6 +521,18 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
                                   className="w-full text-left px-3 py-2 text-sm text-orange-500 hover:bg-orange-500/10 rounded-lg flex items-center gap-2 font-medium"
                                 >
                                   <Flag size={16} /> {t('menu.report')}
+                                </button>
+                              )}
+                              {/* Delete deck - Admin or owner */}
+                              {(user?.role === 'admin' || isOwner) && (
+                                <button
+                                  onClick={e => {
+                                    e.stopPropagation();
+                                    handleDeleteDeck(deck);
+                                  }}
+                                  className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-500/10 rounded-lg flex items-center gap-2 font-medium border-t border-[var(--border-subtle)] mt-1 pt-2"
+                                >
+                                  <Trash2 size={16} /> {t('menu.deleteDeck')}
                                 </button>
                               )}
                             </div>
@@ -492,21 +611,7 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
             setReviewModalOpen(false);
             setSelectedDeckForReview(null);
           }}
-          onSuccess={async () => {
-            // Refresh decks to show updated rating
-            try {
-              const response = await getDecks({
-                publicOnly: true,
-                sortBy: 'createdAt',
-                sortOrder: 'desc',
-              });
-              if (response.success && response.data) {
-                setDecks(response.data);
-              }
-            } catch (error) {
-              console.error('Error refreshing decks:', error);
-            }
-          }}
+          onSuccess={refreshDecks}
         />
       )}
 

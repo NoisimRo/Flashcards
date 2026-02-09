@@ -12,6 +12,9 @@
     "placeholder": "Caută după titlu, topic sau creator...",
     "allSubjects": "Toate Disciplinele",
     "allLevels": "Toate Nivelurile",
+    "allRatings": "Toate Ratingurile",
+    "stars": "{{count}} Stele",
+    "starsAndAbove": "{{count}}+ Stele",
     "level": "Nivel {{level}}",
     "showing": "Afișare {{filtered}} din {{total}} deck-uri",
     "resetFilters": "Resetează filtrele"
@@ -34,13 +37,20 @@
   "menu": {
     "leaveReview": "Lasă o recenzie",
     "report": "Raportează deck",
-    "editCards": "Editează carduri"
+    "editCards": "Editează carduri",
+    "editDeck": "Editează deck",
+    "deleteDeck": "Șterge deck",
+    "deleteConfirm": "Ești sigur că vrei să ștergi \"{{title}}\"? Această acțiune nu poate fi anulată.",
+    "makePrivate": "Fă privat",
+    "makePublic": "Fă public"
   },
   "toast": {
     "deckCopied": "Deck-ul \"{{title}}\" a fost copiat în colecția ta!",
     "copyNotAvailable": "Funcția de copiere nu este disponibilă momentan",
     "loadError": "Nu s-au putut încărca deck-urile publice",
-    "generalError": "Eroare la încărcarea deck-urilor"
+    "generalError": "Eroare la încărcarea deck-urilor",
+    "deckDeleted": "Deck-ul \"{{title}}\" a fost șters",
+    "visibilityChanged": "Vizibilitatea deck-ului a fost actualizată"
   },
   "loading": "Se încarcă deck-urile globale..."
 }
