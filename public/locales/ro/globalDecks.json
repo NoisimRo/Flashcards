@@ -32,7 +32,8 @@
     "copy": "Copiază în colecția mea",
     "updated": "Actualizat: {{date}}",
     "deck": "deck",
-    "decks": "deck-uri"
+    "decks": "deck-uri",
+    "beFirstToRate": "Fii primul care evaluează!"
   },
   "menu": {
     "leaveReview": "Lasă o recenzie",

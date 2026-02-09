@@ -32,7 +32,8 @@
     "copy": "Copy to my collection",
     "updated": "Updated: {{date}}",
     "deck": "deck",
-    "decks": "decks"
+    "decks": "decks",
+    "beFirstToRate": "Be the first to rate!"
   },
   "menu": {
     "leaveReview": "Leave a review",
