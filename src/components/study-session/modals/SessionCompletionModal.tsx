@@ -111,12 +111,16 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
       onClick={onSaveAndExit}
     >
       <div
-        className={`rounded-3xl shadow-2xl max-w-md w-full p-6 animate-scale-up max-h-[90vh] overflow-y-auto ${
+        className="rounded-3xl shadow-2xl max-w-md w-full p-6 animate-scale-up max-h-[90vh] overflow-y-auto"
+        style={
           isPerfect
-            ? 'bg-gradient-to-br from-yellow-50 via-amber-50 to-yellow-100 border-2 border-yellow-400'
-            : ''
-        }`}
-        style={!isPerfect ? { backgroundColor: 'var(--completion-modal-bg)' } : undefined}
+            ? {
+                background: 'var(--completion-modal-perfect-bg)',
+                borderWidth: '2px',
+                borderColor: 'var(--completion-modal-perfect-border)',
+              }
+            : { backgroundColor: 'var(--completion-modal-bg)' }
+        }
         onClick={e => e.stopPropagation()}
       >
         {/* XP Earned + Score summary */}
@@ -145,16 +149,35 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
           </div>
           {xpEarned > 0 && (
             <div className="text-right">
-              <div className="text-2xl font-black text-yellow-600">+{xpEarned}</div>
-              <div className="text-xs font-semibold text-yellow-700">XP</div>
+              <div
+                className="text-2xl font-black"
+                style={{ color: 'var(--completion-modal-xp-text)' }}
+              >
+                +{xpEarned}
+              </div>
+              <div
+                className="text-xs font-semibold"
+                style={{ color: 'var(--completion-modal-xp-label)' }}
+              >
+                XP
+              </div>
             </div>
           )}
         </div>
 
         {/* Perfect Score Banner */}
         {isPerfect && (
-          <div className="bg-gradient-to-r from-yellow-100 to-amber-100 border-2 border-yellow-300 rounded-xl p-3 mb-5 text-center">
-            <p className="text-yellow-900 font-bold">Sesiune Perfecta!</p>
+          <div
+            className="rounded-xl p-3 mb-5 text-center"
+            style={{
+              background: 'var(--completion-modal-perfect-banner-bg)',
+              borderWidth: '2px',
+              borderColor: 'var(--completion-modal-perfect-banner-border)',
+            }}
+          >
+            <p className="font-bold" style={{ color: 'var(--completion-modal-perfect-text)' }}>
+              Sesiune Perfecta!
+            </p>
           </div>
         )}
 
@@ -240,7 +263,7 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
         <p className="text-xs text-center mt-4" style={{ color: 'var(--text-muted)' }}>
           &ldquo;Salveaza & Iesi&rdquo; pastreaza progresul pentru mai tarziu.
           <br />
-          &ldquo;Finalizeaza & Iesi&rdquo; marcheaza sesiunea ca completa.
+          &ldquo;Finalizeaza & Iesi&rdquo; marchează sesiunea completă.
         </p>
       </div>
     </div>

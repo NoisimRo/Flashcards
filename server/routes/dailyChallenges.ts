@@ -61,18 +61,6 @@ router.get('/today', authenticateToken, async (req, res) => {
       data: {
         challenges: [
           {
-            id: 'cards',
-            titleKey: 'challenges.cards.title',
-            titleParams: { count: challenge.cards_target },
-            progress: todayProgress.correct_answers,
-            target: challenge.cards_target,
-            completed: todayProgress.correct_answers >= challenge.cards_target,
-            rewardClaimed: challenge.cards_reward_claimed,
-            reward: 50,
-            icon: 'BookOpen',
-            color: 'from-blue-500 to-blue-600',
-          },
-          {
             id: 'time',
             titleKey: 'challenges.time.title',
             titleParams: { count: challenge.time_target },
@@ -80,9 +68,21 @@ router.get('/today', authenticateToken, async (req, res) => {
             target: challenge.time_target,
             completed: todayProgress.time_spent_minutes >= challenge.time_target,
             rewardClaimed: challenge.time_reward_claimed,
-            reward: 30,
+            reward: 150,
             icon: 'Clock',
             color: 'from-purple-500 to-purple-600',
+          },
+          {
+            id: 'cards',
+            titleKey: 'challenges.cards.title',
+            titleParams: { count: challenge.cards_target },
+            progress: todayProgress.correct_answers,
+            target: challenge.cards_target,
+            completed: todayProgress.correct_answers >= challenge.cards_target,
+            rewardClaimed: challenge.cards_reward_claimed,
+            reward: 100,
+            icon: 'BookOpen',
+            color: 'from-blue-500 to-blue-600',
           },
           {
             id: 'streak',
@@ -97,7 +97,7 @@ router.get('/today', authenticateToken, async (req, res) => {
             completed:
               todayProgress.time_spent_minutes >= 10 || todayProgress.correct_answers >= 20,
             rewardClaimed: challenge.streak_reward_claimed,
-            reward: 100,
+            reward: 50,
             icon: 'Flame',
             color: 'from-orange-500 to-red-600',
           },
@@ -170,14 +170,14 @@ router.post('/claim-reward', authenticateToken, async (req, res) => {
 
     if (challengeId === 'cards') {
       isCompleted = todayCorrectAnswers >= challenge.cards_target;
-      rewardXP = 50;
+      rewardXP = 100;
     } else if (challengeId === 'time') {
       isCompleted = todayTimeMinutes >= challenge.time_target;
-      rewardXP = 30;
+      rewardXP = 150;
     } else if (challengeId === 'streak') {
       // Streak requirement: 10+ minutes OR 20+ correct answers
       isCompleted = todayTimeMinutes >= 10 || todayCorrectAnswers >= 20;
-      rewardXP = 100;
+      rewardXP = 50;
     }
 
     if (!isCompleted) {

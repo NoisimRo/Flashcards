@@ -438,9 +438,9 @@ export const DeckList: React.FC<DeckListProps> = ({
                   }}
                   className="flex-1 font-bold py-2.5 px-2 rounded-xl transition-all flex items-center justify-center gap-1 text-xs disabled:opacity-50 disabled:cursor-not-allowed border"
                   style={{
-                    backgroundColor: 'var(--bg-surface)',
-                    borderColor: 'var(--border-primary)',
-                    color: 'var(--text-secondary)',
+                    backgroundColor: 'var(--color-accent-light)',
+                    borderColor: 'var(--color-accent)',
+                    color: 'var(--color-accent-text)',
                   }}
                   disabled={deck.totalCards === 0}
                   title={

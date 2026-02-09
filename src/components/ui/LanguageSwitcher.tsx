@@ -1,13 +1,16 @@
-import React from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Languages } from 'lucide-react';
 
 /**
  * LanguageSwitcher - Component for switching between languages
  * Displays current language and allows users to change it
+ * Uses collision detection to open upward when near the bottom of the viewport
  */
 export const LanguageSwitcher: React.FC = () => {
   const { i18n, t } = useTranslation();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [dropUp, setDropUp] = useState(false);
 
   const languages = [
     { code: 'ro', name: 'Romana', flag: '🇷🇴' },
@@ -22,8 +25,26 @@ export const LanguageSwitcher: React.FC = () => {
     localStorage.setItem('i18nextLng', langCode);
   };
 
+  useEffect(() => {
+    const checkPosition = () => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const dropdownHeight = languages.length * 48 + 16;
+        setDropUp(spaceBelow < dropdownHeight);
+      }
+    };
+    checkPosition();
+    window.addEventListener('resize', checkPosition);
+    window.addEventListener('scroll', checkPosition, true);
+    return () => {
+      window.removeEventListener('resize', checkPosition);
+      window.removeEventListener('scroll', checkPosition, true);
+    };
+  }, [languages.length]);
+
   return (
-    <div className="relative group">
+    <div className="relative group" ref={containerRef}>
       <button
         className="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors"
         style={{ color: 'var(--text-tertiary)' }}
@@ -34,9 +55,11 @@ export const LanguageSwitcher: React.FC = () => {
         </span>
       </button>
 
-      {/* Dropdown */}
+      {/* Dropdown - opens upward when near bottom of viewport */}
       <div
-        className="absolute right-0 mt-2 w-48 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50"
+        className={`absolute right-0 w-48 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 ${
+          dropUp ? 'bottom-full mb-2' : 'mt-2'
+        }`}
         style={{
           backgroundColor: 'var(--bg-elevated)',
           borderWidth: '1px',
