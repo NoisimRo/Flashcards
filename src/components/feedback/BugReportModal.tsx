@@ -61,6 +61,15 @@ export const BugReportModal: React.FC<BugReportModalProps> = ({ onClose }) => {
         height: window.innerHeight,
         windowWidth: window.innerWidth,
         windowHeight: window.innerHeight,
+        onclone: (clonedDoc: Document) => {
+          // Remove zero-dimension canvas elements (e.g. from recharts) that cause
+          // "createPattern" InvalidStateError in html2canvas
+          clonedDoc.querySelectorAll('canvas').forEach(c => {
+            if (c.width === 0 || c.height === 0) {
+              c.remove();
+            }
+          });
+        },
       });
       const dataUrl = canvas.toDataURL('image/png');
       setScreenshot(dataUrl);

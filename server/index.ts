@@ -73,6 +73,11 @@ app.get('/api/health', async (req, res) => {
     status: dbHealthy ? 'healthy' : 'unhealthy',
     timestamp: new Date().toISOString(),
     database: dbHealthy ? 'connected' : 'disconnected',
+    github: {
+      tokenSet: !!config.github.token,
+      repoSet: !!config.github.repo,
+      repo: config.github.repo || null,
+    },
   });
 });
 
