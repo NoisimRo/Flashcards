@@ -23,12 +23,14 @@ interface AvatarPickerProps {
   currentAvatar?: string;
   userLevel: number;
   onSelect: (avatarId: string) => void;
+  compact?: boolean;
 }
 
 export const AvatarPicker: React.FC<AvatarPickerProps> = ({
   currentAvatar = 'default',
   userLevel,
   onSelect,
+  compact = false,
 }) => {
   const { t } = useTranslation('settings');
   const [tooltipId, setTooltipId] = useState<string | null>(null);
@@ -62,17 +64,24 @@ export const AvatarPicker: React.FC<AvatarPickerProps> = ({
 
   return (
     <div>
-      <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
+      <div
+        className={
+          compact ? 'flex gap-3 overflow-x-auto pb-2' : 'grid grid-cols-3 md:grid-cols-4 gap-3'
+        }
+      >
         {AVATARS.map(avatar => {
           const isUnlocked = userLevel >= avatar.requiredLevel;
           const isSelected = currentAvatar === avatar.id;
 
           return (
-            <div key={avatar.id} className="relative flex flex-col items-center">
+            <div
+              key={avatar.id}
+              className={`relative flex flex-col items-center ${compact ? 'flex-shrink-0' : ''}`}
+            >
               <button
                 type="button"
                 onClick={() => handleAvatarClick(avatar.id, avatar.requiredLevel)}
-                className="relative w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center transition-all"
+                className={`relative rounded-full flex items-center justify-center transition-all ${compact ? 'w-12 h-12' : 'w-16 h-16 md:w-20 md:h-20'}`}
                 style={{
                   backgroundColor: isSelected ? 'var(--color-accent-light)' : 'var(--bg-surface)',
                   borderWidth: '3px',
@@ -92,7 +101,11 @@ export const AvatarPicker: React.FC<AvatarPickerProps> = ({
                       })
                 }
               >
-                <span className="text-2xl md:text-3xl select-none" role="img" aria-hidden="true">
+                <span
+                  className={`select-none ${compact ? 'text-xl' : 'text-2xl md:text-3xl'}`}
+                  role="img"
+                  aria-hidden="true"
+                >
                   {avatar.emoji}
                 </span>
 
@@ -118,21 +131,23 @@ export const AvatarPicker: React.FC<AvatarPickerProps> = ({
               </button>
 
               {/* Label */}
-              <span
-                className="text-xs font-medium mt-1.5 text-center truncate w-full"
-                style={{
-                  color: isSelected
-                    ? 'var(--color-accent)'
-                    : isUnlocked
-                      ? 'var(--text-secondary)'
-                      : 'var(--text-muted)',
-                }}
-              >
-                {avatar.label}
-              </span>
+              {!compact && (
+                <span
+                  className="text-xs font-medium mt-1.5 text-center truncate w-full"
+                  style={{
+                    color: isSelected
+                      ? 'var(--color-accent)'
+                      : isUnlocked
+                        ? 'var(--text-secondary)'
+                        : 'var(--text-muted)',
+                  }}
+                >
+                  {avatar.label}
+                </span>
+              )}
 
               {/* Required level badge for locked avatars */}
-              {!isUnlocked && (
+              {!isUnlocked && !compact && (
                 <span className="text-[10px] font-bold" style={{ color: 'var(--text-muted)' }}>
                   {t('avatar.level', {
                     level: avatar.requiredLevel,

@@ -35,6 +35,17 @@ const ACHIEVEMENT_EMOJI: Record<string, string> = {
   diamond: '\u{1F48E}',
   crown: '\u{1F451}',
   calendar: '\u{1F4C5}',
+  moon: '\u{1F319}',
+  sunrise: '\u{1F305}',
+  award: '\u{1F3C5}',
+  trophy: '\u{1F3C6}',
+  medal: '\u{1F396}',
+  coins: '\u{1FA99}',
+  gem: '\u{1F4A0}',
+  sparkles: '\u{2728}',
+  timer: '\u{23F1}',
+  brain: '\u{1F9E0}',
+  'book-check': '\u{1F4D6}',
 };
 
 interface SidebarProps {
@@ -63,7 +74,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const xpPercentage = Math.min((user.currentXP / user.nextLevelXP) * 100, 100);
   const avatarEmoji = getAvatarEmoji(user.avatar);
 
-  // Fetch last 3 unlocked achievements for badge display
+  // Fetch last 5 unlocked achievements for badge display
   const [recentBadges, setRecentBadges] = useState<Achievement[]>([]);
 
   useEffect(() => {
@@ -79,7 +90,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             const dateB = b.unlockedAt ? new Date(b.unlockedAt).getTime() : 0;
             return dateB - dateA;
           })
-          .slice(0, 3);
+          .slice(0, 5);
         setRecentBadges(unlocked);
       }
     });
