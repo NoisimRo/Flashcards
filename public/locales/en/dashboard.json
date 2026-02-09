@@ -66,11 +66,17 @@
     "noActiveSessionsDescription": "Start a new session to continue learning!"
   },
   "recommendations": {
-    "title": "Study Recommendations",
+    "title": "Popular Decks",
     "cards": "{{total}} cards",
     "inStudy": "{{count}} in study",
     "mastered": "{{count}} mastered",
-    "allUpToDate": "All decks are up to date!"
+    "allUpToDate": "All decks are up to date!",
+    "rating": "{{rating}}",
+    "reviews": "{{count}} reviews",
+    "noRating": "No rating",
+    "seeAll": "See all",
+    "noPublicDecks": "No public decks available at the moment.",
+    "byAuthor": "by {{author}}"
   },
   "recentAchievements": {
     "title": "Recent Achievements",

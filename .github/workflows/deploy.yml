@@ -73,8 +73,8 @@ jobs:
             --min-instances 0 \
             --max-instances 10 \
             --add-cloudsql-instances ${{ env.PROJECT_ID }}:${{ env.REGION }}:flashcards-db \
-            --set-env-vars "NODE_ENV=production,CORS_ORIGIN=*,DB_HOST=/cloudsql/${{ env.PROJECT_ID }}:${{ env.REGION }}:flashcards-db,DB_PORT=5432,DB_NAME=flashcards,DB_USER=flashcards_user" \
-            --set-secrets "DB_PASSWORD=flashcards-db-password:latest,JWT_ACCESS_SECRET=flashcards-jwt-access:latest,JWT_REFRESH_SECRET=flashcards-jwt-refresh:latest"
+            --set-env-vars "NODE_ENV=production,CORS_ORIGIN=*,DB_HOST=/cloudsql/${{ env.PROJECT_ID }}:${{ env.REGION }}:flashcards-db,DB_PORT=5432,DB_NAME=flashcards,DB_USER=flashcards_user,GITHUB_REPO=NoisimRo/Flashcards" \
+            --set-secrets "DB_PASSWORD=flashcards-db-password:latest,JWT_ACCESS_SECRET=flashcards-jwt-access:latest,JWT_REFRESH_SECRET=flashcards-jwt-refresh:latest,GITHUB_TOKEN=GITHUB_TOKEN:latest"
 
       - name: Show deployment URL
         run: |

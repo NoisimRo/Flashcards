@@ -66,11 +66,17 @@
     "noActiveSessionsDescription": "Inizia una nuova sessione per continuare ad imparare!"
   },
   "recommendations": {
-    "title": "Raccomandazioni di Studio",
+    "title": "Mazzi Popolari",
     "cards": "{{total}} carte",
     "inStudy": "{{count}} in studio",
     "mastered": "{{count}} masterizzate",
-    "allUpToDate": "Tutti i mazzi sono aggiornati!"
+    "allUpToDate": "Tutti i mazzi sono aggiornati!",
+    "rating": "{{rating}}",
+    "reviews": "{{count}} recensioni",
+    "noRating": "Nessuna valutazione",
+    "seeAll": "Vedi tutti",
+    "noPublicDecks": "Nessun mazzo pubblico disponibile al momento.",
+    "byAuthor": "di {{author}}"
   },
   "recentAchievements": {
     "title": "Risultati Recenti",
