@@ -39,6 +39,7 @@ import {
   RadialBar,
   PolarAngleAxis,
 } from 'recharts';
+import { AVATARS } from '../Settings/AvatarPicker';
 
 interface DashboardProps {
   user: User;
@@ -286,7 +287,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold text-white shadow-lg"
                 style={{ background: 'var(--color-accent-gradient)' }}
               >
-                {user.name.charAt(0).toUpperCase()}
+                {user.avatar && user.avatar !== 'default'
+                  ? (() => {
+                      const av = AVATARS.find(a => a.id === user.avatar);
+                      return av ? (
+                        <span className="text-3xl">{av.emoji}</span>
+                      ) : (
+                        user.name.charAt(0).toUpperCase()
+                      );
+                    })()
+                  : user.name.charAt(0).toUpperCase()}
               </div>
               <div className="absolute -bottom-1 -right-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-md flex items-center gap-1">
                 <Crown size={10} />

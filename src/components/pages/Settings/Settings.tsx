@@ -166,7 +166,12 @@ export const Settings: React.FC<SettingsProps> = ({
 
       if (response.success) {
         toast.success(t('actions.saveSuccess', 'Changes saved successfully'));
-        onSave({ ...user, name: formData.name, avatar: selectedAvatar });
+        onSave({
+          ...user,
+          name: formData.name,
+          avatar: selectedAvatar,
+          birthDate: formData.birthDate,
+        } as User);
       } else {
         toast.error(
           t('actions.saveError', 'Failed to save'),

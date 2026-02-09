@@ -230,17 +230,22 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     try {
       const res = await deleteCard(card.deckId, card.id);
       if (res?.success) {
-        // Remove the card from the session and move to next
+        // Remove the card from the session via proper Zustand state update
         const remaining = currentSession.cards?.filter(c => c.id !== card.id) || [];
         if (remaining.length === 0) {
           onBack();
         } else {
-          // Advance to next or stay at valid index
-          currentSession.cards = remaining;
-          if (currentCardIndex >= remaining.length) {
-            useStudySessionsStore.setState({ currentCardIndex: remaining.length - 1 });
-          }
+          const newIndex =
+            currentCardIndex >= remaining.length ? remaining.length - 1 : currentCardIndex;
+          useStudySessionsStore.setState(state => ({
+            currentSession: state.currentSession
+              ? { ...state.currentSession, cards: remaining }
+              : null,
+            currentCardIndex: newIndex,
+          }));
         }
+      } else {
+        alert(res?.error?.message || 'Eroare la ștergerea cardului.');
       }
     } catch {
       alert('Eroare la ștergerea cardului.');
