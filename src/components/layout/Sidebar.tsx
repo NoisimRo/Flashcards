@@ -113,6 +113,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'achievements', label: t('menu.achievements'), icon: Trophy },
     ...(canModerate ? [{ id: 'moderation', label: t('menu.moderation'), icon: Shield }] : []),
     { id: 'leaderboard', label: t('menu.leaderboard'), icon: Users },
+    ...(!isGuest
+      ? [{ id: 'bug-report', label: t('bugReport.button', 'Raportează un Bug'), icon: Bug }]
+      : []),
     { id: 'settings', label: t('menu.settings'), icon: Settings },
   ];
 
@@ -256,6 +259,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               key={item.id}
               onClick={() => {
+                if (item.id === 'bug-report') {
+                  setShowBugReport(true);
+                  return;
+                }
                 onChangeView(item.id);
                 onCloseMobile();
               }}
@@ -296,29 +303,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </button>
           ))}
         </nav>
-
-        {/* Bug Report Button - only for authenticated users */}
-        {!isGuest && (
-          <div className="pt-2">
-            <button
-              onClick={() => setShowBugReport(true)}
-              className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl transition-all"
-              style={{ color: 'var(--text-secondary)' }}
-              onMouseEnter={e => {
-                (e.currentTarget as HTMLElement).style.backgroundColor =
-                  'var(--sidebar-item-hover-bg)';
-              }}
-              onMouseLeave={e => {
-                (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
-              }}
-            >
-              <Bug size={18} />
-              <span className="text-sm font-medium">
-                {t('bugReport.button', 'Raportează un Bug')}
-              </span>
-            </button>
-          </div>
-        )}
 
         {/* Night Mode Toggle */}
         <div
