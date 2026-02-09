@@ -57,6 +57,12 @@ export const config = {
 
   // AI Integration
   geminiApiKey: process.env.GEMINI_API_KEY,
+
+  // GitHub Integration (Bug Reports)
+  github: {
+    token: process.env.GITHUB_TOKEN || '',
+    repo: process.env.GITHUB_REPO || '', // format: "owner/repo"
+  },
 };
 
 export default config;
