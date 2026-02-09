@@ -66,11 +66,17 @@
     "noActiveSessionsDescription": "Începe o sesiune nouă pentru a continua învățarea!"
   },
   "recommendations": {
-    "title": "Recomandări de Studiu",
+    "title": "Deck-uri Populare",
     "cards": "{{total}} carduri",
     "inStudy": "{{count}} în studiu",
     "mastered": "{{count}} învățate",
-    "allUpToDate": "Toate deck-urile sunt la zi!"
+    "allUpToDate": "Toate deck-urile sunt la zi!",
+    "rating": "{{rating}}",
+    "reviews": "{{count}} recenzii",
+    "noRating": "Fără rating",
+    "seeAll": "Vezi toate",
+    "noPublicDecks": "Niciun deck public disponibil momentan.",
+    "byAuthor": "de {{author}}"
   },
   "recentAchievements": {
     "title": "Realizări Recente",

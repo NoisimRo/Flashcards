@@ -96,16 +96,13 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
   const canEditDelete = user?.role === 'teacher' || user?.role === 'admin';
   const [editingCard, setEditingCard] = useState<Card | null>(null);
 
-  // Refs for synchronous level-up XP tracking (React state via updateUser is async)
-  // userXPStateRef: holds the post-level-up user state so checkLevelUp reads fresh values
+  // Ref for synchronous level-up tracking (React state via updateUser is async)
+  // Holds the post-level-up user state so checkLevelUp reads fresh values
   const userXPStateRef = useRef<{
     currentXP: number;
     nextLevelXP: number;
     level: number;
   } | null>(null);
-  // sessionXPAtLastLevelUp: the sessionXP value when level-up last occurred,
-  // so we only count XP earned *since* the last level-up toward the next threshold
-  const sessionXPAtLastLevelUp = useRef(0);
 
   // Wire user update callback so PUT responses can sync auth context
   useEffect(() => {
@@ -127,7 +124,6 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     // CRITICAL: Reset state BEFORE loading to prevent answers from previous session
     resetSessionState();
     userXPStateRef.current = null;
-    sessionXPAtLastLevelUp.current = 0;
     loadSession(sessionId);
     enableAutoSave();
 
@@ -355,6 +351,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
         skippedCount: actualSkippedCount, // Include unanswered cards as skipped
         durationSeconds, // Accurate active time from per-card tracking
         cardProgressUpdates,
+        clientTimezoneOffset: new Date().getTimezoneOffset(),
       });
 
       // Check if user leveled up
@@ -409,7 +406,6 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     ) {
       restartSession();
       userXPStateRef.current = null;
-      sessionXPAtLastLevelUp.current = 0;
       setShowCompletionModal(false);
       setShowXPAnimation(false);
       setShowStreakCelebration(false);
@@ -505,23 +501,17 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
   const checkLevelUp = () => {
     if (!user) return;
 
-    const currentSessionXP = useStudySessionsStore.getState().sessionXP;
-
     // Use synchronous ref if a level-up already occurred this session
     // (React state via updateUser is async, so `user` may still hold stale values)
     const effectiveCurrentXP = userXPStateRef.current?.currentXP ?? user.currentXP;
     const effectiveNextLevelXP = userXPStateRef.current?.nextLevelXP ?? user.nextLevelXP;
     const effectiveLevel = userXPStateRef.current?.level ?? user.level;
 
-    // Only count XP earned since the last level-up to avoid double-counting
-    const newXPSinceLastLevelUp = currentSessionXP - sessionXPAtLastLevelUp.current;
-    const totalXP = effectiveCurrentXP + newXPSinceLastLevelUp;
-
     // Check if user has reached or exceeded next level threshold
-    if (totalXP >= effectiveNextLevelXP && !showLevelUp) {
+    if (effectiveCurrentXP >= effectiveNextLevelXP && !showLevelUp) {
       const oldLevel = effectiveLevel;
       let newLevel = oldLevel;
-      let remainingXP = totalXP;
+      let remainingXP = effectiveCurrentXP;
       let nextLevelXP = effectiveNextLevelXP;
 
       // Calculate new level(s) - user might level up multiple times
@@ -534,14 +524,12 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
 
       // Synchronously update ref to prevent re-triggering on next answer
       userXPStateRef.current = { currentXP: remainingXP, nextLevelXP, level: newLevel };
-      sessionXPAtLastLevelUp.current = currentSessionXP;
 
       // Also update React state for display (async, corrected on next render)
       updateUser({
         level: newLevel,
         currentXP: remainingXP,
         nextLevelXP: nextLevelXP,
-        totalXP: user.totalXP + currentSessionXP,
       });
 
       setLevelUpData({ oldLevel, newLevel });

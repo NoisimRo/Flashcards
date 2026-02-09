@@ -1,6 +1,7 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { User, Deck } from '../../../types';
+import { getDecks } from '../../../api/decks';
 import {
   getTodaysChallenges,
   DailyChallenge,
@@ -79,6 +80,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [activeSessionsLoading, setActiveSessionsLoading] = useState(true);
   const [totalActiveSessions, setTotalActiveSessions] = useState(0);
 
+  // State for top-rated public decks (study recommendations)
+  const [topRatedDecks, setTopRatedDecks] = useState<Deck[]>([]);
+
   // Fetch daily challenges, activity calendar, achievements, card stats, and active sessions on mount
   useEffect(() => {
     const fetchData = async () => {
@@ -89,12 +93,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
           achievementsResponse,
           cardStatsResponse,
           activeSessionsResponse,
+          publicDecksResponse,
         ] = await Promise.all([
           getTodaysChallenges(),
           getActivityCalendar(),
           getAchievements(),
           getUserCardStats(user.id),
           getStudySessions({ status: 'active', limit: 100 }), // Fetch all active sessions
+          getDecks({ publicOnly: true }),
         ]);
 
         if (challengesResponse.success) {
@@ -117,6 +123,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
           const sessions = activeSessionsResponse.data;
           setActiveSessions(sessions);
           setTotalActiveSessions(sessions.length);
+        }
+
+        if (publicDecksResponse.success && publicDecksResponse.data) {
+          const sorted = [...publicDecksResponse.data]
+            .sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0))
+            .slice(0, 3);
+          setTopRatedDecks(sorted);
         }
       } catch (error) {
         console.error('Failed to fetch data:', error);
@@ -174,18 +187,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
       completedDecksCount: completedDecks.length,
     };
   }, [user, decks]);
-
-  // Get decks needing review (low progress)
-  const decksNeedingReview = useMemo(() => {
-    return decks
-      .filter(d => d.totalCards > 0)
-      .map(d => ({
-        ...d,
-        progress: d.totalCards > 0 ? (d.masteredCards / d.totalCards) * 100 : 0,
-      }))
-      .sort((a, b) => a.progress - b.progress)
-      .slice(0, 3);
-  }, [decks]);
 
   // Map icon names to icon components
   const getIconComponent = (iconName: string) => {
@@ -788,18 +789,27 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
         {/* Study Recommendations & Achievements */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Study Recommendations */}
+          {/* Study Recommendations — Top Rated Global Decks */}
           <div
             className="p-6 rounded-2xl shadow-xl text-white"
             style={{ background: 'var(--color-accent-gradient)' }}
           >
-            <div className="flex items-center gap-2 mb-4">
-              <Zap size={24} />
-              <h2 className="text-xl font-bold">{t('recommendations.title')}</h2>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Zap size={24} />
+                <h2 className="text-xl font-bold">{t('recommendations.title')}</h2>
+              </div>
+              <button
+                onClick={() => onChangeView('study')}
+                className="text-sm font-medium text-white/80 hover:text-white flex items-center gap-1 transition-colors"
+              >
+                {t('recommendations.seeAll', 'Vezi toate')}
+                <ChevronRight size={16} />
+              </button>
             </div>
             <div className="space-y-3">
-              {decksNeedingReview.length > 0 ? (
-                decksNeedingReview.map(deck => (
+              {topRatedDecks.length > 0 ? (
+                topRatedDecks.map(deck => (
                   <div
                     key={deck.id}
                     className="bg-white/10 backdrop-blur-sm p-4 rounded-xl hover:bg-white/20 transition-all cursor-pointer group"
@@ -811,21 +821,32 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           {deck.title}
                         </h3>
                         <p className="text-sm text-white/80 mt-1">
-                          {t('recommendations.cards', { total: deck.totalCards })} |{' '}
-                          {t('recommendations.inStudy', {
-                            count: deck.totalCards - deck.masteredCards,
-                          })}{' '}
-                          | {t('recommendations.mastered', { count: deck.masteredCards })}
+                          {t('recommendations.cards', { total: deck.totalCards })}
+                          {deck.ownerName
+                            ? ` | ${t('recommendations.byAuthor', { author: deck.ownerName })}`
+                            : ''}
                         </p>
                       </div>
-                      <ChevronRight className="text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                      <div className="flex items-center gap-2">
+                        {deck.averageRating != null && deck.averageRating > 0 ? (
+                          <div className="flex items-center gap-1 bg-white/20 px-2 py-1 rounded-full">
+                            <Star size={14} className="fill-yellow-300 text-yellow-300" />
+                            <span className="text-sm font-semibold">
+                              {deck.averageRating.toFixed(1)}
+                            </span>
+                          </div>
+                        ) : null}
+                        <ChevronRight className="text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                      </div>
                     </div>
                   </div>
                 ))
               ) : (
                 <div className="text-center py-8 text-white/80">
                   <Brain size={32} className="mx-auto mb-2 opacity-60" />
-                  <p className="text-sm">{t('recommendations.allUpToDate')}</p>
+                  <p className="text-sm">
+                    {t('recommendations.noPublicDecks', 'Niciun deck public disponibil momentan.')}
+                  </p>
                 </div>
               )}
             </div>

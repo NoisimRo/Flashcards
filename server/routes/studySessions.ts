@@ -527,7 +527,8 @@ router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
 router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { currentCardIndex, answers, streak, sessionXP, durationSeconds } = req.body;
+    const { currentCardIndex, answers, streak, sessionXP, durationSeconds, clientTimezoneOffset } =
+      req.body;
 
     // Get current session to calculate incremental changes
     const sessionResult = await query(
@@ -729,7 +730,11 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
         ).length;
         const totalCards = session.total_cards || 0;
         const score = totalCards > 0 ? Math.round((correctCount / totalCards) * 100) : 0;
-        const completedAtHour = new Date().getHours();
+        // Use client timezone offset to compute the user's local hour (server may be in UTC)
+        const completedAtHour =
+          clientTimezoneOffset != null
+            ? Math.floor((((new Date().getUTCHours() - clientTimezoneOffset / 60) % 24) + 24) % 24)
+            : new Date().getHours();
 
         newAchievements = await withTransaction(async txClient => {
           return checkAndUnlockAchievements(txClient, req.user!.id, {
@@ -794,6 +799,7 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
       skippedCount,
       durationSeconds,
       cardProgressUpdates,
+      clientTimezoneOffset,
     } = req.body;
 
     const result = await withTransaction(async client => {
@@ -1017,7 +1023,11 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
       );
 
       // Check and unlock achievements (pass session context for session-specific conditions)
-      const completedAtHour = new Date().getHours();
+      // Use client timezone offset to compute the user's local hour (server may be in UTC)
+      const completedAtHour =
+        clientTimezoneOffset != null
+          ? Math.floor((((new Date().getUTCHours() - clientTimezoneOffset / 60) % 24) + 24) % 24)
+          : new Date().getHours();
       const newAchievements = await checkAndUnlockAchievements(client, req.user!.id, {
         correctCount: correctCount || 0,
         durationSeconds: finalDuration,
