@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { CardActionsMenu } from '../menus/CardActionsMenu';
 import { HintOverlay } from '../shared/HintOverlay';
+import { shuffleIndices } from '../../../utils/shuffle';
 
 interface QuizCardProps {
   card: Card;
@@ -53,6 +54,8 @@ export const QuizCard: React.FC<QuizCardProps> = ({
   const [hasAnswered, setHasAnswered] = React.useState(hasAnsweredProp);
   const [isCorrect, setIsCorrect] = React.useState<boolean | null>(null);
   const [autoAdvanceTimer, setAutoAdvanceTimer] = React.useState<NodeJS.Timeout | null>(null);
+
+  const shuffledIndices = React.useMemo(() => shuffleIndices(card.options?.length ?? 0), [card.id]);
 
   // Reset local state when card changes (enables re-visit practice)
   React.useEffect(() => {
@@ -187,16 +190,17 @@ export const QuizCard: React.FC<QuizCardProps> = ({
 
           {/* Options - flex column with proper gap */}
           <div className="flex flex-col gap-3">
-            {card.options?.map((option, index) => {
-              const isSelected = selectedQuizOption === index;
-              const isCorrectOption = index === card.correctOptionIndices?.[0];
+            {shuffledIndices.map(dataIndex => {
+              const option = card.options?.[dataIndex];
+              const isSelected = selectedQuizOption === dataIndex;
+              const isCorrectOption = dataIndex === card.correctOptionIndices?.[0];
               const showCorrect = showResult && isCorrectOption;
               const showIncorrect = showResult && isSelected && !isCorrectOption;
 
               return (
                 <button
-                  key={index}
-                  onClick={() => handleOptionClick(index)}
+                  key={dataIndex}
+                  onClick={() => handleOptionClick(dataIndex)}
                   disabled={isAnswered}
                   className={`w-full text-left p-4 rounded-xl border-2 transition-all font-medium ${
                     showCorrect
