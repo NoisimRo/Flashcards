@@ -129,8 +129,8 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
     });
   }, [decks, searchQuery, selectedSubject, selectedDifficulty, selectedRating]);
 
-  // Group decks by subject
-  const decksBySubject = useMemo(() => {
+  // Group decks by subject, sorted by deck count DESC
+  const { largeCategories, smallCategoryDecks } = useMemo(() => {
     const grouped: Record<string, APIDeck[]> = {};
 
     filteredDecks.forEach(deck => {
@@ -141,7 +141,22 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
       grouped[subject].push(deck);
     });
 
-    return grouped;
+    // Sort by deck count DESC
+    const sorted = Object.entries(grouped).sort(([, a], [, b]) => b.length - a.length);
+
+    // Split into large (3+) and small (1-2) categories
+    const large: [string, APIDeck[]][] = [];
+    const smallDecks: APIDeck[] = [];
+
+    sorted.forEach(([subject, decks]) => {
+      if (decks.length >= 3) {
+        large.push([subject, decks]);
+      } else {
+        smallDecks.push(...decks);
+      }
+    });
+
+    return { largeCategories: large, smallCategoryDecks: smallDecks };
   }, [filteredDecks]);
 
   // Convert API deck to local DeckWithCards type for handlers
@@ -257,6 +272,181 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
       'Limba Engleză': 'bg-red-500',
     };
     return colorMap[subject] || 'bg-gray-900';
+  };
+
+  const openReviewForDeck = (deck: APIDeck) => {
+    setSelectedDeckForReview(convertToDeck(deck));
+    setReviewModalOpen(true);
+  };
+
+  const renderDeckCard = (deck: APIDeck, subject: string) => {
+    const isOwner = user && deck.ownerId === user.id;
+    const hasRating = deck.averageRating != null && deck.averageRating > 0;
+
+    return (
+      <div
+        key={deck.id}
+        className="bg-[var(--card-bg)] border-2 border-[var(--card-border)] rounded-2xl p-6 hover:border-[var(--color-accent)] hover:shadow-lg transition-all group relative"
+      >
+        {/* Rating Display (top-right, before menu) */}
+        {hasRating ? (
+          <div className="absolute top-4 right-12 flex items-center gap-1 bg-[var(--bg-elevated)] px-2 py-1 rounded-full shadow-sm border border-[var(--border-subtle)]">
+            <Star size={14} className="fill-yellow-400 text-yellow-400" />
+            <span className="text-sm font-semibold text-[var(--text-secondary)]">
+              {deck.averageRating!.toFixed(1)}
+            </span>
+            <span className="text-xs text-[var(--text-tertiary)]">({deck.reviewCount})</span>
+          </div>
+        ) : (
+          !isOwner && (
+            <button
+              onClick={e => {
+                e.stopPropagation();
+                openReviewForDeck(deck);
+              }}
+              className="absolute top-4 right-12 flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer border border-dashed border-[var(--border-secondary)] text-[var(--text-muted)] hover:text-[var(--color-accent-text)] hover:border-[var(--color-accent)]"
+            >
+              <Star size={12} />
+              {t('deckCard.beFirstToRate')}
+            </button>
+          )
+        )}
+
+        {/* Three-Dot Menu (top-right corner) */}
+        <div className="absolute top-4 right-4">
+          <div className="relative">
+            <button
+              onClick={e => toggleMenu(e, deck.id)}
+              className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded-full hover:bg-[var(--bg-tertiary)] transition-colors"
+            >
+              <MoreVertical size={18} />
+            </button>
+
+            {activeMenuId === deck.id && (
+              <div className="absolute right-0 top-8 bg-[var(--bg-elevated)] shadow-xl rounded-xl p-2 min-w-[180px] z-10 border border-[var(--border-subtle)] animate-fade-in">
+                {isTeacherOrAdmin && deck.totalCards > 0 && (
+                  <button
+                    onClick={e => {
+                      e.stopPropagation();
+                      openEditCardsModal(deck);
+                    }}
+                    className="w-full text-left px-3 py-2 text-sm text-blue-500 hover:bg-[var(--bg-surface-hover)] rounded-lg flex items-center gap-2 font-medium"
+                  >
+                    <List size={16} /> {t('menu.editCards')}
+                  </button>
+                )}
+                {user?.role === 'admin' && (
+                  <button
+                    onClick={e => {
+                      e.stopPropagation();
+                      handleToggleVisibility(deck);
+                    }}
+                    className="w-full text-left px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)] rounded-lg flex items-center gap-2 font-medium"
+                  >
+                    {deck.isPublic ? (
+                      <>
+                        <EyeOff size={16} /> {t('menu.makePrivate')}
+                      </>
+                    ) : (
+                      <>
+                        <Eye size={16} /> {t('menu.makePublic')}
+                      </>
+                    )}
+                  </button>
+                )}
+                {!isOwner && (
+                  <button
+                    onClick={e => {
+                      e.stopPropagation();
+                      openReviewForDeck(deck);
+                      setActiveMenuId(null);
+                    }}
+                    className="w-full text-left px-3 py-2 text-sm text-[var(--color-accent-text)] hover:bg-[var(--color-accent-light)] rounded-lg flex items-center gap-2 font-medium"
+                  >
+                    <ThumbsUp size={16} /> {t('menu.leaveReview')}
+                  </button>
+                )}
+                {!isOwner && (
+                  <button
+                    onClick={e => {
+                      e.stopPropagation();
+                      setSelectedDeckForFlag(convertToDeck(deck));
+                      setFlagModalOpen(true);
+                      setActiveMenuId(null);
+                    }}
+                    className="w-full text-left px-3 py-2 text-sm text-orange-500 hover:bg-orange-500/10 rounded-lg flex items-center gap-2 font-medium"
+                  >
+                    <Flag size={16} /> {t('menu.report')}
+                  </button>
+                )}
+                {(user?.role === 'admin' || isOwner) && (
+                  <button
+                    onClick={e => {
+                      e.stopPropagation();
+                      handleDeleteDeck(deck);
+                    }}
+                    className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-500/10 rounded-lg flex items-center gap-2 font-medium border-t border-[var(--border-subtle)] mt-1 pt-2"
+                  >
+                    <Trash2 size={16} /> {t('menu.deleteDeck')}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Deck Header */}
+        <div className="mb-4">
+          <span
+            className={`inline-block px-3 py-1 rounded-full text-xs font-bold text-white mb-3 ${getSubjectColor(subject)}`}
+          >
+            {subject}
+          </span>
+          <h3 className="text-lg font-bold text-[var(--text-primary)] mb-1 pr-8">{deck.title}</h3>
+          <p className="text-sm text-[var(--text-tertiary)] mb-2">{deck.topic}</p>
+          <p className="text-xs text-[var(--text-muted)] flex items-center gap-1">
+            <Users size={12} />
+            {t('deckCard.createdBy')}{' '}
+            <span className="font-medium">{deck.ownerName || t('deckCard.anonymous')}</span>
+          </p>
+        </div>
+
+        {/* Deck Info */}
+        <div className="mb-4 bg-[var(--bg-tertiary)] rounded-xl p-3">
+          <div className="flex justify-between text-xs text-[var(--text-secondary)]">
+            <span>{t('deckCard.cards', { count: deck.totalCards })}</span>
+            <span>{t('deckCard.level', { level: deck.difficulty })}</span>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-2">
+          <button
+            onClick={() => onStartSession(convertToDeck(deck))}
+            className="flex-1 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg active:scale-95"
+          >
+            <Play size={16} fill="currentColor" />
+            <span>{t('deckCard.study')}</span>
+          </button>
+          <button
+            onClick={() => handleCopyDeck(deck)}
+            className="bg-[var(--bg-tertiary)] hover:bg-[var(--bg-surface-hover)] text-[var(--text-secondary)] font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2"
+            title={t('deckCard.copy')}
+          >
+            <Copy size={16} />
+          </button>
+        </div>
+
+        {/* Last Updated */}
+        {deck.updatedAt && (
+          <p className="text-xs text-[var(--text-muted)] text-center mt-3">
+            {t('deckCard.updated', {
+              date: new Date(deck.updatedAt).toLocaleDateString(i18n.language),
+            })}
+          </p>
+        )}
+      </div>
+    );
   };
 
   if (isLoading) {
@@ -397,7 +587,7 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
       </div>
 
       {/* Decks Grouped by Subject */}
-      {Object.keys(decksBySubject).length === 0 ? (
+      {largeCategories.length === 0 && smallCategoryDecks.length === 0 ? (
         <div className="bg-[var(--bg-secondary)] rounded-2xl p-12 text-center">
           <BookOpen className="mx-auto mb-4 text-[var(--text-muted)]" size={48} />
           <h3 className="text-lg font-bold text-[var(--text-secondary)] mb-2">
@@ -406,11 +596,10 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
           <p className="text-[var(--text-tertiary)] text-sm">{t('empty.subtitle')}</p>
         </div>
       ) : (
-        Object.entries(decksBySubject)
-          .sort(([a], [b]) => a.localeCompare(b))
-          .map(([subject, subjectDecks]) => (
+        <>
+          {/* Large categories (3+ decks) - each gets its own section */}
+          {largeCategories.map(([subject, subjectDecks]) => (
             <div key={subject} className="space-y-4">
-              {/* Subject Header */}
               <div className="flex items-center gap-3">
                 <div className={`w-1 h-8 ${getSubjectColor(subject)} rounded-full`}></div>
                 <h2 className="text-2xl font-bold text-[var(--text-primary)]">{subject}</h2>
@@ -419,187 +608,19 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
                   {subjectDecks.length === 1 ? t('deckCard.deck') : t('deckCard.decks')})
                 </span>
               </div>
-
-              {/* Deck Grid - adaptive columns based on deck count */}
-              <div
-                className={`grid gap-4 ${
-                  subjectDecks.length === 1
-                    ? 'grid-cols-1 max-w-md'
-                    : subjectDecks.length === 2
-                      ? 'grid-cols-1 md:grid-cols-2 max-w-3xl'
-                      : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-                }`}
-              >
-                {subjectDecks.map(deck => {
-                  const isOwner = user && deck.ownerId === user.id;
-
-                  return (
-                    <div
-                      key={deck.id}
-                      className="bg-[var(--card-bg)] border-2 border-[var(--card-border)] rounded-2xl p-6 hover:border-[var(--color-accent)] hover:shadow-lg transition-all group relative"
-                    >
-                      {/* Rating Display (top-right, before menu) */}
-                      {deck.averageRating && deck.averageRating > 0 && (
-                        <div className="absolute top-4 right-12 flex items-center gap-1 bg-[var(--bg-elevated)] px-2 py-1 rounded-full shadow-sm border border-[var(--border-subtle)]">
-                          <Star size={14} className="fill-yellow-400 text-yellow-400" />
-                          <span className="text-sm font-semibold text-[var(--text-secondary)]">
-                            {deck.averageRating.toFixed(1)}
-                          </span>
-                          <span className="text-xs text-[var(--text-tertiary)]">
-                            ({deck.reviewCount})
-                          </span>
-                        </div>
-                      )}
-
-                      {/* Three-Dot Menu (top-right corner) */}
-                      <div className="absolute top-4 right-4">
-                        <div className="relative">
-                          <button
-                            onClick={e => toggleMenu(e, deck.id)}
-                            className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded-full hover:bg-[var(--bg-tertiary)] transition-colors"
-                          >
-                            <MoreVertical size={18} />
-                          </button>
-
-                          {activeMenuId === deck.id && (
-                            <div className="absolute right-0 top-8 bg-[var(--bg-elevated)] shadow-xl rounded-xl p-2 min-w-[180px] z-10 border border-[var(--border-subtle)] animate-fade-in">
-                              {/* Edit cards - Only for teachers and admins */}
-                              {isTeacherOrAdmin && deck.totalCards > 0 && (
-                                <button
-                                  onClick={e => {
-                                    e.stopPropagation();
-                                    openEditCardsModal(deck);
-                                  }}
-                                  className="w-full text-left px-3 py-2 text-sm text-blue-500 hover:bg-[var(--bg-surface-hover)] rounded-lg flex items-center gap-2 font-medium"
-                                >
-                                  <List size={16} /> {t('menu.editCards')}
-                                </button>
-                              )}
-                              {/* Toggle visibility - Admin only */}
-                              {user?.role === 'admin' && (
-                                <button
-                                  onClick={e => {
-                                    e.stopPropagation();
-                                    handleToggleVisibility(deck);
-                                  }}
-                                  className="w-full text-left px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)] rounded-lg flex items-center gap-2 font-medium"
-                                >
-                                  {deck.isPublic ? (
-                                    <>
-                                      <EyeOff size={16} /> {t('menu.makePrivate')}
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Eye size={16} /> {t('menu.makePublic')}
-                                    </>
-                                  )}
-                                </button>
-                              )}
-                              {/* Lasă o recenzie - Only for non-owners */}
-                              {!isOwner && (
-                                <button
-                                  onClick={e => {
-                                    e.stopPropagation();
-                                    setSelectedDeckForReview(convertToDeck(deck));
-                                    setReviewModalOpen(true);
-                                    setActiveMenuId(null);
-                                  }}
-                                  className="w-full text-left px-3 py-2 text-sm text-[var(--color-accent-text)] hover:bg-[var(--color-accent-light)] rounded-lg flex items-center gap-2 font-medium"
-                                >
-                                  <ThumbsUp size={16} /> {t('menu.leaveReview')}
-                                </button>
-                              )}
-                              {/* Raportează deck - Only for decks not owned by current user */}
-                              {!isOwner && (
-                                <button
-                                  onClick={e => {
-                                    e.stopPropagation();
-                                    setSelectedDeckForFlag(convertToDeck(deck));
-                                    setFlagModalOpen(true);
-                                    setActiveMenuId(null);
-                                  }}
-                                  className="w-full text-left px-3 py-2 text-sm text-orange-500 hover:bg-orange-500/10 rounded-lg flex items-center gap-2 font-medium"
-                                >
-                                  <Flag size={16} /> {t('menu.report')}
-                                </button>
-                              )}
-                              {/* Delete deck - Admin or owner */}
-                              {(user?.role === 'admin' || isOwner) && (
-                                <button
-                                  onClick={e => {
-                                    e.stopPropagation();
-                                    handleDeleteDeck(deck);
-                                  }}
-                                  className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-500/10 rounded-lg flex items-center gap-2 font-medium border-t border-[var(--border-subtle)] mt-1 pt-2"
-                                >
-                                  <Trash2 size={16} /> {t('menu.deleteDeck')}
-                                </button>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Deck Header */}
-                      <div className="mb-4">
-                        <span
-                          className={`inline-block px-3 py-1 rounded-full text-xs font-bold text-white mb-3 ${getSubjectColor(subject)}`}
-                        >
-                          {subject}
-                        </span>
-                        <h3 className="text-lg font-bold text-[var(--text-primary)] mb-1 pr-8">
-                          {deck.title}
-                        </h3>
-                        <p className="text-sm text-[var(--text-tertiary)] mb-2">{deck.topic}</p>
-                        <p className="text-xs text-[var(--text-muted)] flex items-center gap-1">
-                          <Users size={12} />
-                          {t('deckCard.createdBy')}{' '}
-                          <span className="font-medium">
-                            {deck.ownerName || t('deckCard.anonymous')}
-                          </span>
-                        </p>
-                      </div>
-
-                      {/* Deck Info */}
-                      <div className="mb-4 bg-[var(--bg-tertiary)] rounded-xl p-3">
-                        <div className="flex justify-between text-xs text-[var(--text-secondary)]">
-                          <span>{t('deckCard.cards', { count: deck.totalCards })}</span>
-                          <span>{t('deckCard.level', { level: deck.difficulty })}</span>
-                        </div>
-                      </div>
-
-                      {/* Action Buttons */}
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => onStartSession(convertToDeck(deck))}
-                          className="flex-1 bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)] text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg active:scale-95"
-                        >
-                          <Play size={16} fill="currentColor" />
-                          <span>{t('deckCard.study')}</span>
-                        </button>
-                        <button
-                          onClick={() => handleCopyDeck(deck)}
-                          className="bg-[var(--bg-tertiary)] hover:bg-[var(--bg-surface-hover)] text-[var(--text-secondary)] font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2"
-                          title={t('deckCard.copy')}
-                        >
-                          <Copy size={16} />
-                        </button>
-                      </div>
-
-                      {/* Last Updated */}
-                      {deck.updatedAt && (
-                        <p className="text-xs text-[var(--text-muted)] text-center mt-3">
-                          {t('deckCard.updated', {
-                            date: new Date(deck.updatedAt).toLocaleDateString(i18n.language),
-                          })}
-                        </p>
-                      )}
-                    </div>
-                  );
-                })}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {subjectDecks.map(deck => renderDeckCard(deck, deck.subjectName || subject))}
               </div>
             </div>
-          ))
+          ))}
+
+          {/* Small categories (1-2 decks) - merged into a shared grid */}
+          {smallCategoryDecks.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {smallCategoryDecks.map(deck => renderDeckCard(deck, deck.subjectName || 'Altele'))}
+            </div>
+          )}
+        </>
       )}
 
       {/* Review Modal */}

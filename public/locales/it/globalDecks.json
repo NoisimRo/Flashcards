@@ -32,7 +32,8 @@
     "copy": "Copia nella mia collezione",
     "updated": "Aggiornato: {{date}}",
     "deck": "mazzo",
-    "decks": "mazzi"
+    "decks": "mazzi",
+    "beFirstToRate": "Sii il primo a valutare!"
   },
   "menu": {
     "leaveReview": "Lascia una recensione",
