@@ -179,6 +179,7 @@ export interface User {
   email: string;
   name: string;
   avatar?: string;
+  birthDate?: string;
   role: UserRole;
   // Gamification
   level: number;

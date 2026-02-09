@@ -99,7 +99,7 @@ router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
     }
 
     const result = await query(
-      `SELECT id, email, name, avatar, role, level, current_xp, next_level_xp, total_xp,
+      `SELECT id, email, name, avatar, birth_date, role, level, current_xp, next_level_xp, total_xp,
               streak, longest_streak, total_time_spent, total_cards_learned,
               total_decks_completed, total_correct_answers, total_answers,
               preferences, created_at
@@ -126,6 +126,7 @@ router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
         email: user.email,
         name: user.name,
         avatar: user.avatar,
+        birthDate: user.birth_date,
         role: user.role,
         level: user.level,
         currentXP: user.current_xp,
@@ -160,7 +161,7 @@ router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
 router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, avatar, preferences } = req.body;
+    const { name, avatar, preferences, birth_date } = req.body;
 
     // Users can only update their own profile unless admin
     if (id !== req.user!.id && req.user!.role !== 'admin') {
@@ -185,6 +186,10 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
       updates.push(`avatar = $${paramIndex++}`);
       values.push(avatar);
     }
+    if (birth_date !== undefined) {
+      updates.push(`birth_date = $${paramIndex++}`);
+      values.push(birth_date);
+    }
     if (preferences !== undefined) {
       updates.push(`preferences = preferences || $${paramIndex++}::jsonb`);
       values.push(JSON.stringify(preferences));
@@ -204,7 +209,7 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
 
     const result = await query(
       `UPDATE users SET ${updates.join(', ')} WHERE id = $${paramIndex} AND deleted_at IS NULL
-       RETURNING id, email, name, avatar, role, level, current_xp, next_level_xp, total_xp,
+       RETURNING id, email, name, avatar, birth_date, role, level, current_xp, next_level_xp, total_xp,
                  streak, longest_streak, total_time_spent, total_cards_learned,
                  total_decks_completed, total_correct_answers, total_answers,
                  preferences, created_at`,
@@ -230,6 +235,7 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
         email: user.email,
         name: user.name,
         avatar: user.avatar,
+        birthDate: user.birth_date,
         role: user.role,
         level: user.level,
         currentXP: user.current_xp,
