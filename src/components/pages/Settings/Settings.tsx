@@ -17,11 +17,18 @@ import {
   Zap,
   Shield,
   ShieldCheck,
+  ShieldOff,
   Flame,
+  EyeOff,
+  Eye,
 } from 'lucide-react';
 import { useTheme, type AccentTheme } from '../../../hooks/useTheme';
 import { useToast } from '../../ui/Toast';
-import { updateUserProfile, activateStreakShield } from '../../../api/users';
+import {
+  updateUserProfile,
+  activateStreakShield,
+  deactivateStreakShield,
+} from '../../../api/users';
 import { ChangePasswordModal } from './ChangePasswordModal';
 import { AvatarPicker, AVATARS } from './AvatarPicker';
 
@@ -93,9 +100,14 @@ export const Settings: React.FC<SettingsProps> = ({
   // Daily XP Goal (min 100, replaces Focus Mode)
   const [dailyXPGoal, setDailyXPGoal] = useState(user.preferences?.dailyXPGoal || 100);
 
-  // Streak Shield (replaces Shuffle Cards)
+  // Streak Shield
   const [streakShieldActive, setStreakShieldActive] = useState(user.streakShieldActive || false);
   const [isActivatingShield, setIsActivatingShield] = useState(false);
+
+  // Hide from leaderboard
+  const [hideFromLeaderboard, setHideFromLeaderboard] = useState(
+    user.preferences?.hideFromLeaderboard || false
+  );
 
   const languages = [
     { code: 'ro', name: t('languages.ro'), flag: 'RO' },
@@ -148,6 +160,29 @@ export const Settings: React.FC<SettingsProps> = ({
     }
   };
 
+  const handleDeactivateStreakShield = async () => {
+    if (!confirm(t('preferences.streakShieldDeactivateConfirm', 'Deactivate your Streak Shield?')))
+      return;
+
+    setIsActivatingShield(true);
+    try {
+      const response = await deactivateStreakShield(user.id);
+      if (response.success) {
+        setStreakShieldActive(false);
+        toast.success(
+          t('preferences.streakShield'),
+          t('preferences.streakShieldDeactivated', 'Shield deactivated')
+        );
+      } else {
+        toast.error(response.error?.message || t('actions.saveError'));
+      }
+    } catch {
+      toast.error(t('actions.saveError'));
+    } finally {
+      setIsActivatingShield(false);
+    }
+  };
+
   const handleSave = async () => {
     // Validate birth date is required
     if (!formData.birthDate) {
@@ -161,7 +196,7 @@ export const Settings: React.FC<SettingsProps> = ({
         name: formData.name,
         avatar: selectedAvatar,
         birth_date: formData.birthDate,
-        preferences: { dailyGoal, dailyXPGoal },
+        preferences: { dailyGoal, dailyXPGoal, hideFromLeaderboard },
       });
 
       if (response.success) {
@@ -375,85 +410,6 @@ export const Settings: React.FC<SettingsProps> = ({
             </h3>
 
             <div className="space-y-6">
-              {/* Language */}
-              <div>
-                <h4
-                  className="font-bold mb-2 flex items-center gap-2"
-                  style={{ color: 'var(--text-primary)' }}
-                >
-                  <Globe size={18} style={{ color: 'var(--color-accent)' }} />
-                  {t('preferences.language')}
-                </h4>
-                <p className="text-sm mb-3" style={{ color: 'var(--text-muted)' }}>
-                  {t('preferences.languageDesc')}
-                </p>
-                <div className="grid grid-cols-3 gap-3">
-                  {languages.map(lang => (
-                    <button
-                      key={lang.code}
-                      onClick={() => handleLanguageChange(lang.code)}
-                      className="p-3 rounded-xl border-2 transition-all"
-                      style={{
-                        borderColor:
-                          i18n.language === lang.code
-                            ? 'var(--color-accent)'
-                            : 'var(--border-secondary)',
-                        backgroundColor:
-                          i18n.language === lang.code
-                            ? 'var(--color-accent-light)'
-                            : 'var(--bg-surface)',
-                      }}
-                    >
-                      <div
-                        className="text-sm font-bold mb-1"
-                        style={{ color: 'var(--text-primary)' }}
-                      >
-                        {lang.flag}
-                      </div>
-                      <div
-                        className="text-sm font-semibold"
-                        style={{ color: 'var(--text-primary)' }}
-                      >
-                        {lang.name}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Daily XP Goal */}
-              <div>
-                <h4
-                  className="font-bold mb-2 flex items-center gap-2"
-                  style={{ color: 'var(--text-primary)' }}
-                >
-                  <Zap size={18} style={{ color: 'var(--color-accent)' }} />
-                  {t('preferences.dailyXPGoal', 'Daily XP Goal')}
-                </h4>
-                <p className="text-sm mb-3" style={{ color: 'var(--text-muted)' }}>
-                  {t('preferences.dailyXPGoalDesc', 'Set your minimum daily XP target')}
-                </p>
-                <div className="flex justify-between mb-2">
-                  <span className="font-bold" style={{ color: 'var(--text-secondary)' }}>
-                    {t('preferences.dailyXPGoalValue', { count: dailyXPGoal })}
-                  </span>
-                  <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                    +{Math.floor(dailyXPGoal * 0.01)} XP bonus
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  className="w-full h-2 rounded-lg appearance-none cursor-pointer"
-                  style={{ accentColor: 'var(--color-accent)' }}
-                  min="100"
-                  max="1000"
-                  step="50"
-                  value={dailyXPGoal}
-                  onChange={e => setDailyXPGoal(Number(e.target.value))}
-                  disabled={isGuest}
-                />
-              </div>
-
               {/* Streak Shield */}
               <div
                 className="p-4 rounded-xl border-2 transition-all"
@@ -524,30 +480,115 @@ export const Settings: React.FC<SettingsProps> = ({
                         </span>
                       </div>
                     )}
+                    {streakShieldActive && !isGuest && (
+                      <button
+                        onClick={handleDeactivateStreakShield}
+                        disabled={isActivatingShield}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
+                        style={{
+                          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                          color: '#EF4444',
+                          borderWidth: '1px',
+                          borderStyle: 'solid',
+                          borderColor: 'rgba(239, 68, 68, 0.2)',
+                        }}
+                      >
+                        <ShieldOff size={14} />
+                        {isActivatingShield
+                          ? '...'
+                          : t('preferences.streakShieldDeactivate', 'Deactivate Shield')}
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
 
-              {/* New Cards Per Day */}
+              {/* Daily XP Goal */}
               <div>
+                <h4
+                  className="font-bold mb-2 flex items-center gap-2"
+                  style={{ color: 'var(--text-primary)' }}
+                >
+                  <Zap size={18} style={{ color: 'var(--color-accent)' }} />
+                  {t('preferences.dailyXPGoal', 'Daily XP Goal')}
+                </h4>
+                <p className="text-sm mb-3" style={{ color: 'var(--text-muted)' }}>
+                  {t('preferences.dailyXPGoalDesc', 'Set your minimum daily XP target')}
+                </p>
                 <div className="flex justify-between mb-2">
                   <span className="font-bold" style={{ color: 'var(--text-secondary)' }}>
-                    {t('preferences.newCardsPerDay')}
+                    {t('preferences.dailyXPGoalValue', { count: dailyXPGoal })}
                   </span>
-                  <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                    {t('preferences.cardsCount', { count: dailyGoal })}
+                  <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                    +{Math.floor(dailyXPGoal * 0.1)} XP bonus
                   </span>
                 </div>
                 <input
                   type="range"
                   className="w-full h-2 rounded-lg appearance-none cursor-pointer"
                   style={{ accentColor: 'var(--color-accent)' }}
-                  min="5"
-                  max="50"
-                  value={dailyGoal}
-                  onChange={e => setDailyGoal(Number(e.target.value))}
+                  min="100"
+                  max="1000"
+                  step="50"
+                  value={dailyXPGoal}
+                  onChange={e => setDailyXPGoal(Number(e.target.value))}
                   disabled={isGuest}
                 />
+              </div>
+
+              {/* Hide from Leaderboard */}
+              <div
+                className="p-4 rounded-xl border-2 transition-all cursor-pointer"
+                style={{
+                  borderColor: hideFromLeaderboard
+                    ? 'var(--border-secondary)'
+                    : 'var(--border-secondary)',
+                  backgroundColor: 'var(--bg-surface)',
+                }}
+                onClick={() => !isGuest && setHideFromLeaderboard(!hideFromLeaderboard)}
+              >
+                <div className="flex items-center gap-4">
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: 'var(--bg-tertiary)' }}
+                  >
+                    {hideFromLeaderboard ? (
+                      <EyeOff size={20} style={{ color: 'var(--text-muted)' }} />
+                    ) : (
+                      <Eye size={20} style={{ color: 'var(--color-accent)' }} />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-bold" style={{ color: 'var(--text-primary)' }}>
+                      {t('preferences.leaderboardVisibility', 'Leaderboard Visibility')}
+                    </h4>
+                    <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                      {hideFromLeaderboard
+                        ? t(
+                            'preferences.leaderboardHidden',
+                            'Your profile is hidden from the leaderboard'
+                          )
+                        : t(
+                            'preferences.leaderboardVisible',
+                            'Your profile is visible on the leaderboard'
+                          )}
+                    </p>
+                  </div>
+                  <div
+                    className={`relative w-10 h-5 rounded-full transition-colors duration-300 ${
+                      !hideFromLeaderboard ? '' : 'bg-[var(--border-primary)]'
+                    }`}
+                    style={
+                      !hideFromLeaderboard ? { backgroundColor: 'var(--color-accent)' } : undefined
+                    }
+                  >
+                    <div
+                      className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-md transition-transform duration-300 ${
+                        !hideFromLeaderboard ? 'translate-x-5' : 'translate-x-0.5'
+                      }`}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -687,6 +728,49 @@ export const Settings: React.FC<SettingsProps> = ({
                           <Check size={10} className="text-white" />
                         </div>
                       )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Language */}
+              <div>
+                <h4
+                  className="font-bold mb-2 flex items-center gap-2"
+                  style={{ color: 'var(--text-primary)' }}
+                >
+                  <Globe size={18} style={{ color: 'var(--color-accent)' }} />
+                  {t('preferences.language')}
+                </h4>
+                <div className="grid grid-cols-3 gap-2">
+                  {languages.map(lang => (
+                    <button
+                      key={lang.code}
+                      onClick={() => handleLanguageChange(lang.code)}
+                      className="p-2 rounded-xl border-2 transition-all"
+                      style={{
+                        borderColor:
+                          i18n.language === lang.code
+                            ? 'var(--color-accent)'
+                            : 'var(--border-secondary)',
+                        backgroundColor:
+                          i18n.language === lang.code
+                            ? 'var(--color-accent-light)'
+                            : 'var(--bg-surface)',
+                      }}
+                    >
+                      <div
+                        className="text-sm font-bold mb-0.5"
+                        style={{ color: 'var(--text-primary)' }}
+                      >
+                        {lang.flag}
+                      </div>
+                      <div
+                        className="text-xs font-semibold"
+                        style={{ color: 'var(--text-primary)' }}
+                      >
+                        {lang.name}
+                      </div>
                     </button>
                   ))}
                 </div>

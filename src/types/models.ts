@@ -207,6 +207,7 @@ export interface User {
 export interface UserPreferences {
   dailyGoal: number; // Cards per day
   dailyXPGoal?: number; // Daily XP target (min 100)
+  hideFromLeaderboard?: boolean; // Hide profile from leaderboard
   reminderTime?: string; // HH:mm format
   soundEnabled: boolean;
   animationsEnabled: boolean;

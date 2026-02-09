@@ -595,6 +595,51 @@ router.post(
 );
 
 // ============================================
+// POST /api/users/:id/deactivate-streak-shield - Deactivate streak shield
+// ============================================
+router.post(
+  '/:id/deactivate-streak-shield',
+  authenticateToken,
+  async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+
+      // Users can only deactivate their own streak shield
+      if (id !== req.user!.id) {
+        return res.status(403).json({
+          success: false,
+          error: {
+            code: 'FORBIDDEN',
+            message: 'Nu ai permisiunea să dezactivezi scutul altui utilizator',
+          },
+        });
+      }
+
+      await query(
+        `UPDATE users SET streak_shield_active = false, updated_at = NOW() WHERE id = $1`,
+        [id]
+      );
+
+      res.json({
+        success: true,
+        data: {
+          streakShieldActive: false,
+        },
+      });
+    } catch (error) {
+      console.error('Deactivate streak shield error:', error);
+      res.status(500).json({
+        success: false,
+        error: {
+          code: 'SERVER_ERROR',
+          message: 'Eroare la dezactivarea scutului de streak',
+        },
+      });
+    }
+  }
+);
+
+// ============================================
 // GET /api/users/:id/card-stats - Get user card statistics by status
 // ============================================
 router.get('/:id/card-stats', authenticateToken, async (req: Request, res: Response) => {
@@ -800,11 +845,12 @@ router.get('/leaderboard/global', async (req: Request, res: Response) => {
     // Get current user ID if authenticated
     const currentUserId = req.user?.id;
 
-    // Get top users by total XP
+    // Get top users by total XP (excluding users who opted to hide from leaderboard)
     const topUsersResult = await query(
       `SELECT id, name, avatar, level, total_xp, streak
        FROM users
        WHERE deleted_at IS NULL
+         AND (preferences->>'hideFromLeaderboard' IS NULL OR preferences->>'hideFromLeaderboard' != 'true')
        ORDER BY total_xp DESC
        LIMIT $1`,
       [limitNum]
@@ -848,8 +894,11 @@ router.get('/leaderboard/global', async (req: Request, res: Response) => {
       }
     }
 
-    // Get total user count
-    const countResult = await query('SELECT COUNT(*) FROM users WHERE deleted_at IS NULL');
+    // Get total user count (excluding hidden users)
+    const countResult = await query(
+      `SELECT COUNT(*) FROM users WHERE deleted_at IS NULL
+       AND (preferences->>'hideFromLeaderboard' IS NULL OR preferences->>'hideFromLeaderboard' != 'true')`
+    );
     const totalUsers = parseInt(countResult.rows[0].count);
 
     res.json({
