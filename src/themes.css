@@ -72,6 +72,12 @@
   /* Specific component tokens */
   --completion-modal-bg: #ffffff;
   --completion-modal-perfect-bg: linear-gradient(to bottom right, #fefce8, #fef3c7, #fef9c3);
+  --completion-modal-perfect-border: #facc15;
+  --completion-modal-perfect-banner-bg: linear-gradient(to right, #fef9c3, #fde68a);
+  --completion-modal-perfect-banner-border: #fde047;
+  --completion-modal-perfect-text: #713f12;
+  --completion-modal-xp-text: #ca8a04;
+  --completion-modal-xp-label: #a16207;
   --tag-bar-bg: #f9fafb;
 
   /* Study card faces */
@@ -169,6 +175,16 @@
   /* Specific component tokens */
   --completion-modal-bg: #1e2130;
   --completion-modal-perfect-bg: linear-gradient(to bottom right, #1e2130, #252833, #1e2130);
+  --completion-modal-perfect-border: #854d0e;
+  --completion-modal-perfect-banner-bg: linear-gradient(
+    to right,
+    rgba(161, 98, 7, 0.15),
+    rgba(202, 138, 4, 0.15)
+  );
+  --completion-modal-perfect-banner-border: rgba(202, 138, 4, 0.3);
+  --completion-modal-perfect-text: #fde68a;
+  --completion-modal-xp-text: #fbbf24;
+  --completion-modal-xp-label: #fcd34d;
   --tag-bar-bg: #252833;
 
   /* Study card faces */
@@ -227,6 +243,7 @@
 .theme-night.accent-violet {
   --color-accent-light: rgba(124, 58, 237, 0.15);
   --color-accent-subtle: rgba(124, 58, 237, 0.08);
+  --color-accent-text: #a78bfa;
 }
 
 /* --- GOLD (future-ready) --- */
@@ -244,6 +261,7 @@
 .theme-night.accent-gold {
   --color-accent-light: rgba(217, 119, 6, 0.15);
   --color-accent-subtle: rgba(217, 119, 6, 0.08);
+  --color-accent-text: #fbbf24;
 }
 
 /* --- SILVER (future-ready) --- */
@@ -261,6 +279,7 @@
 .theme-night.accent-silver {
   --color-accent-light: rgba(107, 114, 128, 0.15);
   --color-accent-subtle: rgba(107, 114, 128, 0.08);
+  --color-accent-text: #d1d5db;
 }
 
 /* --- EMERALD (future-ready) --- */
@@ -278,6 +297,7 @@
 .theme-night.accent-emerald {
   --color-accent-light: rgba(5, 150, 105, 0.15);
   --color-accent-subtle: rgba(5, 150, 105, 0.08);
+  --color-accent-text: #34d399;
 }
 
 /* --- ROSE (future-ready) --- */
@@ -295,6 +315,7 @@
 .theme-night.accent-rose {
   --color-accent-light: rgba(225, 29, 72, 0.15);
   --color-accent-subtle: rgba(225, 29, 72, 0.08);
+  --color-accent-text: #fb7185;
 }
 
 /* ============================================
