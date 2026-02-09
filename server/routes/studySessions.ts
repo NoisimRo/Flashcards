@@ -8,6 +8,7 @@ import {
 } from '../services/cardSelectionService.js';
 import { checkAndUnlockAchievements } from './achievements.js';
 import { calculateStreakFromDailyProgress } from './auth.js';
+import { getLocalToday, getLocalHour } from '../utils/timezone.js';
 
 const router = Router();
 
@@ -689,7 +690,7 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
     // They represent the delta of answers since last save
     const correctDelta = answers !== undefined ? newCorrectAnswers : 0;
 
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalToday(clientTimezoneOffset);
 
     if (timeDeltaSeconds > 0 || correctDelta > 0 || incrementalXP > 0) {
       // Update daily_progress incrementally (time_spent_minutes stores SECONDS for granularity)
@@ -730,11 +731,7 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
         ).length;
         const totalCards = session.total_cards || 0;
         const score = totalCards > 0 ? Math.round((correctCount / totalCards) * 100) : 0;
-        // Use client timezone offset to compute the user's local hour (server may be in UTC)
-        const completedAtHour =
-          clientTimezoneOffset != null
-            ? Math.floor((((new Date().getUTCHours() - clientTimezoneOffset / 60) % 24) + 24) % 24)
-            : new Date().getHours();
+        const completedAtHour = getLocalHour(clientTimezoneOffset);
 
         newAchievements = await withTransaction(async txClient => {
           return checkAndUnlockAchievements(txClient, req.user!.id, {
@@ -998,7 +995,7 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
       // Also add correctDelta to cards_studied for the final answers not yet tracked by PUT
       // NOTE: xp_earned is NOT added here — PUT handler already tracks it incrementally
       // NOTE: time_spent_minutes stores SECONDS for granularity (converted to minutes on read)
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalToday(clientTimezoneOffset);
       await client.query(
         `INSERT INTO daily_progress
            (user_id, date, cards_studied, cards_learned, time_spent_minutes, sessions_completed)
@@ -1023,11 +1020,7 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
       );
 
       // Check and unlock achievements (pass session context for session-specific conditions)
-      // Use client timezone offset to compute the user's local hour (server may be in UTC)
-      const completedAtHour =
-        clientTimezoneOffset != null
-          ? Math.floor((((new Date().getUTCHours() - clientTimezoneOffset / 60) % 24) + 24) % 24)
-          : new Date().getHours();
+      const completedAtHour = getLocalHour(clientTimezoneOffset);
       const newAchievements = await checkAndUnlockAchievements(client, req.user!.id, {
         correctCount: correctCount || 0,
         durationSeconds: finalDuration,
@@ -1057,9 +1050,9 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
            SET streak = $1,
                longest_streak = $2,
                streak_shield_active = false,
-               streak_shield_used_date = CURRENT_DATE
-           WHERE id = $3`,
-          [currentStreak, longestStreak, req.user!.id]
+               streak_shield_used_date = $3::date
+           WHERE id = $4`,
+          [currentStreak, longestStreak, today, req.user!.id]
         );
       } else {
         await client.query(

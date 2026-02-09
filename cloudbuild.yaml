@@ -95,7 +95,7 @@ steps:
       - '--add-cloudsql-instances'
       - '${PROJECT_ID}:${_REGION}:flashcards-db'
       - '--set-env-vars'
-      - 'NODE_ENV=production,CORS_ORIGIN=*,DB_HOST=/cloudsql/${PROJECT_ID}:${_REGION}:flashcards-db,DB_PORT=5432,DB_NAME=flashcards,DB_USER=flashcards_user,GITHUB_REPO=NoisimRo/Flashcards'
+      - 'NODE_ENV=production,CORS_ORIGIN=*,DB_HOST=/cloudsql/${PROJECT_ID}:${_REGION}:flashcards-db,DB_PORT=5432,DB_NAME=flashcards,DB_USER=flashcards_user,GITHUB_REPO=NoisimRo/Flashcards,TZ=Europe/Bucharest'
       - '--set-secrets'
       - 'DB_PASSWORD=flashcards-db-password:latest,JWT_ACCESS_SECRET=flashcards-jwt-access:latest,JWT_REFRESH_SECRET=flashcards-jwt-refresh:latest,GEMINI_API_KEY=flashcards-gem-key:latest,GITHUB_TOKEN=GITHUB_TOKEN:latest'
     id: 'deploy'
