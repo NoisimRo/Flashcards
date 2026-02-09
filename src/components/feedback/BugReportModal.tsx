@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import ReactDOM from 'react-dom';
 import { X, Bug, Camera, RefreshCw, Send, Loader2 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { useAuth } from '../../store/AuthContext';
@@ -20,7 +21,7 @@ export const BugReportModal: React.FC<BugReportModalProps> = ({ onClose }) => {
   const [screenshot, setScreenshot] = useState<string | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [modalVisible, setModalVisible] = useState(true);
+  const overlayRef = useRef<HTMLDivElement>(null);
 
   // Prevent background scrolling
   useEffect(() => {
@@ -41,17 +42,25 @@ export const BugReportModal: React.FC<BugReportModalProps> = ({ onClose }) => {
 
   const captureScreenshot = useCallback(async () => {
     setIsCapturing(true);
-    // Hide the modal temporarily to capture the page behind it
-    setModalVisible(false);
 
-    // Wait for the DOM to update
-    await new Promise(resolve => setTimeout(resolve, 300));
+    // Hide the modal overlay via style (don't unmount - avoids 0-width canvas)
+    if (overlayRef.current) {
+      overlayRef.current.style.display = 'none';
+    }
+    document.body.style.overflow = 'unset';
+
+    // Wait for repaint
+    await new Promise(resolve => setTimeout(resolve, 400));
 
     try {
-      const canvas = await html2canvas(document.body, {
+      const canvas = await html2canvas(document.documentElement, {
         useCORS: true,
-        scale: 1,
+        scale: window.devicePixelRatio > 1 ? 1 : window.devicePixelRatio,
         logging: false,
+        width: window.innerWidth,
+        height: window.innerHeight,
+        windowWidth: window.innerWidth,
+        windowHeight: window.innerHeight,
       });
       const dataUrl = canvas.toDataURL('image/png');
       setScreenshot(dataUrl);
@@ -62,7 +71,10 @@ export const BugReportModal: React.FC<BugReportModalProps> = ({ onClose }) => {
         t('bugReport.screenshotErrorDetail', 'Nu s-a putut captura ecranul.')
       );
     } finally {
-      setModalVisible(true);
+      if (overlayRef.current) {
+        overlayRef.current.style.display = '';
+      }
+      document.body.style.overflow = 'hidden';
       setIsCapturing(false);
     }
   }, [toast, t]);
@@ -119,10 +131,9 @@ export const BugReportModal: React.FC<BugReportModalProps> = ({ onClose }) => {
     }
   };
 
-  if (!modalVisible) return null;
-
-  return (
+  return ReactDOM.createPortal(
     <div
+      ref={overlayRef}
       className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4 backdrop-blur-sm"
       onClick={onClose}
     >
@@ -314,6 +325,7 @@ export const BugReportModal: React.FC<BugReportModalProps> = ({ onClose }) => {
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

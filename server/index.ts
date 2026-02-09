@@ -153,6 +153,7 @@ app.listen(PORT, () => {
 ║  Port:      ${PORT}                            ║
 ║  Env:       ${config.nodeEnv.padEnd(28)}║
 ║  Database:  PostgreSQL                     ║
+║  GitHub:    ${config.github.token ? 'Configured ✓' : 'NOT configured ✗'}                  ║
 ╚════════════════════════════════════════════╝
   `);
 });

@@ -149,11 +149,13 @@ router.post('/bug', authenticateToken, async (req: Request, res: Response) => {
     // Check GitHub configuration
     const { token, repo } = config.github;
     if (!token || !repo) {
+      const missing = [!token && 'GITHUB_TOKEN', !repo && 'GITHUB_REPO'].filter(Boolean);
+      console.error('Bug report service not configured. Missing env vars:', missing.join(', '));
       return res.status(503).json({
         success: false,
         error: {
           code: 'SERVICE_UNAVAILABLE',
-          message: 'Sistemul de raportare nu este configurat. Contactați administratorul.',
+          message: `Sistemul de raportare nu este configurat. Variabile lipsă: ${missing.join(', ')}`,
         },
       });
     }
