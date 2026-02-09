@@ -355,6 +355,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
         skippedCount: actualSkippedCount, // Include unanswered cards as skipped
         durationSeconds, // Accurate active time from per-card tracking
         cardProgressUpdates,
+        clientTimezoneOffset: new Date().getTimezoneOffset(),
       });
 
       // Check if user leveled up

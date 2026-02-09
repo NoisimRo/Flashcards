@@ -231,6 +231,7 @@ export interface UpdateStudySessionRequest {
   streak?: number;
   sessionXP?: number;
   durationSeconds?: number; // Incremental time tracking
+  clientTimezoneOffset?: number; // new Date().getTimezoneOffset() — for time-of-day achievements
 }
 
 /**
@@ -244,6 +245,7 @@ export interface CompleteStudySessionRequest {
   durationSeconds: number;
   // Array of card progress updates to apply
   cardProgressUpdates: CardProgressBatchUpdate[];
+  clientTimezoneOffset?: number; // new Date().getTimezoneOffset() — for time-of-day achievements
 }
 
 /**

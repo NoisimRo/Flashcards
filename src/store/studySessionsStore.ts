@@ -740,6 +740,7 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
           streak: state.streak,
           sessionXP: state.sessionXP,
           durationSeconds: totalDurationSeconds,
+          clientTimezoneOffset: new Date().getTimezoneOffset(),
         });
 
         set({ isDirty: false });
