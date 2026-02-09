@@ -102,6 +102,7 @@ router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
       `SELECT id, email, name, avatar, birth_date, role, level, current_xp, next_level_xp, total_xp,
               streak, longest_streak, total_time_spent, total_cards_learned,
               total_decks_completed, total_correct_answers, total_answers,
+              streak_shield_active, streak_shield_used_date,
               preferences, created_at
        FROM users WHERE id = $1 AND deleted_at IS NULL`,
       [id]
@@ -139,6 +140,7 @@ router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
         totalDecksCompleted: user.total_decks_completed,
         totalCorrectAnswers: user.total_correct_answers || 0,
         totalAnswers: user.total_answers || 0,
+        streakShieldActive: user.streak_shield_active,
         preferences: user.preferences,
         createdAt: user.created_at,
       },
@@ -212,6 +214,7 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
        RETURNING id, email, name, avatar, birth_date, role, level, current_xp, next_level_xp, total_xp,
                  streak, longest_streak, total_time_spent, total_cards_learned,
                  total_decks_completed, total_correct_answers, total_answers,
+                 streak_shield_active, streak_shield_used_date,
                  preferences, created_at`,
       values
     );
@@ -248,6 +251,7 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
         totalDecksCompleted: user.total_decks_completed,
         totalCorrectAnswers: user.total_correct_answers || 0,
         totalAnswers: user.total_answers || 0,
+        streakShieldActive: user.streak_shield_active,
         preferences: user.preferences,
         createdAt: user.created_at,
       },
@@ -493,6 +497,102 @@ router.post('/:id/xp', authenticateToken, async (req: Request, res: Response) =>
     });
   }
 });
+
+// ============================================
+// POST /api/users/:id/activate-streak-shield - Activate streak shield (costs 500 XP)
+// ============================================
+router.post(
+  '/:id/activate-streak-shield',
+  authenticateToken,
+  async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+
+      // Users can only activate their own streak shield
+      if (id !== req.user!.id) {
+        return res.status(403).json({
+          success: false,
+          error: {
+            code: 'FORBIDDEN',
+            message: 'Nu ai permisiunea să activezi scutul altui utilizator',
+          },
+        });
+      }
+
+      // Get current user data
+      const userResult = await query(
+        'SELECT level, current_xp, next_level_xp, total_xp, streak_shield_active FROM users WHERE id = $1 AND deleted_at IS NULL',
+        [id]
+      );
+
+      if (userResult.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Utilizatorul nu a fost găsit',
+          },
+        });
+      }
+
+      const user = userResult.rows[0];
+
+      // Check if user has enough XP
+      if (user.total_xp < 500) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'INSUFFICIENT_XP',
+            message: 'Nu ai suficient XP. Ai nevoie de cel puțin 500 XP.',
+          },
+        });
+      }
+
+      // Deduct 500 from total_xp and current_xp (with level-down if needed)
+      const newTotalXP = user.total_xp - 500;
+      let newCurrentXP = user.current_xp - 500;
+      let newLevel = user.level;
+      let newNextLevelXP = user.next_level_xp;
+
+      // Handle level-down if current_xp goes negative
+      while (newCurrentXP < 0 && newLevel > 1) {
+        newLevel--;
+        // Reverse the level-up formula: previous next_level_xp = current / 1.2
+        newNextLevelXP = Math.floor(newNextLevelXP / 1.2);
+        newCurrentXP += newNextLevelXP;
+      }
+
+      // Safety: ensure current_xp doesn't go below 0
+      newCurrentXP = Math.max(0, newCurrentXP);
+
+      // Update user: deduct XP and activate shield
+      await query(
+        `UPDATE users
+       SET total_xp = $1, current_xp = $2, level = $3, next_level_xp = $4,
+           streak_shield_active = true, updated_at = NOW()
+       WHERE id = $5`,
+        [newTotalXP, newCurrentXP, newLevel, newNextLevelXP, id]
+      );
+
+      res.json({
+        success: true,
+        data: {
+          streakShieldActive: true,
+          xpDeducted: 500,
+        },
+      });
+    } catch (error) {
+      console.error('Activate streak shield error:', error);
+      res.status(500).json({
+        success: false,
+        error: {
+          code: 'SERVER_ERROR',
+          message: 'Eroare la activarea scutului de streak',
+        },
+      });
+    }
+  }
+);
 
 // ============================================
 // GET /api/users/:id/card-stats - Get user card statistics by status

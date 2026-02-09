@@ -27,7 +27,8 @@
     "decksCreated": "Decks created",
     "cardsInStudy": "Cards in study",
     "minutes": "min.",
-    "hours": "{{hours}}h"
+    "hours": "{{hours}}h",
+    "shieldActive": "Protected"
   },
   "dailyChallenges": {
     "title": "Daily Challenges",
@@ -44,6 +45,9 @@
     "streak": {
       "title": "Maintain streak",
       "description": "Study for at least 10 minutes OR answer correctly 20 cards today to keep your streak!"
+    },
+    "dailyXP": {
+      "title": "Earn {{count}} XP today"
     }
   },
   "activityCalendar": {

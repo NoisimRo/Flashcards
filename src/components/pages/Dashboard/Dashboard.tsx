@@ -25,6 +25,7 @@ import {
   ChevronRight,
   Crown,
   Sparkles,
+  ShieldCheck,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -191,6 +192,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       BookOpen,
       Clock,
       Flame,
+      Zap,
     };
     return icons[iconName] || BookOpen;
   };
@@ -379,7 +381,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <Flame size={120} />
             </div>
             <div className="relative z-10 flex flex-col">
-              <div className="text-5xl font-bold mb-2">{stats.streak}</div>
+              <div className="flex items-center gap-3">
+                <div className="text-5xl font-bold mb-2">{stats.streak}</div>
+                {user.streakShieldActive && (
+                  <div className="flex items-center gap-1 bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full text-xs font-bold mb-2">
+                    <ShieldCheck size={14} />
+                    {t('stats.shieldActive', 'Protected')}
+                  </div>
+                )}
+              </div>
               <div className="text-base font-bold mb-1">{t('stats.streak')}</div>
               <div className="text-sm opacity-90">
                 {t('stats.streakRecord', { days: stats.longestStreak })}

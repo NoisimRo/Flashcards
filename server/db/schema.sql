@@ -53,6 +53,10 @@ CREATE TABLE users (
     total_correct_answers INTEGER DEFAULT 0,
     total_answers INTEGER DEFAULT 0,
 
+    -- Streak Shield
+    streak_shield_active BOOLEAN DEFAULT false,
+    streak_shield_used_date DATE,
+
     -- Preferences (JSON)
     preferences JSONB DEFAULT '{
         "dailyGoal": 20,
@@ -426,6 +430,7 @@ CREATE TABLE daily_challenges (
     cards_reward_claimed BOOLEAN DEFAULT false,
     time_reward_claimed BOOLEAN DEFAULT false,
     streak_reward_claimed BOOLEAN DEFAULT false,
+    daily_xp_reward_claimed BOOLEAN DEFAULT false,
 
     -- Metadata
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

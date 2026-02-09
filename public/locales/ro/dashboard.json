@@ -27,7 +27,8 @@
     "decksCreated": "Deck-uri create",
     "cardsInStudy": "Carduri în studiu",
     "minutes": "min.",
-    "hours": "{{hours}}h"
+    "hours": "{{hours}}h",
+    "shieldActive": "Protejat"
   },
   "dailyChallenges": {
     "title": "Provocări Zilnice",
@@ -44,6 +45,9 @@
     "streak": {
       "title": "Menține streak-ul",
       "description": "Studiază cel puțin 10 minute SAU răspunde corect la 20 de carduri astăzi pentru a-ți menține seria!"
+    },
+    "dailyXP": {
+      "title": "Câștigă {{count}} XP azi"
     }
   },
   "activityCalendar": {

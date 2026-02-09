@@ -56,3 +56,9 @@ export interface CardStats {
 export async function getUserCardStats(userId: string) {
   return api.get<CardStats>(`/users/${userId}/card-stats`);
 }
+
+export async function activateStreakShield(userId: string) {
+  return api.post<{ streakShieldActive: boolean; xpDeducted: number }>(
+    `/users/${userId}/activate-streak-shield`
+  );
+}

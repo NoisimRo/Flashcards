@@ -26,10 +26,16 @@
     "title": "Preferenze di apprendimento",
     "language": "Lingua dell'app",
     "languageDesc": "Scegli la lingua in cui vuoi vedere l'app",
-    "focusMode": "Modalità concentrazione",
-    "focusModeDesc": "Nascondi le notifiche durante lo studio",
-    "shuffleCards": "Mescola le carte",
-    "shuffleCardsDesc": "Presenta le carte in ordine casuale",
+    "dailyXPGoal": "Obiettivo XP Giornaliero",
+    "dailyXPGoalDesc": "Imposta il tuo obiettivo minimo di XP giornaliero",
+    "dailyXPGoalValue": "{{count}} XP",
+    "streakShield": "Scudo Serie",
+    "streakShieldDesc": "Protegge la tua serie se salti un giorno di studio",
+    "streakShieldActive": "Scudo Attivo",
+    "streakShieldActivate": "Attiva Scudo",
+    "streakShieldCost": "Costo: 500 XP",
+    "streakShieldNotEnoughXP": "XP insufficiente (servono 500)",
+    "streakShieldConfirm": "Spendere 500 XP per attivare lo Scudo Serie?",
     "newCardsPerDay": "Nuove carte al giorno",
     "cardsCount": "{{count}} carte"
   },
@@ -40,7 +46,10 @@
   },
   "actions": {
     "saveChanges": "Salva modifiche",
-    "cancel": "Annulla"
+    "cancel": "Annulla",
+    "saveSuccess": "Modifiche salvate con successo",
+    "saveError": "Errore nel salvataggio",
+    "saveErrorDesc": "Per favore riprova"
   },
   "appearance": {
     "title": "Aspetto",

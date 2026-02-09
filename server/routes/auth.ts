@@ -19,9 +19,13 @@ const router = Router();
  * 1. Studied for at least 10 minutes
  * 2. Learned at least 20 cards (cards_learned, not just correct answers)
  */
-export async function calculateStreakFromDailyProgress(userId: string): Promise<{
+export async function calculateStreakFromDailyProgress(
+  userId: string,
+  streakShieldActive: boolean = false
+): Promise<{
   currentStreak: number;
   longestStreak: number;
+  shieldUsed: boolean;
 }> {
   // Get last 60 days of activity for longest streak calculation
   const progressResult = await query(
@@ -34,12 +38,13 @@ export async function calculateStreakFromDailyProgress(userId: string): Promise<
   );
 
   if (progressResult.rows.length === 0) {
-    return { currentStreak: 0, longestStreak: 0 };
+    return { currentStreak: 0, longestStreak: 0, shieldUsed: false };
   }
 
   const today = new Date().toISOString().split('T')[0];
   let currentStreak = 0;
   let longestStreak = 0;
+  let shieldUsed = false;
 
   // Calculate current streak (from today/yesterday going backwards)
   const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -56,6 +61,7 @@ export async function calculateStreakFromDailyProgress(userId: string): Promise<
   }
 
   // Count backwards from most recent activity
+  let shieldAvailable = streakShieldActive;
   for (let i = 0; i < 60; i++) {
     const checkDateStr = checkDate.toISOString().split('T')[0];
     const dayActivity = progressResult.rows.find(
@@ -74,7 +80,18 @@ export async function calculateStreakFromDailyProgress(userId: string): Promise<
       }
     }
 
-    // No activity or conditions not met - streak broken
+    // No activity or conditions not met - try to use shield to bridge 1-day gap
+    if (shieldAvailable && currentStreak > 0) {
+      // Shield bridges this missed day - continue counting
+      shieldAvailable = false;
+      shieldUsed = true;
+      currentStreak++; // Count the shielded day
+      longestStreak = Math.max(longestStreak, currentStreak);
+      checkDate.setDate(checkDate.getDate() - 1);
+      continue;
+    }
+
+    // Streak broken
     break;
   }
 
@@ -111,7 +128,7 @@ export async function calculateStreakFromDailyProgress(userId: string): Promise<
     }
   }
 
-  return { currentStreak, longestStreak };
+  return { currentStreak, longestStreak, shieldUsed };
 }
 
 // ============================================
@@ -293,7 +310,7 @@ router.post('/login', async (req: Request, res: Response) => {
       `SELECT id, email, password_hash, name, role, level, current_xp, next_level_xp,
               total_xp, streak, longest_streak, last_active_date, total_time_spent,
               total_cards_learned, total_decks_completed, total_correct_answers,
-              total_answers, preferences, created_at
+              total_answers, streak_shield_active, preferences, created_at
        FROM users
        WHERE email = $1 AND deleted_at IS NULL`,
       [email.toLowerCase()]
@@ -324,19 +341,38 @@ router.post('/login', async (req: Request, res: Response) => {
     }
 
     // CRITICAL FIX: Calculate streak from daily_progress (single source of truth)
-    const { currentStreak, longestStreak } = await calculateStreakFromDailyProgress(user.id);
+    const { currentStreak, longestStreak, shieldUsed } = await calculateStreakFromDailyProgress(
+      user.id,
+      user.streak_shield_active || false
+    );
 
     const today = new Date().toISOString().split('T')[0];
 
-    await query(
-      `UPDATE users SET
-        last_login_at = NOW(),
-        last_active_date = $1,
-        streak = $2,
-        longest_streak = $3
-       WHERE id = $4`,
-      [today, currentStreak, longestStreak, user.id]
-    );
+    if (shieldUsed) {
+      // Shield was used to bridge a gap - deactivate it and record usage date
+      await query(
+        `UPDATE users SET
+          last_login_at = NOW(),
+          last_active_date = $1,
+          streak = $2,
+          longest_streak = $3,
+          streak_shield_active = false,
+          streak_shield_used_date = CURRENT_DATE
+         WHERE id = $4`,
+        [today, currentStreak, longestStreak, user.id]
+      );
+      user.streak_shield_active = false;
+    } else {
+      await query(
+        `UPDATE users SET
+          last_login_at = NOW(),
+          last_active_date = $1,
+          streak = $2,
+          longest_streak = $3
+         WHERE id = $4`,
+        [today, currentStreak, longestStreak, user.id]
+      );
+    }
 
     user.streak = currentStreak;
     user.longest_streak = longestStreak;
@@ -524,7 +560,7 @@ router.get('/me', authenticateToken, async (req: Request, res: Response) => {
       `SELECT id, email, name, avatar, birth_date, role, level, current_xp, next_level_xp, total_xp,
               streak, longest_streak, last_active_date, total_time_spent,
               total_cards_learned, total_decks_completed, total_correct_answers,
-              total_answers, preferences, created_at
+              total_answers, streak_shield_active, preferences, created_at
        FROM users WHERE id = $1 AND deleted_at IS NULL`,
       [req.user!.id]
     );
@@ -667,6 +703,7 @@ function formatUser(user: any) {
     totalDecksCompleted: user.total_decks_completed,
     totalCorrectAnswers: user.total_correct_answers || 0,
     totalAnswers: user.total_answers || 0,
+    streakShieldActive: user.streak_shield_active,
     preferences: user.preferences,
     createdAt: user.created_at,
   };
