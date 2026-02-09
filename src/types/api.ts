@@ -85,6 +85,7 @@ export interface ResetPasswordConfirmRequest {
 export interface UpdateUserRequest {
   name?: string;
   avatar?: string;
+  birthDate?: string;
   preferences?: Partial<User['preferences']>;
 }
 

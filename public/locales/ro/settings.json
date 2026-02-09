@@ -14,7 +14,13 @@
     "requiresAccount": "(necesită cont)",
     "nameLabel": "Nume complet",
     "emailLabel": "Email",
-    "changePassword": "Schimbă parola"
+    "changePassword": "Schimbă parola",
+    "changePasswordBtn": "Schimbă Parola",
+    "birthDate": "Data nașterii",
+    "birthDateRequired": "Data nașterii este obligatorie",
+    "avatarTitle": "Avatar",
+    "avatarDesc": "Alege avatarul tău de profil",
+    "avatarLocked": "Necesită Nivelul {{level}}"
   },
   "preferences": {
     "title": "Preferințe de învățare",
@@ -45,9 +51,31 @@
     "accentTheme": "Culoare accent",
     "accentThemeDesc": "Alege culoarea principală a aplicației"
   },
+  "changePassword": {
+    "title": "Schimbă Parola",
+    "currentPassword": "Parola curentă",
+    "newPassword": "Parola nouă",
+    "confirmPassword": "Confirmă parola nouă",
+    "submit": "Schimbă Parola",
+    "cancel": "Anulează",
+    "success": "Parola a fost schimbată cu succes!",
+    "errorMatch": "Parolele nu se potrivesc",
+    "errorMinLength": "Parola trebuie să aibă minim 8 caractere",
+    "errorNumber": "Parola trebuie să conțină cel puțin o cifră",
+    "errorCurrentRequired": "Parola curentă este obligatorie",
+    "errorNewRequired": "Parola nouă este obligatorie",
+    "errorConfirmRequired": "Te rog confirmă parola nouă",
+    "errorCurrentIncorrect": "Parola curentă este incorectă",
+    "errorGeneric": "Eroare la schimbarea parolei. Încearcă din nou.",
+    "strengthWeak": "Slabă",
+    "strengthFair": "Acceptabilă",
+    "strengthGood": "Bună",
+    "strengthStrong": "Puternică"
+  },
   "logout": {
     "title": "Deconectare",
     "message": "Te vei deconecta din cont și vei fi redirecționat către pagina de autentificare.",
-    "button": "Deconectează-te"
+    "button": "Deconectează-te",
+    "description": "Te vei deconecta din cont și vei fi redirecționat către pagina de autentificare."
   }
 }

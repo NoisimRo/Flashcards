@@ -31,7 +31,7 @@ export async function getUserProfile(userId: string) {
 
 export async function updateUserProfile(
   userId: string,
-  data: { name?: string; avatar?: string; preferences?: any }
+  data: { name?: string; avatar?: string; birth_date?: string; preferences?: any }
 ) {
   return api.put<User>(`/users/${userId}`, data);
 }

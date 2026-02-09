@@ -14,7 +14,13 @@
     "requiresAccount": "(richiede account)",
     "nameLabel": "Nome completo",
     "emailLabel": "Email",
-    "changePassword": "Cambia password"
+    "changePassword": "Cambia password",
+    "changePasswordBtn": "Cambia Password",
+    "birthDate": "Data di nascita",
+    "birthDateRequired": "La data di nascita è obbligatoria",
+    "avatarTitle": "Avatar",
+    "avatarDesc": "Scegli il tuo avatar del profilo",
+    "avatarLocked": "Richiede Livello {{level}}"
   },
   "preferences": {
     "title": "Preferenze di apprendimento",
@@ -45,9 +51,31 @@
     "accentTheme": "Colore accento",
     "accentThemeDesc": "Scegli il colore principale dell'app"
   },
+  "changePassword": {
+    "title": "Cambia Password",
+    "currentPassword": "Password attuale",
+    "newPassword": "Nuova password",
+    "confirmPassword": "Conferma nuova password",
+    "submit": "Cambia Password",
+    "cancel": "Annulla",
+    "success": "Password cambiata con successo!",
+    "errorMatch": "Le password non corrispondono",
+    "errorMinLength": "La password deve avere almeno 8 caratteri",
+    "errorNumber": "La password deve contenere almeno un numero",
+    "errorCurrentRequired": "La password attuale è obbligatoria",
+    "errorNewRequired": "La nuova password è obbligatoria",
+    "errorConfirmRequired": "Per favore conferma la nuova password",
+    "errorCurrentIncorrect": "La password attuale non è corretta",
+    "errorGeneric": "Errore nel cambio password. Riprova.",
+    "strengthWeak": "Debole",
+    "strengthFair": "Sufficiente",
+    "strengthGood": "Buona",
+    "strengthStrong": "Forte"
+  },
   "logout": {
     "title": "Disconnetti",
     "message": "Verrai disconnesso e reindirizzato alla pagina di accesso.",
-    "button": "Disconnetti"
+    "button": "Disconnetti",
+    "description": "Verrai disconnesso e reindirizzato alla pagina di accesso."
   }
 }

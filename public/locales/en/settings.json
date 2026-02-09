@@ -14,7 +14,13 @@
     "requiresAccount": "(requires account)",
     "nameLabel": "Full name",
     "emailLabel": "Email",
-    "changePassword": "Change password"
+    "changePassword": "Change password",
+    "changePasswordBtn": "Change Password",
+    "birthDate": "Birth date",
+    "birthDateRequired": "Birth date is required",
+    "avatarTitle": "Avatar",
+    "avatarDesc": "Choose your profile avatar",
+    "avatarLocked": "Requires Level {{level}}"
   },
   "preferences": {
     "title": "Learning preferences",
@@ -45,9 +51,31 @@
     "accentTheme": "Accent color",
     "accentThemeDesc": "Choose the primary color of the app"
   },
+  "changePassword": {
+    "title": "Change Password",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm New Password",
+    "submit": "Change Password",
+    "cancel": "Cancel",
+    "success": "Password changed successfully!",
+    "errorMatch": "Passwords do not match",
+    "errorMinLength": "Password must be at least 8 characters",
+    "errorNumber": "Password must contain at least one number",
+    "errorCurrentRequired": "Current password is required",
+    "errorNewRequired": "New password is required",
+    "errorConfirmRequired": "Please confirm your new password",
+    "errorCurrentIncorrect": "Current password is incorrect",
+    "errorGeneric": "Failed to change password. Please try again.",
+    "strengthWeak": "Weak",
+    "strengthFair": "Fair",
+    "strengthGood": "Good",
+    "strengthStrong": "Strong"
+  },
   "logout": {
     "title": "Sign out",
     "message": "You will be signed out and redirected to the login page.",
-    "button": "Sign out"
+    "button": "Sign out",
+    "description": "You will be signed out and redirected to the login page."
   }
 }

@@ -12,8 +12,14 @@ import {
   UserPlus,
   Globe,
   Palette,
+  KeyRound,
+  Calendar,
 } from 'lucide-react';
 import { useTheme, type AccentTheme } from '../../../hooks/useTheme';
+import { useToast } from '../../ui/Toast';
+import { updateUserProfile } from '../../../api/users';
+import { ChangePasswordModal } from './ChangePasswordModal';
+import { AvatarPicker, AVATARS } from './AvatarPicker';
 
 interface SettingsProps {
   user: User & { email?: string };
@@ -64,30 +70,80 @@ export const Settings: React.FC<SettingsProps> = ({
   onLogin,
 }) => {
   const { t, i18n } = useTranslation('settings');
-  const { mode, accent, setMode, setAccent, isNight, toggleMode } = useTheme();
+  const { mode, accent, setMode, setAccent, isNight } = useTheme();
+  const toast = useToast();
+
   const [formData, setFormData] = useState({
     name: user.name,
     email: user.email || 'email@exemplu.ro',
+    birthDate: (user as any).birthDate || '',
   });
+  const [selectedAvatar, setSelectedAvatar] = useState(user.avatar || 'default');
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [formErrors, setFormErrors] = useState<{ birthDate?: string }>({});
+
+  // Daily goal from preferences
+  const [dailyGoal, setDailyGoal] = useState(user.preferences?.dailyGoal || 20);
 
   const languages = [
-    { code: 'ro', name: t('languages.ro'), flag: '🇷🇴' },
-    { code: 'en', name: t('languages.en'), flag: '🇬🇧' },
-    { code: 'it', name: t('languages.it'), flag: '🇮🇹' },
+    { code: 'ro', name: t('languages.ro'), flag: 'RO' },
+    { code: 'en', name: t('languages.en'), flag: 'GB' },
+    { code: 'it', name: t('languages.it'), flag: 'IT' },
   ];
 
   const handleLanguageChange = (languageCode: string) => {
     i18n.changeLanguage(languageCode);
-    // Persist to localStorage
     localStorage.setItem('preferredLanguage', languageCode);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    if (name === 'birthDate' && formErrors.birthDate) {
+      setFormErrors({});
+    }
   };
 
-  const handleSave = () => {
-    onSave({ ...user, name: formData.name });
+  const handleAvatarSelect = (avatarId: string) => {
+    setSelectedAvatar(avatarId);
+  };
+
+  const getAvatarEmoji = (avatarId: string) => {
+    const avatar = AVATARS.find(a => a.id === avatarId);
+    return avatar?.emoji || '\u{1F464}';
+  };
+
+  const handleSave = async () => {
+    // Validate birth date is required
+    if (!formData.birthDate) {
+      setFormErrors({ birthDate: t('profile.birthDateRequired') });
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const response = await updateUserProfile(user.id, {
+        name: formData.name,
+        avatar: selectedAvatar,
+        birth_date: formData.birthDate,
+        preferences: { dailyGoal },
+      });
+
+      if (response.success) {
+        toast.success(t('actions.saveSuccess', 'Changes saved successfully'));
+        onSave({ ...user, name: formData.name, avatar: selectedAvatar });
+      } else {
+        toast.error(
+          t('actions.saveError', 'Failed to save'),
+          response.error?.message || t('actions.saveErrorDesc', 'Please try again')
+        );
+      }
+    } catch {
+      toast.error(t('actions.saveError', 'Failed to save'));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -151,10 +207,10 @@ export const Settings: React.FC<SettingsProps> = ({
               ) : (
                 <Sun size={18} style={{ color: 'var(--color-accent)' }} />
               )}
-              {t('appearance.themeMode', 'Mod temă')}
+              {t('appearance.themeMode', 'Mod tema')}
             </h4>
             <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
-              {t('appearance.themeModeDesc', 'Alege între modul zi și modul noapte')}
+              {t('appearance.themeModeDesc', 'Alege intre modul zi si modul noapte')}
             </p>
             <div className="grid grid-cols-2 gap-3 max-w-sm">
               {/* Light mode card */}
@@ -206,7 +262,7 @@ export const Settings: React.FC<SettingsProps> = ({
               {t('appearance.accentTheme', 'Culoare accent')}
             </h4>
             <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
-              {t('appearance.accentThemeDesc', 'Alege culoarea principală a aplicației')}
+              {t('appearance.accentThemeDesc', 'Alege culoarea principala a aplicatiei')}
             </p>
             <div className="flex gap-3 flex-wrap">
               {ACCENT_OPTIONS.map(option => (
@@ -263,59 +319,120 @@ export const Settings: React.FC<SettingsProps> = ({
           )}
         </h3>
 
-        <div className="space-y-4 max-w-lg">
-          <div>
-            <label
-              className="block text-sm mb-1 font-medium"
-              style={{ color: 'var(--text-muted)' }}
-            >
-              {t('profile.nameLabel')}
-            </label>
-            <input
-              name="name"
-              type="text"
-              value={formData.name}
-              onChange={handleChange}
-              disabled={isGuest}
-              className="w-full rounded-xl p-3 outline-none transition-all disabled:cursor-not-allowed"
-              style={{
-                backgroundColor: 'var(--input-bg)',
-                borderWidth: '1px',
-                borderColor: 'var(--input-border)',
-                color: 'var(--text-primary)',
-              }}
-            />
-          </div>
-          <div>
-            <label
-              className="block text-sm mb-1 font-medium"
-              style={{ color: 'var(--text-muted)' }}
-            >
-              {t('profile.emailLabel')}
-            </label>
-            <input
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleChange}
-              disabled={isGuest}
-              className="w-full rounded-xl p-3 outline-none transition-all disabled:cursor-not-allowed"
-              style={{
-                backgroundColor: 'var(--input-bg)',
-                borderWidth: '1px',
-                borderColor: 'var(--input-border)',
-                color: 'var(--text-primary)',
-              }}
-            />
-          </div>
+        <div className="space-y-6">
+          {/* Avatar Picker */}
           {!isGuest && (
-            <button
-              className="text-sm font-bold transition-colors"
-              style={{ color: 'var(--color-accent)' }}
-            >
-              {t('profile.changePassword')}
-            </button>
+            <div>
+              <h4
+                className="font-bold mb-2 flex items-center gap-2"
+                style={{ color: 'var(--text-primary)' }}
+              >
+                <span className="text-xl">{getAvatarEmoji(selectedAvatar)}</span>
+                {t('profile.avatarTitle', 'Avatar')}
+              </h4>
+              <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
+                {t('profile.avatarDesc', 'Choose your profile avatar')}
+              </p>
+              <AvatarPicker
+                currentAvatar={selectedAvatar}
+                userLevel={user.level}
+                onSelect={handleAvatarSelect}
+              />
+            </div>
           )}
+
+          <div className="space-y-4 max-w-lg">
+            <div>
+              <label
+                className="block text-sm mb-1 font-medium"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                {t('profile.nameLabel')}
+              </label>
+              <input
+                name="name"
+                type="text"
+                value={formData.name}
+                onChange={handleChange}
+                disabled={isGuest}
+                className="w-full rounded-xl p-3 outline-none transition-all disabled:cursor-not-allowed"
+                style={{
+                  backgroundColor: 'var(--input-bg)',
+                  borderWidth: '1px',
+                  borderColor: 'var(--input-border)',
+                  color: 'var(--text-primary)',
+                }}
+              />
+            </div>
+            <div>
+              <label
+                className="block text-sm mb-1 font-medium"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                {t('profile.emailLabel')}
+              </label>
+              <input
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                disabled={isGuest}
+                className="w-full rounded-xl p-3 outline-none transition-all disabled:cursor-not-allowed"
+                style={{
+                  backgroundColor: 'var(--input-bg)',
+                  borderWidth: '1px',
+                  borderColor: 'var(--input-border)',
+                  color: 'var(--text-primary)',
+                }}
+              />
+            </div>
+
+            {/* Birth Date Field */}
+            <div>
+              <label
+                className="block text-sm mb-1 font-medium flex items-center gap-1.5"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                <Calendar size={14} />
+                {t('profile.birthDate', 'Birth date')}
+                <span style={{ color: '#EF4444' }}>*</span>
+              </label>
+              <input
+                name="birthDate"
+                type="date"
+                value={formData.birthDate}
+                onChange={handleChange}
+                disabled={isGuest}
+                className="w-full rounded-xl p-3 outline-none transition-all disabled:cursor-not-allowed"
+                style={{
+                  backgroundColor: 'var(--input-bg)',
+                  borderWidth: '1px',
+                  borderColor: formErrors.birthDate ? '#EF4444' : 'var(--input-border)',
+                  color: 'var(--text-primary)',
+                }}
+              />
+              {formErrors.birthDate && (
+                <p className="mt-1 text-xs font-medium" style={{ color: '#EF4444' }}>
+                  {formErrors.birthDate}
+                </p>
+              )}
+            </div>
+
+            {/* Change Password Button */}
+            {!isGuest && (
+              <button
+                onClick={() => setShowChangePassword(true)}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold transition-all hover:opacity-90"
+                style={{
+                  backgroundColor: 'var(--color-accent)',
+                  color: 'white',
+                }}
+              >
+                <KeyRound size={16} />
+                {t('profile.changePasswordBtn', 'Change Password')}
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -328,7 +445,7 @@ export const Settings: React.FC<SettingsProps> = ({
           className="flex items-center gap-2 text-xl font-bold mb-6"
           style={{ color: 'var(--text-primary)' }}
         >
-          <Moon style={{ color: 'var(--color-accent)' }} /> {t('preferences.title')}
+          <Globe style={{ color: 'var(--color-accent)' }} /> {t('preferences.title')}
           {isGuest && (
             <span className="text-sm font-normal text-orange-600">
               {t('profile.requiresAccount')}
@@ -365,7 +482,9 @@ export const Settings: React.FC<SettingsProps> = ({
                         : 'var(--bg-surface)',
                   }}
                 >
-                  <div className="text-2xl mb-1">{lang.flag}</div>
+                  <div className="text-sm font-bold mb-1" style={{ color: 'var(--text-primary)' }}>
+                    {lang.flag}
+                  </div>
                   <div className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
                     {lang.name}
                   </div>
@@ -374,6 +493,7 @@ export const Settings: React.FC<SettingsProps> = ({
             </div>
           </div>
 
+          {/* Focus Mode */}
           <div className="flex items-start gap-4 cursor-pointer group">
             <div
               className="mt-1 w-6 h-6 rounded-full flex items-center justify-center shadow-sm transition-colors"
@@ -391,6 +511,7 @@ export const Settings: React.FC<SettingsProps> = ({
             </div>
           </div>
 
+          {/* Shuffle Cards */}
           <div className="flex items-start gap-4 cursor-pointer group">
             <div
               className="mt-1 w-6 h-6 border-2 rounded-full flex items-center justify-center text-transparent transition-colors"
@@ -412,7 +533,7 @@ export const Settings: React.FC<SettingsProps> = ({
                 {t('preferences.newCardsPerDay')}
               </span>
               <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                {t('preferences.cardsCount', { count: 20 })}
+                {t('preferences.cardsCount', { count: dailyGoal })}
               </span>
             </div>
             <input
@@ -421,7 +542,8 @@ export const Settings: React.FC<SettingsProps> = ({
               style={{ accentColor: 'var(--color-accent)' }}
               min="5"
               max="50"
-              defaultValue="20"
+              value={dailyGoal}
+              onChange={e => setDailyGoal(Number(e.target.value))}
               disabled={isGuest}
             />
           </div>
@@ -433,10 +555,11 @@ export const Settings: React.FC<SettingsProps> = ({
         <div className="flex gap-4 pb-10">
           <button
             onClick={handleSave}
-            className="text-white px-8 py-3 rounded-xl font-bold transition-colors flex items-center gap-2 shadow-lg hover:-translate-y-1 transform"
+            disabled={isSaving}
+            className="text-white px-8 py-3 rounded-xl font-bold transition-all flex items-center gap-2 shadow-lg hover:-translate-y-1 transform disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
             style={{ backgroundColor: 'var(--color-accent)' }}
           >
-            <Save size={18} /> {t('actions.saveChanges')}
+            <Save size={18} /> {isSaving ? '...' : t('actions.saveChanges')}
           </button>
           <button
             className="px-6 py-3 font-bold transition-colors"
@@ -447,21 +570,41 @@ export const Settings: React.FC<SettingsProps> = ({
         </div>
       )}
 
-      {/* Logout Section */}
+      {/* Sign Out Section - Theme-aware, single row */}
       {onLogout && !isGuest && (
-        <div className="bg-red-50 p-6 rounded-3xl border border-red-100 mb-10">
-          <h3 className="flex items-center gap-2 text-lg font-bold text-red-700 mb-2">
-            <LogOut size={20} /> {t('logout.title')}
-          </h3>
-          <p className="text-red-600 text-sm mb-4">{t('logout.message')}</p>
+        <div
+          className="flex items-center justify-between p-5 rounded-2xl mb-10"
+          style={{
+            backgroundColor: 'var(--bg-secondary)',
+            borderWidth: '1px',
+            borderStyle: 'solid',
+            borderColor: 'var(--border-secondary)',
+          }}
+        >
+          <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+            {t('logout.description', t('logout.message'))}
+          </p>
           <button
             onClick={onLogout}
-            className="bg-red-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-red-700 transition-colors flex items-center gap-2"
+            className="flex-shrink-0 ml-4 px-5 py-2 rounded-xl font-bold transition-colors flex items-center gap-2"
+            style={{
+              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              color: '#EF4444',
+              borderWidth: '1px',
+              borderStyle: 'solid',
+              borderColor: 'rgba(239, 68, 68, 0.2)',
+            }}
           >
             <LogOut size={16} /> {t('logout.button')}
           </button>
         </div>
       )}
+
+      {/* Change Password Modal */}
+      <ChangePasswordModal
+        isOpen={showChangePassword}
+        onClose={() => setShowChangePassword(false)}
+      />
     </div>
   );
 };

@@ -521,7 +521,7 @@ router.post('/logout', authenticateToken, async (req: Request, res: Response) =>
 router.get('/me', authenticateToken, async (req: Request, res: Response) => {
   try {
     const result = await query(
-      `SELECT id, email, name, avatar, role, level, current_xp, next_level_xp, total_xp,
+      `SELECT id, email, name, avatar, birth_date, role, level, current_xp, next_level_xp, total_xp,
               streak, longest_streak, last_active_date, total_time_spent,
               total_cards_learned, total_decks_completed, total_correct_answers,
               total_answers, preferences, created_at
@@ -572,12 +572,22 @@ router.post('/change-password', authenticateToken, async (req: Request, res: Res
       });
     }
 
-    if (newPassword.length < 6) {
+    if (newPassword.length < 8) {
       return res.status(400).json({
         success: false,
         error: {
           code: 'VALIDATION_ERROR',
-          message: 'Noua parolă trebuie să aibă minim 6 caractere',
+          message: 'Noua parolă trebuie să aibă minim 8 caractere',
+        },
+      });
+    }
+
+    if (!/\d/.test(newPassword)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Noua parolă trebuie să conțină cel puțin o cifră',
         },
       });
     }
@@ -643,6 +653,7 @@ function formatUser(user: any) {
     email: user.email,
     name: user.name,
     avatar: user.avatar,
+    birthDate: user.birth_date,
     role: user.role,
     level: user.level,
     currentXP: user.current_xp,

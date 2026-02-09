@@ -32,6 +32,7 @@ CREATE TABLE users (
     password_hash VARCHAR(255) NOT NULL,
     name VARCHAR(100) NOT NULL,
     avatar VARCHAR(500),
+    birth_date DATE,
     role user_role DEFAULT 'student',
 
     -- Gamification
