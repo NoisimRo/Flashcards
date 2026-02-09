@@ -12,6 +12,9 @@
     "placeholder": "Cerca per titolo, argomento o creatore...",
     "allSubjects": "Tutte le Materie",
     "allLevels": "Tutti i Livelli",
+    "allRatings": "Tutte le Valutazioni",
+    "stars": "{{count}} Stelle",
+    "starsAndAbove": "{{count}}+ Stelle",
     "level": "Livello {{level}}",
     "showing": "Mostrando {{filtered}} di {{total}} mazzi",
     "resetFilters": "Ripristina filtri"
@@ -34,13 +37,20 @@
   "menu": {
     "leaveReview": "Lascia una recensione",
     "report": "Segnala mazzo",
-    "editCards": "Modifica carte"
+    "editCards": "Modifica carte",
+    "editDeck": "Modifica mazzo",
+    "deleteDeck": "Elimina mazzo",
+    "deleteConfirm": "Sei sicuro di voler eliminare \"{{title}}\"? Questa azione non può essere annullata.",
+    "makePrivate": "Rendi privato",
+    "makePublic": "Rendi pubblico"
   },
   "toast": {
     "deckCopied": "Il mazzo \"{{title}}\" è stato copiato nella tua collezione!",
     "copyNotAvailable": "La funzione di copia non è al momento disponibile",
     "loadError": "Impossibile caricare i mazzi pubblici",
-    "generalError": "Errore nel caricamento dei mazzi"
+    "generalError": "Errore nel caricamento dei mazzi",
+    "deckDeleted": "Il mazzo \"{{title}}\" è stato eliminato",
+    "visibilityChanged": "La visibilità del mazzo è stata aggiornata"
   },
   "loading": "Caricamento mazzi globali..."
 }

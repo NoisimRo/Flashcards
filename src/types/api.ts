@@ -128,8 +128,9 @@ export interface DeckListParams {
   search?: string;
   ownedOnly?: boolean;
   publicOnly?: boolean;
-  sortBy?: 'title' | 'createdAt' | 'lastStudied' | 'totalCards';
+  sortBy?: 'title' | 'createdAt' | 'lastStudied' | 'totalCards' | 'rating';
   sortOrder?: 'asc' | 'desc';
+  minRating?: number;
 }
 
 // ============================================

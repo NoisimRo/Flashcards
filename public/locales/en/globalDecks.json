@@ -12,6 +12,9 @@
     "placeholder": "Search by title, topic, or creator...",
     "allSubjects": "All Subjects",
     "allLevels": "All Levels",
+    "allRatings": "All Ratings",
+    "stars": "{{count}} Stars",
+    "starsAndAbove": "{{count}}+ Stars",
     "level": "Level {{level}}",
     "showing": "Showing {{filtered}} of {{total}} decks",
     "resetFilters": "Reset filters"
@@ -34,13 +37,20 @@
   "menu": {
     "leaveReview": "Leave a review",
     "report": "Report deck",
-    "editCards": "Edit cards"
+    "editCards": "Edit cards",
+    "editDeck": "Edit deck",
+    "deleteDeck": "Delete deck",
+    "deleteConfirm": "Are you sure you want to delete \"{{title}}\"? This action cannot be undone.",
+    "makePrivate": "Make private",
+    "makePublic": "Make public"
   },
   "toast": {
     "deckCopied": "Deck \"{{title}}\" has been copied to your collection!",
     "copyNotAvailable": "Copy function is not currently available",
     "loadError": "Could not load public decks",
-    "generalError": "Error loading decks"
+    "generalError": "Error loading decks",
+    "deckDeleted": "Deck \"{{title}}\" has been deleted",
+    "visibilityChanged": "Deck visibility has been updated"
   },
   "loading": "Loading global decks..."
 }

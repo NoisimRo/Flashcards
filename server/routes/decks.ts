@@ -21,6 +21,7 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
       publicOnly = 'false',
       sortBy = 'createdAt',
       sortOrder = 'desc',
+      minRating,
     } = req.query;
 
     const pageNum = Math.max(1, parseInt(page as string));
@@ -81,12 +82,21 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
       params.push(`%${search}%`, `%${search}%`);
     }
 
+    if (minRating) {
+      const rating = parseFloat(minRating as string);
+      if (!isNaN(rating) && rating > 0) {
+        whereClause += ` AND d.average_rating >= $${paramIndex++}`;
+        params.push(rating);
+      }
+    }
+
     // Sort mapping
     const sortMap: Record<string, string> = {
       title: 'd.title',
       createdAt: 'd.created_at',
       lastStudied: 'd.last_studied',
       totalCards: 'd.total_cards',
+      rating: 'd.average_rating',
     };
     const sortColumn = sortMap[sortBy as string] || 'd.created_at';
     const order = sortOrder === 'asc' ? 'ASC' : 'DESC';
