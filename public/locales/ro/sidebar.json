@@ -18,7 +18,7 @@
   "xp": {
     "label": "XP",
     "level": "Nivel {{level}}",
-    "totalXP": "{{xp}} XP total",
+    "totalXP": "{{xp}} XP",
     "progress": "{{current}} / {{next}}"
   },
   "nightMode": {

@@ -121,7 +121,7 @@ router.get('/today', authenticateToken, async (req, res) => {
             target: dailyXPGoal,
             completed: todayXPEarned >= dailyXPGoal,
             rewardClaimed: challenge.daily_xp_reward_claimed || false,
-            reward: Math.floor(dailyXPGoal * 0.01),
+            reward: Math.floor(dailyXPGoal * 0.1),
             icon: 'Zap',
             color: 'from-yellow-500 to-amber-600',
           },
@@ -218,7 +218,7 @@ router.post('/claim-reward', authenticateToken, async (req, res) => {
       const todayXPEarned = xpResult.rows.length > 0 ? parseInt(xpResult.rows[0].xp_earned) : 0;
 
       isCompleted = todayXPEarned >= dailyXPGoal;
-      rewardXP = Math.floor(dailyXPGoal * 0.01);
+      rewardXP = Math.floor(dailyXPGoal * 0.1);
     }
 
     if (!isCompleted) {

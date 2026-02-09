@@ -181,11 +181,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Recent Badges - below name, before XP bar */}
         {!isGuest && recentBadges.length > 0 && (
-          <div className="flex items-center gap-1.5 mb-4 ml-1">
+          <div className="flex items-center gap-2 mb-4">
             {recentBadges.map(badge => (
               <div
                 key={badge.id}
-                className="w-7 h-7 rounded-lg flex items-center justify-center text-sm"
+                className="flex-1 h-9 rounded-lg flex items-center justify-center text-lg"
                 style={{ backgroundColor: 'var(--bg-tertiary)' }}
                 title={badge.title}
               >
