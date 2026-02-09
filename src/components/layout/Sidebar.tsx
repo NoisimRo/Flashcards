@@ -13,9 +13,11 @@ import {
   Shield,
   Sun,
   Moon,
+  Bug,
 } from 'lucide-react';
 import { User } from '../../types';
 import { LanguageSwitcher } from '../ui/LanguageSwitcher';
+import { BugReportModal } from '../feedback/BugReportModal';
 import { useTheme } from '../../hooks/useTheme';
 import { AVATARS } from '../pages/Settings/AvatarPicker';
 import { getAchievements, Achievement } from '../../api/achievements';
@@ -76,6 +78,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   // Fetch last 5 unlocked achievements for badge display
   const [recentBadges, setRecentBadges] = useState<Achievement[]>([]);
+  const [showBugReport, setShowBugReport] = useState(false);
 
   useEffect(() => {
     if (isGuest) return;
@@ -294,6 +297,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
           ))}
         </nav>
 
+        {/* Bug Report Button - only for authenticated users */}
+        {!isGuest && (
+          <div className="pt-2">
+            <button
+              onClick={() => setShowBugReport(true)}
+              className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl transition-all"
+              style={{ color: 'var(--text-secondary)' }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLElement).style.backgroundColor =
+                  'var(--sidebar-item-hover-bg)';
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
+              }}
+            >
+              <Bug size={18} />
+              <span className="text-sm font-medium">
+                {t('bugReport.button', 'Raportează un Bug')}
+              </span>
+            </button>
+          </div>
+        )}
+
         {/* Night Mode Toggle */}
         <div
           className="pt-4 mt-4"
@@ -338,6 +364,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <LanguageSwitcher />
         </div>
       </div>
+
+      {/* Bug Report Modal */}
+      {showBugReport && <BugReportModal onClose={() => setShowBugReport(false)} />}
     </div>
   );
 };
