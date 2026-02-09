@@ -472,10 +472,10 @@ router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
     const sessionRow = sessionResult.rows[0];
     const session = formatSession(sessionRow);
 
-    // Get cards - preserve the order stored in selected_card_ids (e.g. round-robin interleaved)
+    // Get cards - preserve the order stored in selected_card_ids, exclude soft-deleted cards
     const cardsResult = await query(
       `SELECT * FROM cards
-       WHERE id = ANY($1::uuid[])
+       WHERE id = ANY($1::uuid[]) AND deleted_at IS NULL
        ORDER BY array_position($1::uuid[], id)`,
       [session.selectedCardIds]
     );
@@ -1459,10 +1459,10 @@ router.get('/guest/:id', async (req: Request, res: Response) => {
     const sessionRow = sessionResult.rows[0];
     const session = formatSession(sessionRow);
 
-    // Get cards - preserve the order stored in selected_card_ids (e.g. round-robin interleaved)
+    // Get cards - preserve the order stored in selected_card_ids, exclude soft-deleted cards
     const cardsResult = await query(
       `SELECT * FROM cards
-       WHERE id = ANY($1::uuid[])
+       WHERE id = ANY($1::uuid[]) AND deleted_at IS NULL
        ORDER BY array_position($1::uuid[], id)`,
       [session.selectedCardIds]
     );

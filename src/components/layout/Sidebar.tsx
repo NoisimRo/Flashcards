@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard,
@@ -17,6 +17,25 @@ import {
 import { User } from '../../types';
 import { LanguageSwitcher } from '../ui/LanguageSwitcher';
 import { useTheme } from '../../hooks/useTheme';
+import { AVATARS } from '../pages/Settings/AvatarPicker';
+import { getAchievements, Achievement } from '../../api/achievements';
+
+function getAvatarEmoji(avatarId?: string): string | null {
+  if (!avatarId || avatarId === 'default') return null;
+  const avatar = AVATARS.find(a => a.id === avatarId);
+  return avatar?.emoji || null;
+}
+
+const ACHIEVEMENT_EMOJI: Record<string, string> = {
+  target: '\u{1F3AF}',
+  star: '\u{2B50}',
+  zap: '\u{26A1}',
+  library: '\u{1F4DA}',
+  flame: '\u{1F525}',
+  diamond: '\u{1F48E}',
+  crown: '\u{1F451}',
+  calendar: '\u{1F4C5}',
+};
 
 interface SidebarProps {
   user: User & { email?: string };
@@ -42,6 +61,32 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const { t, i18n } = useTranslation('sidebar');
   const { isNight, toggleMode } = useTheme();
   const xpPercentage = Math.min((user.currentXP / user.nextLevelXP) * 100, 100);
+  const avatarEmoji = getAvatarEmoji(user.avatar);
+
+  // Fetch last 3 unlocked achievements for badge display
+  const [recentBadges, setRecentBadges] = useState<Achievement[]>([]);
+
+  useEffect(() => {
+    if (isGuest) return;
+    let cancelled = false;
+    getAchievements().then(res => {
+      if (cancelled) return;
+      if (res.success && res.data) {
+        const unlocked = res.data.achievements
+          .filter(a => a.unlocked)
+          .sort((a, b) => {
+            const dateA = a.unlockedAt ? new Date(a.unlockedAt).getTime() : 0;
+            const dateB = b.unlockedAt ? new Date(b.unlockedAt).getTime() : 0;
+            return dateB - dateA;
+          })
+          .slice(0, 3);
+        setRecentBadges(unlocked);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isGuest, user.id]);
 
   // Show moderation for admin and teacher roles
   const canModerate = user.role === 'admin' || user.role === 'teacher';
@@ -80,7 +125,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     >
       <div className="p-6 flex flex-col h-full">
         {/* User Profile Summary */}
-        <div className="flex items-center gap-3 mb-8">
+        <div className="flex items-center gap-3 mb-2">
           <div
             className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${
               isGuest ? 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)]' : ''
@@ -94,10 +139,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 : undefined
             }
           >
-            {user.name
-              .split(' ')
-              .map(n => n[0])
-              .join('')}
+            {avatarEmoji ? (
+              <span className="text-2xl">{avatarEmoji}</span>
+            ) : (
+              user.name
+                .split(' ')
+                .map(n => n[0])
+                .join('')
+            )}
           </div>
           <div>
             <h3 className="font-bold leading-tight" style={{ color: 'var(--text-primary)' }}>
@@ -118,6 +167,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
             )}
           </div>
         </div>
+
+        {/* Recent Badges - below name, before XP bar */}
+        {!isGuest && recentBadges.length > 0 && (
+          <div className="flex items-center gap-1.5 mb-4 ml-1">
+            {recentBadges.map(badge => (
+              <div
+                key={badge.id}
+                className="w-7 h-7 rounded-lg flex items-center justify-center text-sm"
+                style={{ backgroundColor: 'var(--bg-tertiary)' }}
+                title={badge.title}
+              >
+                {ACHIEVEMENT_EMOJI[badge.icon] || '\u{1F3C6}'}
+              </div>
+            ))}
+          </div>
+        )}
+        {!isGuest && recentBadges.length === 0 && <div className="mb-4" />}
 
         {/* XP Bar - only for logged in users */}
         {!isGuest && (

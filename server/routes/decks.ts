@@ -955,7 +955,8 @@ function formatDeck(deck: any) {
     tags: deck.tags || [],
     totalCards: deck.total_cards,
     masteredCards: deck.mastered_cards || 0,
-    averageRating: deck.average_rating ? parseFloat(deck.average_rating) : 0,
+    averageRating:
+      deck.review_count > 0 && deck.average_rating ? parseFloat(deck.average_rating) : null,
     reviewCount: deck.review_count || 0,
     ownerId: deck.owner_id,
     ownerName: deck.owner_name,
