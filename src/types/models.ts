@@ -189,6 +189,7 @@ export interface User {
   // Stats
   streak: number;
   longestStreak: number;
+  streakShieldActive?: boolean;
   lastActiveDate?: string;
   totalTimeSpent: number; // Minutes
   totalCardsLearned: number;
@@ -205,6 +206,7 @@ export interface User {
 
 export interface UserPreferences {
   dailyGoal: number; // Cards per day
+  dailyXPGoal?: number; // Daily XP target (min 100)
   reminderTime?: string; // HH:mm format
   soundEnabled: boolean;
   animationsEnabled: boolean;

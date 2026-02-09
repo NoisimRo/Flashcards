@@ -26,10 +26,16 @@
     "title": "Preferințe de învățare",
     "language": "Limba aplicației",
     "languageDesc": "Alege limba în care vrei să vezi aplicația",
-    "focusMode": "Mod concentrare",
-    "focusModeDesc": "Ascunde notificările în timpul studiului",
-    "shuffleCards": "Amestecă cardurile",
-    "shuffleCardsDesc": "Prezintă cardurile în ordine aleatorie",
+    "dailyXPGoal": "Obiectiv XP Zilnic",
+    "dailyXPGoalDesc": "Setează obiectivul minim zilnic de XP",
+    "dailyXPGoalValue": "{{count}} XP",
+    "streakShield": "Scut Serie",
+    "streakShieldDesc": "Protejează seria ta dacă ratezi o zi de studiu",
+    "streakShieldActive": "Scut Activ",
+    "streakShieldActivate": "Activează Scutul",
+    "streakShieldCost": "Cost: 500 XP",
+    "streakShieldNotEnoughXP": "XP insuficient (necesită 500)",
+    "streakShieldConfirm": "Cheltuiești 500 XP pentru a activa Scutul Seriei?",
     "newCardsPerDay": "Carduri noi pe zi",
     "cardsCount": "{{count}} carduri"
   },
@@ -40,7 +46,10 @@
   },
   "actions": {
     "saveChanges": "Salvează modificările",
-    "cancel": "Anulează"
+    "cancel": "Anulează",
+    "saveSuccess": "Modificările au fost salvate cu succes",
+    "saveError": "Eroare la salvare",
+    "saveErrorDesc": "Te rog încearcă din nou"
   },
   "appearance": {
     "title": "Aspect",

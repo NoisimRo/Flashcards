@@ -27,7 +27,8 @@
     "decksCreated": "Mazzi creati",
     "cardsInStudy": "Carte in studio",
     "minutes": "min.",
-    "hours": "{{hours}}h"
+    "hours": "{{hours}}h",
+    "shieldActive": "Protetto"
   },
   "dailyChallenges": {
     "title": "Sfide Giornaliere",
@@ -44,6 +45,9 @@
     "streak": {
       "title": "Mantieni la serie",
       "description": "Studia per almeno 10 minuti O rispondi correttamente a 20 carte oggi per mantenere la tua serie!"
+    },
+    "dailyXP": {
+      "title": "Guadagna {{count}} XP oggi"
     }
   },
   "activityCalendar": {

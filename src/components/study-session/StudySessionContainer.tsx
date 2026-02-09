@@ -18,6 +18,7 @@ import { EditCardModal } from './modals/EditCardModal';
 import { deleteCard } from '../../api/cards';
 import { getAchievements } from '../../api/achievements';
 import type { Achievement as ApiAchievement } from '../../api/achievements';
+import { getTodaysChallenges } from '../../api/dailyChallenges';
 import {
   useAchievementChecker,
   type TriggeredAchievement,
@@ -85,6 +86,12 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
   const [allAchievements, setAllAchievements] = useState<ApiAchievement[]>([]);
   const { checkAchievements, recordCorrectAnswer } = useAchievementChecker(allAchievements);
 
+  // Daily XP Goal celebration state
+  const [dailyXPGoalCelebration, setDailyXPGoalCelebration] = useState(false);
+  const dailyStartXPRef = useRef<number>(0);
+  const dailyXPGoalRef = useRef<number>(100);
+  const dailyXPGoalTriggeredRef = useRef(false);
+
   // Card editing state (teachers & admins)
   const canEditDelete = user?.role === 'teacher' || user?.role === 'admin';
   const [editingCard, setEditingCard] = useState<Card | null>(null);
@@ -142,6 +149,30 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
         .catch(() => {
           // Silent fail - achievements check is cosmetic only
         });
+    }
+  }, [user]);
+
+  // Fetch daily XP progress for goal celebration
+  useEffect(() => {
+    if (user) {
+      dailyXPGoalRef.current = user.preferences?.dailyXPGoal || 100;
+      // Check if already triggered today (persistent via sessionStorage)
+      const todayKey = `daily_xp_goal_${new Date().toISOString().split('T')[0]}`;
+      if (sessionStorage.getItem(todayKey)) {
+        dailyXPGoalTriggeredRef.current = true;
+      }
+      getTodaysChallenges()
+        .then(res => {
+          if (res?.success && res?.data?.challenges) {
+            const xpChallenge = res.data.challenges.find(c => c.id === 'daily_xp');
+            dailyStartXPRef.current = xpChallenge?.progress || 0;
+            // If already completed before session started, mark as triggered
+            if (xpChallenge?.completed) {
+              dailyXPGoalTriggeredRef.current = true;
+            }
+          }
+        })
+        .catch(() => {});
     }
   }, [user]);
 
@@ -438,6 +469,20 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
         });
         if (triggered) {
           setAchievementCelebration(triggered);
+          // Force immediate server sync to persist the achievement in the database
+          // This prevents the edge case where client shows animation but server hasn't saved yet
+          syncProgress();
+        }
+      }
+      // Check for daily XP goal celebration
+      if (!dailyXPGoalTriggeredRef.current && !dailyXPGoalCelebration) {
+        const currentSessionXP = useStudySessionsStore.getState().sessionXP;
+        const totalDailyXP = dailyStartXPRef.current + currentSessionXP;
+        if (totalDailyXP >= dailyXPGoalRef.current) {
+          dailyXPGoalTriggeredRef.current = true;
+          const todayKey = `daily_xp_goal_${new Date().toISOString().split('T')[0]}`;
+          sessionStorage.setItem(todayKey, 'true');
+          setDailyXPGoalCelebration(true);
         }
       }
     }
@@ -802,6 +847,16 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
             title={achievementCelebration.title}
             color={achievementCelebration.color}
             onComplete={() => setAchievementCelebration(null)}
+          />
+        )}
+
+        {/* Daily XP Goal Celebration */}
+        {dailyXPGoalCelebration && (
+          <AchievementCelebration
+            icon="zap"
+            title={`Daily XP Goal! +${Math.floor(dailyXPGoalRef.current * 0.01)} XP bonus`}
+            color="bg-gradient-to-br from-yellow-400 to-amber-500 text-white"
+            onComplete={() => setDailyXPGoalCelebration(false)}
           />
         )}
 

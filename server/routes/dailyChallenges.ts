@@ -51,9 +51,21 @@ router.get('/today', authenticateToken, async (req, res) => {
       time_spent_minutes: Math.floor((challenge.time_studied_today || 0) / 60),
     };
 
-    // Get user's current streak
-    const userResult = await query('SELECT streak FROM users WHERE id = $1', [userId]);
+    // Get user's current streak and preferences for daily XP goal
+    const userResult = await query('SELECT streak, preferences FROM users WHERE id = $1', [userId]);
     const currentStreak = userResult.rows[0]?.streak || 0;
+    const userPreferences = userResult.rows[0]?.preferences || {};
+    const dailyXPGoal = Math.max(100, userPreferences.dailyXPGoal || 100);
+
+    // Get today's XP earned from daily_progress
+    const xpProgressResult = await query(
+      `SELECT COALESCE(xp_earned, 0) as xp_earned
+       FROM daily_progress
+       WHERE user_id = $1 AND date = $2`,
+      [userId, today]
+    );
+    const todayXPEarned =
+      xpProgressResult.rows.length > 0 ? parseInt(xpProgressResult.rows[0].xp_earned) : 0;
 
     // Build response - using i18n keys instead of hardcoded strings
     const response = {
@@ -101,6 +113,18 @@ router.get('/today', authenticateToken, async (req, res) => {
             icon: 'Flame',
             color: 'from-orange-500 to-red-600',
           },
+          {
+            id: 'daily_xp',
+            titleKey: 'challenges.dailyXP.title',
+            titleParams: { count: dailyXPGoal },
+            progress: todayXPEarned,
+            target: dailyXPGoal,
+            completed: todayXPEarned >= dailyXPGoal,
+            rewardClaimed: challenge.daily_xp_reward_claimed || false,
+            reward: Math.floor(dailyXPGoal * 0.01),
+            icon: 'Zap',
+            color: 'from-yellow-500 to-amber-600',
+          },
         ],
         date: today,
       },
@@ -127,7 +151,7 @@ router.post('/claim-reward', authenticateToken, async (req, res) => {
     const today = new Date().toISOString().split('T')[0];
 
     // Validate challengeId
-    if (!['cards', 'time', 'streak'].includes(challengeId)) {
+    if (!['cards', 'time', 'streak', 'daily_xp'].includes(challengeId)) {
       return res.status(400).json({
         success: false,
         error: 'Invalid challenge ID',
@@ -178,6 +202,23 @@ router.post('/claim-reward', authenticateToken, async (req, res) => {
       // Streak requirement: 10+ minutes OR 20+ correct answers
       isCompleted = todayTimeMinutes >= 10 || todayCorrectAnswers >= 20;
       rewardXP = 50;
+    } else if (challengeId === 'daily_xp') {
+      // Daily XP goal challenge - read user's dailyXPGoal preference
+      const userPrefResult = await query('SELECT preferences FROM users WHERE id = $1', [userId]);
+      const prefs = userPrefResult.rows[0]?.preferences || {};
+      const dailyXPGoal = Math.max(100, prefs.dailyXPGoal || 100);
+
+      // Get today's XP earned from daily_progress
+      const xpResult = await query(
+        `SELECT COALESCE(xp_earned, 0) as xp_earned
+         FROM daily_progress
+         WHERE user_id = $1 AND date = $2`,
+        [userId, today]
+      );
+      const todayXPEarned = xpResult.rows.length > 0 ? parseInt(xpResult.rows[0].xp_earned) : 0;
+
+      isCompleted = todayXPEarned >= dailyXPGoal;
+      rewardXP = Math.floor(dailyXPGoal * 0.01);
     }
 
     if (!isCompleted) {

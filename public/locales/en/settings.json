@@ -26,10 +26,16 @@
     "title": "Learning preferences",
     "language": "App language",
     "languageDesc": "Choose the language you want to see the app in",
-    "focusMode": "Focus mode",
-    "focusModeDesc": "Hide notifications during study",
-    "shuffleCards": "Shuffle cards",
-    "shuffleCardsDesc": "Present cards in random order",
+    "dailyXPGoal": "Daily XP Goal",
+    "dailyXPGoalDesc": "Set your minimum daily XP target",
+    "dailyXPGoalValue": "{{count}} XP",
+    "streakShield": "Streak Shield",
+    "streakShieldDesc": "Protects your streak if you miss one day of study",
+    "streakShieldActive": "Shield Active",
+    "streakShieldActivate": "Activate Shield",
+    "streakShieldCost": "Cost: 500 XP",
+    "streakShieldNotEnoughXP": "Not enough XP (need 500)",
+    "streakShieldConfirm": "Spend 500 XP to activate Streak Shield?",
     "newCardsPerDay": "New cards per day",
     "cardsCount": "{{count}} cards"
   },
@@ -40,7 +46,10 @@
   },
   "actions": {
     "saveChanges": "Save changes",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "saveSuccess": "Changes saved successfully",
+    "saveError": "Failed to save",
+    "saveErrorDesc": "Please try again"
   },
   "appearance": {
     "title": "Appearance",

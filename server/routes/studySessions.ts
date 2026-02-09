@@ -1028,16 +1028,38 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
       });
 
       // CRITICAL FIX: Recalculate streak from daily_progress after session completion
-      const { currentStreak, longestStreak } = await calculateStreakFromDailyProgress(req.user!.id);
-
-      // Update user's streak
-      await client.query(
-        `UPDATE users
-         SET streak = $1,
-             longest_streak = $2
-         WHERE id = $3`,
-        [currentStreak, longestStreak, req.user!.id]
+      // Fetch user's streak shield status to pass to streak calculation
+      const shieldResult = await client.query(
+        'SELECT streak_shield_active FROM users WHERE id = $1',
+        [req.user!.id]
       );
+      const userShieldActive = shieldResult.rows[0]?.streak_shield_active || false;
+
+      const { currentStreak, longestStreak, shieldUsed } = await calculateStreakFromDailyProgress(
+        req.user!.id,
+        userShieldActive
+      );
+
+      // Update user's streak (and deactivate shield if it was used)
+      if (shieldUsed) {
+        await client.query(
+          `UPDATE users
+           SET streak = $1,
+               longest_streak = $2,
+               streak_shield_active = false,
+               streak_shield_used_date = CURRENT_DATE
+           WHERE id = $3`,
+          [currentStreak, longestStreak, req.user!.id]
+        );
+      } else {
+        await client.query(
+          `UPDATE users
+           SET streak = $1,
+               longest_streak = $2
+           WHERE id = $3`,
+          [currentStreak, longestStreak, req.user!.id]
+        );
+      }
 
       // Level-ups are handled in real-time by the PUT auto-save handler.
       // Return the current level from DB (already reflects any level-ups).

@@ -14,10 +14,14 @@ import {
   Palette,
   KeyRound,
   Calendar,
+  Zap,
+  Shield,
+  ShieldCheck,
+  Flame,
 } from 'lucide-react';
 import { useTheme, type AccentTheme } from '../../../hooks/useTheme';
 import { useToast } from '../../ui/Toast';
-import { updateUserProfile } from '../../../api/users';
+import { updateUserProfile, activateStreakShield } from '../../../api/users';
 import { ChangePasswordModal } from './ChangePasswordModal';
 import { AvatarPicker, AVATARS } from './AvatarPicker';
 
@@ -86,6 +90,13 @@ export const Settings: React.FC<SettingsProps> = ({
   // Daily goal from preferences
   const [dailyGoal, setDailyGoal] = useState(user.preferences?.dailyGoal || 20);
 
+  // Daily XP Goal (min 100, replaces Focus Mode)
+  const [dailyXPGoal, setDailyXPGoal] = useState(user.preferences?.dailyXPGoal || 100);
+
+  // Streak Shield (replaces Shuffle Cards)
+  const [streakShieldActive, setStreakShieldActive] = useState(user.streakShieldActive || false);
+  const [isActivatingShield, setIsActivatingShield] = useState(false);
+
   const languages = [
     { code: 'ro', name: t('languages.ro'), flag: 'RO' },
     { code: 'en', name: t('languages.en'), flag: 'GB' },
@@ -114,6 +125,29 @@ export const Settings: React.FC<SettingsProps> = ({
     return avatar?.emoji || '\u{1F464}';
   };
 
+  const handleActivateStreakShield = async () => {
+    if (user.totalXP < 500) {
+      toast.error(t('preferences.streakShieldNotEnoughXP'));
+      return;
+    }
+    if (!confirm(t('preferences.streakShieldConfirm'))) return;
+
+    setIsActivatingShield(true);
+    try {
+      const response = await activateStreakShield(user.id);
+      if (response.success) {
+        setStreakShieldActive(true);
+        toast.success(t('preferences.streakShield'), t('preferences.streakShieldActive'));
+      } else {
+        toast.error(response.error?.message || t('actions.saveError'));
+      }
+    } catch {
+      toast.error(t('actions.saveError'));
+    } finally {
+      setIsActivatingShield(false);
+    }
+  };
+
   const handleSave = async () => {
     // Validate birth date is required
     if (!formData.birthDate) {
@@ -127,7 +161,7 @@ export const Settings: React.FC<SettingsProps> = ({
         name: formData.name,
         avatar: selectedAvatar,
         birth_date: formData.birthDate,
-        preferences: { dailyGoal },
+        preferences: { dailyGoal, dailyXPGoal },
       });
 
       if (response.success) {
@@ -493,37 +527,105 @@ export const Settings: React.FC<SettingsProps> = ({
             </div>
           </div>
 
-          {/* Focus Mode */}
-          <div className="flex items-start gap-4 cursor-pointer group">
-            <div
-              className="mt-1 w-6 h-6 rounded-full flex items-center justify-center shadow-sm transition-colors"
-              style={{ backgroundColor: 'var(--color-accent)', color: 'white' }}
+          {/* Daily XP Goal (replaces Focus Mode) */}
+          <div>
+            <h4
+              className="font-bold mb-2 flex items-center gap-2"
+              style={{ color: 'var(--text-primary)' }}
             >
-              <Check size={14} />
+              <Zap size={18} style={{ color: 'var(--color-accent)' }} />
+              {t('preferences.dailyXPGoal', 'Daily XP Goal')}
+            </h4>
+            <p className="text-sm mb-3" style={{ color: 'var(--text-muted)' }}>
+              {t('preferences.dailyXPGoalDesc', 'Set your minimum daily XP target')}
+            </p>
+            <div className="flex justify-between mb-2">
+              <span className="font-bold" style={{ color: 'var(--text-secondary)' }}>
+                {t('preferences.dailyXPGoalValue', { count: dailyXPGoal })}
+              </span>
+              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                +{Math.floor(dailyXPGoal * 0.01)} XP bonus
+              </span>
             </div>
-            <div>
-              <h4 className="font-bold" style={{ color: 'var(--text-primary)' }}>
-                {t('preferences.focusMode')}
-              </h4>
-              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                {t('preferences.focusModeDesc')}
-              </p>
-            </div>
+            <input
+              type="range"
+              className="w-full h-2 rounded-lg appearance-none cursor-pointer"
+              style={{ accentColor: 'var(--color-accent)' }}
+              min="100"
+              max="1000"
+              step="50"
+              value={dailyXPGoal}
+              onChange={e => setDailyXPGoal(Number(e.target.value))}
+              disabled={isGuest}
+            />
           </div>
 
-          {/* Shuffle Cards */}
-          <div className="flex items-start gap-4 cursor-pointer group">
-            <div
-              className="mt-1 w-6 h-6 border-2 rounded-full flex items-center justify-center text-transparent transition-colors"
-              style={{ borderColor: 'var(--border-secondary)' }}
-            ></div>
-            <div>
-              <h4 className="font-bold" style={{ color: 'var(--text-primary)' }}>
-                {t('preferences.shuffleCards')}
-              </h4>
-              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                {t('preferences.shuffleCardsDesc')}
-              </p>
+          {/* Streak Shield (replaces Shuffle Cards) */}
+          <div
+            className="p-4 rounded-xl border-2 transition-all"
+            style={{
+              borderColor: streakShieldActive ? 'var(--color-accent)' : 'var(--border-secondary)',
+              backgroundColor: streakShieldActive
+                ? 'var(--color-accent-light)'
+                : 'var(--bg-surface)',
+            }}
+          >
+            <div className="flex items-start gap-4">
+              <div
+                className="mt-0.5 w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{
+                  backgroundColor: streakShieldActive
+                    ? 'var(--color-accent)'
+                    : 'var(--bg-tertiary)',
+                }}
+              >
+                {streakShieldActive ? (
+                  <ShieldCheck size={20} className="text-white" />
+                ) : (
+                  <Shield size={20} style={{ color: 'var(--text-muted)' }} />
+                )}
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h4 className="font-bold" style={{ color: 'var(--text-primary)' }}>
+                    {t('preferences.streakShield', 'Streak Shield')}
+                  </h4>
+                  {streakShieldActive && (
+                    <span
+                      className="text-xs font-bold px-2 py-0.5 rounded-full text-white"
+                      style={{ backgroundColor: 'var(--color-accent)' }}
+                    >
+                      {t('preferences.streakShieldActive', 'Active')}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm mb-3" style={{ color: 'var(--text-muted)' }}>
+                  {t(
+                    'preferences.streakShieldDesc',
+                    'Protects your streak if you miss one day of study'
+                  )}
+                </p>
+                {!streakShieldActive && !isGuest && (
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={handleActivateStreakShield}
+                      disabled={isActivatingShield || user.totalXP < 500}
+                      className="flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm transition-all text-white disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
+                      style={{ backgroundColor: 'var(--color-accent)' }}
+                    >
+                      <Flame size={14} />
+                      {isActivatingShield
+                        ? '...'
+                        : t('preferences.streakShieldActivate', 'Activate Shield')}
+                    </button>
+                    <span className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
+                      {user.totalXP < 500
+                        ? t('preferences.streakShieldNotEnoughXP', 'Not enough XP (need 500)')
+                        : t('preferences.streakShieldCost', 'Cost: 500 XP')}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
