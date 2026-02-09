@@ -1,6 +1,7 @@
 import express from 'express';
 import { query } from '../db/index.js';
 import { authenticateToken } from '../middleware/auth.js';
+import { getLocalToday } from '../utils/timezone.js';
 
 const router = express.Router();
 
@@ -274,7 +275,7 @@ export async function checkAndUnlockAchievements(
         user.next_level_xp = newNextLevelXP;
 
         // Record achievement XP in daily_progress
-        const today = new Date().toISOString().split('T')[0];
+        const today = getLocalToday();
         await client.query(
           `INSERT INTO daily_progress (user_id, date, xp_earned)
            VALUES ($1, $2, $3)

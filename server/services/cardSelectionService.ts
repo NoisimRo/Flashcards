@@ -2,6 +2,7 @@
  * Card Selection Service
  * Handles logic for selecting cards for study sessions
  */
+import { getLocalToday } from '../utils/timezone.js';
 
 interface Card {
   id: string;
@@ -115,7 +116,7 @@ function selectSmart(
   progressMap: Map<string, UserCardProgress>,
   count: number
 ): Card[] {
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalToday();
 
   // Categorize cards
   const dueCards: Card[] = [];
@@ -260,10 +261,10 @@ export function calculateSM2Update(
     repetitions++;
   }
 
-  // Calculate next review date
-  const nextDate = new Date();
+  // Calculate next review date using local date (respects TZ env var)
+  const nextDate = new Date(getLocalToday() + 'T12:00:00');
   nextDate.setDate(nextDate.getDate() + interval);
-  const nextReviewDate = nextDate.toISOString().split('T')[0];
+  const nextReviewDate = `${nextDate.getFullYear()}-${String(nextDate.getMonth() + 1).padStart(2, '0')}-${String(nextDate.getDate()).padStart(2, '0')}`;
 
   // Determine status
   let status: 'new' | 'learning' | 'reviewing' | 'mastered';

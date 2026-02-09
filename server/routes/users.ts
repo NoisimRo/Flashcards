@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { query } from '../db/index.js';
 import { authenticateToken, requireRole } from '../middleware/auth.js';
+import { getLocalToday } from '../utils/timezone.js';
 
 const router = Router();
 
@@ -761,12 +762,13 @@ router.get('/:id/stats', authenticateToken, async (req: Request, res: Response) 
     }
 
     // Get weekly progress
+    const todayStr = getLocalToday();
     const weeklyResult = await query(
       `SELECT date, cards_studied, cards_learned, time_spent_minutes, xp_earned
        FROM daily_progress
-       WHERE user_id = $1 AND date >= CURRENT_DATE - INTERVAL '7 days'
+       WHERE user_id = $1 AND date >= $2::date - INTERVAL '7 days'
        ORDER BY date ASC`,
-      [id]
+      [id, todayStr]
     );
 
     // Get achievements

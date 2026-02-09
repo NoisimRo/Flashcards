@@ -8,6 +8,7 @@ import {
   generateRefreshToken,
   verifyRefreshToken,
 } from '../middleware/auth.js';
+import { getLocalToday } from '../utils/timezone.js';
 import { config } from '../config/index.js';
 
 const router = Router();
@@ -27,32 +28,38 @@ export async function calculateStreakFromDailyProgress(
   longestStreak: number;
   shieldUsed: boolean;
 }> {
+  const today = getLocalToday();
+
   // Get last 60 days of activity for longest streak calculation
   const progressResult = await query(
     `SELECT date, time_spent_minutes, cards_learned
      FROM daily_progress
      WHERE user_id = $1
-       AND date >= CURRENT_DATE - INTERVAL '60 days'
+       AND date >= $2::date - INTERVAL '60 days'
      ORDER BY date DESC`,
-    [userId]
+    [userId, today]
   );
 
   if (progressResult.rows.length === 0) {
     return { currentStreak: 0, longestStreak: 0, shieldUsed: false };
   }
 
-  const today = new Date().toISOString().split('T')[0];
+  // Helper to format DB date rows to YYYY-MM-DD strings using local interpretation
+  const formatDbDate = (d: Date): string => {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+
   let currentStreak = 0;
   let longestStreak = 0;
   let shieldUsed = false;
 
   // Calculate current streak (from today/yesterday going backwards)
-  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-  const checkDate = new Date();
+  // Use noon to avoid DST edge cases when adding/subtracting days
+  const checkDate = new Date(today + 'T12:00:00');
 
   // Start from today, or yesterday if no activity today
   const todayActivity = progressResult.rows.find(
-    row => row.date.toISOString().split('T')[0] === today
+    (row: any) => formatDbDate(new Date(row.date)) === today
   );
 
   if (!todayActivity) {
@@ -63,9 +70,9 @@ export async function calculateStreakFromDailyProgress(
   // Count backwards from most recent activity
   let shieldAvailable = streakShieldActive;
   for (let i = 0; i < 60; i++) {
-    const checkDateStr = checkDate.toISOString().split('T')[0];
+    const checkDateStr = formatDbDate(checkDate);
     const dayActivity = progressResult.rows.find(
-      row => row.date.toISOString().split('T')[0] === checkDateStr
+      (row: any) => formatDbDate(new Date(row.date)) === checkDateStr
     );
 
     if (dayActivity) {
@@ -109,11 +116,12 @@ export async function calculateStreakFromDailyProgress(
       if (i === 0) {
         tempStreak = 1;
       } else {
-        const prevDate = new Date(sortedByDate[i - 1].date);
-        const currDate = new Date(row.date);
-        const daysDiff = Math.floor(
-          (currDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24)
-        );
+        // Use noon dates to avoid DST issues in daysDiff calculation
+        const prevDateStr = formatDbDate(new Date(sortedByDate[i - 1].date));
+        const currDateStr = formatDbDate(new Date(row.date));
+        const prevMs = new Date(prevDateStr + 'T12:00:00').getTime();
+        const currMs = new Date(currDateStr + 'T12:00:00').getTime();
+        const daysDiff = Math.round((currMs - prevMs) / (1000 * 60 * 60 * 24));
 
         if (daysDiff === 1) {
           tempStreak++;
@@ -346,7 +354,7 @@ router.post('/login', async (req: Request, res: Response) => {
       user.streak_shield_active || false
     );
 
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalToday();
 
     if (shieldUsed) {
       // Shield was used to bridge a gap - deactivate it and record usage date
@@ -357,9 +365,9 @@ router.post('/login', async (req: Request, res: Response) => {
           streak = $2,
           longest_streak = $3,
           streak_shield_active = false,
-          streak_shield_used_date = CURRENT_DATE
-         WHERE id = $4`,
-        [today, currentStreak, longestStreak, user.id]
+          streak_shield_used_date = $4::date
+         WHERE id = $5`,
+        [today, currentStreak, longestStreak, today, user.id]
       );
       user.streak_shield_active = false;
     } else {

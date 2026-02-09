@@ -1,6 +1,7 @@
 import express from 'express';
 import { query } from '../db/index.js';
 import { authenticateToken } from '../middleware/auth.js';
+import { getLocalToday } from '../utils/timezone.js';
 
 const router = express.Router();
 
@@ -11,7 +12,7 @@ const router = express.Router();
 router.get('/today', authenticateToken, async (req, res) => {
   try {
     const userId = req.user!.id;
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalToday();
 
     // Get or create today's challenges
     let challenges = await query(
@@ -148,7 +149,7 @@ router.post('/claim-reward', authenticateToken, async (req, res) => {
   try {
     const userId = req.user!.id;
     const { challengeId } = req.body;
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalToday();
 
     // Validate challengeId
     if (!['cards', 'time', 'streak', 'daily_xp'].includes(challengeId)) {
@@ -295,27 +296,32 @@ router.get('/activity-calendar', authenticateToken, async (req, res) => {
 
     // Get last 28 days of daily_progress
     // No separate active sessions query needed — PUT auto-save writes incrementally to daily_progress
+    const todayStr = getLocalToday();
     const activityResult = await query(
       `SELECT date, cards_studied, cards_learned, time_spent_minutes, sessions_completed
        FROM daily_progress
        WHERE user_id = $1
-         AND date >= CURRENT_DATE - INTERVAL '27 days'
-         AND date <= CURRENT_DATE
+         AND date >= $2::date - INTERVAL '27 days'
+         AND date <= $2::date
        ORDER BY date ASC`,
-      [userId]
+      [userId, todayStr]
     );
 
     // Create calendar for last 28 days
     const calendar = [];
-    const today = new Date();
+    const todayDate = new Date(todayStr + 'T12:00:00'); // noon to avoid DST edge cases
     const activityMap = new Map<string, any>(
-      activityResult.rows.map((row: any) => [row.date.toISOString().split('T')[0], row])
+      activityResult.rows.map((row: any) => {
+        const d = new Date(row.date);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        return [key, row];
+      })
     );
 
     for (let i = 27; i >= 0; i--) {
-      const date = new Date(today);
+      const date = new Date(todayDate);
       date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split('T')[0];
+      const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
       const activity: any = activityMap.get(dateStr);
       const cardsLearned = activity?.cards_learned || 0;
