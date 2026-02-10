@@ -25,6 +25,8 @@ import {
 } from '../../hooks/useAchievementChecker';
 import type { Card } from '../../types/models';
 import { ArrowLeft, Shuffle, RotateCcw, CheckCircle } from 'lucide-react';
+import { soundEngine } from '../../services/soundEngine';
+import { SparkleExplosion, ScreenShake } from './animations/ParticleEffects';
 
 interface StudySessionContainerProps {
   sessionId: string;
@@ -85,6 +87,11 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
   );
   const [allAchievements, setAllAchievements] = useState<ApiAchievement[]>([]);
   const { checkAchievements, recordCorrectAnswer } = useAchievementChecker(allAchievements);
+
+  // Visual effects state
+  const [showSparkle, setShowSparkle] = useState(false);
+  const [showShake, setShowShake] = useState(false);
+  const [answerFlash, setAnswerFlash] = useState<'correct' | 'incorrect' | null>(null);
 
   // Daily XP Goal celebration state
   const [dailyXPGoalCelebration, setDailyXPGoalCelebration] = useState(false);
@@ -171,6 +178,13 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
         .catch(() => {});
     }
   }, [user]);
+
+  // Play session complete sound when completion modal opens
+  useEffect(() => {
+    if (showCompletionModal) {
+      soundEngine.playSessionComplete();
+    }
+  }, [showCompletionModal]);
 
   // Handle back navigation with progress sync
   const handleBack = async () => {
@@ -383,6 +397,9 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
       setShowXPAnimation(false);
       setShowStreakCelebration(false);
       setShowLevelUp(false);
+      setShowSparkle(false);
+      setShowShake(false);
+      setAnswerFlash(null);
     }
   };
 
@@ -402,12 +419,28 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     if (previousStatus === undefined || previousStatus === 'skipped') {
       answerCard(currentCard.id, isCorrect);
 
+      // Sound & visual effects for correct/incorrect
+      if (isCorrect) {
+        soundEngine.playCorrect();
+        setShowSparkle(true);
+        setAnswerFlash('correct');
+      } else {
+        soundEngine.playIncorrect();
+        setShowShake(true);
+        setAnswerFlash('incorrect');
+      }
+      setTimeout(() => {
+        setShowShake(false);
+        setAnswerFlash(null);
+      }, 500);
+
       // Trigger XP animation only if XP actually changed
       setTimeout(() => {
         const xpChange = useStudySessionsStore.getState().sessionXP - previousXP;
         if (xpChange !== 0) {
           setEarnedXP(xpChange);
           setShowXPAnimation(true);
+          soundEngine.playXPGain();
         }
 
         // Check for level up during session
@@ -425,6 +458,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
         if (newStreak % 5 === 0 && newStreak >= 5 && newStreak > currentStreak) {
           setCelebrationStreak(newStreak);
           setShowStreakCelebration(true);
+          soundEngine.playStreak(newStreak);
         }
       }
 
@@ -443,6 +477,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
         });
         if (triggered) {
           setAchievementCelebration(triggered);
+          soundEngine.playAchievement();
           // Force immediate server sync to persist the achievement in the database
           // This prevents the edge case where client shows animation but server hasn't saved yet
           syncProgress();
@@ -507,6 +542,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
 
       setLevelUpData({ oldLevel, newLevel });
       setShowLevelUp(true);
+      soundEngine.playLevelUp();
 
       // Auto-hide after 3 seconds
       setTimeout(() => setShowLevelUp(false), 3000);
@@ -656,143 +692,150 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
         </div>
 
         {/* Card Display Area */}
-        <div className="mb-6 relative">
-          {currentCard.type === 'standard' && (
-            <StandardCard
-              card={currentCard}
-              onAnswer={handleAnswer}
-              onNext={() => {
-                if (currentCardIndex < (currentSession?.cards?.length || 0) - 1) {
-                  nextCard();
-                } else {
-                  setShowCompletionModal(true);
-                }
-              }}
-              onSkip={() => {
-                skipCard(currentCard.id);
-                if (currentCardIndex < (currentSession?.cards?.length || 0) - 1) {
-                  nextCard();
-                }
-              }}
-              onUndo={undoLastAnswer}
-              onFinish={() => setShowCompletionModal(true)}
-              isFirstCard={currentCardIndex === 0}
-              isLastCard={currentCardIndex === (currentSession?.cards?.length || 0) - 1}
-              hasAnswered={answers[currentCard.id] !== undefined}
-              isSkipped={answers[currentCard.id] === 'skipped'}
-              canEditDelete={canEditDelete}
-              onEditCard={handleEditCard}
-              onDeleteCard={handleDeleteCard}
-            />
-          )}
-          {currentCard.type === 'quiz' && (
-            <QuizCard
-              card={currentCard}
-              onAnswer={handleAnswer}
-              onAutoAdvance={() => {
-                const totalCards = currentSession?.cards?.length || 0;
-                if (currentCardIndex < totalCards - 1) {
-                  nextCard();
-                } else {
-                  setShowCompletionModal(true);
-                }
-              }}
-              onNext={() => {
-                if (currentCardIndex < (currentSession?.cards?.length || 0) - 1) {
-                  nextCard();
-                } else {
-                  setShowCompletionModal(true);
-                }
-              }}
-              onSkip={() => {
-                skipCard(currentCard.id);
-                if (currentCardIndex < (currentSession?.cards?.length || 0) - 1) {
-                  nextCard();
-                }
-              }}
-              onUndo={undoLastAnswer}
-              onFinish={() => setShowCompletionModal(true)}
-              isFirstCard={currentCardIndex === 0}
-              isLastCard={currentCardIndex === (currentSession?.cards?.length || 0) - 1}
-              hasAnswered={answers[currentCard.id] !== undefined}
-              canEditDelete={canEditDelete}
-              onEditCard={handleEditCard}
-              onDeleteCard={handleDeleteCard}
-            />
-          )}
-          {currentCard.type === 'type-answer' && (
-            <TypeAnswerCard
-              card={currentCard}
-              onAnswer={handleAnswer}
-              onAutoAdvance={() => {
-                const totalCards = currentSession?.cards?.length || 0;
-                if (currentCardIndex < totalCards - 1) {
-                  nextCard();
-                } else {
-                  setShowCompletionModal(true);
-                }
-              }}
-              onNext={nextCard}
-              onSkip={() => {
-                skipCard(currentCard.id);
-                if (currentCardIndex < (currentSession?.cards?.length || 0) - 1) {
-                  nextCard();
-                }
-              }}
-              onUndo={undoLastAnswer}
-              onFinish={() => setShowCompletionModal(true)}
-              isFirstCard={currentCardIndex === 0}
-              isLastCard={currentCardIndex === (currentSession?.cards?.length || 0) - 1}
-              hasAnswered={answers[currentCard.id] !== undefined}
-              canEditDelete={canEditDelete}
-              onEditCard={handleEditCard}
-              onDeleteCard={handleDeleteCard}
-            />
-          )}
-          {currentCard.type === 'multiple-answer' && (
-            <MultipleAnswerCard
-              card={currentCard}
-              onAnswer={handleAnswer}
-              onAutoAdvance={() => {
-                const totalCards = currentSession?.cards?.length || 0;
-                if (currentCardIndex < totalCards - 1) {
-                  nextCard();
-                } else {
-                  setShowCompletionModal(true);
-                }
-              }}
-              onNext={() => {
-                if (currentCardIndex < (currentSession?.cards?.length || 0) - 1) {
-                  nextCard();
-                } else {
-                  setShowCompletionModal(true);
-                }
-              }}
-              onSkip={() => {
-                skipCard(currentCard.id);
-                if (currentCardIndex < (currentSession?.cards?.length || 0) - 1) {
-                  nextCard();
-                }
-              }}
-              onUndo={undoLastAnswer}
-              onFinish={() => setShowCompletionModal(true)}
-              isFirstCard={currentCardIndex === 0}
-              isLastCard={currentCardIndex === (currentSession?.cards?.length || 0) - 1}
-              hasAnswered={answers[currentCard.id] !== undefined}
-              canEditDelete={canEditDelete}
-              onEditCard={handleEditCard}
-              onDeleteCard={handleDeleteCard}
-            />
-          )}
+        <ScreenShake active={showShake} intensity="medium">
+          <div
+            className={`mb-6 relative rounded-2xl transition-shadow ${answerFlash === 'correct' ? 'animate-correct-flash' : answerFlash === 'incorrect' ? 'animate-incorrect-flash' : ''}`}
+          >
+            {currentCard.type === 'standard' && (
+              <StandardCard
+                card={currentCard}
+                onAnswer={handleAnswer}
+                onNext={() => {
+                  if (currentCardIndex < (currentSession?.cards?.length || 0) - 1) {
+                    nextCard();
+                  } else {
+                    setShowCompletionModal(true);
+                  }
+                }}
+                onSkip={() => {
+                  skipCard(currentCard.id);
+                  if (currentCardIndex < (currentSession?.cards?.length || 0) - 1) {
+                    nextCard();
+                  }
+                }}
+                onUndo={undoLastAnswer}
+                onFinish={() => setShowCompletionModal(true)}
+                isFirstCard={currentCardIndex === 0}
+                isLastCard={currentCardIndex === (currentSession?.cards?.length || 0) - 1}
+                hasAnswered={answers[currentCard.id] !== undefined}
+                isSkipped={answers[currentCard.id] === 'skipped'}
+                canEditDelete={canEditDelete}
+                onEditCard={handleEditCard}
+                onDeleteCard={handleDeleteCard}
+              />
+            )}
+            {currentCard.type === 'quiz' && (
+              <QuizCard
+                card={currentCard}
+                onAnswer={handleAnswer}
+                onAutoAdvance={() => {
+                  const totalCards = currentSession?.cards?.length || 0;
+                  if (currentCardIndex < totalCards - 1) {
+                    nextCard();
+                  } else {
+                    setShowCompletionModal(true);
+                  }
+                }}
+                onNext={() => {
+                  if (currentCardIndex < (currentSession?.cards?.length || 0) - 1) {
+                    nextCard();
+                  } else {
+                    setShowCompletionModal(true);
+                  }
+                }}
+                onSkip={() => {
+                  skipCard(currentCard.id);
+                  if (currentCardIndex < (currentSession?.cards?.length || 0) - 1) {
+                    nextCard();
+                  }
+                }}
+                onUndo={undoLastAnswer}
+                onFinish={() => setShowCompletionModal(true)}
+                isFirstCard={currentCardIndex === 0}
+                isLastCard={currentCardIndex === (currentSession?.cards?.length || 0) - 1}
+                hasAnswered={answers[currentCard.id] !== undefined}
+                canEditDelete={canEditDelete}
+                onEditCard={handleEditCard}
+                onDeleteCard={handleDeleteCard}
+              />
+            )}
+            {currentCard.type === 'type-answer' && (
+              <TypeAnswerCard
+                card={currentCard}
+                onAnswer={handleAnswer}
+                onAutoAdvance={() => {
+                  const totalCards = currentSession?.cards?.length || 0;
+                  if (currentCardIndex < totalCards - 1) {
+                    nextCard();
+                  } else {
+                    setShowCompletionModal(true);
+                  }
+                }}
+                onNext={nextCard}
+                onSkip={() => {
+                  skipCard(currentCard.id);
+                  if (currentCardIndex < (currentSession?.cards?.length || 0) - 1) {
+                    nextCard();
+                  }
+                }}
+                onUndo={undoLastAnswer}
+                onFinish={() => setShowCompletionModal(true)}
+                isFirstCard={currentCardIndex === 0}
+                isLastCard={currentCardIndex === (currentSession?.cards?.length || 0) - 1}
+                hasAnswered={answers[currentCard.id] !== undefined}
+                canEditDelete={canEditDelete}
+                onEditCard={handleEditCard}
+                onDeleteCard={handleDeleteCard}
+              />
+            )}
+            {currentCard.type === 'multiple-answer' && (
+              <MultipleAnswerCard
+                card={currentCard}
+                onAnswer={handleAnswer}
+                onAutoAdvance={() => {
+                  const totalCards = currentSession?.cards?.length || 0;
+                  if (currentCardIndex < totalCards - 1) {
+                    nextCard();
+                  } else {
+                    setShowCompletionModal(true);
+                  }
+                }}
+                onNext={() => {
+                  if (currentCardIndex < (currentSession?.cards?.length || 0) - 1) {
+                    nextCard();
+                  } else {
+                    setShowCompletionModal(true);
+                  }
+                }}
+                onSkip={() => {
+                  skipCard(currentCard.id);
+                  if (currentCardIndex < (currentSession?.cards?.length || 0) - 1) {
+                    nextCard();
+                  }
+                }}
+                onUndo={undoLastAnswer}
+                onFinish={() => setShowCompletionModal(true)}
+                isFirstCard={currentCardIndex === 0}
+                isLastCard={currentCardIndex === (currentSession?.cards?.length || 0) - 1}
+                hasAnswered={answers[currentCard.id] !== undefined}
+                canEditDelete={canEditDelete}
+                onEditCard={handleEditCard}
+                onDeleteCard={handleDeleteCard}
+              />
+            )}
 
-          {/* Streak Celebration - rendered inside card area for proper centering */}
-          {showStreakCelebration && (
-            <StreakCelebration
-              streak={celebrationStreak}
-              onComplete={() => setShowStreakCelebration(false)}
-            />
-          )}
-        </div>
+            {/* Streak Celebration - rendered inside card area for proper centering */}
+            {showStreakCelebration && (
+              <StreakCelebration
+                streak={celebrationStreak}
+                onComplete={() => setShowStreakCelebration(false)}
+              />
+            )}
+          </div>
+        </ScreenShake>
+
+        {/* Particle Effects */}
+        <SparkleExplosion active={showSparkle} onComplete={() => setShowSparkle(false)} />
 
         {/* Animations */}
         {showXPAnimation && (
@@ -826,7 +869,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
           />
         )}
 
-        {/* Session Completion Modal */}
+        {/* Session Completion Modal (sound triggered via effect below) */}
         {showCompletionModal && currentSession && (
           <SessionCompletionModal
             score={

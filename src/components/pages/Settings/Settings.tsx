@@ -21,6 +21,8 @@ import {
   Flame,
   EyeOff,
   Eye,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import { useTheme, type AccentTheme } from '../../../hooks/useTheme';
 import { useToast } from '../../ui/Toast';
@@ -31,6 +33,7 @@ import {
 } from '../../../api/users';
 import { ChangePasswordModal } from './ChangePasswordModal';
 import { AvatarPicker, AVATARS } from './AvatarPicker';
+import { soundEngine } from '../../../services/soundEngine';
 
 interface SettingsProps {
   user: User & { email?: string };
@@ -108,6 +111,10 @@ export const Settings: React.FC<SettingsProps> = ({
   const [hideFromLeaderboard, setHideFromLeaderboard] = useState(
     user.preferences?.hideFromLeaderboard || false
   );
+
+  // Sound effects
+  const [soundEnabled, setSoundEnabled] = useState(soundEngine.isEnabled());
+  const [soundVolume, setSoundVolume] = useState(soundEngine.getVolume());
 
   const languages = [
     { code: 'ro', name: t('languages.ro'), flag: 'RO' },
@@ -775,6 +782,104 @@ export const Settings: React.FC<SettingsProps> = ({
                   ))}
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Sound & Effects Section */}
+          <div
+            className="p-6 rounded-3xl shadow-sm"
+            style={{ backgroundColor: 'var(--bg-secondary)' }}
+          >
+            <h3
+              className="flex items-center gap-2 text-xl font-bold mb-6"
+              style={{ color: 'var(--text-primary)' }}
+            >
+              <Volume2 style={{ color: 'var(--color-accent)' }} />
+              {t('sound.title', 'Sound & Effects')}
+            </h3>
+
+            <div className="space-y-5">
+              {/* Sound Toggle */}
+              <div
+                className="p-4 rounded-xl border-2 transition-all cursor-pointer"
+                style={{
+                  borderColor: soundEnabled ? 'var(--color-accent)' : 'var(--border-secondary)',
+                  backgroundColor: soundEnabled ? 'var(--color-accent-light)' : 'var(--bg-surface)',
+                }}
+                onClick={() => {
+                  const newVal = !soundEnabled;
+                  setSoundEnabled(newVal);
+                  soundEngine.setEnabled(newVal);
+                  if (newVal) soundEngine.playCorrect();
+                }}
+              >
+                <div className="flex items-center gap-4">
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{
+                      backgroundColor: soundEnabled ? 'var(--color-accent)' : 'var(--bg-tertiary)',
+                    }}
+                  >
+                    {soundEnabled ? (
+                      <Volume2 size={20} className="text-white" />
+                    ) : (
+                      <VolumeX size={20} style={{ color: 'var(--text-muted)' }} />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-bold" style={{ color: 'var(--text-primary)' }}>
+                      {t('sound.effects', 'Sound Effects')}
+                    </h4>
+                    <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                      {soundEnabled
+                        ? t('sound.enabledDesc', 'Sounds play during study sessions')
+                        : t('sound.disabledDesc', 'All sounds are muted')}
+                    </p>
+                  </div>
+                  <div
+                    className={`relative w-10 h-5 rounded-full transition-colors duration-300 ${
+                      soundEnabled ? '' : 'bg-[var(--border-primary)]'
+                    }`}
+                    style={soundEnabled ? { backgroundColor: 'var(--color-accent)' } : undefined}
+                  >
+                    <div
+                      className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow-md transition-transform duration-300 ${
+                        soundEnabled ? 'translate-x-5' : 'translate-x-0.5'
+                      }`}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Volume Slider */}
+              {soundEnabled && (
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-sm font-bold" style={{ color: 'var(--text-secondary)' }}>
+                      {t('sound.volume', 'Volume')}
+                    </span>
+                    <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                      {Math.round(soundVolume * 100)}%
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    className="w-full h-2 rounded-lg appearance-none cursor-pointer"
+                    style={{ accentColor: 'var(--color-accent)' }}
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={soundVolume}
+                    onChange={e => {
+                      const vol = Number(e.target.value);
+                      setSoundVolume(vol);
+                      soundEngine.setVolume(vol);
+                    }}
+                    onMouseUp={() => soundEngine.playCorrect()}
+                    onTouchEnd={() => soundEngine.playCorrect()}
+                  />
+                </div>
+              )}
             </div>
           </div>
 
