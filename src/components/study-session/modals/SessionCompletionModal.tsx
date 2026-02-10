@@ -61,6 +61,99 @@ function computeTagAccuracies(cards: Card[], answers: Record<string, AnswerStatu
   }));
 }
 
+/** Firework burst for high scores */
+const Fireworks: React.FC<{ count: number }> = ({ count }) => {
+  const particles = React.useMemo(() => {
+    const items: {
+      id: number;
+      x: number;
+      y: number;
+      color: string;
+      size: number;
+      delay: number;
+      angle: number;
+      distance: number;
+    }[] = [];
+    const colors = ['#FFD700', '#FF6B35', '#FF1493', '#00E5FF', '#76FF03', '#E040FB', '#FFAB40'];
+    for (let i = 0; i < count; i++) {
+      const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.5;
+      const distance = 40 + Math.random() * 60;
+      items.push({
+        id: i,
+        x: Math.cos(angle) * distance,
+        y: Math.sin(angle) * distance,
+        color: colors[i % colors.length],
+        size: 4 + Math.random() * 4,
+        delay: Math.random() * 200,
+        angle,
+        distance,
+      });
+    }
+    return items;
+  }, [count]);
+
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2">
+        {particles.map(p => (
+          <div
+            key={p.id}
+            className="firework-particle"
+            style={
+              {
+                width: p.size,
+                height: p.size,
+                backgroundColor: p.color,
+                '--fw-x': `${p.x}px`,
+                '--fw-y': `${p.y}px`,
+                '--fw-delay': `${p.delay}ms`,
+              } as React.CSSProperties
+            }
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+/** Animated number that counts up from 0 */
+const CountUpNumber: React.FC<{
+  value: number;
+  duration?: number;
+  prefix?: string;
+  suffix?: string;
+}> = ({ value, duration = 800, prefix = '', suffix = '' }) => {
+  const [display, setDisplay] = React.useState(0);
+  const frameRef = React.useRef<number>(0);
+
+  React.useEffect(() => {
+    if (value === 0) {
+      setDisplay(0);
+      return;
+    }
+    const startTime = performance.now();
+    const animate = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplay(Math.round(eased * value));
+      if (progress < 1) {
+        frameRef.current = requestAnimationFrame(animate);
+      }
+    };
+    frameRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frameRef.current);
+  }, [value, duration]);
+
+  return (
+    <span>
+      {prefix}
+      {display}
+      {suffix}
+    </span>
+  );
+};
+
 /**
  * SessionCompletionModal - Modal shown when all cards are completed
  * Shows Strengths vs Growth Areas grouped by card tags
@@ -123,6 +216,7 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
         }
         onClick={e => e.stopPropagation()}
       >
+        {isPerfect && <Fireworks count={20} />}
         {/* XP Earned + Score summary */}
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
@@ -140,20 +234,20 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
             )}
             <div>
               <div className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
-                {correctCount}/{totalCards} corecte
+                <CountUpNumber value={correctCount} duration={600} />/{totalCards} corecte
               </div>
               <div className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                Scor: {score}%
+                Scor: <CountUpNumber value={score} duration={800} suffix="%" />
               </div>
             </div>
           </div>
           {xpEarned > 0 && (
             <div className="text-right">
               <div
-                className="text-2xl font-black"
+                className="text-2xl font-black animate-count-up"
                 style={{ color: 'var(--completion-modal-xp-text)' }}
               >
-                +{xpEarned}
+                +<CountUpNumber value={xpEarned} duration={1000} />
               </div>
               <div
                 className="text-xs font-semibold"
