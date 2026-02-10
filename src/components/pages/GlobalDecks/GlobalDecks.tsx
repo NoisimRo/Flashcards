@@ -23,7 +23,7 @@ import { getDecks, getDeck, deleteDeck, updateDeck } from '../../../api/decks';
 import type { DeckWithCards as APIDeck } from '../../../types';
 import type { Deck, DeckWithCards } from '../../../types';
 import { useToast } from '../../ui/Toast';
-import { getSubjectDisplayName } from '../../../constants/subjects';
+import { getSubjectDisplayName, getLanguageFlag } from '../../../constants/subjects';
 import { ReviewModal } from '../../reviews/ReviewModal';
 import { FlagModal } from '../../flags/FlagModal';
 import { EditCardsModal } from '../DeckList/EditCardsModal';
@@ -404,11 +404,16 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
 
         {/* Deck Header */}
         <div className="mb-4">
-          <span
-            className={`inline-block px-3 py-1 rounded-full text-xs font-bold text-white mb-3 ${getSubjectColor(subject)}`}
-          >
-            {subject}
-          </span>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-lg leading-none" title={deck.language || 'ro'}>
+              {getLanguageFlag(deck.language)}
+            </span>
+            <span
+              className={`inline-block px-3 py-1 rounded-full text-xs font-bold text-white ${getSubjectColor(subject)}`}
+            >
+              {subject}
+            </span>
+          </div>
           <h3 className="text-lg font-bold text-[var(--text-primary)] mb-1 pr-8">{deck.title}</h3>
           <p className="text-sm text-[var(--text-tertiary)] mb-2">{deck.topic}</p>
           <p className="text-xs text-[var(--text-muted)] flex items-center gap-1">

@@ -109,6 +109,7 @@ export interface CreateDeckRequest {
   isPublic?: boolean;
   tags?: string[];
   cards?: CreateCardRequest[];
+  language?: string;
 }
 
 export interface UpdateDeckRequest {
@@ -119,6 +120,7 @@ export interface UpdateDeckRequest {
   difficulty?: string;
   isPublic?: boolean;
   tags?: string[];
+  language?: string;
 }
 
 export interface DeckListParams {

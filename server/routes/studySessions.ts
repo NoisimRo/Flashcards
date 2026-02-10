@@ -239,6 +239,7 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
                 subject: deckResult.rows[0].subject_id,
                 subjectName: deckResult.rows[0].subject_name,
                 difficulty: deckResult.rows[0].difficulty,
+                language: deckResult.rows[0].language || 'ro',
               }
             : null,
           cards: interleavedCards.map(formatCard),
@@ -401,6 +402,7 @@ router.get('/', authenticateToken, async (req: Request, res: Response) => {
               d.title as deck_title,
               d.subject_id,
               d.topic as deck_topic,
+              d.language as deck_language,
               sub.name as subject_name
        FROM study_sessions s
        LEFT JOIN decks d ON s.deck_id = d.id
@@ -420,6 +422,7 @@ router.get('/', authenticateToken, async (req: Request, res: Response) => {
             subject: row.subject_id,
             subjectName: row.subject_name,
             topic: row.deck_topic,
+            language: row.deck_language || 'ro',
           }
         : null,
     }));
@@ -452,6 +455,7 @@ router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
               d.title as deck_title,
               d.subject_id,
               d.difficulty,
+              d.language as deck_language,
               sub.name as subject_name
        FROM study_sessions s
        LEFT JOIN decks d ON s.deck_id = d.id
@@ -504,6 +508,7 @@ router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
               subject: sessionRow.subject_id,
               subjectName: sessionRow.subject_name,
               difficulty: sessionRow.difficulty,
+              language: sessionRow.deck_language || 'ro',
             }
           : null,
         cards: cardsResult.rows.map(formatCard),
@@ -1310,6 +1315,7 @@ router.post('/guest', async (req: Request, res: Response) => {
                 subject: deckResult.rows[0].subject_id,
                 subjectName: deckResult.rows[0].subject_name,
                 difficulty: deckResult.rows[0].difficulty,
+                language: deckResult.rows[0].language || 'ro',
               }
             : null,
           cards: interleavedCards.map(formatCard),
@@ -1448,6 +1454,7 @@ router.get('/guest/:id', async (req: Request, res: Response) => {
               d.title as deck_title,
               d.subject_id,
               d.difficulty,
+              d.language as deck_language,
               sub.name as subject_name
        FROM study_sessions s
        LEFT JOIN decks d ON s.deck_id = d.id
@@ -1490,6 +1497,7 @@ router.get('/guest/:id', async (req: Request, res: Response) => {
               subject: sessionRow.subject_id,
               subjectName: sessionRow.subject_name,
               difficulty: sessionRow.difficulty,
+              language: sessionRow.deck_language || 'ro',
             }
           : null,
         cards: cardsResult.rows.map(formatCard),

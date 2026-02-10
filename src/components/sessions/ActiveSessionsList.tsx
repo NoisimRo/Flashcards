@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useStudySessionsStore } from '../../store/studySessionsStore';
 import { useToast } from '../ui/Toast';
+import { getLanguageFlag } from '../../constants/subjects';
 
 interface ActiveSessionsListProps {
   onResumeSession: (sessionId: string) => void;
@@ -234,11 +235,16 @@ const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({
                 </div>
               </div>
 
-              {/* Row 1 (H3): Category + Topic */}
-              <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-2 relative z-10 pr-16">
-                {session.deck?.subjectName || 'Sesiune'}
-                {session.deck?.topic ? ` • ${session.deck.topic}` : ''}
-              </h3>
+              {/* Row 1 (H3): Flag + Category + Topic */}
+              <div className="flex items-center gap-2 mb-2 relative z-10 pr-16">
+                <span className="text-lg leading-none" title={session.deck?.language || 'ro'}>
+                  {getLanguageFlag(session.deck?.language)}
+                </span>
+                <h3 className="text-2xl font-bold text-[var(--text-primary)]">
+                  {session.deck?.subjectName || 'Sesiune'}
+                  {session.deck?.topic ? ` • ${session.deck.topic}` : ''}
+                </h3>
+              </div>
 
               {/* Row 2: Metadata - Cards Count | Method */}
               <div className="flex items-center gap-2 mb-4 text-sm text-[var(--text-secondary)] font-medium">

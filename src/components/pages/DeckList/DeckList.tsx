@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { getDeck } from '../../../api/decks';
 import { useToast } from '../../ui/Toast';
+import { getLanguageFlag } from '../../../constants/subjects';
 import { ReviewModal } from '../../reviews/ReviewModal';
 import { FlagModal } from '../../flags/FlagModal';
 import { GenerateCardsModal } from './GenerateCardsModal';
@@ -61,6 +62,7 @@ export const DeckList: React.FC<DeckListProps> = ({
     title: string;
     subject: string;
     difficulty: Difficulty;
+    language?: string;
   } | null>(null);
 
   // Edit Cards Modal State
@@ -99,6 +101,7 @@ export const DeckList: React.FC<DeckListProps> = ({
       title: deck.title,
       subject: deck.subject,
       difficulty: deck.difficulty,
+      language: deck.language,
     });
     setIsGenerateModalOpen(true);
     setActiveMenuId(null);
@@ -372,18 +375,23 @@ export const DeckList: React.FC<DeckListProps> = ({
 
               {/* Body: Category Badge (left) + Difficulty Badge (right) */}
               <div className="flex justify-between items-center mb-4">
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-bold text-white shadow-sm
-                  ${
-                    deck.subject === 'Matematică'
-                      ? 'bg-blue-500'
-                      : deck.subject === 'Istorie'
-                        ? 'bg-orange-500'
-                        : 'bg-[var(--color-accent)]'
-                  }`}
-                >
-                  {deck.subject}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg leading-none" title={deck.language || 'ro'}>
+                    {getLanguageFlag(deck.language)}
+                  </span>
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-bold text-white shadow-sm
+                    ${
+                      deck.subject === 'Matematică'
+                        ? 'bg-blue-500'
+                        : deck.subject === 'Istorie'
+                          ? 'bg-orange-500'
+                          : 'bg-[var(--color-accent)]'
+                    }`}
+                  >
+                    {deck.subject}
+                  </span>
+                </div>
                 <span className="px-3 py-1 rounded-full text-xs font-medium text-[var(--text-secondary)] bg-[var(--bg-tertiary)]">
                   {deck.difficulty} - {getDifficultyLabel(deck.difficulty)}
                 </span>
