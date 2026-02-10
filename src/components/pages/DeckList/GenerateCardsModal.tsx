@@ -15,6 +15,7 @@ interface GenerateCardsModalProps {
     title: string;
     subject: string;
     difficulty: Difficulty;
+    language?: string;
   } | null;
   onAddDeck: (deck: DeckWithCards) => void;
   onEditDeck: (deck: DeckWithCards) => void;
@@ -82,6 +83,9 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
         setTitle(existingDeck.title);
         setSubject(existingDeck.subject);
         setDifficulty(existingDeck.difficulty);
+        if (existingDeck.language) {
+          setSelectedLanguage(existingDeck.language);
+        }
       } else if (mode === 'generate' && existingDeck) {
         setTitle(existingDeck.title || '');
         setSubject(existingDeck.subject);
@@ -159,6 +163,7 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
             subject,
             topic: title,
             difficulty,
+            language: selectedLanguage,
             isPublic: false,
             tags: [],
             cards: [],
@@ -327,6 +332,7 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
               subject,
               topic: title,
               difficulty,
+              language: selectedLanguage,
               isPublic: false,
               tags: [],
               cards: newCards,
@@ -378,6 +384,7 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
             subject,
             topic: title,
             difficulty,
+            language: selectedLanguage,
             isPublic: false,
             tags: [],
             cards: [],

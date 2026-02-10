@@ -35,6 +35,7 @@ export function useDecksManagement() {
           subject: getSubjectId(newDeck.subject),
           topic: newDeck.topic,
           difficulty: newDeck.difficulty,
+          language: newDeck.language || 'ro',
           cards: newDeck.cards.map(c => ({
             front: c.front,
             back: c.back,
@@ -67,6 +68,7 @@ export function useDecksManagement() {
           subject: getSubjectId(updatedDeck.subject),
           topic: updatedDeck.topic,
           difficulty: updatedDeck.difficulty,
+          language: updatedDeck.language || 'ro',
         });
 
         // Check if there are cards with temporary IDs (AI-generated or local)

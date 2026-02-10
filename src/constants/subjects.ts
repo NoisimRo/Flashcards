@@ -52,3 +52,15 @@ export function getSubjectId(displayName: string): string {
 export function getSubjectDisplayName(id: string): string {
   return SUBJECT_ID_TO_NAME[id] || id;
 }
+
+// Language flag emoji mapping
+export const LANGUAGE_FLAGS: Record<string, string> = {
+  ro: '🇷🇴',
+  en: '🇬🇧',
+  it: '🇮🇹',
+};
+
+// Helper function to get flag emoji for a language code
+export function getLanguageFlag(code?: string): string {
+  return LANGUAGE_FLAGS[code || 'ro'] || '🇷🇴';
+}

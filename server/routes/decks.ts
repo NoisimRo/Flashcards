@@ -518,7 +518,7 @@ router.post('/generate', authenticateToken, async (req: Request, res: Response) 
 router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { title, description, subject, topic, difficulty, isPublic, tags } = req.body;
+    const { title, description, subject, topic, difficulty, isPublic, tags, language } = req.body;
 
     // Check ownership
     const deckResult = await query(
@@ -578,6 +578,10 @@ router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
     if (tags !== undefined) {
       updates.push(`tags = $${paramIndex++}`);
       values.push(tags);
+    }
+    if (language !== undefined) {
+      updates.push(`language = $${paramIndex++}`);
+      values.push(language);
     }
 
     updates.push(`version = version + 1`);
