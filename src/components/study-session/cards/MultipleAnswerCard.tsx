@@ -131,11 +131,12 @@ export const MultipleAnswerCard: React.FC<MultipleAnswerCardProps> = ({
       onAnswer(correct);
     }, 100);
 
-    // Auto-advance after 10 seconds to allow time for reading the explanation
+    // Auto-advance: 10s normally, 30s on last card so user can read feedback
     if (onAutoAdvance) {
+      const delay = isLastCard ? 30000 : 10000;
       const timer = setTimeout(() => {
         onAutoAdvance();
-      }, 10000);
+      }, delay);
       setAutoAdvanceTimer(timer);
     }
   };

@@ -90,11 +90,12 @@ export const QuizCard: React.FC<QuizCardProps> = ({
       onAnswer(correct);
     }, 100);
 
-    // Auto-advance after 3 seconds
+    // Auto-advance: 3s normally, 9s on last card so user can read feedback
     if (onAutoAdvance) {
+      const delay = isLastCard ? 9000 : 3000;
       const timer = setTimeout(() => {
         onAutoAdvance();
-      }, 3000);
+      }, delay);
       setAutoAdvanceTimer(timer);
     }
   };
