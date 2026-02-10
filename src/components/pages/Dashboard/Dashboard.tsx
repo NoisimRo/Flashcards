@@ -402,7 +402,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* Main Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Streak Card */}
-          <div className="bg-gradient-to-br from-orange-500 to-red-600 p-6 rounded-2xl shadow-xl text-white relative overflow-hidden">
+          <div
+            className="p-6 rounded-2xl shadow-xl text-white relative overflow-hidden"
+            style={{ background: 'var(--color-accent-gradient)' }}
+          >
             <div className="absolute top-1/2 right-4 -translate-y-1/2 opacity-10">
               <Flame size={120} />
             </div>
@@ -604,20 +607,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
           {/* Study Streak Calendar */}
           <div
-            className="p-6 rounded-2xl shadow-lg"
+            className="p-4 rounded-2xl shadow-lg"
             style={{
               backgroundColor: 'var(--card-bg)',
               borderWidth: '1px',
               borderColor: 'var(--card-border)',
             }}
           >
-            <div className="flex items-center gap-2 mb-4">
-              <Flame className="text-orange-500" size={20} />
-              <h2 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
+            <div className="flex items-center gap-2 mb-3">
+              <Flame className="text-orange-500" size={18} />
+              <h2 className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>
                 {t('activityCalendar.title')}
               </h2>
             </div>
-            <div className="grid grid-cols-7 gap-1.5">
+            <div className="grid grid-cols-7 gap-1">
               {activityCalendar.map((day, idx) => {
                 const intensityOpacities = [0, 0.3, 0.6, 1];
                 const tooltipText = day.studied
@@ -626,7 +629,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 return (
                   <div
                     key={idx}
-                    className="aspect-square rounded-md transition-all hover:scale-110 cursor-pointer"
+                    className="aspect-square rounded-sm transition-all hover:scale-110 cursor-pointer"
                     style={
                       day.intensity === 0
                         ? { backgroundColor: 'var(--bg-tertiary)' }
@@ -641,7 +644,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               })}
             </div>
             <div
-              className="flex items-center justify-between mt-4 text-xs"
+              className="flex items-center justify-between mt-2 text-xs"
               style={{ color: 'var(--text-muted)' }}
             >
               <span>{t('activityCalendar.less')}</span>
@@ -651,7 +654,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   return (
                     <div
                       key={i}
-                      className="w-3 h-3 rounded-sm"
+                      className="w-2.5 h-2.5 rounded-sm"
                       style={
                         i === 0
                           ? { backgroundColor: 'var(--bg-tertiary)' }
@@ -669,17 +672,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
             {/* Performance Analytics Charts */}
             {activityCalendar.length > 0 && (
-              <div className="mt-5 space-y-4">
+              <div className="mt-3 space-y-3">
                 {/* Time Spent Line Chart */}
                 <div>
                   <h3
-                    className="text-xs font-semibold mb-2 flex items-center gap-1.5"
+                    className="text-xs font-semibold mb-1 flex items-center gap-1.5"
                     style={{ color: 'var(--text-tertiary)' }}
                   >
-                    <Clock size={12} />
-                    {t('activityCalendar.timeSpentChart', 'Time Spent')}
+                    <Clock size={11} />
+                    {t('activityCalendar.timeSpentChart')}
                   </h3>
-                  <div className="h-24">
+                  <div className="h-[70px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart
                         data={activityCalendar}
@@ -699,17 +702,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           width={30}
                         />
                         <RechartsTooltip
+                          cursor={false}
                           contentStyle={{
                             backgroundColor: 'var(--bg-elevated)',
                             border: '1px solid var(--border-secondary)',
                             borderRadius: '8px',
                             fontSize: '11px',
-                            color: 'var(--text-primary)',
                             boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                            padding: '6px 10px',
                           }}
+                          itemStyle={{ color: 'var(--text-primary)' }}
+                          labelStyle={{ color: 'var(--text-secondary)', marginBottom: '2px' }}
                           formatter={(value: number) => [
                             `${value} ${t('stats.minutes', 'min')}`,
-                            t('activityCalendar.timeSpentChart', 'Time Spent'),
+                            t('activityCalendar.timeSpentChart'),
                           ]}
                           labelFormatter={(label: string) => label}
                         />
@@ -735,13 +741,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 {/* Success Rate Bar Chart */}
                 <div>
                   <h3
-                    className="text-xs font-semibold mb-2 flex items-center gap-1.5"
+                    className="text-xs font-semibold mb-1 flex items-center gap-1.5"
                     style={{ color: 'var(--text-tertiary)' }}
                   >
-                    <TrendingUp size={12} />
-                    {t('activityCalendar.successRateChart', 'Success Rate')}
+                    <TrendingUp size={11} />
+                    {t('activityCalendar.successRateChart')}
                   </h3>
-                  <div className="h-24">
+                  <div className="h-[70px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         data={activityCalendar}
@@ -762,17 +768,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           width={30}
                         />
                         <RechartsTooltip
+                          cursor={false}
                           contentStyle={{
                             backgroundColor: 'var(--bg-elevated)',
                             border: '1px solid var(--border-secondary)',
                             borderRadius: '8px',
                             fontSize: '11px',
-                            color: 'var(--text-primary)',
                             boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                            padding: '6px 10px',
                           }}
+                          itemStyle={{ color: 'var(--text-primary)' }}
+                          labelStyle={{ color: 'var(--text-secondary)', marginBottom: '2px' }}
                           formatter={(value: number) => [
                             `${value}%`,
-                            t('activityCalendar.successRateChart', 'Success Rate'),
+                            t('activityCalendar.successRateChart'),
                           ]}
                           labelFormatter={(label: string) => label}
                         />
@@ -1051,9 +1060,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         {t('recentAchievements.unlockedRecently')}
                       </p>
                     </div>
-                    <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-yellow-500/10">
-                      <Zap size={14} className="text-yellow-500" />
-                      <span className="text-xs font-bold text-yellow-500">
+                    <div
+                      className="flex items-center gap-1 px-2 py-1 rounded-lg"
+                      style={{ backgroundColor: 'var(--color-accent-subtle)' }}
+                    >
+                      <Zap size={14} style={{ color: 'var(--color-accent)' }} />
+                      <span className="text-xs font-bold" style={{ color: 'var(--color-accent)' }}>
                         +{achievement.xpReward}
                       </span>
                     </div>
@@ -1067,7 +1079,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
               )}
               <button
                 onClick={() => onChangeView('achievements')}
-                className="w-full mt-4 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white py-3 rounded-xl font-bold transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                className="w-full mt-4 text-white py-3 rounded-xl font-bold transition-all shadow-md hover:shadow-lg hover:opacity-90 flex items-center justify-center gap-2"
+                style={{ background: 'var(--color-accent-gradient)' }}
               >
                 {t('buttons.viewAllAchievements')}
                 <ChevronRight size={18} />
