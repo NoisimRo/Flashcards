@@ -11,6 +11,7 @@ import {
   CheckCircle,
   Square,
   CheckSquare,
+  MessageCircle,
 } from 'lucide-react';
 import { CardActionsMenu } from '../menus/CardActionsMenu';
 import { HintOverlay } from '../shared/HintOverlay';
@@ -297,19 +298,18 @@ export const MultipleAnswerCard: React.FC<MultipleAnswerCardProps> = ({
           {/* Back Explanation - shown immediately after answering */}
           {showResult && card.back && (
             <div
-              className="mt-4 p-4 rounded-xl border-2"
+              className="mt-3 px-3 py-2.5 rounded-xl border-2 flex gap-2.5"
               style={{
                 backgroundColor: 'var(--explanation-bg)',
                 borderColor: 'var(--explanation-border)',
               }}
             >
-              <div
-                className="text-sm font-semibold mb-2 uppercase tracking-wide"
+              <MessageCircle
+                size={18}
+                className="flex-shrink-0 mt-0.5"
                 style={{ color: 'var(--explanation-text)' }}
-              >
-                Explicație
-              </div>
-              <p className="font-medium" style={{ color: 'var(--text-primary)' }}>
+              />
+              <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
                 {card.back}
               </p>
             </div>

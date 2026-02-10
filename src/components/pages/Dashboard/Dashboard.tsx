@@ -629,7 +629,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 return (
                   <div
                     key={idx}
-                    className="aspect-square rounded-sm transition-all hover:scale-110 cursor-pointer"
+                    className="aspect-square rounded-md transition-all hover:scale-110 cursor-pointer"
                     style={
                       day.intensity === 0
                         ? { backgroundColor: 'var(--bg-tertiary)' }
@@ -703,21 +703,24 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         />
                         <RechartsTooltip
                           cursor={false}
-                          contentStyle={{
-                            backgroundColor: 'var(--bg-elevated)',
-                            border: '1px solid var(--border-secondary)',
-                            borderRadius: '8px',
-                            fontSize: '11px',
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                            padding: '6px 10px',
+                          content={({ active, payload, label }) => {
+                            if (!active || !payload?.length) return null;
+                            return (
+                              <div
+                                className="rounded-lg text-xs shadow-lg border px-2.5 py-1.5"
+                                style={{
+                                  backgroundColor: 'var(--bg-elevated)',
+                                  borderColor: 'var(--border-secondary)',
+                                  color: 'var(--text-primary)',
+                                }}
+                              >
+                                <div style={{ color: 'var(--text-muted)' }}>{label}</div>
+                                <div className="font-semibold">
+                                  {payload[0].value} {t('stats.minutes', 'min')}
+                                </div>
+                              </div>
+                            );
                           }}
-                          itemStyle={{ color: 'var(--text-primary)' }}
-                          labelStyle={{ color: 'var(--text-secondary)', marginBottom: '2px' }}
-                          formatter={(value: number) => [
-                            `${value} ${t('stats.minutes', 'min')}`,
-                            t('activityCalendar.timeSpentChart'),
-                          ]}
-                          labelFormatter={(label: string) => label}
                         />
                         <Area
                           type="monotone"
@@ -755,8 +758,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       >
                         <defs>
                           <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8} />
-                            <stop offset="95%" stopColor="#22c55e" stopOpacity={0.3} />
+                            <stop offset="5%" stopColor="var(--color-accent)" stopOpacity={0.8} />
+                            <stop offset="95%" stopColor="var(--color-accent)" stopOpacity={0.3} />
                           </linearGradient>
                         </defs>
                         <XAxis dataKey="date" hide />
@@ -769,21 +772,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         />
                         <RechartsTooltip
                           cursor={false}
-                          contentStyle={{
-                            backgroundColor: 'var(--bg-elevated)',
-                            border: '1px solid var(--border-secondary)',
-                            borderRadius: '8px',
-                            fontSize: '11px',
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                            padding: '6px 10px',
+                          content={({ active, payload, label }) => {
+                            if (!active || !payload?.length) return null;
+                            return (
+                              <div
+                                className="rounded-lg text-xs shadow-lg border px-2.5 py-1.5"
+                                style={{
+                                  backgroundColor: 'var(--bg-elevated)',
+                                  borderColor: 'var(--border-secondary)',
+                                  color: 'var(--text-primary)',
+                                }}
+                              >
+                                <div style={{ color: 'var(--text-muted)' }}>{label}</div>
+                                <div className="font-semibold">{payload[0].value}%</div>
+                              </div>
+                            );
                           }}
-                          itemStyle={{ color: 'var(--text-primary)' }}
-                          labelStyle={{ color: 'var(--text-secondary)', marginBottom: '2px' }}
-                          formatter={(value: number) => [
-                            `${value}%`,
-                            t('activityCalendar.successRateChart'),
-                          ]}
-                          labelFormatter={(label: string) => label}
                         />
                         <Bar
                           dataKey="successRate"
