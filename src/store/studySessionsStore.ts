@@ -434,19 +434,45 @@ export const useStudySessionsStore = create<StudySessionsStore>((set, get) => ({
 
       if (data.success && data.data) {
         const session = data.data;
+        const savedAnswers = session.answers || {};
+        const cards = session.cards || [];
+
+        // Smart card index (same logic as loadSession):
+        // 1. First unanswered card
+        // 2. First skipped card (if all cards have some answer)
+        // 3. Full reset if all cards are answered (correct/incorrect)
+        let startCardIndex = 0;
+        let resetAnswers = savedAnswers;
+
+        const firstUnanswered = cards.findIndex((card: any) => savedAnswers[card.id] === undefined);
+
+        if (firstUnanswered !== -1) {
+          startCardIndex = firstUnanswered;
+        } else {
+          const firstSkipped = cards.findIndex((card: any) => savedAnswers[card.id] === 'skipped');
+
+          if (firstSkipped !== -1) {
+            startCardIndex = firstSkipped;
+          } else {
+            // All cards answered (correct/incorrect) - full reset
+            startCardIndex = 0;
+            resetAnswers = {};
+          }
+        }
 
         set({
           currentSession: session,
           guestToken,
           isGuestMode: true,
-          currentCardIndex: session.currentCardIndex || 0,
-          answers: session.answers || {},
-          streak: session.streak || 0,
-          sessionXP: session.sessionXP || 0,
+          currentCardIndex: startCardIndex,
+          answers: resetAnswers,
+          streak: 0,
+          sessionXP: 0,
           isCardFlipped: false,
           hintRevealed: false,
           selectedQuizOption: null,
           selectedMultipleOptions: [],
+          revealedHintCardIds: {},
           isDirty: false,
           sessionStartTime: Date.now(),
           baselineDuration: session.durationSeconds || 0,

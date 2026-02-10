@@ -25,6 +25,7 @@ interface TypeAnswerCardProps {
   isFirstCard?: boolean;
   isLastCard?: boolean;
   hasAnswered?: boolean;
+  isSkipped?: boolean;
   canEditDelete?: boolean;
   onEditCard?: () => void;
   onDeleteCard?: () => void;
@@ -45,6 +46,7 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
   isFirstCard = false,
   isLastCard = false,
   hasAnswered: hasAnsweredProp = false,
+  isSkipped = false,
   canEditDelete = false,
   onEditCard,
   onDeleteCard,
@@ -59,10 +61,10 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
   const [matchedPitfall, setMatchedPitfall] = React.useState<string | null>(null);
 
   const cardAnswer = answers[card.id];
-  // Show result if card was answered in store
-  const showResult = cardAnswer !== undefined || hasAnswered;
-  // Practice mode: card already answered in store, allow re-trying without XP
-  const isPracticeMode = cardAnswer !== undefined;
+  // Show result if card was definitively answered (correct/incorrect) in store, or just answered locally
+  // Skipped cards should NOT show result — they need to be re-answered
+  const isPracticeMode = cardAnswer === 'correct' || cardAnswer === 'incorrect';
+  const showResult = isPracticeMode || hasAnswered;
 
   // Get correct options for display on back face
   const correctOptions = React.useMemo(() => {
@@ -211,10 +213,11 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
   };
 
   // Reset state when card changes (fixes navigation bug)
+  // Skipped cards reset to fresh state so the user can properly re-answer them
   React.useEffect(() => {
     setShowBack(false);
     setUserAnswer('');
-    setHasAnswered(hasAnsweredProp);
+    setHasAnswered(isSkipped ? false : hasAnsweredProp);
     setIsCorrect(null);
     setMatchedPitfall(null);
 
