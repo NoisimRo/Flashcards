@@ -1006,7 +1006,7 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
            cards_learned = daily_progress.cards_learned + $4,
            time_spent_minutes = daily_progress.time_spent_minutes + $5,
            sessions_completed = daily_progress.sessions_completed + 1`,
-        [req.user!.id, today, correctDelta, cardsLearned, timeDeltaSeconds, fullSessionXP]
+        [req.user!.id, today, correctDelta, cardsLearned, timeDeltaSeconds]
       );
 
       // Update daily_challenges with final deltas (time_studied_today stores SECONDS)
@@ -1019,65 +1019,72 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
         [correctDelta, timeDeltaSeconds, req.user!.id, today]
       );
 
-      // Check and unlock achievements (pass session context for session-specific conditions)
-      const completedAtHour = getLocalHour(clientTimezoneOffset);
-      const newAchievements = await checkAndUnlockAchievements(client, req.user!.id, {
-        correctCount: correctCount || 0,
-        durationSeconds: finalDuration,
-        totalCards: session.total_cards,
-        completedAtHour,
-        score: score || 0,
-        sessionXP: fullSessionXP,
-      });
-
-      // CRITICAL FIX: Recalculate streak from daily_progress after session completion
-      // Fetch user's streak shield status to pass to streak calculation
-      const shieldResult = await client.query(
-        'SELECT streak_shield_active FROM users WHERE id = $1',
-        [req.user!.id]
-      );
-      const userShieldActive = shieldResult.rows[0]?.streak_shield_active || false;
-
-      const { currentStreak, longestStreak, shieldUsed } = await calculateStreakFromDailyProgress(
-        req.user!.id,
-        userShieldActive
-      );
-
-      // Update user's streak (and deactivate shield if it was used)
-      if (shieldUsed) {
-        await client.query(
-          `UPDATE users
-           SET streak = $1,
-               longest_streak = $2,
-               streak_shield_active = false,
-               streak_shield_used_date = $3::date
-           WHERE id = $4`,
-          [currentStreak, longestStreak, today, req.user!.id]
-        );
-      } else {
-        await client.query(
-          `UPDATE users
-           SET streak = $1,
-               longest_streak = $2
-           WHERE id = $3`,
-          [currentStreak, longestStreak, req.user!.id]
-        );
-      }
-
       // Level-ups are handled in real-time by the PUT auto-save handler.
       // Return the current level from DB (already reflects any level-ups).
       return {
         session: updatedSession.rows[0],
         cardsLearned,
         sessionXP: fullSessionXP,
-        leveledUp: false, // Level-ups happen in real-time via PUT auto-save
+        leveledUp: false,
         oldLevel: currentUser.level,
         newLevel: currentUser.level,
-        newAchievements,
-        newStreak: currentStreak,
-        streakUpdated: true,
+        today, // Pass through for streak update
       };
     });
+
+    // --- Post-transaction: achievements & streak (non-critical, must not block completion) ---
+    // These run AFTER the main transaction commits so that a failure here
+    // cannot roll back the session completion. This matches the PUT endpoint's approach.
+
+    let newAchievements: any[] = [];
+    try {
+      const completedAtHour = getLocalHour(clientTimezoneOffset);
+      newAchievements = await withTransaction(async txClient => {
+        return checkAndUnlockAchievements(txClient, req.user!.id, {
+          correctCount: correctCount || 0,
+          durationSeconds: durationSeconds || 0,
+          totalCards: result.session.total_cards,
+          completedAtHour,
+          score: score || 0,
+          sessionXP: result.sessionXP,
+        });
+      });
+    } catch (achievementError) {
+      console.error('Achievement check error in POST /complete (non-fatal):', achievementError);
+    }
+
+    let newStreak = 0;
+    try {
+      const shieldResult = await query('SELECT streak_shield_active FROM users WHERE id = $1', [
+        req.user!.id,
+      ]);
+      const userShieldActive = shieldResult.rows[0]?.streak_shield_active || false;
+
+      const streakData = await calculateStreakFromDailyProgress(req.user!.id, userShieldActive);
+      newStreak = streakData.currentStreak;
+
+      if (streakData.shieldUsed) {
+        await query(
+          `UPDATE users
+           SET streak = $1,
+               longest_streak = $2,
+               streak_shield_active = false,
+               streak_shield_used_date = $3::date
+           WHERE id = $4`,
+          [streakData.currentStreak, streakData.longestStreak, result.today, req.user!.id]
+        );
+      } else {
+        await query(
+          `UPDATE users
+           SET streak = $1,
+               longest_streak = $2
+           WHERE id = $3`,
+          [streakData.currentStreak, streakData.longestStreak, req.user!.id]
+        );
+      }
+    } catch (streakError) {
+      console.error('Streak update error in POST /complete (non-fatal):', streakError);
+    }
 
     res.json({
       success: true,
@@ -1087,9 +1094,9 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
         leveledUp: result.leveledUp,
         oldLevel: result.oldLevel,
         newLevel: result.newLevel,
-        newAchievements: result.newAchievements || [],
-        streakUpdated: result.streakUpdated,
-        newStreak: result.newStreak,
+        newAchievements: newAchievements || [],
+        streakUpdated: true,
+        newStreak,
         cardsLearned: result.cardsLearned,
       },
     });
@@ -1120,7 +1127,7 @@ router.post('/:id/complete', authenticateToken, async (req: Request, res: Respon
       success: false,
       error: {
         code: 'SERVER_ERROR',
-        message: 'Eroare la finalizarea sesiunii',
+        message: `Eroare la finalizarea sesiunii: ${error.message || 'unknown'}`,
       },
     });
   }

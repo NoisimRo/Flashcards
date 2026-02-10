@@ -237,13 +237,19 @@ export async function checkAndUnlockAchievements(
       }
 
       if (unlockConditionMet) {
-        // Unlock achievement
-        await client.query(
+        // Unlock achievement (ON CONFLICT DO NOTHING prevents race condition crashes
+        // when PUT auto-save and POST /complete both try to unlock the same achievement)
+        const insertResult = await client.query(
           `INSERT INTO user_achievements
              (user_id, achievement_id, xp_awarded)
-           VALUES ($1, $2, $3)`,
+           VALUES ($1, $2, $3)
+           ON CONFLICT (user_id, achievement_id) DO NOTHING
+           RETURNING id`,
           [userId, achievement.id, achievement.xp_reward]
         );
+
+        // Only award XP if the achievement was actually newly inserted (not a duplicate)
+        if (insertResult.rows.length === 0) continue;
 
         // Award XP with level-up calculation
         const newTotalXP = user.total_xp + achievement.xp_reward;
