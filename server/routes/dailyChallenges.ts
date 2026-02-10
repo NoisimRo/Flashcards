@@ -345,12 +345,17 @@ router.get('/activity-calendar', authenticateToken, async (req, res) => {
         else if (combinedScore > 0) intensity = 1;
       }
 
+      // Success rate: cards_learned / total cards interacted with
+      const totalCards = cardsLearned + cardsStudied;
+      const successRate = totalCards > 0 ? Math.round((cardsLearned / totalCards) * 100) : 0;
+
       calendar.push({
         date: dateStr,
         studied,
         intensity,
-        cardsLearned: cardsLearned + cardsStudied,
+        cardsLearned: totalCards,
         timeSpent,
+        successRate,
       });
     }
 

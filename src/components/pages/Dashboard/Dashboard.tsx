@@ -27,6 +27,7 @@ import {
   Crown,
   Sparkles,
   ShieldCheck,
+  Check,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -34,11 +35,13 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   RadialBarChart,
   RadialBar,
   PolarAngleAxis,
+  BarChart,
+  Bar,
 } from 'recharts';
 import { AVATARS } from '../Settings/AvatarPicker';
 
@@ -567,12 +570,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           </p>
                         </div>
                       </div>
-                      {completed && (
-                        <div className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                          <Star size={12} fill="white" />
-                          {t('dailyChallenges.complete')}
-                        </div>
-                      )}
+                      <div
+                        className="w-7 h-7 rounded-md flex items-center justify-center transition-all duration-300 flex-shrink-0"
+                        style={
+                          completed
+                            ? {
+                                backgroundColor: '#22c55e',
+                                boxShadow: '0 0 8px rgba(34, 197, 94, 0.4)',
+                              }
+                            : {
+                                backgroundColor: 'var(--bg-tertiary)',
+                                border: '2px solid var(--border-secondary)',
+                              }
+                        }
+                      >
+                        {completed && <Check size={16} className="text-white" strokeWidth={3} />}
+                      </div>
                     </div>
                     <div
                       className="h-2 rounded-full overflow-hidden"
@@ -653,6 +666,128 @@ export const Dashboard: React.FC<DashboardProps> = ({
               </div>
               <span>{t('activityCalendar.more')}</span>
             </div>
+
+            {/* Performance Analytics Charts */}
+            {activityCalendar.length > 0 && (
+              <div className="mt-5 space-y-4">
+                {/* Time Spent Line Chart */}
+                <div>
+                  <h3
+                    className="text-xs font-semibold mb-2 flex items-center gap-1.5"
+                    style={{ color: 'var(--text-tertiary)' }}
+                  >
+                    <Clock size={12} />
+                    {t('activityCalendar.timeSpentChart', 'Time Spent')}
+                  </h3>
+                  <div className="h-24">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart
+                        data={activityCalendar}
+                        margin={{ top: 2, right: 4, left: -20, bottom: 0 }}
+                      >
+                        <defs>
+                          <linearGradient id="timeGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="var(--color-accent)" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="var(--color-accent)" stopOpacity={0.02} />
+                          </linearGradient>
+                        </defs>
+                        <XAxis dataKey="date" hide />
+                        <YAxis
+                          tick={{ fontSize: 9, fill: 'var(--text-muted)' }}
+                          axisLine={false}
+                          tickLine={false}
+                          width={30}
+                        />
+                        <RechartsTooltip
+                          contentStyle={{
+                            backgroundColor: 'var(--bg-elevated)',
+                            border: '1px solid var(--border-secondary)',
+                            borderRadius: '8px',
+                            fontSize: '11px',
+                            color: 'var(--text-primary)',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                          }}
+                          formatter={(value: number) => [
+                            `${value} ${t('stats.minutes', 'min')}`,
+                            t('activityCalendar.timeSpentChart', 'Time Spent'),
+                          ]}
+                          labelFormatter={(label: string) => label}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="timeSpent"
+                          stroke="var(--color-accent)"
+                          strokeWidth={2}
+                          fill="url(#timeGradient)"
+                          dot={false}
+                          activeDot={{
+                            r: 4,
+                            stroke: 'var(--color-accent)',
+                            strokeWidth: 2,
+                            fill: 'var(--bg-elevated)',
+                          }}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* Success Rate Bar Chart */}
+                <div>
+                  <h3
+                    className="text-xs font-semibold mb-2 flex items-center gap-1.5"
+                    style={{ color: 'var(--text-tertiary)' }}
+                  >
+                    <TrendingUp size={12} />
+                    {t('activityCalendar.successRateChart', 'Success Rate')}
+                  </h3>
+                  <div className="h-24">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={activityCalendar}
+                        margin={{ top: 2, right: 4, left: -20, bottom: 0 }}
+                      >
+                        <defs>
+                          <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8} />
+                            <stop offset="95%" stopColor="#22c55e" stopOpacity={0.3} />
+                          </linearGradient>
+                        </defs>
+                        <XAxis dataKey="date" hide />
+                        <YAxis
+                          tick={{ fontSize: 9, fill: 'var(--text-muted)' }}
+                          axisLine={false}
+                          tickLine={false}
+                          domain={[0, 100]}
+                          width={30}
+                        />
+                        <RechartsTooltip
+                          contentStyle={{
+                            backgroundColor: 'var(--bg-elevated)',
+                            border: '1px solid var(--border-secondary)',
+                            borderRadius: '8px',
+                            fontSize: '11px',
+                            color: 'var(--text-primary)',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                          }}
+                          formatter={(value: number) => [
+                            `${value}%`,
+                            t('activityCalendar.successRateChart', 'Success Rate'),
+                          ]}
+                          labelFormatter={(label: string) => label}
+                        />
+                        <Bar
+                          dataKey="successRate"
+                          fill="url(#barGradient)"
+                          radius={[2, 2, 0, 0]}
+                          maxBarSize={8}
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -791,19 +926,26 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Study Recommendations — Top Rated Global Decks */}
           <div
-            className="p-6 rounded-2xl shadow-xl text-white"
-            style={{ background: 'var(--color-accent-gradient)' }}
+            className="p-6 rounded-2xl shadow-lg"
+            style={{
+              backgroundColor: 'var(--card-bg)',
+              borderWidth: '1px',
+              borderColor: 'var(--card-border)',
+            }}
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Zap size={24} />
-                <h2 className="text-xl font-bold">{t('recommendations.title')}</h2>
+                <Zap size={24} style={{ color: 'var(--color-accent)' }} />
+                <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
+                  {t('recommendations.title')}
+                </h2>
               </div>
               <button
                 onClick={() => onChangeView('study')}
-                className="text-sm font-medium text-white/80 hover:text-white flex items-center gap-1 transition-colors"
+                className="text-sm font-medium flex items-center gap-1 transition-colors hover:opacity-80"
+                style={{ color: 'var(--color-accent)' }}
               >
-                {t('recommendations.seeAll', 'Vezi toate')}
+                {t('recommendations.seeAll', 'See all')}
                 <ChevronRight size={16} />
               </button>
             </div>
@@ -812,15 +954,28 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 topRatedDecks.map(deck => (
                   <div
                     key={deck.id}
-                    className="bg-white/10 backdrop-blur-sm p-4 rounded-xl hover:bg-white/20 transition-all cursor-pointer group"
+                    className="p-4 rounded-xl transition-all cursor-pointer group border-l-4"
+                    style={{
+                      backgroundColor: 'var(--color-accent-subtle)',
+                      borderLeftColor: 'var(--color-accent)',
+                      borderTopWidth: '1px',
+                      borderRightWidth: '1px',
+                      borderBottomWidth: '1px',
+                      borderTopColor: 'var(--border-secondary)',
+                      borderRightColor: 'var(--border-secondary)',
+                      borderBottomColor: 'var(--border-secondary)',
+                    }}
                     onClick={() => onStartSession(deck)}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <h3 className="font-bold text-white group-hover:text-yellow-300 transition-colors">
+                        <h3
+                          className="font-bold transition-colors"
+                          style={{ color: 'var(--text-primary)' }}
+                        >
                           {deck.title}
                         </h3>
-                        <p className="text-sm text-white/80 mt-1">
+                        <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
                           {t('recommendations.cards', { total: deck.totalCards })}
                           {deck.ownerName
                             ? ` | ${t('recommendations.byAuthor', { author: deck.ownerName })}`
@@ -829,23 +984,32 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       </div>
                       <div className="flex items-center gap-2">
                         {deck.averageRating != null && deck.averageRating > 0 ? (
-                          <div className="flex items-center gap-1 bg-white/20 px-2 py-1 rounded-full">
-                            <Star size={14} className="fill-yellow-300 text-yellow-300" />
-                            <span className="text-sm font-semibold">
+                          <div
+                            className="flex items-center gap-1 px-2 py-1 rounded-full"
+                            style={{ backgroundColor: 'var(--color-accent-light)' }}
+                          >
+                            <Star size={14} className="fill-yellow-400 text-yellow-400" />
+                            <span
+                              className="text-sm font-semibold"
+                              style={{ color: 'var(--color-accent-text)' }}
+                            >
                               {deck.averageRating.toFixed(1)}
                             </span>
                           </div>
                         ) : null}
-                        <ChevronRight className="text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                        <ChevronRight
+                          className="group-hover:translate-x-1 transition-all"
+                          style={{ color: 'var(--text-muted)' }}
+                        />
                       </div>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-8 text-white/80">
+                <div className="text-center py-8" style={{ color: 'var(--text-muted)' }}>
                   <Brain size={32} className="mx-auto mb-2 opacity-60" />
                   <p className="text-sm">
-                    {t('recommendations.noPublicDecks', 'Niciun deck public disponibil momentan.')}
+                    {t('recommendations.noPublicDecks', 'No public decks available.')}
                   </p>
                 </div>
               )}
