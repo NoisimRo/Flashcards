@@ -112,7 +112,7 @@ router.get('/', optionalAuth, async (req: Request, res: Response) => {
     const decksResult = await query(
       `SELECT
         d.id, d.title, d.description, d.subject_id, d.topic, d.difficulty,
-        d.cover_image, d.is_public, d.tags, d.total_cards,
+        d.cover_image, d.is_public, d.language, d.tags, d.total_cards,
         d.owner_id, d.created_at, d.updated_at, d.last_studied,
         d.sync_status, d.version,
         d.average_rating, d.review_count,
@@ -361,6 +361,7 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
       isPublic = true,
       tags = [],
       cards = [],
+      language = 'ro',
     } = req.body;
 
     if (!title) {
@@ -376,10 +377,10 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
     const result = await withTransaction(async client => {
       // Create deck
       const deckResult = await client.query(
-        `INSERT INTO decks (title, description, subject_id, topic, difficulty, is_public, tags, owner_id)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        `INSERT INTO decks (title, description, subject_id, topic, difficulty, is_public, tags, language, owner_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
          RETURNING *`,
-        [title, description, subject, topic, difficulty, isPublic, tags, req.user!.id]
+        [title, description, subject, topic, difficulty, isPublic, tags, language, req.user!.id]
       );
 
       const deck = deckResult.rows[0];
@@ -952,6 +953,7 @@ function formatDeck(deck: any) {
     difficulty: deck.difficulty,
     coverImage: deck.cover_image,
     isPublic: deck.is_public,
+    language: deck.language || 'ro',
     tags: deck.tags || [],
     totalCards: deck.total_cards,
     masteredCards: deck.mastered_cards || 0,

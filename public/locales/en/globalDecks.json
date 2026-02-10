@@ -10,6 +10,10 @@
   },
   "search": {
     "placeholder": "Search by title, topic, or creator...",
+    "allLanguages": "All Languages",
+    "languageRo": "Română",
+    "languageEn": "English",
+    "languageIt": "Italiano",
     "allSubjects": "All Subjects",
     "allLevels": "All Levels",
     "allRatings": "All Ratings",
