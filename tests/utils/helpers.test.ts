@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { Card, Deck, DeckWithCards, User, Achievement } from '../../src/types';
+import type { Card, Deck, User } from '../../src/types';
 
 // Test-specific types with minimal required fields
 type TestCard = Pick<Card, 'id' | 'front' | 'back' | 'type'>;
@@ -10,7 +10,7 @@ function isValidCard(card: TestCard): boolean {
     typeof card.id === 'string' &&
     typeof card.front === 'string' &&
     typeof card.back === 'string' &&
-    ['standard', 'quiz', 'type-answer'].includes(card.type)
+    ['standard', 'quiz', 'type-answer', 'multiple-answer'].includes(card.type)
   );
 }
 
@@ -139,7 +139,3 @@ describe('User Stats', () => {
     expect(user.totalAnswers).toBeGreaterThanOrEqual(user.totalCorrectAnswers);
   });
 });
-
-// NOTE: Achievement unlock tests removed - Achievement.unlocked was removed in refactoring
-// Achievement unlock status is now determined server-side based on user progress
-// TODO: Rewrite achievement tests to use server-side unlock logic

@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { Card, Deck, DeckWithCards, CardStatus } from '../../src/types';
+import { describe, it, expect } from 'vitest';
+import type { Card } from '../../src/types';
 
 // Test-specific Card type with minimal required fields
 type TestCard = Pick<Card, 'id' | 'front' | 'back' | 'type'>;
@@ -112,17 +112,4 @@ describe('Deck Operations', () => {
       expect(shuffled.find(c => c.id === card.id)).toBeDefined();
     });
   });
-
-  // NOTE: Tests removed - Card.status moved to UserCardProgress in refactoring
-  // The following tests are obsolete and need to be rewritten to use UserCardProgress:
-  // - should filter cards by status correctly
-  // - should prioritize cards correctly in study queue
-  // - should limit study queue to maxCards
-});
-
-// NOTE: Deck Statistics tests removed - need to be rewritten to use new architecture
-// The old tests used deck.cards and card.status which no longer exist
-// TODO: Rewrite using DeckWithCards and UserCardProgress
-describe.skip('Deck Statistics', () => {
-  // Tests commented out - need refactoring for new type system
 });

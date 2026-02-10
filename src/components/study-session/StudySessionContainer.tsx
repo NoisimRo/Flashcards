@@ -109,7 +109,11 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     currentXP: number;
     nextLevelXP: number;
     level: number;
+    sessionXPAtCheck: number;
   } | null>(null);
+
+  // Track how much sessionXP is already baked into user.currentXP from server syncs
+  const lastSyncedSessionXPRef = useRef(0);
 
   // Wire user update callback so PUT responses can sync auth context
   useEffect(() => {
@@ -120,6 +124,8 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
         nextLevelXP: data.nextLevelXP,
         totalXP: data.totalXP,
       });
+      // After server sync, user.currentXP includes XP up to this point
+      lastSyncedSessionXPRef.current = useStudySessionsStore.getState().sessionXP;
     });
     return () => {
       setOnUserUpdateCallback(null);
@@ -131,6 +137,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     // CRITICAL: Reset state BEFORE loading to prevent answers from previous session
     resetSessionState();
     userXPStateRef.current = null;
+    lastSyncedSessionXPRef.current = 0;
     loadSession(sessionId);
     enableAutoSave();
 
@@ -393,6 +400,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     ) {
       restartSession();
       userXPStateRef.current = null;
+      lastSyncedSessionXPRef.current = 0;
       setShowCompletionModal(false);
       setShowXPAnimation(false);
       setShowStreakCelebration(false);
@@ -509,11 +517,25 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
   const checkLevelUp = () => {
     if (!user) return;
 
-    // Use synchronous ref if a level-up already occurred this session
-    // (React state via updateUser is async, so `user` may still hold stale values)
-    const effectiveCurrentXP = userXPStateRef.current?.currentXP ?? user.currentXP;
-    const effectiveNextLevelXP = userXPStateRef.current?.nextLevelXP ?? user.nextLevelXP;
-    const effectiveLevel = userXPStateRef.current?.level ?? user.level;
+    const currentSessionXP = useStudySessionsStore.getState().sessionXP;
+
+    let effectiveCurrentXP: number;
+    let effectiveNextLevelXP: number;
+    let effectiveLevel: number;
+
+    if (userXPStateRef.current) {
+      // Level-up already happened this session - use ref + XP earned since last check
+      const xpSinceLastCheck = currentSessionXP - userXPStateRef.current.sessionXPAtCheck;
+      effectiveCurrentXP = userXPStateRef.current.currentXP + Math.max(0, xpSinceLastCheck);
+      effectiveNextLevelXP = userXPStateRef.current.nextLevelXP;
+      effectiveLevel = userXPStateRef.current.level;
+    } else {
+      // No level-up yet this session - use user XP + unsynced session XP
+      const unsyncedXP = currentSessionXP - lastSyncedSessionXPRef.current;
+      effectiveCurrentXP = user.currentXP + Math.max(0, unsyncedXP);
+      effectiveNextLevelXP = user.nextLevelXP;
+      effectiveLevel = user.level;
+    }
 
     // Check if user has reached or exceeded next level threshold
     if (effectiveCurrentXP >= effectiveNextLevelXP && !showLevelUp) {
@@ -531,7 +553,12 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
       }
 
       // Synchronously update ref to prevent re-triggering on next answer
-      userXPStateRef.current = { currentXP: remainingXP, nextLevelXP, level: newLevel };
+      userXPStateRef.current = {
+        currentXP: remainingXP,
+        nextLevelXP,
+        level: newLevel,
+        sessionXPAtCheck: currentSessionXP,
+      };
 
       // Also update React state for display (async, corrected on next render)
       updateUser({
