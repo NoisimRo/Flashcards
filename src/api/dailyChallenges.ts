@@ -55,6 +55,7 @@ export interface ActivityDay {
   intensity: number;
   cardsLearned: number;
   timeSpent: number;
+  successRate: number;
 }
 
 export interface ActivityCalendarResponse {
