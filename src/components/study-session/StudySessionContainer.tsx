@@ -172,22 +172,6 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     }
   }, [user]);
 
-  // Check if session is complete (all cards answered)
-  useEffect(() => {
-    if (!currentSession?.cards) return;
-
-    const totalCards = currentSession.cards.length;
-    const answeredCards = Object.keys(answers).length;
-
-    // Show completion modal when all cards are answered
-    // SINGLE SOURCE OF TRUTH - prevents double completion calls
-    if (answeredCards === totalCards && totalCards > 0 && !showCompletionModal) {
-      setTimeout(() => {
-        setShowCompletionModal(true);
-      }, 6000); // 6 seconds delay to let user read feedback and explanation on last card
-    }
-  }, [answers, currentSession, showCompletionModal]);
-
   // Handle back navigation with progress sync
   const handleBack = async () => {
     await syncProgress();
