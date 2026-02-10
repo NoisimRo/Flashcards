@@ -91,6 +91,7 @@ export interface Deck {
   difficulty: Difficulty;
   coverImage?: string;
   isPublic: boolean;
+  language?: string;
   tags: string[];
   // Stats (denormalized for performance)
   totalCards: number;

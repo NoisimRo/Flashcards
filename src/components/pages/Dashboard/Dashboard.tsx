@@ -365,16 +365,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="flex gap-3">
             <button
               onClick={() => {
-                // Smart redirect based on user's current state
-                if (decks.length === 0) {
-                  // No decks exist: redirect to deck creation
-                  onChangeView('decks');
-                } else if (activeSessions.length === 0) {
-                  // Decks exist but no active sessions: redirect to My Decks to create session
-                  onChangeView('decks');
+                if (activeSessions.length > 0) {
+                  // Open the most recent active session
+                  const mostRecent = [...activeSessions].sort(
+                    (a, b) =>
+                      new Date(b.lastActivityAt).getTime() - new Date(a.lastActivityAt).getTime()
+                  )[0];
+                  if (onResumeSession) {
+                    onResumeSession(mostRecent.id);
+                  } else {
+                    onChangeView('sessions');
+                  }
                 } else {
-                  // Active sessions exist: show sessions page
-                  onChangeView('sessions');
+                  // No sessions: redirect to Global Decks
+                  onChangeView('study');
                 }
               }}
               className="text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
@@ -924,7 +928,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 {t('continueLearning.noActiveSessionsDescription')}
               </p>
               <button
-                onClick={() => onChangeView('decks')}
+                onClick={() => onChangeView('study')}
                 className="text-white px-6 py-3 rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl flex items-center gap-2 mx-auto"
                 style={{ background: 'var(--color-accent-gradient)' }}
               >

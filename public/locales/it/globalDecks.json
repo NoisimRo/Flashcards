@@ -10,6 +10,10 @@
   },
   "search": {
     "placeholder": "Cerca per titolo, argomento o creatore...",
+    "allLanguages": "Tutte le Lingue",
+    "languageRo": "Română",
+    "languageEn": "English",
+    "languageIt": "Italiano",
     "allSubjects": "Tutte le Materie",
     "allLevels": "Tutti i Livelli",
     "allRatings": "Tutte le Valutazioni",

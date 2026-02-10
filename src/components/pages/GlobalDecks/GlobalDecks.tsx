@@ -41,6 +41,7 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
   const [decks, setDecks] = useState<APIDeck[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedLanguage, setSelectedLanguage] = useState<string>(i18n.language || 'ro');
   const [selectedSubject, setSelectedSubject] = useState<string>('all');
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
   const [selectedRating, setSelectedRating] = useState<string>('all');
@@ -107,6 +108,10 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
         deck.topic.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (deck.ownerName && deck.ownerName.toLowerCase().includes(searchQuery.toLowerCase()));
 
+      // Language filter
+      const matchesLanguage =
+        selectedLanguage === 'all' || (deck.language || 'ro') === selectedLanguage;
+
       // Subject filter
       const matchesSubject = selectedSubject === 'all' || deck.subjectName === selectedSubject;
 
@@ -125,9 +130,11 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
         }
       }
 
-      return matchesSearch && matchesSubject && matchesDifficulty && matchesRating;
+      return (
+        matchesSearch && matchesLanguage && matchesSubject && matchesDifficulty && matchesRating
+      );
     });
-  }, [decks, searchQuery, selectedSubject, selectedDifficulty, selectedRating]);
+  }, [decks, searchQuery, selectedLanguage, selectedSubject, selectedDifficulty, selectedRating]);
 
   // Group decks by subject, sorted by deck count DESC
   const { largeCategories, smallCategoryDecks } = useMemo(() => {
@@ -519,6 +526,18 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
             />
           </div>
 
+          {/* Language Filter */}
+          <select
+            value={selectedLanguage}
+            onChange={e => setSelectedLanguage(e.target.value)}
+            className="px-4 py-3 border border-[var(--input-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-ring)] focus:border-transparent bg-[var(--input-bg)] text-[var(--text-primary)]"
+          >
+            <option value="all">{t('search.allLanguages')}</option>
+            <option value="ro">{t('search.languageRo')}</option>
+            <option value="en">{t('search.languageEn')}</option>
+            <option value="it">{t('search.languageIt')}</option>
+          </select>
+
           {/* Subject Filter */}
           <select
             value={selectedSubject}
@@ -563,6 +582,7 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
 
         {/* Active Filters Summary */}
         {(searchQuery ||
+          selectedLanguage !== 'all' ||
           selectedSubject !== 'all' ||
           selectedDifficulty !== 'all' ||
           selectedRating !== 'all') && (
@@ -574,6 +594,7 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
             <button
               onClick={() => {
                 setSearchQuery('');
+                setSelectedLanguage('all');
                 setSelectedSubject('all');
                 setSelectedDifficulty('all');
                 setSelectedRating('all');

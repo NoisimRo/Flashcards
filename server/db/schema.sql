@@ -135,6 +135,9 @@ CREATE TABLE decks (
     is_public BOOLEAN DEFAULT true,
     tags TEXT[] DEFAULT '{}',
 
+    -- Content language (defaults to Romanian)
+    language VARCHAR(5) DEFAULT 'ro',
+
     -- Stats (denormalized for performance)
     total_cards INTEGER DEFAULT 0,
 
