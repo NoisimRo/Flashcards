@@ -55,7 +55,9 @@
     "less": "Meno",
     "more": "Più",
     "cardsLearned": "{{cards}} carte studiate",
-    "timeSpent": "{{minutes}} min studiati"
+    "timeSpent": "{{minutes}} min studiati",
+    "timeSpentChart": "Tempo impiegato",
+    "successRateChart": "Tasso di successo"
   },
   "continueLearning": {
     "title": "Continua l'Apprendimento",
