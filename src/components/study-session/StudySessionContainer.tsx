@@ -326,47 +326,36 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
       perCardTimesTracked: Object.keys(perCardTimes).length,
     });
 
-    try {
-      const { completeSession } = useStudySessionsStore.getState();
-      const result = await completeSession(currentSession.id, {
-        score,
-        correctCount,
-        incorrectCount,
-        skippedCount: actualSkippedCount, // Include unanswered cards as skipped
-        durationSeconds, // Accurate active time from per-card tracking
-        cardProgressUpdates,
-        clientTimezoneOffset: new Date().getTimezoneOffset(),
-      });
+    const { completeSession } = useStudySessionsStore.getState();
+    const result = await completeSession(currentSession.id, {
+      score,
+      correctCount,
+      incorrectCount,
+      skippedCount: actualSkippedCount, // Include unanswered cards as skipped
+      durationSeconds, // Accurate active time from per-card tracking
+      cardProgressUpdates,
+      clientTimezoneOffset: new Date().getTimezoneOffset(),
+    });
 
-      // Check if user leveled up
-      if (result?.leveledUp && result?.newLevel) {
-        const oldLevel = result.newLevel - 1; // Calculate old level (simplistic approach)
-        setLevelUpData({ oldLevel, newLevel: result.newLevel });
-        setShowLevelUp(true);
-        // Wait for level up animation before going back
-        setTimeout(() => {
-          setShowCompletionModal(false);
-          onFinish();
-        }, 3500);
-      } else {
+    // completeSession returns null on API failure (it catches its own errors)
+    if (!result) {
+      alert('Eroare la finalizarea sesiunii. Te rugăm să încerci din nou.');
+      return; // Stay on modal so user can retry
+    }
+
+    // Check if user leveled up
+    if (result.leveledUp && result.newLevel) {
+      const oldLevel = result.newLevel - 1;
+      setLevelUpData({ oldLevel, newLevel: result.newLevel });
+      setShowLevelUp(true);
+      // Wait for level up animation before going back
+      setTimeout(() => {
         setShowCompletionModal(false);
         onFinish();
-      }
-    } catch (error: any) {
-      console.error('❌ Error completing session:', error);
-      console.error('Error details:', error?.response?.data);
-
-      // If session was already completed, just proceed
-      if (error?.response?.data?.error?.code === 'ALREADY_COMPLETED') {
-        console.warn('Session already completed, proceeding...');
-        setShowCompletionModal(false);
-        onFinish();
-      } else {
-        // Show error to user but allow them to exit
-        alert('Eroare la finalizarea sesiunii. Te rugăm să încerci din nou.');
-        setShowCompletionModal(false);
-        onBack();
-      }
+      }, 3500);
+    } else {
+      setShowCompletionModal(false);
+      onFinish();
     }
   };
 

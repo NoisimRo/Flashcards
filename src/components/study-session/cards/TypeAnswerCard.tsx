@@ -183,11 +183,12 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
       setShowBack(true);
     }, 500);
 
-    // Auto-advance after 3 seconds (from back view)
+    // Auto-advance: 3.5s normally, 10.5s on last card so user can read feedback
     if (onAutoAdvance) {
+      const delay = isLastCard ? 10500 : 3500; // 500ms feedback + viewing time
       const timer = setTimeout(() => {
         onAutoAdvance();
-      }, 3500); // 500ms feedback + 3000ms on back = 3500ms total
+      }, delay);
       setAutoAdvanceTimer(timer);
     }
   };
