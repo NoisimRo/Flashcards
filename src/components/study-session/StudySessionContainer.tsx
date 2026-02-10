@@ -810,6 +810,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
                 isFirstCard={currentCardIndex === 0}
                 isLastCard={currentCardIndex === (currentSession?.cards?.length || 0) - 1}
                 hasAnswered={answers[currentCard.id] !== undefined}
+                isSkipped={answers[currentCard.id] === 'skipped'}
                 canEditDelete={canEditDelete}
                 onEditCard={handleEditCard}
                 onDeleteCard={handleDeleteCard}
