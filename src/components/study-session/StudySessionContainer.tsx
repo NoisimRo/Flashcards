@@ -27,6 +27,8 @@ import type { Card } from '../../types/models';
 import { ArrowLeft, Shuffle, RotateCcw, CheckCircle } from 'lucide-react';
 import { soundEngine } from '../../services/soundEngine';
 import { SparkleExplosion, ScreenShake } from './animations/ParticleEffects';
+import { isGuestUser, GUEST_PROMPTS } from '../../utils/guestMode';
+import { useUIStore } from '../../store/uiStore';
 
 interface StudySessionContainerProps {
   sessionId: string;
@@ -44,6 +46,8 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
   onBack,
 }) => {
   const { user, updateUser } = useAuth();
+  const isGuest = isGuestUser(user);
+  const { setShowLoginPrompt } = useUIStore();
   const {
     currentSession,
     loadSession,
@@ -202,6 +206,18 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
   // Handle completion modal actions
   const handleSaveAndExit = async () => {
     setShowCompletionModal(false);
+
+    // Guest: show login prompt if they had correct answers, then navigate back
+    if (isGuest) {
+      const correctCount = Object.values(answers).filter(a => a === 'correct').length;
+      if (correctCount > 0) {
+        const prompt = GUEST_PROMPTS.SAVE_PROGRESS(correctCount);
+        setShowLoginPrompt(true, { title: prompt.title, message: prompt.message });
+      }
+      onBack();
+      return;
+    }
+
     await syncProgress();
     onBack();
   };
@@ -291,6 +307,16 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
     if (currentSession.status === 'completed') {
       console.warn('Session already completed');
       setShowCompletionModal(false);
+      onFinish();
+      return;
+    }
+
+    // Guest: don't call completeSession (requires auth). Show login prompt instead.
+    if (isGuest) {
+      const correctCount = Object.values(answers).filter(a => a === 'correct').length;
+      const prompt = GUEST_PROMPTS.SAVE_PROGRESS(correctCount);
+      setShowCompletionModal(false);
+      setShowLoginPrompt(true, { title: prompt.title, message: prompt.message });
       onFinish();
       return;
     }
@@ -919,6 +945,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
             onSaveAndExit={handleSaveAndExit}
             onFinishAndExit={handleFinishAndExit}
             onReviewMistakes={handleReviewMistakes}
+            isGuest={isGuest}
           />
         )}
 

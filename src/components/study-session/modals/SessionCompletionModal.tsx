@@ -1,5 +1,14 @@
 import React from 'react';
-import { Trophy, Save, CheckCircle, RefreshCw, TrendingUp, AlertTriangle } from 'lucide-react';
+import {
+  Trophy,
+  Save,
+  CheckCircle,
+  RefreshCw,
+  TrendingUp,
+  AlertTriangle,
+  UserPlus,
+  ArrowLeft,
+} from 'lucide-react';
 import { Card, AnswerStatus } from '../../../types/models';
 import '../animations/animations.css';
 
@@ -22,6 +31,7 @@ interface SessionCompletionModalProps {
   onSaveAndExit: () => void;
   onFinishAndExit: () => void;
   onReviewMistakes?: () => void;
+  isGuest?: boolean;
 }
 
 // Rotate through a palette for tag badge colors
@@ -170,6 +180,7 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
   onSaveAndExit,
   onFinishAndExit,
   onReviewMistakes,
+  isGuest = false,
 }) => {
   const isPerfect = score === 100;
   const hasReviewableCards = incorrectCount + skippedCount > 0;
@@ -332,32 +343,38 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
             </button>
           )}
 
-          {/* Save & Exit (without syncing) */}
+          {/* Save & Exit / Back to Dashboard */}
           <button
             onClick={onSaveAndExit}
             className="w-full font-bold py-4 rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 active:scale-98"
             style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
           >
-            <Save size={20} />
-            Salveaza & Iesi
+            {isGuest ? <ArrowLeft size={20} /> : <Save size={20} />}
+            {isGuest ? 'Înapoi la Dashboard' : 'Salveaza & Iesi'}
           </button>
 
-          {/* Finish & Exit (sync to backend) */}
+          {/* Finish & Exit / Create Account to Save */}
           <button
             onClick={onFinishAndExit}
             className="w-full text-white font-bold py-4 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 active:scale-98"
             style={{ backgroundColor: 'var(--color-accent)' }}
           >
-            <CheckCircle size={20} />
-            Finalizeaza & Iesi
+            {isGuest ? <UserPlus size={20} /> : <CheckCircle size={20} />}
+            {isGuest ? 'Creează Cont pentru a Salva' : 'Finalizeaza & Iesi'}
           </button>
         </div>
 
         {/* Helper Text */}
         <p className="text-xs text-center mt-4" style={{ color: 'var(--text-muted)' }}>
-          &ldquo;Salveaza & Iesi&rdquo; pastreaza progresul pentru mai tarziu.
-          <br />
-          &ldquo;Finalizeaza & Iesi&rdquo; marchează sesiunea completă.
+          {isGuest ? (
+            'Progresul vizitatorilor nu este salvat permanent. Creează un cont gratuit pentru a nu pierde progresul.'
+          ) : (
+            <>
+              &ldquo;Salveaza & Iesi&rdquo; pastreaza progresul pentru mai tarziu.
+              <br />
+              &ldquo;Finalizeaza & Iesi&rdquo; marchează sesiunea completă.
+            </>
+          )}
         </p>
       </div>
     </div>

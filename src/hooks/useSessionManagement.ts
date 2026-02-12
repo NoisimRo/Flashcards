@@ -2,7 +2,6 @@ import { useCallback } from 'react';
 import { useStudySessionsStore } from '../store/studySessionsStore';
 import { useUIStore } from '../store/uiStore';
 import { useAuth } from '../store/AuthContext';
-import { shouldPromptLogin } from '../utils/guestMode';
 import type { Deck } from '../types';
 
 /**
@@ -11,9 +10,8 @@ import type { Deck } from '../types';
  */
 export function useSessionManagement() {
   const { isAuthenticated, refreshSession } = useAuth();
-  const { createGuestSession, fetchActiveSessions } = useStudySessionsStore();
-  const { setShowCreateSessionModal, setActiveSessionId, setCurrentView, setShowLoginPrompt } =
-    useUIStore();
+  const { fetchActiveSessions } = useStudySessionsStore();
+  const { setShowCreateSessionModal, setActiveSessionId, setCurrentView } = useUIStore();
 
   const isGuest = !isAuthenticated;
 
@@ -60,6 +58,14 @@ export function useSessionManagement() {
 
   const handleCloseSession = useCallback(async () => {
     setActiveSessionId(null);
+
+    // For guests, navigate to dashboard instead of sessions list
+    // (sessions list would be empty/confusing for guests)
+    if (isGuest) {
+      setCurrentView('dashboard');
+      return;
+    }
+
     setCurrentView('sessions');
 
     // Refresh user data and decks after session completes
@@ -67,7 +73,14 @@ export function useSessionManagement() {
       await refreshSession();
       await fetchActiveSessions({ status: 'active' });
     }
-  }, [setActiveSessionId, setCurrentView, isAuthenticated, refreshSession, fetchActiveSessions]);
+  }, [
+    setActiveSessionId,
+    setCurrentView,
+    isAuthenticated,
+    isGuest,
+    refreshSession,
+    fetchActiveSessions,
+  ]);
 
   return {
     handleStartSession,

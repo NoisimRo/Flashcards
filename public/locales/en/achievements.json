@@ -108,5 +108,20 @@
       "description": "All cards mastered in a deck",
       "howToEarn": "Master every card in a single deck"
     }
+  },
+  "guest": {
+    "ctaBanner": {
+      "title": "Create an account to unlock achievements",
+      "subtitle": "{{count}} badges available to earn",
+      "button": "Create Free Account"
+    },
+    "stats": {
+      "available": "Available Badges",
+      "badgesToUnlock": "badges to unlock",
+      "tiers": "Tiers",
+      "tierBreakdown": "Bronze, Silver, Gold, Platinum",
+      "topReward": "Top Reward",
+      "xpAvailable": "XP available to earn"
+    }
   }
 }

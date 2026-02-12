@@ -21,5 +21,9 @@
     "close": "Chiudi",
     "yes": "Sì",
     "no": "No"
+  },
+  "guestBanner": {
+    "message": "Modalità visitatore — i tuoi progressi non verranno salvati.",
+    "cta": "Crea account gratuito"
   }
 }

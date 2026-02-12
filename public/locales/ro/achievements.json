@@ -108,5 +108,20 @@
       "description": "Toate cardurile memorate",
       "howToEarn": "Memorează toate cardurile dintr-un deck"
     }
+  },
+  "guest": {
+    "ctaBanner": {
+      "title": "Creează un cont pentru a debloca realizări",
+      "subtitle": "{{count}} insigne disponibile de câștigat",
+      "button": "Creează Cont Gratuit"
+    },
+    "stats": {
+      "available": "Insigne Disponibile",
+      "badgesToUnlock": "insigne de deblocat",
+      "tiers": "Nivele",
+      "tierBreakdown": "Bronz, Argint, Aur, Platină",
+      "topReward": "Recompensă Maximă",
+      "xpAvailable": "XP disponibil de câștigat"
+    }
   }
 }

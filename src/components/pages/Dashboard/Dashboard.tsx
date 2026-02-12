@@ -44,6 +44,7 @@ import {
   Bar,
 } from 'recharts';
 import { AVATARS } from '../Settings/AvatarPicker';
+import { GuestDashboard } from './GuestDashboard';
 
 interface DashboardProps {
   user: User;
@@ -61,6 +62,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onResumeSession,
 }) => {
   const { t, i18n } = useTranslation('dashboard');
+
+  const isGuest = user.id === 'guest';
 
   // State for daily challenges
   const [dailyChallenges, setDailyChallenges] = useState<DailyChallenge[]>([]);
@@ -88,6 +91,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   // Fetch daily challenges, activity calendar, achievements, card stats, and active sessions on mount
   useEffect(() => {
+    if (isGuest) return;
     const fetchData = async () => {
       try {
         const [
@@ -151,7 +155,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     };
 
     fetchData();
-  }, [user.id]);
+  }, [user.id, isGuest]);
 
   // Calculate stats from real data
   const stats = useMemo(() => {
@@ -287,6 +291,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
       fill: 'var(--color-accent)',
     },
   ];
+
+  // Guest users get a dedicated dashboard with featured content
+  if (isGuest) {
+    return <GuestDashboard onStartSession={onStartSession} onChangeView={onChangeView} />;
+  }
 
   return (
     <div

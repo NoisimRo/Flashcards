@@ -21,5 +21,9 @@
     "close": "Close",
     "yes": "Yes",
     "no": "No"
+  },
+  "guestBanner": {
+    "message": "Visitor mode — your progress will not be saved.",
+    "cta": "Create free account"
   }
 }
