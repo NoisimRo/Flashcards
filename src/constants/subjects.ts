@@ -9,7 +9,7 @@ export interface Subject {
 }
 
 export const SUBJECTS: Subject[] = [
-  { id: 'romana', displayName: 'Limba Română', color: '#1f2937', icon: 'book-open' },
+  { id: 'romana', displayName: 'Limba Română', color: '#4338ca', icon: 'book-open' },
   { id: 'matematica', displayName: 'Matematică', color: '#3b82f6', icon: 'calculator' },
   { id: 'istorie', displayName: 'Istorie', color: '#f97316', icon: 'landmark' },
   { id: 'geografie', displayName: 'Geografie', color: '#22c55e', icon: 'globe' },
@@ -58,6 +58,13 @@ export const LANGUAGE_FLAGS: Record<string, string> = {
   ro: '🇷🇴',
   en: '🇬🇧',
   it: '🇮🇹',
+};
+
+// Language display info for cross-browser rendering
+export const LANGUAGE_INFO: Record<string, { flag: string; code: string; color: string }> = {
+  ro: { flag: '🇷🇴', code: 'RO', color: '#2563eb' },
+  en: { flag: '🇬🇧', code: 'EN', color: '#dc2626' },
+  it: { flag: '🇮🇹', code: 'IT', color: '#16a34a' },
 };
 
 // Helper function to get flag emoji for a language code

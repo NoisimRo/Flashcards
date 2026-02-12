@@ -23,7 +23,8 @@ import { getDecks, getDeck, deleteDeck, updateDeck } from '../../../api/decks';
 import type { DeckWithCards as APIDeck } from '../../../types';
 import type { Deck, DeckWithCards } from '../../../types';
 import { useToast } from '../../ui/Toast';
-import { getSubjectDisplayName, getLanguageFlag, SUBJECTS } from '../../../constants/subjects';
+import { getSubjectDisplayName, SUBJECTS } from '../../../constants/subjects';
+import { LanguageFlag } from '../../ui/LanguageFlag';
 import { ReviewModal } from '../../reviews/ReviewModal';
 import { FlagModal } from '../../flags/FlagModal';
 import { EditCardsModal } from '../DeckList/EditCardsModal';
@@ -285,30 +286,6 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
         key={deck.id}
         className="bg-[var(--card-bg)] border-2 border-[var(--card-border)] rounded-2xl p-6 hover:border-[var(--color-accent)] hover:shadow-lg transition-all group relative"
       >
-        {/* Rating Display (top-right, before menu) */}
-        {hasRating ? (
-          <div className="absolute top-4 right-12 flex items-center gap-1 bg-[var(--bg-elevated)] px-2 py-1 rounded-full shadow-sm border border-[var(--border-subtle)]">
-            <Star size={14} className="fill-yellow-400 text-yellow-400" />
-            <span className="text-sm font-semibold text-[var(--text-secondary)]">
-              {deck.averageRating!.toFixed(1)}
-            </span>
-            <span className="text-xs text-[var(--text-tertiary)]">({deck.reviewCount})</span>
-          </div>
-        ) : (
-          !isOwner && (
-            <button
-              onClick={e => {
-                e.stopPropagation();
-                openReviewForDeck(deck);
-              }}
-              className="absolute top-4 right-12 flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer border border-dashed border-[var(--border-secondary)] text-[var(--text-muted)] hover:text-[var(--color-accent-text)] hover:border-[var(--color-accent)]"
-            >
-              <Star size={12} />
-              {t('deckCard.beFirstToRate')}
-            </button>
-          )
-        )}
-
         {/* Three-Dot Menu (top-right corner) */}
         <div className="absolute top-4 right-4">
           <div className="relative">
@@ -395,16 +372,37 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
         {/* Deck Header */}
         <div className="mb-4">
           <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-3 pr-8">{deck.title}</h3>
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-lg leading-none" title={deck.language || 'ro'}>
-              {getLanguageFlag(deck.language)}
-            </span>
+          <div className="flex items-center gap-2 flex-wrap mb-3">
+            <LanguageFlag code={deck.language} />
             <span
               className="inline-block px-3 py-1 rounded-full text-xs font-bold text-white shadow-sm"
               style={{ backgroundColor: getSubjectColor(subject) }}
             >
               {subject}
             </span>
+            {/* Rating inline to prevent overlap */}
+            {hasRating ? (
+              <div className="flex items-center gap-1 bg-[var(--bg-elevated)] px-2 py-1 rounded-full shadow-sm border border-[var(--border-subtle)] ml-auto">
+                <Star size={14} className="fill-yellow-400 text-yellow-400" />
+                <span className="text-sm font-semibold text-[var(--text-secondary)]">
+                  {deck.averageRating!.toFixed(1)}
+                </span>
+                <span className="text-xs text-[var(--text-tertiary)]">({deck.reviewCount})</span>
+              </div>
+            ) : (
+              !isOwner && (
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    openReviewForDeck(deck);
+                  }}
+                  className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer border border-dashed border-[var(--border-secondary)] text-[var(--text-muted)] hover:text-[var(--color-accent-text)] hover:border-[var(--color-accent)] ml-auto"
+                >
+                  <Star size={12} />
+                  {t('deckCard.beFirstToRate')}
+                </button>
+              )
+            )}
           </div>
           <p className="text-xs text-[var(--text-muted)] flex items-center gap-1">
             <Users size={12} />

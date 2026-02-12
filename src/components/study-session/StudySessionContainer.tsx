@@ -917,7 +917,7 @@ export const StudySessionContainer: React.FC<StudySessionContainerProps> = ({
         {dailyXPGoalCelebration && (
           <AchievementCelebration
             icon="zap"
-            title={`Daily XP Goal! +${Math.floor(dailyXPGoalRef.current * 0.01)} XP bonus`}
+            title={`Daily XP Goal! +${Math.floor(dailyXPGoalRef.current * 0.1)} XP bonus`}
             color="bg-gradient-to-br from-yellow-400 to-amber-500 text-white"
             onComplete={() => setDailyXPGoalCelebration(false)}
           />
