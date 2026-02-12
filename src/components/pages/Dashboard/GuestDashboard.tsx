@@ -21,7 +21,7 @@ import {
 import { getDecks } from '../../../api/decks';
 import { useAuthActions } from '../../../hooks/useAuthActions';
 import achievementsData from '../../../data/seed/achievements.json';
-import type { User, Deck, DeckWithCards } from '../../../types';
+import type { Deck, DeckWithCards } from '../../../types';
 
 const ICON_MAP: Record<string, React.ElementType> = {
   target: Target,
@@ -35,22 +35,14 @@ const ICON_MAP: Record<string, React.ElementType> = {
 };
 
 interface GuestDashboardProps {
-  user: User;
-  decks: Deck[];
   onStartSession: (deck: Deck) => void;
   onChangeView: (view: string) => void;
 }
 
-export const GuestDashboard: React.FC<GuestDashboardProps> = ({
-  user,
-  decks,
-  onStartSession,
-  onChangeView,
-}) => {
+export const GuestDashboard: React.FC<GuestDashboardProps> = ({ onStartSession, onChangeView }) => {
   const { t } = useTranslation('dashboard');
   const { handleRegisterClick } = useAuthActions();
   const [featuredDecks, setFeaturedDecks] = useState<DeckWithCards[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchPublicDecks = async () => {
@@ -64,8 +56,6 @@ export const GuestDashboard: React.FC<GuestDashboardProps> = ({
         }
       } catch (error) {
         console.error('Error fetching public decks:', error);
-      } finally {
-        setIsLoading(false);
       }
     };
     fetchPublicDecks();

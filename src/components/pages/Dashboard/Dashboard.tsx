@@ -66,14 +66,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   // Guest users get a dedicated dashboard with featured content
   const isGuest = user.id === 'guest';
   if (isGuest) {
-    return (
-      <GuestDashboard
-        user={user}
-        decks={decks}
-        onStartSession={onStartSession}
-        onChangeView={onChangeView}
-      />
-    );
+    return <GuestDashboard onStartSession={onStartSession} onChangeView={onChangeView} />;
   }
 
   // State for daily challenges

@@ -2,7 +2,6 @@ import { useCallback } from 'react';
 import { useStudySessionsStore } from '../store/studySessionsStore';
 import { useUIStore } from '../store/uiStore';
 import { useAuth } from '../store/AuthContext';
-import { shouldPromptLogin } from '../utils/guestMode';
 import type { Deck } from '../types';
 
 /**
@@ -11,9 +10,8 @@ import type { Deck } from '../types';
  */
 export function useSessionManagement() {
   const { isAuthenticated, refreshSession } = useAuth();
-  const { createGuestSession, fetchActiveSessions } = useStudySessionsStore();
-  const { setShowCreateSessionModal, setActiveSessionId, setCurrentView, setShowLoginPrompt } =
-    useUIStore();
+  const { fetchActiveSessions } = useStudySessionsStore();
+  const { setShowCreateSessionModal, setActiveSessionId, setCurrentView } = useUIStore();
 
   const isGuest = !isAuthenticated;
 
