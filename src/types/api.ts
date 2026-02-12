@@ -51,6 +51,7 @@ export interface RegisterRequest {
   password: string;
   name: string;
   role?: 'teacher' | 'student'; // Admin created manually
+  guestToken?: string;
 }
 
 export interface AuthResponse {

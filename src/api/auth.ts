@@ -2,10 +2,20 @@ import { api, setTokens, clearTokens } from './client';
 import type { AuthResponse, LoginRequest, RegisterRequest } from '../types';
 
 export async function login(email: string, password: string) {
-  const response = await api.post<AuthResponse>('/auth/login', { email, password });
+  // Include guest token to migrate guest data (sessions + decks) on login
+  const guestToken = localStorage.getItem('guest_token') || undefined;
+  const response = await api.post<AuthResponse>('/auth/login', {
+    email,
+    password,
+    ...(guestToken ? { guestToken } : {}),
+  });
 
   if (response.success && response.data) {
     setTokens(response.data.accessToken, response.data.refreshToken);
+    // Clear guest token after successful login + migration
+    if (guestToken) {
+      localStorage.removeItem('guest_token');
+    }
   }
 
   return response;

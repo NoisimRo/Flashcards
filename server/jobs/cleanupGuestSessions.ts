@@ -36,9 +36,24 @@ export async function cleanupGuestSessions(): Promise<CleanupResult> {
       []
     );
 
-    const deletedCount = result.rows.length;
+    const deletedSessionsCount = result.rows.length;
 
-    console.log(`[Cleanup] Deleted ${deletedCount} abandoned guest sessions`);
+    // Also clean up guest decks (cards cascade-delete via FK)
+    const deckResult = await query(
+      `DELETE FROM decks
+       WHERE is_guest = true
+         AND owner_id IS NULL
+         AND created_at < NOW() - INTERVAL '7 days'
+       RETURNING id`,
+      []
+    );
+
+    const deletedDecksCount = deckResult.rows.length;
+    const deletedCount = deletedSessionsCount;
+
+    console.log(
+      `[Cleanup] Deleted ${deletedSessionsCount} abandoned guest sessions, ${deletedDecksCount} abandoned guest decks`
+    );
 
     return { deletedCount };
   } catch (error) {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useUIStore } from '../store/uiStore';
 import { useDecksStore } from '../store/decksStore';
@@ -28,7 +28,12 @@ import { Settings } from '../components/pages/Settings/Settings';
  */
 export const ViewRouter: React.FC = () => {
   const { currentView, activeSessionId, setCurrentView } = useUIStore();
-  const { decks: apiDecks, isLoading: isLoadingDecks, fetchDecks } = useDecksStore();
+  const {
+    decks: apiDecks,
+    isLoading: isLoadingDecks,
+    fetchDecks,
+    fetchGuestDecks,
+  } = useDecksStore();
   const { user: authUser, isAuthenticated } = useAuth();
   const decksManagement = useDecksManagement();
   const sessionManagement = useSessionManagement();
@@ -37,6 +42,16 @@ export const ViewRouter: React.FC = () => {
   const user: User = isAuthenticated && authUser ? authUser : GUEST_USER;
   const isGuest = !isAuthenticated;
   const decks = apiDecks;
+
+  // Fetch guest decks when a guest navigates to the decks view
+  useEffect(() => {
+    if (isGuest && currentView === 'decks') {
+      const guestToken = localStorage.getItem('guest_token');
+      if (guestToken) {
+        fetchGuestDecks(guestToken);
+      }
+    }
+  }, [isGuest, currentView, fetchGuestDecks]);
 
   // Loading state
   if (isLoadingDecks && decks.length === 0) {
@@ -72,7 +87,14 @@ export const ViewRouter: React.FC = () => {
           onDeleteDeck={decksManagement.handleDeleteDeck}
           onStartSession={sessionManagement.handleStartSession}
           onResetDeck={decksManagement.handleResetDeck}
-          onRefreshDecks={() => fetchDecks({ ownedOnly: true })}
+          onRefreshDecks={() => {
+            if (isGuest) {
+              const guestToken = localStorage.getItem('guest_token');
+              if (guestToken) fetchGuestDecks(guestToken);
+            } else {
+              fetchDecks({ ownedOnly: true });
+            }
+          }}
           isGuest={isGuest}
           onLoginPrompt={(title, message) => {
             useUIStore.getState().setShowLoginPrompt(true, { title, message });

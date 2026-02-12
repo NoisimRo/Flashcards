@@ -142,7 +142,11 @@ CREATE TABLE decks (
     total_cards INTEGER DEFAULT 0,
 
     -- Ownership
-    owner_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    owner_id UUID REFERENCES users(id) ON DELETE CASCADE,
+
+    -- Guest deck support (same pattern as study_sessions)
+    guest_token VARCHAR(255),
+    is_guest BOOLEAN DEFAULT false,
 
     -- Metadata
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -161,10 +165,14 @@ CREATE TABLE decks (
     review_count INTEGER DEFAULT 0,
 
     -- Flag count (managed by trigger on deck_flags)
-    flag_count INTEGER DEFAULT 0
+    flag_count INTEGER DEFAULT 0,
+
+    -- Either owner_id or guest_token must be present
+    CONSTRAINT check_deck_identity CHECK (owner_id IS NOT NULL OR guest_token IS NOT NULL)
 );
 
 CREATE INDEX idx_decks_owner ON decks(owner_id);
+CREATE INDEX idx_decks_guest_token ON decks(guest_token) WHERE guest_token IS NOT NULL;
 
 -- ============================================
 -- DECK REVIEWS TABLE

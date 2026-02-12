@@ -184,7 +184,8 @@
   "guestPrompt": {
     "createDeck": {
       "title": "Crea un account gratuito",
-      "message": "Per creare i tuoi mazzi e salvarli permanentemente, crea un account gratuito!"
+      "message": "Crea un account gratuito per mantenere i tuoi mazzi permanentemente e sbloccare tutte le funzioni!",
+      "success": "Mazzo creato con successo!"
     },
     "aiGeneration": {
       "title": "Funzione Premium",

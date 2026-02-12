@@ -11,6 +11,8 @@ interface DecksStore {
 
   // Actions
   fetchDecks: (params?: DeckListParams) => Promise<void>;
+  fetchGuestDecks: (guestToken: string) => Promise<void>;
+  addDeckLocally: (deck: Deck) => void;
   createDeck: (data: CreateDeckRequest) => Promise<Deck | null>;
   updateDeck: (id: string, data: UpdateDeckRequest) => Promise<void>;
   deleteDeck: (id: string) => Promise<void>;
@@ -37,6 +39,28 @@ export const useDecksStore = create<DecksStore>((set, get) => ({
     } catch (error) {
       set({ error: 'Network error', isLoading: false });
     }
+  },
+
+  // Fetch guest decks by token
+  fetchGuestDecks: async (guestToken: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await decksApi.getGuestDecks(guestToken);
+      if (response.success && response.data) {
+        set({ decks: response.data, isLoading: false });
+      } else {
+        set({ decks: [], isLoading: false });
+      }
+    } catch {
+      set({ decks: [], isLoading: false });
+    }
+  },
+
+  // Add a deck to local state without API call (used for guest-created decks)
+  addDeckLocally: (deck: Deck) => {
+    set(state => ({
+      decks: [...state.decks, deck],
+    }));
   },
 
   // Create deck

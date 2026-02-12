@@ -40,13 +40,13 @@
       "noCards": "Nessuna carta disponibile",
       "cardNumber": "Carta #{{number}}",
       "premiumTitle": "Selezione Manuale — Funzione Premium",
-      "premiumDescription": "La selezione manuale delle carte è disponibile solo per gli utenti registrati. Crea un account gratuito per accedere a questa funzione!",
-      "premiumHint": "Puoi usare le modalità Casuale o Tutte per studiare senza un account."
+      "premiumDescription": "La selezione manuale delle carte è disponibile solo per gli utenti registrati.",
+      "premiumCta": "Crea un account gratuito"
     },
     "smart": {
       "premiumTitle": "Revisione Intelligente — Funzione Premium",
-      "premiumDescription": "L'algoritmo Smart Review dà priorità alle carte in base al tuo progresso. Crea un account gratuito per accedervi!",
-      "premiumHint": "Puoi usare le modalità Casuale o Tutte per studiare senza un account."
+      "premiumDescription": "L'algoritmo Smart Review dà priorità alle carte in base al tuo progresso.",
+      "premiumCta": "Crea un account gratuito"
     },
     "buttons": {
       "cancel": "Annulla",

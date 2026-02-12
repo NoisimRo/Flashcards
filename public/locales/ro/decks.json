@@ -195,7 +195,8 @@
   "guestPrompt": {
     "createDeck": {
       "title": "Creează un cont gratuit",
-      "message": "Pentru a crea propriile deck-uri și a le salva permanent, creează un cont gratuit!"
+      "message": "Creează un cont gratuit pentru a păstra deck-urile tale permanent și a debloca toate funcțiile!",
+      "success": "Deck creat cu succes!"
     },
     "aiGeneration": {
       "title": "Funcție Premium",
