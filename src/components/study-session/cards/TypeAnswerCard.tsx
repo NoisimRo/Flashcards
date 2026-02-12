@@ -357,40 +357,40 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
                   <input
                     type="text"
                     value={userAnswer}
-                    onChange={e => !showResult && setUserAnswer(e.target.value)}
+                    onChange={e => !showBack && setUserAnswer(e.target.value)}
                     placeholder="Scrie răspunsul aici..."
-                    readOnly={showResult}
+                    readOnly={showBack}
                     className={`w-full px-5 py-4 pr-14 rounded-xl border-2 focus:outline-none focus:ring-2 transition-all text-base ${
-                      showResult
+                      showBack
                         ? isCorrect || cardAnswer === 'correct'
                           ? 'border-[var(--input-correct-border)]'
                           : 'border-[var(--input-incorrect-border)]'
                         : 'focus:ring-[var(--color-accent-ring)]'
                     }`}
                     style={{
-                      backgroundColor: showResult
+                      backgroundColor: showBack
                         ? isCorrect || cardAnswer === 'correct'
                           ? 'var(--input-correct-bg)'
                           : 'var(--input-incorrect-bg)'
                         : 'var(--input-bg)',
-                      borderColor: showResult ? undefined : 'var(--input-default-border)',
+                      borderColor: showBack ? undefined : 'var(--input-default-border)',
                       color: 'var(--text-primary)',
-                      cursor: showResult ? 'default' : undefined,
+                      cursor: showBack ? 'default' : undefined,
                     }}
-                    autoFocus={!showResult}
+                    autoFocus={!showBack}
                   />
                   <button
                     type="submit"
-                    disabled={!userAnswer.trim() || showResult}
+                    disabled={!userAnswer.trim() || showBack}
                     className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all active:scale-95"
                     style={{
                       color:
-                        !userAnswer.trim() || showResult
+                        !userAnswer.trim() || showBack
                           ? 'var(--text-muted)'
                           : isPracticeMode
                             ? '#22c55e'
                             : 'var(--color-accent)',
-                      cursor: !userAnswer.trim() || showResult ? 'not-allowed' : 'pointer',
+                      cursor: !userAnswer.trim() || showBack ? 'not-allowed' : 'pointer',
                     }}
                     title={isPracticeMode ? 'Practică (fără XP)' : 'Trimite răspunsul'}
                   >
