@@ -84,5 +84,46 @@
     "title": "Recent Achievements",
     "unlockedRecently": "Unlocked recently",
     "startStudying": "Start studying for achievements!"
+  },
+  "guest": {
+    "hero": {
+      "title": "Start Learning Today",
+      "subtitle": "Study smarter with spaced repetition, earn XP, and track your progress",
+      "exploreCTA": "Explore Decks",
+      "registerCTA": "Create Free Account"
+    },
+    "features": {
+      "spacedRepetition": "Spaced Repetition",
+      "spacedRepetitionDesc": "Our algorithm shows you cards at the optimal time",
+      "xpAndLevels": "XP & Levels",
+      "xpAndLevelsDesc": "Earn points and level up as you study",
+      "achievements": "Achievements",
+      "achievementsDesc": "Unlock badges by completing challenges"
+    },
+    "quickStart": {
+      "title": "Jump Right In",
+      "subtitle": "Start studying popular decks now — no account needed",
+      "studyNow": "Study Now"
+    },
+    "featuredDecks": {
+      "title": "Featured Decks",
+      "seeAll": "See All Decks",
+      "cards": "{{total}} cards",
+      "byAuthor": "by {{author}}"
+    },
+    "achievementPreview": {
+      "title": "Achievements You Can Unlock",
+      "subtitle": "Create an account to start earning badges and XP",
+      "registerCTA": "Create account to unlock"
+    },
+    "valueProp": {
+      "trackProgress": "Track Your Progress",
+      "trackProgressDesc": "See your daily activity and study streaks",
+      "earnXP": "Earn XP & Level Up",
+      "earnXPDesc": "Every correct answer earns you experience points",
+      "compete": "Compete on Leaderboard",
+      "competeDesc": "See how you rank against other learners",
+      "finalCTA": "Ready? Create your free account"
+    }
   }
 }

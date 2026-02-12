@@ -84,5 +84,46 @@
     "title": "Risultati Recenti",
     "unlockedRecently": "Sbloccato di recente",
     "startStudying": "Inizia a studiare per i risultati!"
+  },
+  "guest": {
+    "hero": {
+      "title": "Inizia a Imparare Oggi",
+      "subtitle": "Studia in modo più intelligente con la ripetizione spaziata, guadagna XP e monitora i tuoi progressi",
+      "exploreCTA": "Esplora i Mazzi",
+      "registerCTA": "Crea Account Gratuito"
+    },
+    "features": {
+      "spacedRepetition": "Ripetizione Spaziata",
+      "spacedRepetitionDesc": "Il nostro algoritmo ti mostra le carte al momento ottimale",
+      "xpAndLevels": "XP e Livelli",
+      "xpAndLevelsDesc": "Guadagna punti e sali di livello mentre studi",
+      "achievements": "Risultati",
+      "achievementsDesc": "Sblocca badge completando sfide"
+    },
+    "quickStart": {
+      "title": "Inizia Subito",
+      "subtitle": "Studia mazzi popolari ora — non serve un account",
+      "studyNow": "Studia Ora"
+    },
+    "featuredDecks": {
+      "title": "Mazzi in Evidenza",
+      "seeAll": "Vedi Tutti i Mazzi",
+      "cards": "{{total}} carte",
+      "byAuthor": "di {{author}}"
+    },
+    "achievementPreview": {
+      "title": "Risultati Che Puoi Sbloccare",
+      "subtitle": "Crea un account per iniziare a guadagnare badge e XP",
+      "registerCTA": "Crea account per sbloccare"
+    },
+    "valueProp": {
+      "trackProgress": "Monitora i Tuoi Progressi",
+      "trackProgressDesc": "Vedi l'attività giornaliera e le serie di studio",
+      "earnXP": "Guadagna XP e Sali di Livello",
+      "earnXPDesc": "Ogni risposta corretta ti fa guadagnare punti esperienza",
+      "compete": "Competi nella Classifica",
+      "competeDesc": "Scopri come ti classifichi rispetto agli altri",
+      "finalCTA": "Pronto? Crea il tuo account gratuito"
+    }
   }
 }

@@ -87,6 +87,10 @@ export function shouldPromptLogin(action: string, isGuest: boolean): LoginPrompt
     'create-deck': GUEST_PROMPTS.CREATE_DECK,
     'create-session': GUEST_PROMPTS.CREATE_SESSION,
     'save-settings': GUEST_PROMPTS.SAVE_SETTINGS,
+    'complete-session': {
+      title: 'Salvează progresul sesiunii',
+      message: 'Creează un cont pentru a salva permanent rezultatele sesiunilor tale de studiu.',
+    },
   };
 
   return promptMap[action] || null;

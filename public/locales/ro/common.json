@@ -21,5 +21,9 @@
     "close": "Închide",
     "yes": "Da",
     "no": "Nu"
+  },
+  "guestBanner": {
+    "message": "Mod vizitator — progresul nu va fi salvat.",
+    "cta": "Creează cont gratuit"
   }
 }

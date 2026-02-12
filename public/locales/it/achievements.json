@@ -108,5 +108,20 @@
       "description": "Tutte le carte masterizzate",
       "howToEarn": "Masterizza tutte le carte in un singolo mazzo"
     }
+  },
+  "guest": {
+    "ctaBanner": {
+      "title": "Crea un account per sbloccare i risultati",
+      "subtitle": "{{count}} badge disponibili da guadagnare",
+      "button": "Crea Account Gratuito"
+    },
+    "stats": {
+      "available": "Badge Disponibili",
+      "badgesToUnlock": "badge da sbloccare",
+      "tiers": "Livelli",
+      "tierBreakdown": "Bronzo, Argento, Oro, Platino",
+      "topReward": "Ricompensa Massima",
+      "xpAvailable": "XP disponibili da guadagnare"
+    }
   }
 }
