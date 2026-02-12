@@ -83,12 +83,6 @@ export const DeckList: React.FC<DeckListProps> = ({
   const [selectedDeckForReview, setSelectedDeckForReview] = useState<Deck | null>(null);
 
   const openCreateModal = () => {
-    // Guard: Visitors must register to create decks
-    if (isGuest && onLoginPrompt) {
-      onLoginPrompt(t('guestPrompt.createDeck.title'), t('guestPrompt.createDeck.message'));
-      return;
-    }
-
     setGenerateModalMode('create');
     setSelectedDeckForGenerate(null);
     setIsGenerateModalOpen(true);

@@ -10,6 +10,7 @@ import {
   MoreVertical,
   Plus,
   Layers,
+  Globe,
 } from 'lucide-react';
 import { useStudySessionsStore } from '../../store/studySessionsStore';
 import { useToast } from '../ui/Toast';
@@ -20,6 +21,7 @@ interface ActiveSessionsListProps {
   decks?: any[];
   onChangeView?: (view: string) => void;
   onCreateDeck?: () => void;
+  isGuest?: boolean;
 }
 
 const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({
@@ -27,6 +29,7 @@ const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({
   decks = [],
   onChangeView,
   onCreateDeck,
+  isGuest = false,
 }) => {
   const toast = useToast();
   const { activeSessions, isLoading, fetchActiveSessions, abandonSession } =
@@ -126,7 +129,36 @@ const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({
   }
 
   if (activeSessions.length === 0) {
-    // Scenario A: No decks exist
+    // Guest users: always redirect to Global Decks
+    if (isGuest) {
+      return (
+        <div className="flex flex-col items-center justify-center py-16 px-4">
+          <div className="bg-[var(--color-accent-light)] rounded-3xl p-12 max-w-md w-full text-center shadow-lg">
+            <Globe size={64} className="mx-auto text-[var(--color-accent)] mb-4" />
+            <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-3">
+              Explorează Deck-urile Disponibile
+            </h2>
+            <p className="text-[var(--text-secondary)] mb-6">
+              Descoperă sute de deck-uri create de comunitate și începe o sesiune de studiu!
+            </p>
+            <button
+              onClick={() => {
+                if (onChangeView) {
+                  onChangeView('study');
+                }
+              }}
+              className="text-white font-bold py-3 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 flex items-center gap-2 mx-auto"
+              style={{ background: 'var(--color-accent-gradient)' }}
+            >
+              <Globe size={20} />
+              Deck-uri Globale
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // Scenario A: No decks exist (authenticated users)
     if (decks.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center py-16 px-4">
@@ -151,7 +183,7 @@ const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({
       );
     }
 
-    // Scenario B: Decks exist but no active sessions
+    // Scenario B: Decks exist but no active sessions (authenticated users)
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4">
         <div className="bg-green-500/10 rounded-3xl p-12 max-w-md w-full text-center shadow-lg">
@@ -164,7 +196,6 @@ const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({
           </p>
           <button
             onClick={() => {
-              // Redirect to My Decks page to create a new session
               if (onChangeView) {
                 onChangeView('decks');
               }

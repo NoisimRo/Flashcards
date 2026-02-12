@@ -44,7 +44,15 @@
       "noCards": "Nu există carduri disponibile",
       "cardNumber": "Card #{{number}}",
       "filterByTopics": "Filtrează după Teme",
-      "clearFilters": "Șterge filtrele"
+      "clearFilters": "Șterge filtrele",
+      "premiumTitle": "Selectare Manuală — Funcție Premium",
+      "premiumDescription": "Selectarea manuală a cardurilor este disponibilă doar pentru utilizatorii cu cont. Creează un cont gratuit pentru a accesa această funcție!",
+      "premiumHint": "Poți folosi modurile Random sau Toate pentru a studia fără cont."
+    },
+    "smart": {
+      "premiumTitle": "Smart Review — Funcție Premium",
+      "premiumDescription": "Algoritmul Smart Review prioritizează cardurile în funcție de progresul tău. Creează un cont gratuit pentru a-l accesa!",
+      "premiumHint": "Poți folosi modurile Random sau Toate pentru a studia fără cont."
     },
     "buttons": {
       "cancel": "Anulează",
