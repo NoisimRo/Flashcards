@@ -23,7 +23,7 @@ import { getDecks, getDeck, deleteDeck, updateDeck } from '../../../api/decks';
 import type { DeckWithCards as APIDeck } from '../../../types';
 import type { Deck, DeckWithCards } from '../../../types';
 import { useToast } from '../../ui/Toast';
-import { getSubjectDisplayName, getLanguageFlag } from '../../../constants/subjects';
+import { getSubjectDisplayName, getLanguageFlag, SUBJECTS } from '../../../constants/subjects';
 import { ReviewModal } from '../../reviews/ReviewModal';
 import { FlagModal } from '../../flags/FlagModal';
 import { EditCardsModal } from '../DeckList/EditCardsModal';
@@ -266,19 +266,9 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
     return () => document.removeEventListener('click', closeMenu);
   }, []);
 
-  const getSubjectColor = (subject: string) => {
-    const colorMap: Record<string, string> = {
-      Matematică: 'bg-blue-500',
-      'Limba Română': 'bg-indigo-600',
-      Istorie: 'bg-orange-500',
-      Geografie: 'bg-green-500',
-      Biologie: 'bg-emerald-600',
-      Fizică: 'bg-purple-500',
-      Chimie: 'bg-pink-500',
-      Informatică: 'bg-cyan-500',
-      'Limba Engleză': 'bg-red-500',
-    };
-    return colorMap[subject] || 'bg-gray-900';
+  const getSubjectColor = (subject: string): string => {
+    const found = SUBJECTS.find(s => s.displayName === subject);
+    return found?.color || '#374151';
   };
 
   const openReviewForDeck = (deck: APIDeck) => {
@@ -404,18 +394,18 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
 
         {/* Deck Header */}
         <div className="mb-4">
+          <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-3 pr-8">{deck.title}</h3>
           <div className="flex items-center gap-2 mb-3">
             <span className="text-lg leading-none" title={deck.language || 'ro'}>
               {getLanguageFlag(deck.language)}
             </span>
             <span
-              className={`inline-block px-3 py-1 rounded-full text-xs font-bold text-white ${getSubjectColor(subject)}`}
+              className="inline-block px-3 py-1 rounded-full text-xs font-bold text-white shadow-sm"
+              style={{ backgroundColor: getSubjectColor(subject) }}
             >
               {subject}
             </span>
           </div>
-          <h3 className="text-lg font-bold text-[var(--text-primary)] mb-1 pr-8">{deck.title}</h3>
-          <p className="text-sm text-[var(--text-tertiary)] mb-2">{deck.topic}</p>
           <p className="text-xs text-[var(--text-muted)] flex items-center gap-1">
             <Users size={12} />
             {t('deckCard.createdBy')}{' '}
@@ -627,7 +617,10 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
           {largeCategories.map(([subject, subjectDecks]) => (
             <div key={subject} className="space-y-4">
               <div className="flex items-center gap-3">
-                <div className={`w-1 h-8 ${getSubjectColor(subject)} rounded-full`}></div>
+                <div
+                  className="w-1 h-8 rounded-full"
+                  style={{ backgroundColor: getSubjectColor(subject) }}
+                ></div>
                 <h2 className="text-2xl font-bold text-[var(--text-primary)]">{subject}</h2>
                 <span className="text-sm text-[var(--text-tertiary)] font-medium">
                   ({subjectDecks.length}{' '}

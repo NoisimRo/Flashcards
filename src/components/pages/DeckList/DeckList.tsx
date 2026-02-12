@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { getDeck } from '../../../api/decks';
 import { useToast } from '../../ui/Toast';
-import { getLanguageFlag } from '../../../constants/subjects';
+import { getLanguageFlag, SUBJECTS } from '../../../constants/subjects';
 import { ReviewModal } from '../../reviews/ReviewModal';
 import { FlagModal } from '../../flags/FlagModal';
 import { GenerateCardsModal } from './GenerateCardsModal';
@@ -374,14 +374,12 @@ export const DeckList: React.FC<DeckListProps> = ({
                     {getLanguageFlag(deck.language)}
                   </span>
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-bold text-white shadow-sm
-                    ${
-                      deck.subject === 'Matematică'
-                        ? 'bg-blue-500'
-                        : deck.subject === 'Istorie'
-                          ? 'bg-orange-500'
-                          : 'bg-[var(--color-accent)]'
-                    }`}
+                    className="px-3 py-1 rounded-full text-xs font-bold text-white shadow-sm"
+                    style={{
+                      backgroundColor:
+                        SUBJECTS.find(s => s.displayName === deck.subject)?.color ||
+                        'var(--color-accent)',
+                    }}
                   >
                     {deck.subject}
                   </span>

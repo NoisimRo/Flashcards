@@ -349,8 +349,9 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
                   <input
                     type="text"
                     value={userAnswer}
-                    onChange={e => setUserAnswer(e.target.value)}
+                    onChange={e => !showResult && setUserAnswer(e.target.value)}
                     placeholder="Scrie răspunsul aici..."
+                    readOnly={showResult}
                     className={`w-full px-5 py-4 pr-14 rounded-xl border-2 focus:outline-none focus:ring-2 transition-all text-base ${
                       showResult
                         ? isCorrect || cardAnswer === 'correct'
@@ -366,20 +367,22 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
                         : 'var(--input-bg)',
                       borderColor: showResult ? undefined : 'var(--input-default-border)',
                       color: 'var(--text-primary)',
+                      cursor: showResult ? 'default' : undefined,
                     }}
-                    autoFocus
+                    autoFocus={!showResult}
                   />
                   <button
                     type="submit"
-                    disabled={!userAnswer.trim()}
+                    disabled={!userAnswer.trim() || showResult}
                     className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all active:scale-95"
                     style={{
-                      color: !userAnswer.trim()
-                        ? 'var(--text-muted)'
-                        : isPracticeMode
-                          ? '#22c55e'
-                          : 'var(--color-accent)',
-                      cursor: !userAnswer.trim() ? 'not-allowed' : 'pointer',
+                      color:
+                        !userAnswer.trim() || showResult
+                          ? 'var(--text-muted)'
+                          : isPracticeMode
+                            ? '#22c55e'
+                            : 'var(--color-accent)',
+                      cursor: !userAnswer.trim() || showResult ? 'not-allowed' : 'pointer',
                     }}
                     title={isPracticeMode ? 'Practică (fără XP)' : 'Trimite răspunsul'}
                   >
