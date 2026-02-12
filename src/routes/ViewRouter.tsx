@@ -34,7 +34,7 @@ export const ViewRouter: React.FC = () => {
     fetchDecks,
     fetchGuestDecks,
   } = useDecksStore();
-  const { user: authUser, isAuthenticated } = useAuth();
+  const { user: authUser, isAuthenticated, logout, updateUser } = useAuth();
   const decksManagement = useDecksManagement();
   const sessionManagement = useSessionManagement();
   const { leaderboardEntries } = useLeaderboard();
@@ -156,14 +156,15 @@ export const ViewRouter: React.FC = () => {
       return (
         <Settings
           user={user}
-          onSave={() => {
-            /* Save settings logic */
+          onSave={(updatedUser: User) => {
+            updateUser(updatedUser);
           }}
           onLogout={
             isGuest
               ? undefined
               : async () => {
-                  /* Logout handled via useAuthActions */
+                  await logout();
+                  setCurrentView('dashboard');
                 }
           }
           isGuest={isGuest}

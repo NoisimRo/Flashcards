@@ -132,19 +132,25 @@ export const FlagModal: React.FC<FlagModalProps> = ({
           </button>
         </div>
 
-        {/* Card Preview (for card flags) */}
+        {/* Card Preview (for card flags) - Only show front to prevent cheating */}
         {type === 'card' && card && (
-          <div className="mb-6 p-4 bg-[var(--bg-tertiary)] rounded-xl border border-[var(--border-secondary)]">
-            <p className="text-xs font-medium text-[var(--text-tertiary)] mb-2">PREVIEW CARD</p>
-            <div className="space-y-2">
-              <div>
-                <p className="text-xs font-medium text-[var(--text-secondary)]">Fata:</p>
-                <p className="text-sm text-[var(--text-primary)]">{card.front}</p>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-[var(--text-secondary)]">Spate:</p>
-                <p className="text-sm text-[var(--text-primary)]">{card.back}</p>
-              </div>
+          <div
+            className="mb-6 p-4 rounded-xl border"
+            style={{
+              backgroundColor: 'var(--bg-tertiary)',
+              borderColor: 'var(--border-secondary)',
+            }}
+          >
+            <p className="text-xs font-medium mb-2" style={{ color: 'var(--text-tertiary)' }}>
+              PREVIEW CARD
+            </p>
+            <div>
+              <p className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>
+                Fata:
+              </p>
+              <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
+                {card.front}
+              </p>
             </div>
           </div>
         )}
@@ -161,11 +167,13 @@ export const FlagModal: React.FC<FlagModalProps> = ({
                 {FLAG_REASONS.map(flagReason => (
                   <label
                     key={flagReason.value}
-                    className={`flex items-start gap-3 p-3 border rounded-xl cursor-pointer transition-colors ${
-                      reason === flagReason.value
-                        ? 'border-orange-500 bg-orange-50'
-                        : 'border-[var(--border-secondary)] hover:border-[var(--border-primary)]'
-                    }`}
+                    className="flex items-start gap-3 p-3 border rounded-xl cursor-pointer transition-colors"
+                    style={{
+                      borderColor:
+                        reason === flagReason.value ? '#f97316' : 'var(--border-secondary)',
+                      backgroundColor:
+                        reason === flagReason.value ? 'var(--color-accent-light)' : 'transparent',
+                    }}
                   >
                     <input
                       type="radio"
@@ -218,12 +226,24 @@ export const FlagModal: React.FC<FlagModalProps> = ({
           </div>
 
           {/* Info */}
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <div
+            className="rounded-xl p-4"
+            style={{
+              backgroundColor: 'var(--color-accent-light)',
+              border: '1px solid var(--border-secondary)',
+            }}
+          >
             <div className="flex gap-3">
-              <Flag size={20} className="text-blue-600 flex-shrink-0 mt-0.5" />
+              <Flag
+                size={20}
+                className="flex-shrink-0 mt-0.5"
+                style={{ color: 'var(--color-accent)' }}
+              />
               <div>
-                <p className="text-sm font-medium text-blue-900 mb-1">Raportul tau este anonim</p>
-                <p className="text-xs text-blue-700">
+                <p className="text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>
+                  Raportul tau este anonim
+                </p>
+                <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                   Echipa de moderatori va revizui raportul tau si va lua masurile necesare. Vei fi
                   notificat despre rezultat.
                 </p>

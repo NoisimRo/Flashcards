@@ -611,12 +611,6 @@ export const Settings: React.FC<SettingsProps> = ({
               >
                 <Save size={18} /> {isSaving ? '...' : t('actions.saveChanges')}
               </button>
-              <button
-                className="px-6 py-3 font-bold transition-colors"
-                style={{ color: 'var(--text-muted)' }}
-              >
-                {t('actions.cancel')}
-              </button>
             </div>
           )}
         </div>

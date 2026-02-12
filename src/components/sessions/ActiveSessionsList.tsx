@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { useStudySessionsStore } from '../../store/studySessionsStore';
 import { useToast } from '../ui/Toast';
-import { getLanguageFlag } from '../../constants/subjects';
+import { getLanguageFlag, SUBJECTS } from '../../constants/subjects';
 
 interface ActiveSessionsListProps {
   onResumeSession: (sessionId: string) => void;
@@ -103,6 +103,11 @@ const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({
       default:
         return BookOpen;
     }
+  };
+
+  const getSubjectColor = (subject: string): string => {
+    const found = SUBJECTS.find(s => s.displayName === subject);
+    return found?.color || 'var(--color-accent)';
   };
 
   const getMethodColor = (method: string) => {
@@ -266,18 +271,27 @@ const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({
                 </div>
               </div>
 
-              {/* Row 1 (H3): Flag + Category + Topic */}
-              <div className="flex items-center gap-2 mb-2 relative z-10 pr-16">
+              {/* Row 1: Topic as primary title */}
+              <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-2 pr-16 relative z-10">
+                {session.deck?.topic || session.title || 'Sesiune'}
+              </h3>
+
+              {/* Row 2: Flag + Subject pill */}
+              <div className="flex items-center gap-2 mb-4">
                 <span className="text-lg leading-none" title={session.deck?.language || 'ro'}>
                   {getLanguageFlag(session.deck?.language)}
                 </span>
-                <h3 className="text-2xl font-bold text-[var(--text-primary)]">
-                  {session.deck?.subjectName || 'Sesiune'}
-                  {session.deck?.topic ? ` • ${session.deck.topic}` : ''}
-                </h3>
+                {session.deck?.subjectName && (
+                  <span
+                    className="px-3 py-1 rounded-full text-xs font-bold text-white shadow-sm"
+                    style={{ backgroundColor: getSubjectColor(session.deck.subjectName) }}
+                  >
+                    {session.deck.subjectName}
+                  </span>
+                )}
               </div>
 
-              {/* Row 2: Metadata - Cards Count | Method */}
+              {/* Row 3: Metadata - Cards Count | Method */}
               <div className="flex items-center gap-2 mb-4 text-sm text-[var(--text-secondary)] font-medium">
                 <span>{session.totalCards} carduri</span>
                 <span className="text-[var(--text-muted)]">|</span>

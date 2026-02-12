@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import ReactDOM from 'react-dom';
-import { X, Bug, Camera, RefreshCw, Send, Loader2 } from 'lucide-react';
+import { X, Bug, Camera, RefreshCw, Send, Loader2, Paperclip, Trash2 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { useAuth } from '../../store/AuthContext';
 import { useToast } from '../ui/Toast';
@@ -21,6 +21,9 @@ export const BugReportModal: React.FC<BugReportModalProps> = ({ onClose }) => {
   const [screenshot, setScreenshot] = useState<string | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [attachedFile, setAttachedFile] = useState<string | null>(null);
+  const [attachedFileName, setAttachedFileName] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
 
   // Prevent background scrolling
@@ -88,6 +91,43 @@ export const BugReportModal: React.FC<BugReportModalProps> = ({ onClose }) => {
     }
   }, [toast, t]);
 
+  const handleFileSelect = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+      if (!allowedTypes.includes(file.type)) {
+        toast.error(
+          t('bugReport.invalidFileType', 'Format invalid'),
+          t('bugReport.invalidFileTypeDetail', 'Doar fișiere .jpg, .jpeg sau .png sunt permise.')
+        );
+        return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(
+          t('bugReport.fileTooLarge', 'Fișier prea mare'),
+          t('bugReport.fileTooLargeDetail', 'Fișierul nu poate depăși 5MB.')
+        );
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        setAttachedFile(reader.result as string);
+        setAttachedFileName(file.name);
+      };
+      reader.readAsDataURL(file);
+
+      // Reset input so the same file can be re-selected
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    },
+    [toast, t]
+  );
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -114,7 +154,7 @@ export const BugReportModal: React.FC<BugReportModalProps> = ({ onClose }) => {
         title: title.trim(),
         description: description.trim(),
         metadata,
-        screenshot: screenshot ?? undefined,
+        screenshot: screenshot ?? attachedFile ?? undefined,
       });
 
       if (response.success && response.data) {
@@ -225,10 +265,10 @@ export const BugReportModal: React.FC<BugReportModalProps> = ({ onClose }) => {
             </p>
           </div>
 
-          {/* Screenshot Section */}
+          {/* Screenshot & File Attachment Section */}
           <div>
             <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-              {t('bugReport.screenshotLabel', 'Captură de ecran')}
+              {t('bugReport.screenshotLabel', 'Captură de ecran / Atașament')}
             </label>
 
             {screenshot ? (
@@ -250,25 +290,68 @@ export const BugReportModal: React.FC<BugReportModalProps> = ({ onClose }) => {
                   {t('bugReport.recapture', 'Recaptură')}
                 </button>
               </div>
+            ) : attachedFile ? (
+              <div className="space-y-2">
+                <div className="relative rounded-xl overflow-hidden border border-[var(--border-secondary)]">
+                  <img
+                    src={attachedFile}
+                    alt={attachedFileName || 'Attached file'}
+                    className="w-full h-40 object-cover object-top"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-[var(--text-tertiary)] truncate flex-1">
+                    {attachedFileName}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAttachedFile(null);
+                      setAttachedFileName(null);
+                    }}
+                    className="flex items-center gap-1 px-3 py-1.5 text-sm text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                  >
+                    <Trash2 size={14} />
+                    {t('bugReport.removeFile', 'Șterge')}
+                  </button>
+                </div>
+              </div>
             ) : (
-              <button
-                type="button"
-                onClick={captureScreenshot}
-                disabled={isCapturing}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-[var(--border-secondary)] rounded-xl text-[var(--text-secondary)] hover:border-[var(--border-primary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-50"
-              >
-                {isCapturing ? (
-                  <>
-                    <Loader2 size={18} className="animate-spin" />
-                    {t('bugReport.capturing', 'Se capturează...')}
-                  </>
-                ) : (
-                  <>
-                    <Camera size={18} />
-                    {t('bugReport.captureButton', 'Captură ecran')}
-                  </>
-                )}
-              </button>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={captureScreenshot}
+                  disabled={isCapturing}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-[var(--border-secondary)] rounded-xl text-[var(--text-secondary)] hover:border-[var(--border-primary)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-50"
+                >
+                  {isCapturing ? (
+                    <>
+                      <Loader2 size={18} className="animate-spin" />
+                      {t('bugReport.capturing', 'Se capturează...')}
+                    </>
+                  ) : (
+                    <>
+                      <Camera size={18} />
+                      {t('bugReport.captureButton', 'Captură ecran')}
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-[var(--border-secondary)] rounded-xl text-[var(--text-secondary)] hover:border-[var(--border-primary)] hover:text-[var(--text-primary)] transition-colors"
+                >
+                  <Paperclip size={18} />
+                  {t('bugReport.attachFile', 'Atașează fișier')}
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".jpg,.jpeg,.png"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+              </div>
             )}
           </div>
 
