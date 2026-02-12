@@ -18,7 +18,8 @@ import {
 } from 'lucide-react';
 import { getDeck } from '../../../api/decks';
 import { useToast } from '../../ui/Toast';
-import { getLanguageFlag, SUBJECTS } from '../../../constants/subjects';
+import { SUBJECTS } from '../../../constants/subjects';
+import { LanguageFlag } from '../../ui/LanguageFlag';
 import { ReviewModal } from '../../reviews/ReviewModal';
 import { FlagModal } from '../../flags/FlagModal';
 import { GenerateCardsModal } from './GenerateCardsModal';
@@ -370,9 +371,7 @@ export const DeckList: React.FC<DeckListProps> = ({
               {/* Body: Category Badge (left) + Difficulty Badge (right) */}
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-lg leading-none" title={deck.language || 'ro'}>
-                    {getLanguageFlag(deck.language)}
-                  </span>
+                  <LanguageFlag code={deck.language} />
                   <span
                     className="px-3 py-1 rounded-full text-xs font-bold text-white shadow-sm"
                     style={{

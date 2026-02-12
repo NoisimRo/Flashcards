@@ -14,7 +14,8 @@ import {
 } from 'lucide-react';
 import { useStudySessionsStore } from '../../store/studySessionsStore';
 import { useToast } from '../ui/Toast';
-import { getLanguageFlag, SUBJECTS } from '../../constants/subjects';
+import { SUBJECTS } from '../../constants/subjects';
+import { LanguageFlag } from '../ui/LanguageFlag';
 
 interface ActiveSessionsListProps {
   onResumeSession: (sessionId: string) => void;
@@ -278,9 +279,7 @@ const ActiveSessionsList: React.FC<ActiveSessionsListProps> = ({
 
               {/* Row 2: Flag + Subject pill */}
               <div className="flex items-center gap-2 mb-4">
-                <span className="text-lg leading-none" title={session.deck?.language || 'ro'}>
-                  {getLanguageFlag(session.deck?.language)}
-                </span>
+                <LanguageFlag code={session.deck?.language} />
                 {session.deck?.subjectName && (
                   <span
                     className="px-3 py-1 rounded-full text-xs font-bold text-white shadow-sm"
