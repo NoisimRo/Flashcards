@@ -21,11 +21,8 @@ export function useDecksManagement() {
   const handleAddDeck = useCallback(
     async (newDeck: DeckWithCards) => {
       if (isGuest) {
-        const prompt = shouldPromptLogin('create-deck', true);
-        if (prompt) {
-          setShowLoginPrompt(true, prompt);
-        }
-        // TODO: Add local deck support for guests
+        // Guest deck already created via guest API — add to local state
+        useDecksStore.getState().addDeckLocally(newDeck);
         return;
       }
 
@@ -54,7 +51,7 @@ export function useDecksManagement() {
         console.error('Error creating deck:', error);
       }
     },
-    [isGuest, setShowLoginPrompt, refreshDecks]
+    [isGuest, refreshDecks]
   );
 
   const handleEditDeck = useCallback(

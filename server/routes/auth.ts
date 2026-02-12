@@ -205,6 +205,7 @@ router.post('/register', async (req: Request, res: Response) => {
 
       // Migrate guest sessions if token provided
       let migratedSessionsCount = 0;
+      let migratedDecksCount = 0;
       if (guestToken) {
         const migrateResult = await client.query(
           `UPDATE study_sessions
@@ -214,6 +215,26 @@ router.post('/register', async (req: Request, res: Response) => {
           [user.id, guestToken]
         );
         migratedSessionsCount = migrateResult.rows.length;
+
+        // Migrate guest decks
+        const migrateDeckResult = await client.query(
+          `UPDATE decks
+           SET owner_id = $1, is_guest = false
+           WHERE guest_token = $2 AND owner_id IS NULL AND is_guest = true
+           RETURNING id`,
+          [user.id, guestToken]
+        );
+        migratedDecksCount = migrateDeckResult.rows.length;
+
+        // Update cards' created_by for migrated decks
+        if (migratedDecksCount > 0) {
+          const migratedDeckIds = migrateDeckResult.rows.map((r: any) => r.id);
+          await client.query(
+            `UPDATE cards SET created_by = $1
+             WHERE deck_id = ANY($2) AND created_by IS NULL`,
+            [user.id, migratedDeckIds]
+          );
+        }
 
         // If sessions were migrated, recalculate user stats
         if (migratedSessionsCount > 0) {
@@ -301,7 +322,7 @@ router.post('/register', async (req: Request, res: Response) => {
 // ============================================
 router.post('/login', async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, guestToken } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({
@@ -384,6 +405,35 @@ router.post('/login', async (req: Request, res: Response) => {
 
     user.streak = currentStreak;
     user.longest_streak = longestStreak;
+
+    // Migrate guest data if token provided
+    if (guestToken) {
+      // Migrate guest sessions
+      await query(
+        `UPDATE study_sessions
+         SET user_id = $1, is_guest = false
+         WHERE guest_token = $2 AND user_id IS NULL AND is_guest = true`,
+        [user.id, guestToken]
+      );
+
+      // Migrate guest decks
+      const migrateDeckResult = await query(
+        `UPDATE decks
+         SET owner_id = $1, is_guest = false
+         WHERE guest_token = $2 AND owner_id IS NULL AND is_guest = true
+         RETURNING id`,
+        [user.id, guestToken]
+      );
+
+      if (migrateDeckResult.rows.length > 0) {
+        const migratedDeckIds = migrateDeckResult.rows.map((r: any) => r.id);
+        await query(
+          `UPDATE cards SET created_by = $1
+           WHERE deck_id = ANY($2) AND created_by IS NULL`,
+          [user.id, migratedDeckIds]
+        );
+      }
+    }
 
     // Generate tokens
     const accessToken = generateAccessToken(user);

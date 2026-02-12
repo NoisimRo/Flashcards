@@ -1,5 +1,6 @@
 import { api } from './client';
 import type {
+  Deck,
   DeckWithCards,
   CreateDeckRequest,
   UpdateDeckRequest,
@@ -73,6 +74,29 @@ export async function exportDeck(
     mimeType: string;
     cardsCount: number;
   }>(`/export/deck/${id}?format=${format}&includeProgress=${includeProgress}`);
+}
+
+// Guest Decks
+export async function createGuestDeck(data: {
+  guestToken: string;
+  title: string;
+  subject?: string;
+  topic?: string;
+  difficulty: string;
+  language: string;
+  cards: Array<{
+    front: string;
+    back: string;
+    context?: string;
+    type?: string;
+    tags?: string[];
+  }>;
+}) {
+  return api.post<DeckWithCards>('/decks/guest', data);
+}
+
+export async function getGuestDecks(guestToken: string) {
+  return api.get<Deck[]>(`/decks/guest?guestToken=${guestToken}`);
 }
 
 // AI Generation

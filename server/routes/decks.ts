@@ -998,4 +998,155 @@ function formatCard(card: any) {
   };
 }
 
+// ============================================
+// POST /api/decks/guest - Create guest deck
+// ============================================
+router.post('/guest', async (req: Request, res: Response) => {
+  try {
+    const {
+      guestToken,
+      title,
+      subject,
+      topic,
+      difficulty = 'A2',
+      language = 'ro',
+      cards = [],
+    } = req.body;
+
+    // Validate guest token (UUID v4 format)
+    if (
+      !guestToken ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(guestToken)
+    ) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_TOKEN', message: 'Token de vizitator invalid' },
+      });
+    }
+
+    if (!title) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'VALIDATION_ERROR', message: 'Titlul este obligatoriu' },
+      });
+    }
+
+    // Enforce max 10 cards for guests
+    const guestCards = cards.slice(0, 10);
+
+    // Limit guest to max 5 decks
+    const existingDecks = await query(
+      `SELECT COUNT(*) as count FROM decks WHERE guest_token = $1 AND is_guest = true AND deleted_at IS NULL`,
+      [guestToken]
+    );
+    if (parseInt(existingDecks.rows[0].count) >= 5) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'GUEST_LIMIT',
+          message: 'Limita de 5 deck-uri pentru vizitatori a fost atinsă',
+        },
+      });
+    }
+
+    const result = await withTransaction(async client => {
+      // Create deck with guest_token instead of owner_id
+      const deckResult = await client.query(
+        `INSERT INTO decks (title, subject_id, topic, difficulty, is_public, language, guest_token, is_guest)
+         VALUES ($1, $2, $3, $4, false, $5, $6, true)
+         RETURNING *`,
+        [title, subject || null, topic || title, difficulty, language, guestToken]
+      );
+
+      const deck = deckResult.rows[0];
+
+      // Create cards if provided
+      if (guestCards.length > 0) {
+        for (let i = 0; i < guestCards.length; i++) {
+          const card = guestCards[i];
+          await client.query(
+            `INSERT INTO cards (deck_id, front, back, context, hint, type, options, correct_option_indices, position, tags)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+            [
+              deck.id,
+              card.front,
+              card.back,
+              card.context || null,
+              card.hint || null,
+              card.type || 'standard',
+              card.options || [],
+              card.correctOptionIndices || null,
+              i,
+              card.tags || [],
+            ]
+          );
+        }
+
+        // Update total_cards count
+        await client.query(`UPDATE decks SET total_cards = $1 WHERE id = $2`, [
+          guestCards.length,
+          deck.id,
+        ]);
+      }
+
+      return deck;
+    });
+
+    // Fetch complete deck with cards
+    const cardsResult = await query(
+      'SELECT * FROM cards WHERE deck_id = $1 AND deleted_at IS NULL ORDER BY position ASC',
+      [result.id]
+    );
+
+    res.status(201).json({
+      success: true,
+      data: {
+        ...formatDeck({ ...result, is_owner: true }),
+        cards: cardsResult.rows.map(formatCard),
+      },
+    });
+  } catch (error) {
+    console.error('Create guest deck error:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'SERVER_ERROR', message: 'Eroare la crearea deck-ului' },
+    });
+  }
+});
+
+// ============================================
+// GET /api/decks/guest - Get guest's decks
+// ============================================
+router.get('/guest', async (req: Request, res: Response) => {
+  try {
+    const guestToken = req.query.guestToken as string;
+
+    if (!guestToken) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'MISSING_TOKEN', message: 'Token de vizitator lipsă' },
+      });
+    }
+
+    const result = await query(
+      `SELECT d.*, s.name as subject_name, s.color as subject_color
+       FROM decks d
+       LEFT JOIN subjects s ON d.subject_id = s.id
+       WHERE d.guest_token = $1 AND d.is_guest = true AND d.deleted_at IS NULL
+       ORDER BY d.created_at DESC`,
+      [guestToken]
+    );
+
+    const decks = result.rows.map(row => formatDeck({ ...row, is_owner: true }));
+
+    res.json({ success: true, data: decks });
+  } catch (error) {
+    console.error('Get guest decks error:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'SERVER_ERROR', message: 'Eroare la încărcarea deck-urilor' },
+    });
+  }
+});
+
 export default router;

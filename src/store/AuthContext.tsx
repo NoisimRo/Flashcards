@@ -103,11 +103,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setError(null);
 
       try {
-        const response = await apiRegister({ email, password, name, role });
+        // Include guest token to migrate guest data (sessions + decks) to new account
+        const guestToken = localStorage.getItem('guest_token') || undefined;
+        const response = await apiRegister({ email, password, name, role, guestToken });
 
         if (response.success && response.data) {
           setUser(response.data.user);
           await saveUser(response.data.user);
+          // Clear guest token after successful registration + migration
+          if (guestToken) {
+            localStorage.removeItem('guest_token');
+          }
         } else {
           setError(response.error?.message || 'Eroare la înregistrare');
           throw new Error(response.error?.message);

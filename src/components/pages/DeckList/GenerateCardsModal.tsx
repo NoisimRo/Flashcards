@@ -2,11 +2,12 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Difficulty, Card, DeckWithCards } from '../../../types';
 import { Plus, Upload, Sparkles, Loader2, Lock } from 'lucide-react';
-import { generateDeckWithAI, importDeck } from '../../../api/decks';
+import { generateDeckWithAI, importDeck, createGuestDeck } from '../../../api/decks';
 import { useToast } from '../../ui/Toast';
 import { getSubjectId } from '../../../constants/subjects';
 import { useAuth } from '../../../store/AuthContext';
 import { useUIStore } from '../../../store/uiStore';
+import { getOrCreateGuestToken } from '../../../utils/guestMode';
 
 interface GenerateCardsModalProps {
   isOpen: boolean;
@@ -153,13 +154,41 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Guest users: show login prompt instead of saving
+    // Guest users: create deck via guest endpoint, then prompt registration
     if (isGuest) {
-      useUIStore.getState().setShowLoginPrompt(true, {
-        title: t('guestPrompt.createDeck.title'),
-        message: t('guestPrompt.createDeck.message'),
-      });
-      onClose();
+      setIsGenerating(true);
+      try {
+        const guestToken = getOrCreateGuestToken();
+        const response = await createGuestDeck({
+          guestToken,
+          title,
+          subject: getSubjectId(subject) || subject,
+          topic: title,
+          difficulty,
+          language: selectedLanguage,
+          cards: [],
+        });
+
+        if (response.success && response.data) {
+          onAddDeck(response.data);
+          toast.success(t('guestPrompt.createDeck.success'));
+          onClose();
+          // Show login prompt encouraging registration after a short delay
+          setTimeout(() => {
+            useUIStore.getState().setShowLoginPrompt(true, {
+              title: t('guestPrompt.createDeck.title'),
+              message: t('guestPrompt.createDeck.message'),
+            });
+          }, 500);
+        } else {
+          toast.error(response.error?.message || t('toast.generationError'));
+        }
+      } catch (error) {
+        console.error('Guest deck creation error:', error);
+        toast.error(t('toast.generationError'));
+      } finally {
+        setIsGenerating(false);
+      }
       return;
     }
 

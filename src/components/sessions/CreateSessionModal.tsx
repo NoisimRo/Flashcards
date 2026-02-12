@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { X, Play, Shuffle, Brain, CheckSquare, List, Tag, Lock } from 'lucide-react';
+import { X, Play, Shuffle, Brain, CheckSquare, List, Tag, Lock, UserPlus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { CreateStudySessionRequest } from '../../types/api';
 import { useStudySessionsStore } from '../../store/studySessionsStore';
+import { useUIStore } from '../../store/uiStore';
 import { useAuth } from '../../store/AuthContext';
 import { useToast } from '../ui/Toast';
 import { getDeck } from '../../api/decks';
@@ -304,15 +305,33 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
 
           {/* Smart mode premium lock for guests */}
           {selectionMethod === 'smart' && isGuest && (
-            <div className="border-2 border-amber-300/50 rounded-xl p-6 bg-amber-50/10 text-center">
-              <Lock size={32} className="mx-auto text-amber-500 mb-3" />
-              <h4 className="font-bold text-[var(--text-primary)] mb-2">
-                {t('create.smart.premiumTitle')}
-              </h4>
-              <p className="text-sm text-[var(--text-secondary)] mb-4">
-                {t('create.smart.premiumDescription')}
-              </p>
-              <p className="text-xs text-[var(--text-tertiary)]">{t('create.smart.premiumHint')}</p>
+            <div className="border-2 border-amber-300/50 rounded-xl p-4 bg-amber-50/10">
+              <div className="flex items-start gap-3">
+                <div className="bg-amber-100 text-amber-600 rounded-full p-2 shrink-0">
+                  <Lock size={16} />
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm text-[var(--text-primary)]">
+                    {t('create.smart.premiumTitle')}
+                  </h4>
+                  <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+                    {t('create.smart.premiumDescription')}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() =>
+                  useUIStore.getState().setShowLoginPrompt(true, {
+                    title: t('create.smart.premiumTitle'),
+                    message: t('create.smart.premiumDescription'),
+                  })
+                }
+                className="mt-3 flex items-center gap-1.5 text-[var(--color-accent)] font-semibold text-sm hover:underline cursor-pointer ml-11"
+              >
+                <UserPlus size={14} />
+                {t('create.smart.premiumCta')}
+              </button>
             </div>
           )}
 
@@ -391,17 +410,33 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
 
           {/* Manual Card Selection */}
           {selectionMethod === 'manual' && isGuest && (
-            <div className="border-2 border-amber-300/50 rounded-xl p-6 bg-amber-50/10 text-center">
-              <Lock size={32} className="mx-auto text-amber-500 mb-3" />
-              <h4 className="font-bold text-[var(--text-primary)] mb-2">
-                {t('create.manual.premiumTitle')}
-              </h4>
-              <p className="text-sm text-[var(--text-secondary)] mb-4">
-                {t('create.manual.premiumDescription')}
-              </p>
-              <p className="text-xs text-[var(--text-tertiary)]">
-                {t('create.manual.premiumHint')}
-              </p>
+            <div className="border-2 border-amber-300/50 rounded-xl p-4 bg-amber-50/10">
+              <div className="flex items-start gap-3">
+                <div className="bg-amber-100 text-amber-600 rounded-full p-2 shrink-0">
+                  <Lock size={16} />
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm text-[var(--text-primary)]">
+                    {t('create.manual.premiumTitle')}
+                  </h4>
+                  <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+                    {t('create.manual.premiumDescription')}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() =>
+                  useUIStore.getState().setShowLoginPrompt(true, {
+                    title: t('create.manual.premiumTitle'),
+                    message: t('create.manual.premiumDescription'),
+                  })
+                }
+                className="mt-3 flex items-center gap-1.5 text-[var(--color-accent)] font-semibold text-sm hover:underline cursor-pointer ml-11"
+              >
+                <UserPlus size={14} />
+                {t('create.manual.premiumCta')}
+              </button>
             </div>
           )}
           {selectionMethod === 'manual' && !isGuest && (
@@ -523,7 +558,11 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
           </button>
           <button
             onClick={handleCreate}
-            disabled={isLoading || noCardsAvailable}
+            disabled={
+              isLoading ||
+              noCardsAvailable ||
+              (isGuest && (selectionMethod === 'manual' || selectionMethod === 'smart'))
+            }
             className="flex-1 px-6 py-3 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
             style={{ backgroundColor: 'var(--color-accent)' }}
           >
