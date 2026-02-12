@@ -32,7 +32,7 @@ export const XPFloatingAnimation: React.FC<XPFloatingAnimationProps> = ({ xp, on
   const color = isPositive ? 'text-green-500' : 'text-red-500';
 
   const animation = (
-    <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] pointer-events-none">
+    <div className="fixed inset-0 z-[9999] pointer-events-none flex items-center justify-center md:pl-64">
       <div
         className={`${color} font-black text-2xl animate-float-xp whitespace-nowrap drop-shadow-2xl`}
       >

@@ -122,18 +122,26 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
       card.correctOptionIndices &&
       card.correctOptionIndices.length > 0
     ) {
-      // Pre-normalize all options once
-      const normalizedOptions = card.options.map(o => normalizeAnswer(o));
+      // Expand options: each option may contain comma-separated alternatives
+      // e.g. option "2, două" at index 3 → [{norm: "2", idx: 3}, {norm: "doua", idx: 3}]
+      const expandedOptions: { norm: string; idx: number }[] = [];
+      for (let i = 0; i < card.options.length; i++) {
+        const parts = card.options[i].split(',');
+        for (const part of parts) {
+          const norm = normalizeAnswer(part);
+          if (norm) expandedOptions.push({ norm, idx: i });
+        }
+      }
 
-      // Pass 1: Exact match — if the user typed exactly one of the options, decide immediately
+      // Pass 1: Exact match — if the user typed exactly one of the alternatives
       let matched = false;
-      for (let i = 0; i < normalizedOptions.length; i++) {
-        if (normalizedUser === normalizedOptions[i]) {
+      for (const opt of expandedOptions) {
+        if (normalizedUser === opt.norm) {
           matched = true;
-          if (card.correctOptionIndices.includes(i)) {
+          if (card.correctOptionIndices.includes(opt.idx)) {
             correct = true;
           } else {
-            pitfall = card.options[i];
+            pitfall = card.options[opt.idx];
             correct = false;
           }
           break;
@@ -142,33 +150,33 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
 
       // Pass 2: Best fuzzy match — no exact match found, pick the closest fuzzy hit
       if (!matched) {
-        let bestIndex = -1;
+        let bestIdx = -1;
         let bestLenDiff = Infinity;
 
-        for (let i = 0; i < normalizedOptions.length; i++) {
-          if (isMatch(normalizedUser, normalizedOptions[i])) {
-            // Prefer the option whose length is closest to the user's input
-            const lenDiff = Math.abs(normalizedUser.length - normalizedOptions[i].length);
+        for (const opt of expandedOptions) {
+          if (isMatch(normalizedUser, opt.norm)) {
+            const lenDiff = Math.abs(normalizedUser.length - opt.norm.length);
             if (lenDiff < bestLenDiff) {
               bestLenDiff = lenDiff;
-              bestIndex = i;
+              bestIdx = opt.idx;
             }
           }
         }
 
-        if (bestIndex !== -1) {
-          if (card.correctOptionIndices.includes(bestIndex)) {
+        if (bestIdx !== -1) {
+          if (card.correctOptionIndices.includes(bestIdx)) {
             correct = true;
           } else {
-            pitfall = card.options[bestIndex];
+            pitfall = card.options[bestIdx];
             correct = false;
           }
         }
       }
     } else {
       // Legacy fallback: compare against card.back
-      const normalizedCorrect = normalizeAnswer(card.back);
-      correct = isMatch(normalizedUser, normalizedCorrect);
+      // Support comma-separated alternatives (e.g. "2, două" means either "2" or "două" is correct)
+      const alternatives = card.back.split(',').map(alt => normalizeAnswer(alt));
+      correct = alternatives.some(alt => isMatch(normalizedUser, alt));
     }
 
     setMatchedPitfall(pitfall);

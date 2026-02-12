@@ -134,7 +134,7 @@ export const QuizCard: React.FC<QuizCardProps> = ({
               className="p-2 rounded-lg bg-yellow-100 hover:bg-yellow-200 text-yellow-700 transition-all active:scale-95 shadow-md"
               title="Arată context (-20 XP)"
             >
-              <Lightbulb size={20} />
+              <Lightbulb size={16} />
             </button>
           </div>
         )}

@@ -55,7 +55,7 @@ export const LevelUpOverlay: React.FC<LevelUpOverlayProps> = ({
   }, []);
 
   const overlay = (
-    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none">
+    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none md:pl-64">
       {/* Confetti particles */}
       {particles.map(p => (
         <div
