@@ -75,7 +75,7 @@ export const ViewRouter: React.FC = () => {
           onRefreshDecks={() => fetchDecks({ ownedOnly: true })}
           isGuest={isGuest}
           onLoginPrompt={(title, message) => {
-            /* Already handled in hooks */
+            useUIStore.getState().setShowLoginPrompt(true, { title, message });
           }}
         />
       );
@@ -95,6 +95,7 @@ export const ViewRouter: React.FC = () => {
           decks={decks}
           onChangeView={setCurrentView}
           onCreateDeck={() => setCurrentView('decks')}
+          isGuest={isGuest}
         />
       );
 
@@ -111,6 +112,7 @@ export const ViewRouter: React.FC = () => {
           decks={decks}
           onChangeView={setCurrentView}
           onCreateDeck={() => setCurrentView('decks')}
+          isGuest={isGuest}
         />
       );
 

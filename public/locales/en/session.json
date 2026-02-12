@@ -44,7 +44,15 @@
       "noCards": "No cards available",
       "cardNumber": "Card #{{number}}",
       "filterByTopics": "Filter by Topics",
-      "clearFilters": "Clear filters"
+      "clearFilters": "Clear filters",
+      "premiumTitle": "Manual Selection — Premium Feature",
+      "premiumDescription": "Manual card selection is only available for registered users. Create a free account to access this feature!",
+      "premiumHint": "You can use Random or All modes to study without an account."
+    },
+    "smart": {
+      "premiumTitle": "Smart Review — Premium Feature",
+      "premiumDescription": "The Smart Review algorithm prioritizes cards based on your progress. Create a free account to access it!",
+      "premiumHint": "You can use Random or All modes to study without an account."
     },
     "buttons": {
       "cancel": "Cancel",

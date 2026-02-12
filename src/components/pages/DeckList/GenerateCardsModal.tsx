@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Difficulty, Card, DeckWithCards } from '../../../types';
-import { Plus, Upload, Sparkles, Loader2 } from 'lucide-react';
+import { Plus, Upload, Sparkles, Loader2, Lock } from 'lucide-react';
 import { generateDeckWithAI, importDeck } from '../../../api/decks';
 import { useToast } from '../../ui/Toast';
 import { getSubjectId } from '../../../constants/subjects';
+import { useAuth } from '../../../store/AuthContext';
+import { useUIStore } from '../../../store/uiStore';
 
 interface GenerateCardsModalProps {
   isOpen: boolean;
@@ -35,6 +37,8 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
 }) => {
   const { t, i18n } = useTranslation('decks');
   const toast = useToast();
+  const { isAuthenticated } = useAuth();
+  const isGuest = !isAuthenticated;
 
   // Form State
   const [title, setTitle] = useState('');
@@ -105,7 +109,7 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
         setTitle('');
         setSubject('Limba Română');
         setDifficulty('A2');
-        setImportMode('ai');
+        setImportMode(isGuest ? 'manual' : 'ai');
         setNumberOfCards(10);
         setSelectedCardTypes(['standard', 'quiz', 'type-answer', 'multiple-answer']);
       }
@@ -117,7 +121,7 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
       setSelectedFile(null);
       setFileContent('');
     }
-  }, [isOpen, mode, existingDeck, i18n.language]);
+  }, [isOpen, mode, existingDeck, i18n.language, isGuest]);
 
   const toggleCardType = (type: 'standard' | 'quiz' | 'type-answer' | 'multiple-answer') => {
     setSelectedCardTypes(prev => {
@@ -148,6 +152,17 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Guest users: show login prompt instead of saving
+    if (isGuest) {
+      useUIStore.getState().setShowLoginPrompt(true, {
+        title: t('guestPrompt.createDeck.title'),
+        message: t('guestPrompt.createDeck.message'),
+      });
+      onClose();
+      return;
+    }
+
     setIsGenerating(true);
 
     try {
@@ -559,18 +574,20 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
                   <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">
                     {mode === 'addCards' ? t('modal.addMethod') : t('modal.creationMethod')}
                   </label>
-                  <div className="grid grid-cols-3 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setImportMode('ai')}
-                      className={`p-3 rounded-xl border-2 text-sm flex flex-col items-center gap-1 font-bold transition-all ${
-                        importMode === 'ai'
-                          ? 'bg-[var(--color-accent-light)] border-[var(--color-accent)] text-[var(--color-accent-text)]'
-                          : 'border-[var(--border-subtle)] text-[var(--text-tertiary)] hover:bg-[var(--bg-surface-hover)]'
-                      }`}
-                    >
-                      <Sparkles size={20} /> {t('modal.aiAuto')}
-                    </button>
+                  <div className={`grid gap-3 ${isGuest ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                    {!isGuest && (
+                      <button
+                        type="button"
+                        onClick={() => setImportMode('ai')}
+                        className={`p-3 rounded-xl border-2 text-sm flex flex-col items-center gap-1 font-bold transition-all ${
+                          importMode === 'ai'
+                            ? 'bg-[var(--color-accent-light)] border-[var(--color-accent)] text-[var(--color-accent-text)]'
+                            : 'border-[var(--border-subtle)] text-[var(--text-tertiary)] hover:bg-[var(--bg-surface-hover)]'
+                        }`}
+                      >
+                        <Sparkles size={20} /> {t('modal.aiAuto')}
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={() => setImportMode('file')}
@@ -594,6 +611,12 @@ export const GenerateCardsModal: React.FC<GenerateCardsModalProps> = ({
                       <Plus size={20} /> {t('modal.manual')}
                     </button>
                   </div>
+                  {isGuest && (
+                    <p className="text-xs text-amber-600 mt-2 flex items-center gap-1">
+                      <Lock size={12} />
+                      {t('guestPrompt.aiGeneration.title')}
+                    </p>
+                  )}
                 </div>
               )}
 

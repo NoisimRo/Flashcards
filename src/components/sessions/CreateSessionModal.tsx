@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { X, Play, Shuffle, Brain, CheckSquare, List, Tag } from 'lucide-react';
+import { X, Play, Shuffle, Brain, CheckSquare, List, Tag, Lock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { CreateStudySessionRequest } from '../../types/api';
 import { useStudySessionsStore } from '../../store/studySessionsStore';
@@ -245,12 +245,17 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
               <button
                 type="button"
                 onClick={() => setSelectionMethod('smart')}
-                className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${
+                className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all relative ${
                   selectionMethod === 'smart'
                     ? 'border-[var(--color-accent)]'
                     : 'border-[var(--border-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)]'
                 }`}
               >
+                {isGuest && (
+                  <div className="absolute top-2 right-2 bg-amber-100 text-amber-600 rounded-full p-1">
+                    <Lock size={12} />
+                  </div>
+                )}
                 <Brain size={24} />
                 <span className="font-semibold text-sm">{t('create.method.smart.title')}</span>
                 <p className="text-xs text-center text-[var(--text-tertiary)] mt-1 leading-tight">
@@ -261,12 +266,17 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
               <button
                 type="button"
                 onClick={() => setSelectionMethod('manual')}
-                className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${
+                className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all relative ${
                   selectionMethod === 'manual'
                     ? 'border-[var(--color-accent)]'
                     : 'border-[var(--border-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface-hover)]'
                 }`}
               >
+                {isGuest && (
+                  <div className="absolute top-2 right-2 bg-amber-100 text-amber-600 rounded-full p-1">
+                    <Lock size={12} />
+                  </div>
+                )}
                 <CheckSquare size={24} />
                 <span className="font-semibold text-sm">{t('create.method.manual.title')}</span>
                 <p className="text-xs text-center text-[var(--text-tertiary)] mt-1 leading-tight">
@@ -292,8 +302,22 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
             </div>
           </div>
 
+          {/* Smart mode premium lock for guests */}
+          {selectionMethod === 'smart' && isGuest && (
+            <div className="border-2 border-amber-300/50 rounded-xl p-6 bg-amber-50/10 text-center">
+              <Lock size={32} className="mx-auto text-amber-500 mb-3" />
+              <h4 className="font-bold text-[var(--text-primary)] mb-2">
+                {t('create.smart.premiumTitle')}
+              </h4>
+              <p className="text-sm text-[var(--text-secondary)] mb-4">
+                {t('create.smart.premiumDescription')}
+              </p>
+              <p className="text-xs text-[var(--text-tertiary)]">{t('create.smart.premiumHint')}</p>
+            </div>
+          )}
+
           {/* Card Count (for random/smart) */}
-          {(selectionMethod === 'random' || selectionMethod === 'smart') && (
+          {(selectionMethod === 'random' || (selectionMethod === 'smart' && !isGuest)) && (
             <div>
               <label className="block text-sm font-bold text-[var(--text-secondary)] mb-2">
                 {t('create.cardCount.label')}: {cardCount}
@@ -366,7 +390,21 @@ const CreateSessionModal: React.FC<CreateSessionModalProps> = ({
           )}
 
           {/* Manual Card Selection */}
-          {selectionMethod === 'manual' && (
+          {selectionMethod === 'manual' && isGuest && (
+            <div className="border-2 border-amber-300/50 rounded-xl p-6 bg-amber-50/10 text-center">
+              <Lock size={32} className="mx-auto text-amber-500 mb-3" />
+              <h4 className="font-bold text-[var(--text-primary)] mb-2">
+                {t('create.manual.premiumTitle')}
+              </h4>
+              <p className="text-sm text-[var(--text-secondary)] mb-4">
+                {t('create.manual.premiumDescription')}
+              </p>
+              <p className="text-xs text-[var(--text-tertiary)]">
+                {t('create.manual.premiumHint')}
+              </p>
+            </div>
+          )}
+          {selectionMethod === 'manual' && !isGuest && (
             <div className="border-2 border-[var(--color-accent)]/30 rounded-xl p-4 bg-[var(--color-accent-light)]">
               <div className="flex justify-between items-center mb-3">
                 <h4 className="font-semibold text-[var(--text-primary)]">
