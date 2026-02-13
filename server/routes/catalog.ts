@@ -48,7 +48,6 @@ router.get(
 
       // Teachers see only assigned students; admins see all
       let assignmentJoin = '';
-      let assignmentWhere = '';
       if (req.user!.role === 'teacher') {
         assignmentJoin = `INNER JOIN teacher_student_assignments tsa ON tsa.student_id = u.id AND tsa.teacher_id = $${paramIndex++}`;
         params.push(req.user!.id);

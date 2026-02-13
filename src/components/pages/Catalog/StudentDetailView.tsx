@@ -613,7 +613,7 @@ export const StudentDetailView: React.FC<Props> = ({ studentId, onBack }) => {
                   )}
                   {activeReport.motivationalNote && (
                     <p className="text-sm font-medium text-purple-900 italic">
-                      "{activeReport.motivationalNote}"
+                      &ldquo;{activeReport.motivationalNote}&rdquo;
                     </p>
                   )}
                 </div>
@@ -631,7 +631,8 @@ export const StudentDetailView: React.FC<Props> = ({ studentId, onBack }) => {
               <Brain size={48} className="mx-auto mb-3 text-[var(--text-muted)]" />
               <p className="text-[var(--text-tertiary)] mb-2">Niciun raport generat inca</p>
               <p className="text-xs text-[var(--text-muted)]">
-                Apasa "Genereaza raport" pentru a crea o analiza AI a progresului elevului
+                Apasa &ldquo;Genereaza raport&rdquo; pentru a crea o analiza AI a progresului
+                elevului
               </p>
             </div>
           )}
