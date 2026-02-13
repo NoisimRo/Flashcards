@@ -107,6 +107,7 @@ export const ViewRouter: React.FC = () => {
         <GlobalDecks
           onStartSession={sessionManagement.handleStartSession}
           onImportDeck={decksManagement.handleAddDeck}
+          onEditDeck={decksManagement.handleEditDeck}
         />
       );
 

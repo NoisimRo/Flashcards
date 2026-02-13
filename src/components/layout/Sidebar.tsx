@@ -28,6 +28,85 @@ function getAvatarEmoji(avatarId?: string): string | null {
   return avatar?.emoji || null;
 }
 
+/** Inline brain SVG used as the default app avatar */
+const BrainAvatar: React.FC = () => (
+  <svg width={28} height={28} viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g transform="translate(56, 56) scale(0.78)">
+      <path
+        d="M256 48C176 48 112 112 112 192c0 48 24 90 60 116v60c0 22 18 40 40 40h88c22 0 40-18 40-40v-60c36-26 60-68 60-116 0-80-64-144-144-144z"
+        fill="#ffffff"
+        opacity="0.95"
+      />
+      <path
+        d="M220 160c0-20 16-36 36-36s36 16 36 36"
+        stroke="#7c3aed"
+        strokeWidth="12"
+        strokeLinecap="round"
+        fill="none"
+      />
+      <path
+        d="M200 200c-16 0-28-12-28-28s12-28 28-28"
+        stroke="#7c3aed"
+        strokeWidth="10"
+        strokeLinecap="round"
+        fill="none"
+      />
+      <path
+        d="M312 200c16 0 28-12 28-28s-12-28-28-28"
+        stroke="#7c3aed"
+        strokeWidth="10"
+        strokeLinecap="round"
+        fill="none"
+      />
+      <line
+        x1="256"
+        y1="192"
+        x2="256"
+        y2="320"
+        stroke="#7c3aed"
+        strokeWidth="10"
+        strokeLinecap="round"
+      />
+      <line
+        x1="220"
+        y1="240"
+        x2="256"
+        y2="220"
+        stroke="#7c3aed"
+        strokeWidth="8"
+        strokeLinecap="round"
+      />
+      <line
+        x1="292"
+        y1="240"
+        x2="256"
+        y2="220"
+        stroke="#7c3aed"
+        strokeWidth="8"
+        strokeLinecap="round"
+      />
+      <line
+        x1="220"
+        y1="280"
+        x2="256"
+        y2="260"
+        stroke="#7c3aed"
+        strokeWidth="8"
+        strokeLinecap="round"
+      />
+      <line
+        x1="292"
+        y1="280"
+        x2="256"
+        y2="260"
+        stroke="#7c3aed"
+        strokeWidth="8"
+        strokeLinecap="round"
+      />
+    </g>
+  </svg>
+);
+
 const ACHIEVEMENT_EMOJI: Record<string, string> = {
   target: '\u{1F3AF}',
   star: '\u{2B50}',
@@ -156,14 +235,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 : undefined
             }
           >
-            {avatarEmoji ? (
-              <span className="text-2xl">{avatarEmoji}</span>
-            ) : (
-              user.name
-                .split(' ')
-                .map(n => n[0])
-                .join('')
-            )}
+            {avatarEmoji ? <span className="text-2xl">{avatarEmoji}</span> : <BrainAvatar />}
           </div>
           <div>
             <h3 className="font-bold leading-tight" style={{ color: 'var(--text-primary)' }}>
