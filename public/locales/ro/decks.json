@@ -1,8 +1,8 @@
 {
   "header": {
-    "title": "Deck-urile Mele",
+    "title": "Deck-urile mele",
     "subtitle": "Gestionează și organizează colecțiile tale de flashcard-uri",
-    "newDeck": "Deck Nou"
+    "newDeck": "Deck nou"
   },
   "deckCard": {
     "totalCards": "{{count}} carduri",
@@ -29,7 +29,7 @@
     "A1": "Începător",
     "A2": "Elementar",
     "B1": "Intermediar",
-    "B2": "Intermediar Avansat",
+    "B2": "Intermediar avansat",
     "C1": "Avansat",
     "C2": "Expert"
   },
@@ -37,13 +37,13 @@
     "editDeck": "Editează deck",
     "generateCards": "Generează carduri",
     "addCards": "Adaugă carduri",
-    "newDeck": "Deck Nou",
+    "newDeck": "Deck nou",
     "subject": "Subiect",
     "titleLabel": "Titlu / Tematică",
-    "titlePlaceholder": "ex: Verbe Neregulate",
+    "titlePlaceholder": "ex: Verbe neregulate",
     "difficultyLabel": "Dificultate",
-    "numberOfCards": "Număr de Carduri",
-    "numberOfCardsAI": "Număr de Carduri",
+    "numberOfCards": "Număr de carduri",
+    "numberOfCardsAI": "Număr de carduri",
     "cardsRecommendation": "Recomandare: 10-20 carduri",
     "cardsFromFile": "Numărul de carduri va depinde de fișierul importat",
     "creationMethod": "Metodă creare",
@@ -51,14 +51,14 @@
     "aiAuto": "AI Auto",
     "import": "Import",
     "manual": "Manual",
-    "cardTypes": "Tipuri Carduri",
+    "cardTypes": "Tipuri carduri",
     "standard": "Standard",
     "standardDesc": "Card tradițional cu întrebare și răspuns",
     "quiz": "Quiz",
     "quizDesc": "Întrebare cu variante multiple de răspuns",
-    "typeAnswer": "Răspuns Scris",
+    "typeAnswer": "Răspuns scris",
     "typeAnswerDesc": "Scrie răspunsul (potrivit pentru 1-2 cuvinte)",
-    "multipleAnswer": "Răspuns Multiplu",
+    "multipleAnswer": "Răspuns multiplu",
     "multipleAnswerDesc": "Întrebare cu mai multe răspunsuri corecte",
     "deselectCardType": "Deselectează tipul de card nedorit",
     "fileImport": "Format suportat: CSV, TXT (Front, Back)",
@@ -77,7 +77,7 @@
     "extraContextHelper": "Oferă context pentru a ajuta AI-ul să genereze carduri mai relevante și precise"
   },
   "editCardsModal": {
-    "title": "Modifică Carduri",
+    "title": "Modifică carduri",
     "subtitle": "{{title}} • {{count}} carduri",
     "noCards": "Niciun card în acest deck",
     "addFirstCard": "Adaugă primul card folosind butonul de mai jos",
@@ -86,9 +86,9 @@
     "back": "Spate (Răspuns)",
     "context": "Context (opțional)",
     "contextPlaceholder": "Ex: propoziție exemplu",
-    "cardType": "Tip Card",
+    "cardType": "Tip card",
     "quizOptions": "Variante de răspuns (Quiz)",
-    "multipleAnswerOptions": "Variante de răspuns (Răspuns Multiplu)",
+    "multipleAnswerOptions": "Variante de răspuns (Răspuns multiplu)",
     "option": "Opțiunea {{number}}",
     "selectCorrect": "Selectează varianta corectă (bifă)",
     "selectMultipleCorrect": "Bifează toate variantele corecte",
@@ -108,21 +108,21 @@
     "tagsPlaceholder": "Scrie o etichetă și apasă Enter...",
     "bulkEdit": "Editare în masă",
     "bulkTagsLabel": "Atribuie etichete la {{count}} carduri selectate",
-    "applyTags": "Aplică Etichete",
+    "applyTags": "Aplică etichete",
     "searchPlaceholder": "Caută carduri...",
-    "filterByType": "Toate Tipurile",
-    "selectAll": "Selectează Tot",
-    "deselectAll": "Deselectează Tot",
-    "bulkChangeType": "Schimbă Tipul",
+    "filterByType": "Toate tipurile",
+    "selectAll": "Selectează tot",
+    "deselectAll": "Deselectează tot",
+    "bulkChangeType": "Schimbă tipul",
     "bulkTypeLabel": "Schimbă tipul pentru {{count}} carduri selectate",
-    "applyType": "Aplică Tipul",
+    "applyType": "Aplică tipul",
     "typeStandard": "Standard",
     "typeQuiz": "Quiz",
-    "typeAnswer": "Răspuns Scris",
-    "typeMultipleAnswer": "Răspuns Multiplu"
+    "typeAnswer": "Răspuns scris",
+    "typeMultipleAnswer": "Răspuns multiplu"
   },
   "editCardModal": {
-    "title": "Editează Card",
+    "title": "Editează card",
     "cardType": "Tip card",
     "typeStandard": "Standard (Flip)",
     "typeQuiz": "Quiz (Alegere unică)",
@@ -167,7 +167,7 @@
     "txtDesc": "Text separat cu tab",
     "includeProgress": "Include datele de progres",
     "includeProgressDesc": "Exportă starea învățării, intervalele și factorii de dificultate",
-    "previewTitle": "Previzualizare Format",
+    "previewTitle": "Previzualizare format",
     "previewNote": "Așa va arăta fișierul tău exportat",
     "exportBtn": "Exportă"
   },
@@ -199,7 +199,7 @@
       "success": "Deck creat cu succes!"
     },
     "aiGeneration": {
-      "title": "Funcție Premium",
+      "title": "Funcție premium",
       "message": "Generarea de carduri cu AI este disponibilă doar pentru utilizatorii cu cont. Creează un cont gratuit pentru a debloca această funcție!"
     },
     "addCards": {

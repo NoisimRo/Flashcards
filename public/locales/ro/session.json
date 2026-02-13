@@ -1,8 +1,8 @@
 {
   "create": {
-    "title": "Sesiune Nouă",
+    "title": "Sesiune nouă",
     "method": {
-      "label": "Metodă Selecție Carduri",
+      "label": "Metodă selecție carduri",
       "random": {
         "title": "Random",
         "description": "Selectează carduri aleatorii din colecție"
@@ -37,26 +37,26 @@
       }
     },
     "manual": {
-      "title": "Selectează Carduri ({{count}} selectate)",
+      "title": "Selectează carduri ({{count}} selectate)",
       "selectAll": "Selectează tot",
       "deselectAll": "Deselectează tot",
       "loading": "Se încarcă cardurile...",
       "noCards": "Nu există carduri disponibile",
       "cardNumber": "Card #{{number}}",
-      "filterByTopics": "Filtrează după Teme",
+      "filterByTopics": "Filtrează după teme",
       "clearFilters": "Șterge filtrele",
-      "premiumTitle": "Selectare Manuală — Funcție Premium",
+      "premiumTitle": "Selectare manuală — Funcție premium",
       "premiumDescription": "Selectarea manuală a cardurilor este disponibilă doar pentru utilizatorii cu cont.",
       "premiumCta": "Creează un cont gratuit"
     },
     "smart": {
-      "premiumTitle": "Smart Review — Funcție Premium",
+      "premiumTitle": "Smart Review — Funcție premium",
       "premiumDescription": "Algoritmul Smart Review prioritizează cardurile în funcție de progresul tău.",
       "premiumCta": "Creează un cont gratuit"
     },
     "buttons": {
       "cancel": "Anulează",
-      "start": "Începe Sesiunea",
+      "start": "Începe sesiunea",
       "creating": "Se creează..."
     },
     "success": "Sesiune creată: {{cards}} carduri selectate!",

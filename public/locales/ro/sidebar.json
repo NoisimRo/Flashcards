@@ -1,9 +1,9 @@
 {
   "menu": {
     "dashboard": "Dashboard",
-    "myDecks": "Deck-urile Mele",
-    "activeSessions": "Sesiuni Active",
-    "globalDecks": "Deck-uri Globale",
+    "myDecks": "Deck-urile mele",
+    "activeSessions": "Sesiuni active",
+    "globalDecks": "Deck-uri globale",
     "achievements": "Realizări",
     "moderation": "Moderare",
     "leaderboard": "Clasament",
@@ -22,24 +22,24 @@
     "progress": "{{current}} / {{next}}"
   },
   "nightMode": {
-    "on": "Mod Noapte",
-    "off": "Mod Zi"
+    "on": "Mod noapte",
+    "off": "Mod zi"
   },
   "guestCta": {
-    "message": "Creează un cont <1>gratuit</1> pentru a salva progresul și a debloca funcții avansate!",
+    "message": "Creează un cont GRATUIT pentru a salva progresul și a debloca funcții avansate!",
     "createAccount": "Cont nou",
     "login": "Autentificare"
   },
   "bugReport": {
-    "button": "Raportează un Bug",
-    "title": "Raportează un Bug",
+    "button": "Raportează un bug",
+    "title": "Raportează un bug",
     "subtitle": "Descrie problema întâlnită și vom crea un raport pe GitHub.",
     "titleLabel": "Titlu",
     "titlePlaceholder": "Descriere scurtă a bug-ului...",
     "titleRequired": "Titlu obligatoriu",
     "titleRequiredDetail": "Te rog să adaugi un titlu pentru raport.",
     "descriptionLabel": "Descriere",
-    "descriptionPlaceholder": "Pași pentru a reproduce bug-ul...",
+    "descriptionPlaceholder": "Pași pentru a reproduce bug-ului...",
     "descriptionRequired": "Descriere obligatorie",
     "descriptionRequiredDetail": "Te rog să descrii problema întâlnită.",
     "screenshotLabel": "Captură de ecran",
