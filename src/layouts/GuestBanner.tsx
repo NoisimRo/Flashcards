@@ -14,7 +14,7 @@ export const GuestBanner: React.FC = () => {
 
   return (
     <div
-      className="text-white px-4 py-2.5 text-center text-sm sticky top-0 z-30 flex items-center justify-center gap-3 flex-wrap"
+      className="text-white px-4 pr-14 md:pr-4 py-2.5 text-center text-sm sticky top-0 z-30 flex items-center justify-center gap-3 flex-wrap"
       style={{ background: 'var(--color-accent-gradient)' }}
     >
       <Sparkles size={16} className="flex-shrink-0 opacity-80" />

@@ -215,6 +215,7 @@ export interface UserPreferences {
   theme: 'light' | 'dark' | 'system';
   accentTheme?: 'violet' | 'gold' | 'silver' | 'emerald' | 'rose';
   language: 'ro' | 'en';
+  selectedBadgeIds?: string[]; // Up to 5 badge IDs to display in sidebar
 }
 
 // ============================================

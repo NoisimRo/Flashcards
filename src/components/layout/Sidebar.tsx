@@ -22,6 +22,7 @@ import { BugReportModal } from '../feedback/BugReportModal';
 import { useTheme } from '../../hooks/useTheme';
 import { AVATARS } from '../pages/Settings/AvatarPicker';
 import { getAchievements, Achievement } from '../../api/achievements';
+import { badgeSVGs } from '../pages/Achievements/BadgeIcons';
 
 function getAvatarEmoji(avatarId?: string): string | null {
   if (!avatarId || avatarId === 'default') return null;
@@ -166,21 +167,32 @@ export const Sidebar: React.FC<SidebarProps> = ({
     getAchievements().then(res => {
       if (cancelled) return;
       if (res.success && res.data) {
-        const unlocked = res.data.achievements
-          .filter(a => a.unlocked)
-          .sort((a, b) => {
-            const dateA = a.unlockedAt ? new Date(a.unlockedAt).getTime() : 0;
-            const dateB = b.unlockedAt ? new Date(b.unlockedAt).getTime() : 0;
-            return dateB - dateA;
-          })
-          .slice(0, 5);
-        setRecentBadges(unlocked);
+        const unlocked = res.data.achievements.filter(a => a.unlocked);
+        const selectedIds = user.preferences?.selectedBadgeIds;
+
+        if (selectedIds && selectedIds.length > 0) {
+          // Show user-selected badges (in selected order)
+          const selected = selectedIds
+            .map(id => unlocked.find(a => a.id === id))
+            .filter((a): a is Achievement => !!a);
+          setRecentBadges(selected);
+        } else {
+          // Fallback: show 5 most recently unlocked
+          const recent = unlocked
+            .sort((a, b) => {
+              const dateA = a.unlockedAt ? new Date(a.unlockedAt).getTime() : 0;
+              const dateB = b.unlockedAt ? new Date(b.unlockedAt).getTime() : 0;
+              return dateB - dateA;
+            })
+            .slice(0, 5);
+          setRecentBadges(recent);
+        }
       }
     });
     return () => {
       cancelled = true;
     };
-  }, [isGuest, user.id]);
+  }, [isGuest, user.id, user.preferences?.selectedBadgeIds]);
 
   // Show moderation for admin and teacher roles
   const canModerate = user.role === 'admin' || user.role === 'teacher';
@@ -264,16 +276,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Recent Badges - below name, before XP bar */}
         {!isGuest && recentBadges.length > 0 && (
           <div className="flex items-center gap-2 mb-4">
-            {recentBadges.map(badge => (
-              <div
-                key={badge.id}
-                className="flex-1 h-9 rounded-lg flex items-center justify-center text-lg"
-                style={{ backgroundColor: 'var(--bg-tertiary)' }}
-                title={badge.title}
-              >
-                {ACHIEVEMENT_EMOJI[badge.icon] || '\u{1F3C6}'}
-              </div>
-            ))}
+            {recentBadges.map(badge => {
+              const BadgeSVG = badgeSVGs[badge.id];
+              return (
+                <div
+                  key={badge.id}
+                  className="flex-1 h-9 rounded-lg flex items-center justify-center"
+                  style={{ backgroundColor: 'var(--bg-tertiary)' }}
+                  title={badge.title}
+                >
+                  {BadgeSVG ? (
+                    <BadgeSVG size={28} unlocked />
+                  ) : (
+                    <span className="text-lg">{ACHIEVEMENT_EMOJI[badge.icon] || '\u{1F3C6}'}</span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
         {!isGuest && recentBadges.length === 0 && <div className="mb-4" />}

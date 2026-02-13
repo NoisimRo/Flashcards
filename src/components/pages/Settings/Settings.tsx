@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { User } from '../../../types';
 import {
@@ -33,6 +33,8 @@ import {
 } from '../../../api/users';
 import { ChangePasswordModal } from './ChangePasswordModal';
 import { AvatarPicker, AVATARS } from './AvatarPicker';
+import { BadgePicker } from './BadgePicker';
+import { Achievement, getAchievements } from '../../../api/achievements';
 import { soundEngine } from '../../../services/soundEngine';
 import { useAuthActions } from '../../../hooks/useAuthActions';
 
@@ -113,6 +115,27 @@ export const Settings: React.FC<SettingsProps> = ({
   const [hideFromLeaderboard, setHideFromLeaderboard] = useState(
     user.preferences?.hideFromLeaderboard || false
   );
+
+  // Badge selection for sidebar display
+  const [selectedBadgeIds, setSelectedBadgeIds] = useState<string[]>(
+    user.preferences?.selectedBadgeIds || []
+  );
+  const [allAchievements, setAllAchievements] = useState<Achievement[]>([]);
+
+  useEffect(() => {
+    if (isGuest) return;
+    getAchievements().then(res => {
+      if (res.success && res.data) {
+        setAllAchievements(res.data.achievements);
+      }
+    });
+  }, [isGuest]);
+
+  const handleBadgeToggle = (badgeId: string) => {
+    setSelectedBadgeIds(prev =>
+      prev.includes(badgeId) ? prev.filter(id => id !== badgeId) : [...prev, badgeId]
+    );
+  };
 
   // Sound effects
   const [soundEnabled, setSoundEnabled] = useState(soundEngine.isEnabled());
@@ -205,7 +228,7 @@ export const Settings: React.FC<SettingsProps> = ({
         name: formData.name,
         avatar: selectedAvatar,
         birth_date: formData.birthDate,
-        preferences: { dailyGoal, dailyXPGoal, hideFromLeaderboard },
+        preferences: { dailyGoal, dailyXPGoal, hideFromLeaderboard, selectedBadgeIds },
       });
 
       if (response.success) {
@@ -301,6 +324,24 @@ export const Settings: React.FC<SettingsProps> = ({
                     userLevel={user.level}
                     onSelect={handleAvatarSelect}
                     compact
+                  />
+                </div>
+              )}
+
+              {/* Badge Picker - choose which badges to show in sidebar */}
+              {!isGuest && allAchievements.length > 0 && (
+                <div>
+                  <h4
+                    className="font-bold mb-2 flex items-center gap-2"
+                    style={{ color: 'var(--text-primary)' }}
+                  >
+                    {'\u{1F3C5}'} {t('badges.title', 'Sidebar Badges')}
+                  </h4>
+                  <BadgePicker
+                    achievements={allAchievements}
+                    selectedIds={selectedBadgeIds}
+                    onToggle={handleBadgeToggle}
+                    maxSelections={5}
                   />
                 </div>
               )}
