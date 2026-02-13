@@ -32,80 +32,25 @@ function getAvatarEmoji(avatarId?: string): string | null {
 
 /** Inline brain SVG used as the default app avatar */
 const BrainAvatar: React.FC = () => (
-  <svg width={28} height={28} viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <g transform="translate(56, 56) scale(0.78)">
-      <path
-        d="M256 48C176 48 112 112 112 192c0 48 24 90 60 116v60c0 22 18 40 40 40h88c22 0 40-18 40-40v-60c36-26 60-68 60-116 0-80-64-144-144-144z"
-        fill="#ffffff"
-        opacity="0.95"
-      />
-      <path
-        d="M220 160c0-20 16-36 36-36s36 16 36 36"
-        stroke="#7c3aed"
-        strokeWidth="12"
-        strokeLinecap="round"
-        fill="none"
-      />
-      <path
-        d="M200 200c-16 0-28-12-28-28s12-28 28-28"
-        stroke="#7c3aed"
-        strokeWidth="10"
-        strokeLinecap="round"
-        fill="none"
-      />
-      <path
-        d="M312 200c16 0 28-12 28-28s-12-28-28-28"
-        stroke="#7c3aed"
-        strokeWidth="10"
-        strokeLinecap="round"
-        fill="none"
-      />
-      <line
-        x1="256"
-        y1="192"
-        x2="256"
-        y2="320"
-        stroke="#7c3aed"
-        strokeWidth="10"
-        strokeLinecap="round"
-      />
-      <line
-        x1="220"
-        y1="240"
-        x2="256"
-        y2="220"
-        stroke="#7c3aed"
-        strokeWidth="8"
-        strokeLinecap="round"
-      />
-      <line
-        x1="292"
-        y1="240"
-        x2="256"
-        y2="220"
-        stroke="#7c3aed"
-        strokeWidth="8"
-        strokeLinecap="round"
-      />
-      <line
-        x1="220"
-        y1="280"
-        x2="256"
-        y2="260"
-        stroke="#7c3aed"
-        strokeWidth="8"
-        strokeLinecap="round"
-      />
-      <line
-        x1="292"
-        y1="280"
-        x2="256"
-        y2="260"
-        stroke="#7c3aed"
-        strokeWidth="8"
-        strokeLinecap="round"
-      />
-    </g>
+  <svg
+    width={30}
+    height={30}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z" />
+    <path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z" />
+    <path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4" />
+    <path d="M17.599 6.5a3 3 0 0 0 .399-1.375" />
+    <path d="M6.003 5.125A3 3 0 0 0 6.401 6.5" />
+    <path d="M3.477 10.896a4 4 0 0 1 .585-.396" />
+    <path d="M19.938 10.5a4 4 0 0 1 .585.396" />
+    <path d="M6 18a4 4 0 0 1-1.967-.516" />
+    <path d="M19.967 17.484A4 4 0 0 1 18 18" />
   </svg>
 );
 
