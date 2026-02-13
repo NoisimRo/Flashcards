@@ -264,7 +264,7 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
         >
           {/* Front Face */}
           <div
-            className="absolute inset-0 rounded-2xl p-8 flex flex-col justify-center"
+            className="absolute inset-0 rounded-2xl flex flex-col"
             style={{
               backfaceVisibility: 'hidden',
               WebkitBackfaceVisibility: 'hidden',
@@ -328,77 +328,79 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
               />
             )}
 
-            {/* Front Content */}
-            <div className="mb-8">
-              <div
-                className="text-sm font-semibold mb-3 uppercase tracking-wide text-center"
-                style={{ color: 'var(--text-tertiary)' }}
-              >
-                Completează Răspunsul
-              </div>
-              <h2
-                className="text-2xl font-bold text-center"
-                style={{ color: 'var(--text-primary)' }}
-              >
-                {card.front}
-              </h2>
-            </div>
-
-            {/* Answer Input Form */}
-            <form onSubmit={handleSubmit}>
-              <div className="mb-6">
-                <label
-                  className="block text-sm font-semibold mb-2"
-                  style={{ color: 'var(--text-secondary)' }}
+            {/* Front Content - scrollable area with footer clearance */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-8 pb-20 flex flex-col justify-center">
+              <div className="mb-6 sm:mb-8">
+                <div
+                  className="text-sm font-semibold mb-3 uppercase tracking-wide text-center"
+                  style={{ color: 'var(--text-tertiary)' }}
                 >
-                  Răspunsul tău:
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={userAnswer}
-                    onChange={e => !showBack && setUserAnswer(e.target.value)}
-                    placeholder="Scrie răspunsul aici..."
-                    readOnly={showBack}
-                    className={`w-full px-5 py-4 pr-14 rounded-xl border-2 focus:outline-none focus:ring-2 transition-all text-base ${
-                      showBack
-                        ? isCorrect || cardAnswer === 'correct'
-                          ? 'border-[var(--input-correct-border)]'
-                          : 'border-[var(--input-incorrect-border)]'
-                        : 'focus:ring-[var(--color-accent-ring)]'
-                    }`}
-                    style={{
-                      backgroundColor: showBack
-                        ? isCorrect || cardAnswer === 'correct'
-                          ? 'var(--input-correct-bg)'
-                          : 'var(--input-incorrect-bg)'
-                        : 'var(--input-bg)',
-                      borderColor: showBack ? undefined : 'var(--input-default-border)',
-                      color: 'var(--text-primary)',
-                      cursor: showBack ? 'default' : undefined,
-                    }}
-                    autoFocus={!showBack}
-                  />
-                  <button
-                    type="submit"
-                    disabled={!userAnswer.trim() || showBack}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all active:scale-95"
-                    style={{
-                      color:
-                        !userAnswer.trim() || showBack
-                          ? 'var(--text-muted)'
-                          : isPracticeMode
-                            ? '#22c55e'
-                            : 'var(--color-accent)',
-                      cursor: !userAnswer.trim() || showBack ? 'not-allowed' : 'pointer',
-                    }}
-                    title={isPracticeMode ? 'Practică (fără XP)' : 'Trimite răspunsul'}
-                  >
-                    <Send size={20} />
-                  </button>
+                  Completează Răspunsul
                 </div>
+                <h2
+                  className="text-lg sm:text-xl md:text-2xl font-bold text-center"
+                  style={{ color: 'var(--text-primary)' }}
+                >
+                  {card.front}
+                </h2>
               </div>
-            </form>
+
+              {/* Answer Input Form */}
+              <form onSubmit={handleSubmit}>
+                <div className="mb-6">
+                  <label
+                    className="block text-sm font-semibold mb-2"
+                    style={{ color: 'var(--text-secondary)' }}
+                  >
+                    Răspunsul tău:
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={userAnswer}
+                      onChange={e => !showBack && setUserAnswer(e.target.value)}
+                      placeholder="Scrie răspunsul aici..."
+                      readOnly={showBack}
+                      className={`w-full px-5 py-4 pr-14 rounded-xl border-2 focus:outline-none focus:ring-2 transition-all text-base ${
+                        showBack
+                          ? isCorrect || cardAnswer === 'correct'
+                            ? 'border-[var(--input-correct-border)]'
+                            : 'border-[var(--input-incorrect-border)]'
+                          : 'focus:ring-[var(--color-accent-ring)]'
+                      }`}
+                      style={{
+                        backgroundColor: showBack
+                          ? isCorrect || cardAnswer === 'correct'
+                            ? 'var(--input-correct-bg)'
+                            : 'var(--input-incorrect-bg)'
+                          : 'var(--input-bg)',
+                        borderColor: showBack ? undefined : 'var(--input-default-border)',
+                        color: 'var(--text-primary)',
+                        cursor: showBack ? 'default' : undefined,
+                      }}
+                      autoFocus={!showBack}
+                    />
+                    <button
+                      type="submit"
+                      disabled={!userAnswer.trim() || showBack}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all active:scale-95"
+                      style={{
+                        color:
+                          !userAnswer.trim() || showBack
+                            ? 'var(--text-muted)'
+                            : isPracticeMode
+                              ? '#22c55e'
+                              : 'var(--color-accent)',
+                        cursor: !userAnswer.trim() || showBack ? 'not-allowed' : 'pointer',
+                      }}
+                      title={isPracticeMode ? 'Practică (fără XP)' : 'Trimite răspunsul'}
+                    >
+                      <Send size={20} />
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
 
             {/* Navigation Buttons (front) - Always visible */}
             <div
@@ -465,7 +467,7 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
 
           {/* Back Face */}
           <div
-            className="absolute inset-0 rounded-2xl p-8 flex flex-col justify-center items-center"
+            className="absolute inset-0 rounded-2xl flex flex-col"
             style={{
               backfaceVisibility: 'hidden',
               WebkitBackfaceVisibility: 'hidden',
@@ -504,80 +506,82 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
               />
             </div>
 
-            {/* Back Content */}
-            <div className="text-center w-full px-4">
-              <div
-                className="text-sm font-semibold mb-4 uppercase tracking-wide"
-                style={{ color: 'var(--text-tertiary)' }}
-              >
-                Răspuns
-              </div>
+            {/* Back Content - scrollable area with footer clearance */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-8 pb-20 flex flex-col justify-center items-center">
+              <div className="text-center w-full px-2 sm:px-4">
+                <div
+                  className="text-sm font-semibold mb-4 uppercase tracking-wide"
+                  style={{ color: 'var(--text-tertiary)' }}
+                >
+                  Răspuns
+                </div>
 
-              {/* Result Status - Modificat pentru a evita afișarea la reset (isCorrect === null) */}
-              <div className="mb-4">
-                {isCorrect === true && (
-                  <div className="flex items-center justify-center gap-2 text-green-600">
-                    <Check size={32} />
-                    <span className="text-3xl font-bold">Corect!</span>
-                  </div>
-                )}
-                {isCorrect === false && (
-                  <div className="flex items-center justify-center gap-2 text-red-600">
-                    <X size={32} />
-                    <span className="text-3xl font-bold">Greșit</span>
-                  </div>
-                )}
-              </div>
-
-              {/* User's Answer (if wrong) - PERSISTENT with red styling */}
-              {!isCorrect && userAnswer && (
-                <div className="mb-3 p-3 bg-red-50 border-2 border-red-300 rounded-lg">
-                  <div className="flex items-center justify-center gap-2 text-red-700 mb-1">
-                    <X size={18} />
-                    <span className="text-xs font-bold uppercase">Răspunsul tău</span>
-                  </div>
-                  <div className="text-lg font-bold text-red-700 text-center">{userAnswer}</div>
-                  {matchedPitfall && (
-                    <div className="text-xs text-red-600 mt-1 italic">Greșeală frecventă</div>
+                {/* Result Status - Modificat pentru a evita afișarea la reset (isCorrect === null) */}
+                <div className="mb-4">
+                  {isCorrect === true && (
+                    <div className="flex items-center justify-center gap-2 text-green-600">
+                      <Check size={32} />
+                      <span className="text-3xl font-bold">Corect!</span>
+                    </div>
+                  )}
+                  {isCorrect === false && (
+                    <div className="flex items-center justify-center gap-2 text-red-600">
+                      <X size={32} />
+                      <span className="text-3xl font-bold">Greșit</span>
+                    </div>
                   )}
                 </div>
-              )}
 
-              {/* Correct Options (if card has options) */}
-              {correctOptions.length > 0 && (
-                <div className="mb-3 p-3 bg-green-50 border-2 border-green-300 rounded-lg">
-                  <div className="flex items-center justify-center gap-2 text-green-700 mb-1">
-                    <Check size={18} />
-                    <span className="text-xs font-bold uppercase">
-                      {correctOptions.length === 1 ? 'Răspuns Corect' : 'Răspunsuri Corecte'}
-                    </span>
+                {/* User's Answer (if wrong) - PERSISTENT with red styling */}
+                {!isCorrect && userAnswer && (
+                  <div className="mb-3 p-3 bg-red-50 border-2 border-red-300 rounded-lg">
+                    <div className="flex items-center justify-center gap-2 text-red-700 mb-1">
+                      <X size={18} />
+                      <span className="text-xs font-bold uppercase">Răspunsul tău</span>
+                    </div>
+                    <div className="text-lg font-bold text-red-700 text-center">{userAnswer}</div>
+                    {matchedPitfall && (
+                      <div className="text-xs text-red-600 mt-1 italic">Greșeală frecventă</div>
+                    )}
                   </div>
-                  <div className="text-lg font-bold text-green-700 text-center">
-                    {correctOptions.join(', ')}
-                  </div>
-                </div>
-              )}
+                )}
 
-              {/* Feedback / Explanation (card.back) */}
-              <div
-                className="p-3 border-2 rounded-lg"
-                style={{
-                  backgroundColor: 'var(--explanation-bg)',
-                  borderColor: 'var(--explanation-border)',
-                }}
-              >
+                {/* Correct Options (if card has options) */}
+                {correctOptions.length > 0 && (
+                  <div className="mb-3 p-3 bg-green-50 border-2 border-green-300 rounded-lg">
+                    <div className="flex items-center justify-center gap-2 text-green-700 mb-1">
+                      <Check size={18} />
+                      <span className="text-xs font-bold uppercase">
+                        {correctOptions.length === 1 ? 'Răspuns Corect' : 'Răspunsuri Corecte'}
+                      </span>
+                    </div>
+                    <div className="text-lg font-bold text-green-700 text-center">
+                      {correctOptions.join(', ')}
+                    </div>
+                  </div>
+                )}
+
+                {/* Feedback / Explanation (card.back) */}
                 <div
-                  className="flex items-center justify-center gap-2 mb-1"
-                  style={{ color: 'var(--explanation-text)' }}
+                  className="p-3 border-2 rounded-lg"
+                  style={{
+                    backgroundColor: 'var(--explanation-bg)',
+                    borderColor: 'var(--explanation-border)',
+                  }}
                 >
-                  <Lightbulb size={18} />
-                  <span className="text-xs font-bold uppercase">Explicație</span>
-                </div>
-                <div
-                  className="text-base font-medium text-center"
-                  style={{ color: 'var(--explanation-text)' }}
-                >
-                  {card.back}
+                  <div
+                    className="flex items-center justify-center gap-2 mb-1"
+                    style={{ color: 'var(--explanation-text)' }}
+                  >
+                    <Lightbulb size={18} />
+                    <span className="text-xs font-bold uppercase">Explicație</span>
+                  </div>
+                  <div
+                    className="text-base font-medium text-center"
+                    style={{ color: 'var(--explanation-text)' }}
+                  >
+                    {card.back}
+                  </div>
                 </div>
               </div>
             </div>
