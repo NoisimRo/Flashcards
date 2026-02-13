@@ -1,30 +1,30 @@
 {
   "header": {
-    "title": "Realizări & Badge-uri",
+    "title": "Realizări & badge-uri",
     "subtitle": "Colecționează insigne și deblochează nivele noi"
   },
   "stats": {
-    "badgesUnlocked": "Badge-uri Deblocate",
+    "badgesUnlocked": "Badge-uri deblocate",
     "of": "din {{total}} disponibile",
-    "currentLevel": "Nivel Curent",
+    "currentLevel": "Nivel curent",
     "xpToNextLevel": "{{xp}} XP până la nivel {{level}}",
-    "totalPoints": "Puncte Totale",
+    "totalPoints": "Puncte totale",
     "xpAccumulated": "XP acumulat"
   },
   "xpReward": "+{{xp}} XP",
   "items": {
     "a1": {
-      "title": "Primul Pas",
+      "title": "Primul pas",
       "description": "Completat primul deck",
       "howToEarn": "Finalizează prima ta sesiune de studiu dintr-un deck"
     },
     "a2": {
-      "title": "Stea Strălucitoare",
+      "title": "Stea strălucitoare",
       "description": "5 zile consecutive",
       "howToEarn": "Studiază în fiecare zi timp de 5 zile consecutive"
     },
     "a3": {
-      "title": "Rapid ca Fulgerul",
+      "title": "Rapid ca fulgerul",
       "description": "10 carduri în 1 minut",
       "howToEarn": "Răspunde corect la cel puțin 10 carduri pe minut într-o sesiune"
     },
@@ -34,7 +34,7 @@
       "howToEarn": "Creează 3 deck-uri proprii"
     },
     "a5": {
-      "title": "Flacără Vie",
+      "title": "Flacără vie",
       "description": "Streak de 7 zile",
       "howToEarn": "Menține un streak de studiu de 7 zile consecutive"
     },
@@ -64,7 +64,7 @@
       "howToEarn": "Completează o sesiune între orele 05:00 și 08:00"
     },
     "a11": {
-      "title": "Scor Perfect",
+      "title": "Scor perfect",
       "description": "100% corect, minim 15 carduri",
       "howToEarn": "Obține 100% corect într-o sesiune cu cel puțin 15 carduri"
     },
@@ -99,12 +99,12 @@
       "howToEarn": "Răspunde corect la cel puțin 15 carduri pe minut într-o sesiune"
     },
     "a18": {
-      "title": "Explozie de Cunoștințe",
+      "title": "Explozie de cunoștințe",
       "description": "200+ XP într-o sesiune",
       "howToEarn": "Câștigă peste 200 XP într-o singură sesiune de studiu"
     },
     "a19": {
-      "title": "Maestrul Deck-ului",
+      "title": "Maestrul deck-ului",
       "description": "Toate cardurile memorate",
       "howToEarn": "Memorează toate cardurile dintr-un deck"
     }
@@ -113,14 +113,14 @@
     "ctaBanner": {
       "title": "Creează un cont pentru a debloca realizări",
       "subtitle": "{{count}} insigne disponibile de câștigat",
-      "button": "Creează Cont Gratuit"
+      "button": "Creează cont gratuit"
     },
     "stats": {
-      "available": "Insigne Disponibile",
+      "available": "Insigne disponibile",
       "badgesToUnlock": "insigne de deblocat",
       "tiers": "Nivele",
       "tierBreakdown": "Bronz, Argint, Aur, Platină",
-      "topReward": "Recompensă Maximă",
+      "topReward": "Recompensă maximă",
       "xpAvailable": "XP disponibil de câștigat"
     }
   }

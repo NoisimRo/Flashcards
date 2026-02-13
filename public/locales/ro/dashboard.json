@@ -9,11 +9,11 @@
     "levelUp": "Level up!"
   },
   "buttons": {
-    "startSession": "Începe Sesiune",
+    "startSession": "Începe sesiune",
     "leaderboard": "Clasament",
-    "viewAll": "Vezi Toate",
-    "continueSession": "Continuă Sesiunea",
-    "viewAllAchievements": "Vezi Toate Realizările"
+    "viewAll": "Vezi toate",
+    "continueSession": "Continuă sesiunea",
+    "viewAllAchievements": "Vezi toate realizările"
   },
   "stats": {
     "streak": "Zile consecutive",
@@ -31,7 +31,7 @@
     "shieldActive": "Protejat"
   },
   "dailyChallenges": {
-    "title": "Provocări Zilnice",
+    "title": "Provocări zilnice",
     "complete": "Complet",
     "reward": "+{{xp}} XP"
   },
@@ -60,15 +60,15 @@
     "successRateChart": "Rata de succes"
   },
   "continueLearning": {
-    "title": "Continuă Învățarea",
-    "activeSession": "Sesiune Activă",
+    "title": "Continuă învățarea",
+    "activeSession": "Sesiune activă",
     "cardsRemaining": "{{cards}} carduri rămase",
     "percentComplete": "{{percent}}% completat",
     "noActiveSessions": "Nicio sesiune activă",
     "noActiveSessionsDescription": "Începe o sesiune nouă pentru a continua învățarea!"
   },
   "recommendations": {
-    "title": "Deck-uri Populare",
+    "title": "Deck-uri populare",
     "cards": "{{total}} carduri",
     "inStudy": "{{count}} în studiu",
     "mastered": "{{count}} învățate",
@@ -81,47 +81,47 @@
     "byAuthor": "de {{author}}"
   },
   "recentAchievements": {
-    "title": "Realizări Recente",
+    "title": "Realizări recente",
     "unlockedRecently": "Deblocat recent",
     "startStudying": "Începe să studiezi pentru realizări!"
   },
   "guest": {
     "hero": {
-      "title": "Începe Să Înveți Astăzi",
+      "title": "Începe să înveți astăzi",
       "subtitle": "Studiază mai inteligent cu repetiție spațiată, câștigă XP și urmărește-ți progresul",
-      "exploreCTA": "Explorează Deck-uri",
-      "registerCTA": "Creează Cont Gratuit"
+      "exploreCTA": "Explorează deck-uri",
+      "registerCTA": "Creează cont gratuit"
     },
     "features": {
-      "spacedRepetition": "Repetiție Spațiată",
+      "spacedRepetition": "Repetiție spațiată",
       "spacedRepetitionDesc": "Algoritmul nostru îți arată cardurile la momentul optim",
-      "xpAndLevels": "XP & Nivele",
+      "xpAndLevels": "XP & nivele",
       "xpAndLevelsDesc": "Câștigă puncte și urcă în nivel pe măsură ce studiezi",
       "achievements": "Realizări",
       "achievementsDesc": "Deblochează insigne completând provocări"
     },
     "quickStart": {
-      "title": "Începe Acum",
+      "title": "Începe acum",
       "subtitle": "Studiază deck-uri populare acum — nu ai nevoie de cont",
-      "studyNow": "Studiază Acum"
+      "studyNow": "Studiază acum"
     },
     "featuredDecks": {
-      "title": "Deck-uri Recomandate",
-      "seeAll": "Vezi Toate Deck-urile",
+      "title": "Deck-uri recomandate",
+      "seeAll": "Vezi toate deck-urile",
       "cards": "{{total}} carduri",
       "byAuthor": "de {{author}}"
     },
     "achievementPreview": {
-      "title": "Realizări Pe Care Le Poți Debloca",
+      "title": "Realizări pe care le poți debloca",
       "subtitle": "Creează un cont pentru a începe să câștigi insigne și XP",
       "registerCTA": "Creează cont pentru a debloca"
     },
     "valueProp": {
-      "trackProgress": "Urmărește-ți Progresul",
+      "trackProgress": "Urmărește-ți progresul",
       "trackProgressDesc": "Vezi activitatea zilnică și seria de studiu",
-      "earnXP": "Câștigă XP & Urcă în Nivel",
+      "earnXP": "Câștigă XP & urcă în nivel",
       "earnXPDesc": "Fiecare răspuns corect îți aduce puncte de experiență",
-      "compete": "Concurează în Clasament",
+      "compete": "Concurează în clasament",
       "competeDesc": "Vezi cum te clasezi față de ceilalți",
       "finalCTA": "Pregătit? Creează-ți contul gratuit"
     }

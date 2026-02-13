@@ -1,16 +1,16 @@
 {
   "header": {
-    "title": "Clasament Global",
+    "title": "Clasament global",
     "subtitle": "Compară-te cu ceilalți și urcă în top"
   },
   "userStats": {
-    "yourPosition": "Poziția Ta",
+    "yourPosition": "Poziția ta",
     "registerPrompt": "Înregistrează-te pentru a apărea în clasament",
     "of": "din {{total}} utilizatori",
-    "totalXP": "XP Total",
+    "totalXP": "XP total",
     "level": "Nivel {{level}}",
     "toTop100": "Până la Top 100",
-    "currentStreak": "Streak Curent",
+    "currentStreak": "Streak curent",
     "xpNeeded": "XP necesare",
     "consecutiveDays": "zile consecutive"
   },
@@ -18,7 +18,7 @@
     "position": "Poziție",
     "user": "Utilizator",
     "level": "Nivel",
-    "totalXP": "XP Total",
+    "totalXP": "XP total",
     "streak": "Streak",
     "you": "(Tu)"
   },

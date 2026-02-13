@@ -1,6 +1,6 @@
 {
   "header": {
-    "title": "Deck-uri Globale",
+    "title": "Deck-uri globale",
     "subtitle": "Explorează și studiază din biblioteca de deck-uri create de comunitate"
   },
   "stats": {
@@ -10,15 +10,15 @@
   },
   "search": {
     "placeholder": "Caută după titlu, topic sau creator...",
-    "allLanguages": "Toate Limbile",
+    "allLanguages": "Toate limbile",
     "languageRo": "Română",
     "languageEn": "English",
     "languageIt": "Italiano",
-    "allSubjects": "Toate Disciplinele",
-    "allLevels": "Toate Nivelurile",
-    "allRatings": "Toate Ratingurile",
-    "stars": "{{count}} Stele",
-    "starsAndAbove": "{{count}}+ Stele",
+    "allSubjects": "Toate disciplinele",
+    "allLevels": "Toate nivelurile",
+    "allRatings": "Toate ratingurile",
+    "stars": "{{count}} stele",
+    "starsAndAbove": "{{count}}+ stele",
     "level": "Nivel {{level}}",
     "showing": "Afișare {{filtered}} din {{total}} deck-uri",
     "resetFilters": "Resetează filtrele"

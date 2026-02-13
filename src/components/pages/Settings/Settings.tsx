@@ -34,6 +34,7 @@ import {
 import { ChangePasswordModal } from './ChangePasswordModal';
 import { AvatarPicker, AVATARS } from './AvatarPicker';
 import { soundEngine } from '../../../services/soundEngine';
+import { useAuthActions } from '../../../hooks/useAuthActions';
 
 interface SettingsProps {
   user: User & { email?: string };
@@ -86,6 +87,7 @@ export const Settings: React.FC<SettingsProps> = ({
   const { t, i18n } = useTranslation('settings');
   const { mode, accent, setMode, setAccent, isNight } = useTheme();
   const toast = useToast();
+  const { handleLoginClick, handleRegisterClick } = useAuthActions();
 
   const [formData, setFormData] = useState({
     name: user.name,
@@ -236,37 +238,36 @@ export const Settings: React.FC<SettingsProps> = ({
         {t('header.subtitle')}
       </p>
 
-      {/* Guest CTA Banner */}
-      {isGuest && (
-        <div
-          className="p-6 rounded-3xl mb-6 text-white"
-          style={{ background: 'var(--color-accent-gradient)' }}
-        >
-          <h3 className="text-xl font-bold mb-2">{t('guestBanner.title')}</h3>
-          <p className="text-white/80 text-sm mb-4">{t('guestBanner.message')}</p>
-          <div className="flex gap-3">
-            <button
-              onClick={onLogin}
-              className="bg-white text-gray-900 px-6 py-2 rounded-xl font-bold hover:bg-gray-100 transition-colors flex items-center gap-2"
-            >
-              <UserPlus size={18} />
-              {t('guestBanner.createAccount')}
-            </button>
-            <button
-              onClick={onLogin}
-              className="bg-white/10 text-white px-6 py-2 rounded-xl font-bold hover:bg-white/20 transition-colors flex items-center gap-2"
-            >
-              <LogIn size={18} />
-              {t('guestBanner.hasAccount')}
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Two-Column Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Identity & Learning */}
         <div className="lg:col-span-8 space-y-6">
+          {/* Guest CTA Banner - inside main content column */}
+          {isGuest && (
+            <div
+              className="p-6 rounded-3xl text-white"
+              style={{ background: 'var(--color-accent-gradient)' }}
+            >
+              <h3 className="text-xl font-bold mb-2">{t('guestBanner.title')}</h3>
+              <p className="text-white/80 text-sm mb-4">{t('guestBanner.message')}</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleRegisterClick}
+                  className="bg-white text-gray-900 px-6 py-2 rounded-xl font-bold hover:bg-gray-100 transition-colors flex items-center gap-2"
+                >
+                  <UserPlus size={18} />
+                  {t('guestBanner.createAccount')}
+                </button>
+                <button
+                  onClick={handleLoginClick}
+                  className="bg-white/10 text-white px-6 py-2 rounded-xl font-bold hover:bg-white/20 transition-colors flex items-center gap-2"
+                >
+                  <LogIn size={18} />
+                  {t('guestBanner.hasAccount')}
+                </button>
+              </div>
+            </div>
+          )}
           {/* Pillar 1: Identity & Security */}
           <div
             className={`p-6 md:p-8 rounded-3xl shadow-sm ${isGuest ? 'opacity-60 pointer-events-none' : ''}`}
