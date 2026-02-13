@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { User } from '../../../types';
 import { LeaderboardEntry } from '../../../api/users';
-import { Flame, Hash, Medal, Star, Trophy, Users } from 'lucide-react';
+import { Flame, Medal, Star, Trophy, Users } from 'lucide-react';
 import { StatTileGrid } from '../../ui/StatTile';
 import { AVATARS } from '../Settings/AvatarPicker';
 
@@ -105,21 +105,15 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
           columns={3}
           stats={[
             {
-              icon: Hash,
+              icon: Medal,
               value: String(userStats.position),
               label: isVisitor ? t('userStats.registerPrompt') : t('userStats.yourPosition'),
-              sublabel: isVisitor
-                ? undefined
-                : t('userStats.of', {
-                    total: userStats.totalUsers.toLocaleString(i18n.language),
-                  }),
               color: 'var(--color-accent)',
             },
             {
               icon: Star,
               value: userStats.xpTotal.toLocaleString(i18n.language),
               label: t('userStats.totalXP'),
-              sublabel: t('userStats.level', { level: userStats.level }),
               color: '#eab308',
             },
             {

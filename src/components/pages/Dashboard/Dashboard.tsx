@@ -45,6 +45,7 @@ import {
 } from 'recharts';
 import { AVATARS } from '../Settings/AvatarPicker';
 import { GuestDashboard } from './GuestDashboard';
+import { badgeSVGs } from '../Achievements/BadgeIcons';
 
 interface DashboardProps {
   user: User;
@@ -206,32 +207,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
     return icons[iconName] || BookOpen;
   };
 
-  // Map icon names to emojis for achievements
-  const getAchievementEmoji = (iconName: string) => {
-    const emojiMap: Record<string, string> = {
-      target: '🎯',
-      star: '⭐',
-      zap: '⚡',
-      library: '📚',
-      flame: '🔥',
-      diamond: '💎',
-      crown: '👑',
-      calendar: '📅',
-      moon: '🌙',
-      sunrise: '🌅',
-      award: '🏅',
-      trophy: '🏆',
-      medal: '🎖️',
-      coins: '🪙',
-      gem: '💠',
-      sparkles: '✨',
-      timer: '⏱️',
-      brain: '🧠',
-      'book-check': '📖',
-    };
-    return emojiMap[iconName] || '🏆';
-  };
-
   // Recent achievements (unlocked, sorted by unlock date, limit 3)
   const recentAchievements = useMemo(() => {
     return achievements
@@ -243,7 +218,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       })
       .slice(0, 3)
       .map(a => ({
-        icon: getAchievementEmoji(a.icon),
+        id: a.id,
         title: a.title,
         xpReward: a.xpReward,
       }));
@@ -1068,7 +1043,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       borderColor: 'var(--border-secondary)',
                     }}
                   >
-                    <div className="text-3xl">{achievement.icon}</div>
+                    <div className="flex-shrink-0">
+                      {(() => {
+                        const BadgeSVG = badgeSVGs[achievement.id];
+                        return BadgeSVG ? (
+                          <BadgeSVG size={40} unlocked />
+                        ) : (
+                          <Trophy size={32} className="text-yellow-500" />
+                        );
+                      })()}
+                    </div>
                     <div className="flex-1">
                       <h3 className="font-bold" style={{ color: 'var(--text-primary)' }}>
                         {achievement.title}

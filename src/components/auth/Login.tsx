@@ -39,12 +39,11 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister }) => {
       <div className="w-full max-w-md">
         {/* Logo & Title */}
         <div className="text-center mb-8">
-          <div
-            className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 text-5xl"
-            style={{ background: 'var(--color-accent-gradient)' }}
-          >
-            {t('brand.emoji')}
-          </div>
+          <img
+            src="/brain-icon.svg"
+            alt={t('brand.name')}
+            className="w-16 h-16 rounded-2xl mb-4 mx-auto"
+          />
           <h1 className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
             {t('brand.name')}
           </h1>
