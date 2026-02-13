@@ -9,7 +9,8 @@
     "currentLevel": "Current Level",
     "xpToNextLevel": "{{xp}} XP to level {{level}}",
     "totalPoints": "Total Points",
-    "xpAccumulated": "XP accumulated"
+    "xpAccumulated": "XP accumulated",
+    "xpGainedToday": "{{xp}} gained today"
   },
   "xpReward": "+{{xp}} XP",
   "items": {

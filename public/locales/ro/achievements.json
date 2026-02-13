@@ -9,7 +9,8 @@
     "currentLevel": "Nivel curent",
     "xpToNextLevel": "{{xp}} XP până la nivel {{level}}",
     "totalPoints": "Puncte totale",
-    "xpAccumulated": "XP acumulat"
+    "xpAccumulated": "XP acumulat",
+    "xpGainedToday": "{{xp}} acumulat azi"
   },
   "xpReward": "+{{xp}} XP",
   "items": {

@@ -7,12 +7,6 @@ import {
   Star,
   ArrowRight,
   Lock,
-  Target,
-  Zap,
-  Flame,
-  Diamond,
-  Crown,
-  Award,
   Calendar,
   BarChart3,
   Users,
@@ -22,17 +16,7 @@ import { getDecks } from '../../../api/decks';
 import { useAuthActions } from '../../../hooks/useAuthActions';
 import achievementsData from '../../../data/seed/achievements.json';
 import type { Deck, DeckWithCards } from '../../../types';
-
-const ICON_MAP: Record<string, React.ElementType> = {
-  target: Target,
-  star: Star,
-  zap: Zap,
-  flame: Flame,
-  diamond: Diamond,
-  crown: Crown,
-  award: Award,
-  trophy: Trophy,
-};
+import { badgeSVGs } from '../Achievements/BadgeIcons';
 
 interface GuestDashboardProps {
   onStartSession: (deck: Deck) => void;
@@ -307,7 +291,7 @@ export const GuestDashboard: React.FC<GuestDashboardProps> = ({ onStartSession, 
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {previewAchievements.map(badge => {
-              const Icon = ICON_MAP[badge.icon] || Star;
+              const BadgeSVG = badgeSVGs[badge.id];
               return (
                 <div
                   key={badge.id}
@@ -322,10 +306,12 @@ export const GuestDashboard: React.FC<GuestDashboardProps> = ({ onStartSession, 
                     <Lock size={14} style={{ color: 'var(--text-muted)' }} />
                   </div>
 
-                  <div
-                    className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3 ${badge.color}`}
-                  >
-                    <Icon size={24} />
+                  <div className="flex items-center justify-center mx-auto mb-3">
+                    {BadgeSVG ? (
+                      <BadgeSVG size={56} unlocked={false} />
+                    ) : (
+                      <Trophy size={40} className="text-gray-400" />
+                    )}
                   </div>
                   <h3 className="font-bold text-sm mb-1" style={{ color: 'var(--text-primary)' }}>
                     {t(`items.${badge.id}.title`, {

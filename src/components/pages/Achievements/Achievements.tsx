@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { User } from '../../../types';
 import { Achievement, getAchievements } from '../../../api/achievements';
+import { getTodaysChallenges } from '../../../api/dailyChallenges';
 import { isGuestUser } from '../../../utils/guestMode';
 import { useAuthActions } from '../../../hooks/useAuthActions';
 import achievementsData from '../../../data/seed/achievements.json';
@@ -18,11 +19,12 @@ export const Achievements: React.FC<AchievementsProps> = ({ user }) => {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
   const [hoveredBadge, setHoveredBadge] = useState<string | null>(null);
+  const [dailyXP, setDailyXP] = useState<number>(0);
 
   const isGuest = isGuestUser(user);
   const { handleRegisterClick } = useAuthActions();
 
-  // Fetch achievements on mount
+  // Fetch achievements and daily XP on mount
   useEffect(() => {
     if (isGuest) {
       // For guests: use seed data directly (all unlocked=false)
@@ -46,12 +48,21 @@ export const Achievements: React.FC<AchievementsProps> = ({ user }) => {
       return;
     }
 
-    const fetchAchievements = async () => {
+    const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await getAchievements();
-        if (response.success && response.data) {
-          setAchievements(response.data.achievements);
+        const [achievementsRes, challengesRes] = await Promise.all([
+          getAchievements(),
+          getTodaysChallenges().catch(() => null),
+        ]);
+        if (achievementsRes.success && achievementsRes.data) {
+          setAchievements(achievementsRes.data.achievements);
+        }
+        if (challengesRes?.success && challengesRes.data) {
+          const xpChallenge = challengesRes.data.challenges.find(c => c.id === 'daily_xp');
+          if (xpChallenge) {
+            setDailyXP(xpChallenge.progress);
+          }
         }
       } catch (error) {
         console.error('Error fetching achievements:', error);
@@ -60,7 +71,7 @@ export const Achievements: React.FC<AchievementsProps> = ({ user }) => {
       }
     };
 
-    fetchAchievements();
+    fetchData();
   }, [isGuest]);
 
   const unlockedCount = achievements.filter(a => a.unlocked).length;
@@ -153,6 +164,7 @@ export const Achievements: React.FC<AchievementsProps> = ({ user }) => {
                 icon: Star,
                 value: user.totalXP.toLocaleString(i18n.language),
                 label: t('stats.xpAccumulated'),
+                sublabel: t('stats.xpGainedToday', { xp: dailyXP }),
                 color: '#eab308',
               },
             ]}
