@@ -15,6 +15,7 @@ import { useAuthActions } from './src/hooks/useAuthActions';
 import { useSessionManagement } from './src/hooks/useSessionManagement';
 import { clearGuestToken } from './src/utils/guestMode';
 import { useTheme } from './src/hooks/useTheme';
+import { useBadgeTierColors } from './src/hooks/useBadgeTierColors';
 
 /**
  * Main App Content Component
@@ -26,6 +27,8 @@ function AppContent() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   // Initialize theme system (applies CSS classes to <html>)
   useTheme();
+  // Apply global badge tier colors from server
+  useBadgeTierColors();
   const { fetchDecks } = useDecksStore();
   const {
     showAuthPage,

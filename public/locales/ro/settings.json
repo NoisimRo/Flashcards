@@ -86,5 +86,14 @@
     "message": "Te vei deconecta din cont și vei fi redirecționat către pagina de autentificare.",
     "button": "Deconectează-te",
     "description": "Te vei deconecta din cont și vei fi redirecționat către pagina de autentificare."
+  },
+  "badgeColors": {
+    "title": "Culori Insigne",
+    "description": "Personalizează culorile nivelurilor de insigne pentru toți utilizatorii.",
+    "bronze": "Bronz",
+    "silver": "Argint",
+    "gold": "Aur",
+    "platinum": "Platină",
+    "reset": "Resetare la Valori Implicite"
   }
 }

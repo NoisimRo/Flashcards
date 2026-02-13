@@ -8,6 +8,19 @@
    ============================================ */
 
 /* ============================================
+   BADGE TIER COLORS
+   Customizable via admin settings.
+   Set on :root so they work in both light/night modes
+   and can be overridden at runtime via JavaScript.
+   ============================================ */
+:root {
+  --badge-tier-bronze: #cd7f32;
+  --badge-tier-silver: #c0c0c0;
+  --badge-tier-gold: #ffd700;
+  --badge-tier-platinum: #9b59b6;
+}
+
+/* ============================================
    LAYER 1: BASE MODES
    Controls: backgrounds, surfaces, text, borders, overlays
    ============================================ */

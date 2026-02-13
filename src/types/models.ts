@@ -216,6 +216,7 @@ export interface UserPreferences {
   accentTheme?: 'violet' | 'gold' | 'silver' | 'emerald' | 'rose';
   language: 'ro' | 'en';
   selectedBadgeIds?: string[]; // Up to 5 badge IDs to display in sidebar
+  badgeTierColors?: { bronze: string; silver: string; gold: string; platinum: string };
 }
 
 // ============================================
