@@ -144,7 +144,7 @@ export const generateDeckWithAI = async (
     : '';
 
   const prompt = `
-    Create ${numberOfCards} flashcards for 8th grade students preparing for the National Evaluation.
+    Create ${numberOfCards} flashcards for students studying the given subject.
     Subject: ${subject}
     Topic: ${topic}
     Difficulty: ${difficulty}
@@ -205,7 +205,7 @@ export const generateDeckWithAI = async (
 
     LANGUAGE REQUIREMENT:
     All content (questions, answers, options, and context sentences) must be written in ${languageName}.
-    Ensure all content is appropriate for 8th grade students.
+    Ensure all content is appropriate for students at the specified difficulty level.
   `;
 
   try {

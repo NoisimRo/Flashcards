@@ -1,5 +1,5 @@
 {
-  "name": "AiMinte - Evaluare Națională",
-  "description": "A modern flashcard application for 8th-grade students with AI generation, gamification, and progress tracking.",
+  "name": "AiMinte",
+  "description": "A modern flashcard application with AI generation, gamification, and progress tracking.",
   "requestFramePermissions": []
 }

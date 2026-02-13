@@ -1,7 +1,7 @@
 {
-  "name": "AiMinte - Evaluare Națională",
+  "name": "AiMinte",
   "short_name": "AiMinte",
-  "description": "Învață inteligent cu flashcard-uri pentru Evaluarea Națională",
+  "description": "Învață inteligent cu flashcard-uri interactive",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#FDFBF7",
