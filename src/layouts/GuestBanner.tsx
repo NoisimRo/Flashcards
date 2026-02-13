@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Sparkles, ArrowRight } from 'lucide-react';
+import { Sparkles, ArrowRight, LogIn } from 'lucide-react';
 import { useAuthActions } from '../hooks/useAuthActions';
 
 /**
@@ -10,7 +10,7 @@ import { useAuthActions } from '../hooks/useAuthActions';
  */
 export const GuestBanner: React.FC = () => {
   const { t } = useTranslation('common');
-  const { handleRegisterClick } = useAuthActions();
+  const { handleRegisterClick, handleLoginClick } = useAuthActions();
 
   return (
     <div
@@ -25,6 +25,13 @@ export const GuestBanner: React.FC = () => {
       >
         {t('guestBanner.cta')}
         <ArrowRight size={14} />
+      </button>
+      <button
+        onClick={handleLoginClick}
+        className="font-bold bg-white/10 hover:bg-white/20 px-3 py-1 rounded-lg transition-all flex items-center gap-1.5 flex-shrink-0 border border-white/30"
+      >
+        <LogIn size={14} />
+        {t('guestBanner.login')}
       </button>
     </div>
   );

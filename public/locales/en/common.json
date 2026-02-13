@@ -24,6 +24,7 @@
   },
   "guestBanner": {
     "message": "Visitor mode — your progress will not be saved.",
-    "cta": "Create free account"
+    "cta": "Create FREE account",
+    "login": "Sign in"
   }
 }

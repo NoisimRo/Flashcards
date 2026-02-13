@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import {
   BookOpen,
   Trophy,
+  TrendingUp,
   Star,
   ArrowRight,
   Lock,
@@ -16,8 +17,6 @@ import {
   BarChart3,
   Users,
   Play,
-  Sparkles,
-  CheckCircle,
 } from 'lucide-react';
 import { getDecks } from '../../../api/decks';
 import { useAuthActions } from '../../../hooks/useAuthActions';
@@ -77,251 +76,69 @@ export const GuestDashboard: React.FC<GuestDashboardProps> = ({ onStartSession, 
       style={{ background: 'var(--dashboard-bg)' }}
     >
       <div className="p-4 md:p-8 space-y-8 max-w-7xl mx-auto">
-        {/* Section 1: Two-Column Hero */}
-        <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left Column: Value Proposition + CTA */}
-          <div className="lg:col-span-7 flex flex-col gap-5">
-            {/* Main Card */}
-            <div
-              className="rounded-3xl p-6 md:p-8 border flex-1"
-              style={{
-                backgroundColor: 'var(--card-bg)',
-                borderColor: 'var(--border-subtle)',
-              }}
-            >
-              <div className="flex items-center gap-2 mb-4">
-                <div
-                  className="w-9 h-9 rounded-xl flex items-center justify-center"
-                  style={{ background: 'var(--color-accent-gradient)' }}
-                >
-                  <Sparkles size={18} className="text-white" />
-                </div>
-                <span
-                  className="text-xs font-bold uppercase tracking-wider"
-                  style={{ color: 'var(--color-accent)' }}
-                >
-                  AiMinte
-                </span>
-              </div>
+        {/* Section 1: Welcome Hero */}
+        <section
+          className="rounded-3xl p-6 md:p-10 text-white relative overflow-hidden"
+          style={{ background: 'var(--color-accent-gradient)' }}
+        >
+          <div className="relative z-10">
+            <h1 className="text-2xl md:text-3xl font-bold mb-3">{t('guest.hero.title')}</h1>
+            <p className="text-sm md:text-base opacity-90 mb-6 max-w-xl">
+              {t('guest.hero.subtitle')}
+            </p>
 
-              <h1
-                className="text-2xl md:text-3xl font-bold mb-3 leading-tight"
-                style={{ color: 'var(--text-primary)' }}
-              >
-                {t('guest.hero.title')}
-              </h1>
-              <p
-                className="text-sm md:text-base mb-6 leading-relaxed"
-                style={{ color: 'var(--text-muted)' }}
-              >
-                {t('guest.hero.subtitle')}
-              </p>
-
-              {/* Feature checklist */}
-              <div className="space-y-3 mb-8">
-                <div className="flex items-center gap-3">
-                  <CheckCircle
-                    size={18}
-                    style={{ color: 'var(--color-accent)' }}
-                    className="flex-shrink-0"
-                  />
-                  <span className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
-                    {t('guest.features.spacedRepetition')} —{' '}
+            {/* Feature highlights */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+              <div className="flex items-center gap-3 bg-white/15 rounded-xl px-4 py-3">
+                <BookOpen size={22} className="flex-shrink-0" />
+                <div>
+                  <div className="font-semibold text-sm">
+                    {t('guest.features.spacedRepetition')}
+                  </div>
+                  <div className="text-xs opacity-80">
                     {t('guest.features.spacedRepetitionDesc')}
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <CheckCircle
-                    size={18}
-                    style={{ color: 'var(--color-accent)' }}
-                    className="flex-shrink-0"
-                  />
-                  <span className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
-                    {t('guest.features.xpAndLevels')} — {t('guest.features.xpAndLevelsDesc')}
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <CheckCircle
-                    size={18}
-                    style={{ color: 'var(--color-accent)' }}
-                    className="flex-shrink-0"
-                  />
-                  <span className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
-                    {t('guest.features.achievements')} — {t('guest.features.achievementsDesc')}
-                  </span>
+                  </div>
                 </div>
               </div>
+              <div className="flex items-center gap-3 bg-white/15 rounded-xl px-4 py-3">
+                <TrendingUp size={22} className="flex-shrink-0" />
+                <div>
+                  <div className="font-semibold text-sm">{t('guest.features.xpAndLevels')}</div>
+                  <div className="text-xs opacity-80">{t('guest.features.xpAndLevelsDesc')}</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 bg-white/15 rounded-xl px-4 py-3">
+                <Trophy size={22} className="flex-shrink-0" />
+                <div>
+                  <div className="font-semibold text-sm">{t('guest.features.achievements')}</div>
+                  <div className="text-xs opacity-80">{t('guest.features.achievementsDesc')}</div>
+                </div>
+              </div>
+            </div>
 
-              {/* CTA buttons */}
-              <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={handleRegisterClick}
-                  className="text-white font-bold px-6 py-3 rounded-xl flex items-center gap-2 transition-all hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.98]"
-                  style={{ background: 'var(--color-accent-gradient)' }}
-                >
-                  {t('guest.hero.registerCTA')}
-                  <ArrowRight size={18} />
-                </button>
-                <button
-                  onClick={() => onChangeView('study')}
-                  className="font-bold px-6 py-3 rounded-xl flex items-center gap-2 transition-all hover:-translate-y-0.5 active:scale-[0.98]"
-                  style={{
-                    color: 'var(--color-accent)',
-                    backgroundColor: 'var(--color-accent-light)',
-                  }}
-                >
-                  <BookOpen size={18} />
-                  {t('guest.hero.exploreCTA')}
-                </button>
-              </div>
+            {/* CTA buttons - centered on mobile */}
+            <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
+              <button
+                onClick={() => onChangeView('study')}
+                className="bg-white font-bold px-6 py-3 rounded-xl flex items-center gap-2 transition-all hover:shadow-lg active:scale-[0.98]"
+                style={{ color: 'var(--color-accent)' }}
+              >
+                <BookOpen size={18} />
+                {t('guest.hero.exploreCTA')}
+              </button>
+              <button
+                onClick={handleRegisterClick}
+                className="bg-white/20 hover:bg-white/30 font-bold px-6 py-3 rounded-xl flex items-center gap-2 transition-all"
+              >
+                {t('guest.hero.registerCTA')}
+                <ArrowRight size={18} />
+              </button>
             </div>
           </div>
 
-          {/* Right Column: Product Preview (mini dashboard mockup) */}
-          <div className="lg:col-span-5 flex flex-col gap-4">
-            {/* Stats preview card */}
-            <div
-              className="rounded-2xl p-5 border"
-              style={{
-                backgroundColor: 'var(--card-bg)',
-                borderColor: 'var(--border-subtle)',
-              }}
-            >
-              <div className="grid grid-cols-3 gap-3">
-                <div className="text-center">
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2"
-                    style={{ backgroundColor: 'var(--color-accent-light)' }}
-                  >
-                    <Flame size={20} style={{ color: 'var(--color-accent)' }} />
-                  </div>
-                  <div className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
-                    0
-                  </div>
-                  <div className="text-[10px] font-medium" style={{ color: 'var(--text-muted)' }}>
-                    Streak
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2"
-                    style={{ backgroundColor: 'var(--color-accent-light)' }}
-                  >
-                    <Zap size={20} style={{ color: 'var(--color-accent)' }} />
-                  </div>
-                  <div className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
-                    0
-                  </div>
-                  <div className="text-[10px] font-medium" style={{ color: 'var(--text-muted)' }}>
-                    XP
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-2"
-                    style={{ backgroundColor: 'var(--color-accent-light)' }}
-                  >
-                    <Trophy size={20} style={{ color: 'var(--color-accent)' }} />
-                  </div>
-                  <div className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
-                    0
-                  </div>
-                  <div className="text-[10px] font-medium" style={{ color: 'var(--text-muted)' }}>
-                    Badge-uri
-                  </div>
-                </div>
-              </div>
-              {/* XP Progress bar placeholder */}
-              <div className="mt-4">
-                <div
-                  className="flex justify-between text-[10px] font-semibold mb-1"
-                  style={{ color: 'var(--text-muted)' }}
-                >
-                  <span>Nivel 1</span>
-                  <span>0 / 100 XP</span>
-                </div>
-                <div
-                  className="h-2 w-full rounded-full overflow-hidden"
-                  style={{ backgroundColor: 'var(--bg-tertiary)' }}
-                >
-                  <div
-                    className="h-full rounded-full w-0"
-                    style={{ background: 'var(--color-accent-gradient)' }}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Quick start deck cards preview */}
-            {quickStartDecks.slice(0, 2).map(deck => (
-              <div
-                key={deck.id}
-                className="rounded-2xl p-4 border transition-all hover:-translate-y-0.5 hover:shadow-md cursor-pointer"
-                style={{
-                  backgroundColor: 'var(--card-bg)',
-                  borderColor: 'var(--border-subtle)',
-                }}
-                onClick={() => onStartSession(deck)}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 min-w-0">
-                    <h3
-                      className="font-bold text-sm line-clamp-1 mb-1"
-                      style={{ color: 'var(--text-primary)' }}
-                    >
-                      {deck.title}
-                    </h3>
-                    <div
-                      className="flex items-center gap-2 text-xs"
-                      style={{ color: 'var(--text-muted)' }}
-                    >
-                      <span>{deck.totalCards} carduri</span>
-                      {deck.averageRating && deck.averageRating > 0 && (
-                        <span className="flex items-center gap-0.5">
-                          <Star size={11} className="text-amber-500 fill-amber-500" />
-                          {deck.averageRating.toFixed(1)}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <button
-                    className="ml-3 w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-white transition-all active:scale-95"
-                    style={{ background: 'var(--color-accent-gradient)' }}
-                    onClick={e => {
-                      e.stopPropagation();
-                      onStartSession(deck);
-                    }}
-                  >
-                    <Play size={16} />
-                  </button>
-                </div>
-              </div>
-            ))}
-
-            {/* Activity calendar placeholder */}
-            <div
-              className="rounded-2xl p-4 border"
-              style={{
-                backgroundColor: 'var(--card-bg)',
-                borderColor: 'var(--border-subtle)',
-              }}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>
-                  {t('activityCalendar.title')}
-                </span>
-                <Calendar size={14} style={{ color: 'var(--text-muted)' }} />
-              </div>
-              <div className="grid grid-cols-7 gap-1">
-                {Array.from({ length: 28 }, (_, i) => (
-                  <div
-                    key={i}
-                    className="aspect-square rounded-sm"
-                    style={{ backgroundColor: 'var(--bg-tertiary)' }}
-                  />
-                ))}
-              </div>
-            </div>
+          {/* Decorative background element */}
+          <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-10 flex items-center justify-center pointer-events-none">
+            <BookOpen size={200} strokeWidth={0.5} />
           </div>
         </section>
 
