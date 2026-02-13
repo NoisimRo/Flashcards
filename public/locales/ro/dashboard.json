@@ -9,7 +9,7 @@
     "levelUp": "Level up!"
   },
   "buttons": {
-    "startSession": "Începe sesiune",
+    "startSession": "Sesiune nouă",
     "leaderboard": "Clasament",
     "viewAll": "Vezi toate",
     "continueSession": "Continuă sesiunea",
@@ -24,7 +24,7 @@
     "totalStudyTime": "Timp total studiu",
     "correct": "corecte",
     "completed": "parcurse",
-    "decksCreated": "Deck-uri create",
+    "decksCreated": "Colecții create",
     "cardsInStudy": "Carduri în studiu",
     "minutes": "min.",
     "hours": "{{hours}}h",
@@ -68,28 +68,28 @@
     "noActiveSessionsDescription": "Începe o sesiune nouă pentru a continua învățarea!"
   },
   "recommendations": {
-    "title": "Deck-uri populare",
+    "title": "Colecții populare",
     "cards": "{{total}} carduri",
     "inStudy": "{{count}} în studiu",
     "mastered": "{{count}} învățate",
-    "allUpToDate": "Toate deck-urile sunt la zi!",
+    "allUpToDate": "Toate colecțiile sunt la zi!",
     "rating": "{{rating}}",
     "reviews": "{{count}} recenzii",
     "noRating": "Fără rating",
     "seeAll": "Vezi toate",
-    "noPublicDecks": "Niciun deck public disponibil momentan.",
+    "noPublicDecks": "Nicio colecție nu e disponibilă momentan.",
     "byAuthor": "de {{author}}"
   },
   "recentAchievements": {
     "title": "Realizări recente",
     "unlockedRecently": "Deblocat recent",
-    "startStudying": "Începe să studiezi pentru realizări!"
+    "startStudying": "Începe să studiezi!"
   },
   "guest": {
     "hero": {
       "title": "Începe să înveți astăzi",
       "subtitle": "Studiază mai inteligent cu repetiție spațiată, câștigă XP și urmărește-ți progresul",
-      "exploreCTA": "Explorează deck-uri",
+      "exploreCTA": "Explorează colecțiile",
       "registerCTA": "Creează cont gratuit"
     },
     "features": {
@@ -102,12 +102,12 @@
     },
     "quickStart": {
       "title": "Începe acum",
-      "subtitle": "Studiază deck-uri populare acum — nu ai nevoie de cont",
+      "subtitle": "Studiază colecții populare acum — nu ai nevoie de cont",
       "studyNow": "Studiază acum"
     },
     "featuredDecks": {
-      "title": "Deck-uri recomandate",
-      "seeAll": "Vezi toate deck-urile",
+      "title": "Colecții recomandate",
+      "seeAll": "Vezi toate",
       "cards": "{{total}} carduri",
       "byAuthor": "de {{author}}"
     },
@@ -123,7 +123,7 @@
       "earnXPDesc": "Fiecare răspuns corect îți aduce puncte de experiență",
       "compete": "Concurează în clasament",
       "competeDesc": "Vezi cum te clasezi față de ceilalți",
-      "finalCTA": "Pregătit? Creează-ți contul gratuit"
+      "finalCTA": "Pregătit? Creează-ți contul GRATUIT!"
     }
   }
 }
