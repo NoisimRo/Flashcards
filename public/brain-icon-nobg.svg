@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <g transform="translate(56, 56) scale(0.78)">
+    <path d="M256 48C176 48 112 112 112 192c0 48 24 90 60 116v60c0 22 18 40 40 40h88c22 0 40-18 40-40v-60c36-26 60-68 60-116 0-80-64-144-144-144z" fill="#ffffff" opacity="0.95"/>
+    <path d="M220 160c0-20 16-36 36-36s36 16 36 36" stroke="#ffffff" stroke-width="12" stroke-linecap="round" fill="none" opacity="0.3"/>
+    <path d="M200 200c-16 0-28-12-28-28s12-28 28-28" stroke="#ffffff" stroke-width="10" stroke-linecap="round" fill="none" opacity="0.3"/>
+    <path d="M312 200c16 0 28-12 28-28s-12-28-28-28" stroke="#ffffff" stroke-width="10" stroke-linecap="round" fill="none" opacity="0.3"/>
+    <line x1="256" y1="192" x2="256" y2="320" stroke="#ffffff" stroke-width="10" stroke-linecap="round" opacity="0.3"/>
+    <line x1="220" y1="240" x2="256" y2="220" stroke="#ffffff" stroke-width="8" stroke-linecap="round" opacity="0.3"/>
+    <line x1="292" y1="240" x2="256" y2="220" stroke="#ffffff" stroke-width="8" stroke-linecap="round" opacity="0.3"/>
+    <line x1="220" y1="280" x2="256" y2="260" stroke="#ffffff" stroke-width="8" stroke-linecap="round" opacity="0.3"/>
+    <line x1="292" y1="280" x2="256" y2="260" stroke="#ffffff" stroke-width="8" stroke-linecap="round" opacity="0.3"/>
+    <circle cx="200" cy="360" r="8" fill="#ffffff" opacity="0.3"/>
+    <circle cx="256" cy="380" r="8" fill="#ffffff" opacity="0.2"/>
+    <circle cx="312" cy="360" r="8" fill="#ffffff" opacity="0.3"/>
+  </g>
+</svg>
