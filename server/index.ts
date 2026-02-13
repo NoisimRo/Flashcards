@@ -24,6 +24,7 @@ import cardsRoutes from './routes/cards.js';
 import feedbackRoutes from './routes/feedback.js';
 import teacherCodesRoutes from './routes/teacherCodes.js';
 import catalogRoutes from './routes/catalog.js';
+import settingsRoutes from './routes/settings.js';
 
 const app = express();
 
@@ -98,6 +99,7 @@ app.use('/api/cards', cardsRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/teacher-codes', teacherCodesRoutes);
 app.use('/api/catalog', catalogRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // ============================================
 // STATIC FILES (Production)

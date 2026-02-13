@@ -37,6 +37,9 @@ import { BadgePicker } from './BadgePicker';
 import { Achievement, getAchievements } from '../../../api/achievements';
 import { soundEngine } from '../../../services/soundEngine';
 import { useAuthActions } from '../../../hooks/useAuthActions';
+import { useAuth } from '../../../store/AuthContext';
+import { useBadgeTierColors } from '../../../hooks/useBadgeTierColors';
+import { badgeSVGs } from '../Achievements/BadgeIcons';
 
 interface SettingsProps {
   user: User & { email?: string };
@@ -90,6 +93,9 @@ export const Settings: React.FC<SettingsProps> = ({
   const { mode, accent, setMode, setAccent, isNight } = useTheme();
   const toast = useToast();
   const { handleLoginClick, handleRegisterClick } = useAuthActions();
+  const { isRole } = useAuth();
+  const isAdmin = isRole('admin');
+  const { colors: badgeTierColors, setTierColor, resetToDefaults } = useBadgeTierColors();
 
   const [formData, setFormData] = useState({
     name: user.name,
@@ -918,6 +924,85 @@ export const Settings: React.FC<SettingsProps> = ({
               )}
             </div>
           </div>
+
+          {/* Badge Colors - Admin Only */}
+          {isAdmin && (
+            <div
+              className="p-6 rounded-3xl shadow-sm"
+              style={{ backgroundColor: 'var(--bg-secondary)' }}
+            >
+              <h3
+                className="flex items-center gap-2 text-xl font-bold mb-4"
+                style={{ color: 'var(--text-primary)' }}
+              >
+                <Palette style={{ color: 'var(--color-accent)' }} />
+                {t('badgeColors.title', 'Badge Colors')}
+                <span
+                  className="text-xs font-normal px-2 py-0.5 rounded-full text-white"
+                  style={{ backgroundColor: 'var(--color-accent)' }}
+                >
+                  Admin
+                </span>
+              </h3>
+              <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
+                {t('badgeColors.description', 'Customize badge tier colors for all users.')}
+              </p>
+
+              <div className="space-y-3">
+                {(['bronze', 'silver', 'gold', 'platinum'] as const).map(tier => {
+                  const previewBadgeId =
+                    tier === 'bronze'
+                      ? 'a1'
+                      : tier === 'silver'
+                        ? 'a3'
+                        : tier === 'gold'
+                          ? 'a6'
+                          : 'a8';
+                  const BadgeSVG = badgeSVGs[previewBadgeId];
+                  return (
+                    <div key={tier} className="flex items-center gap-3">
+                      <input
+                        type="color"
+                        value={badgeTierColors[tier]}
+                        onChange={e => setTierColor(tier, e.target.value)}
+                        className="w-10 h-10 rounded-lg cursor-pointer border-2 p-0.5"
+                        style={{
+                          borderColor: 'var(--border-secondary)',
+                          backgroundColor: 'var(--bg-surface)',
+                        }}
+                      />
+                      <div className="flex-1">
+                        <span
+                          className="font-bold capitalize text-sm"
+                          style={{ color: 'var(--text-primary)' }}
+                        >
+                          {t(`badgeColors.${tier}`, tier)}
+                        </span>
+                        <span className="text-xs ml-2" style={{ color: 'var(--text-muted)' }}>
+                          {badgeTierColors[tier]}
+                        </span>
+                      </div>
+                      {BadgeSVG && <BadgeSVG size={32} unlocked />}
+                    </div>
+                  );
+                })}
+
+                <button
+                  onClick={resetToDefaults}
+                  className="text-sm font-semibold px-4 py-2 rounded-xl transition-all mt-2"
+                  style={{
+                    backgroundColor: 'var(--bg-surface)',
+                    color: 'var(--text-secondary)',
+                    borderWidth: '1px',
+                    borderStyle: 'solid',
+                    borderColor: 'var(--border-secondary)',
+                  }}
+                >
+                  {t('badgeColors.reset', 'Reset to Defaults')}
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Sign Out Section */}
           {onLogout && !isGuest && (

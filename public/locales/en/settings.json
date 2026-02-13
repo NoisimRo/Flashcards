@@ -86,5 +86,14 @@
     "message": "You will be signed out and redirected to the login page.",
     "button": "Sign out",
     "description": "You will be signed out and redirected to the login page."
+  },
+  "badgeColors": {
+    "title": "Badge Colors",
+    "description": "Customize badge tier colors for all users.",
+    "bronze": "Bronze",
+    "silver": "Silver",
+    "gold": "Gold",
+    "platinum": "Platinum",
+    "reset": "Reset to Defaults"
   }
 }

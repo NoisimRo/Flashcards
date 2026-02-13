@@ -86,5 +86,14 @@
     "message": "Verrai disconnesso e reindirizzato alla pagina di accesso.",
     "button": "Disconnetti",
     "description": "Verrai disconnesso e reindirizzato alla pagina di accesso."
+  },
+  "badgeColors": {
+    "title": "Colori Badge",
+    "description": "Personalizza i colori dei livelli badge per tutti gli utenti.",
+    "bronze": "Bronzo",
+    "silver": "Argento",
+    "gold": "Oro",
+    "platinum": "Platino",
+    "reset": "Ripristina Predefiniti"
   }
 }
