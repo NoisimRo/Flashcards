@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Languages } from 'lucide-react';
+import { FlagIcon } from './FlagIcons';
 
 /**
  * LanguageSwitcher - Component for switching between languages
@@ -13,9 +14,9 @@ export const LanguageSwitcher: React.FC = () => {
   const [dropUp, setDropUp] = useState(false);
 
   const languages = [
-    { code: 'ro', name: 'Romana', flag: '🇷🇴' },
-    { code: 'en', name: 'English', flag: '🇬🇧' },
-    { code: 'it', name: 'Italiano', flag: '🇮🇹' },
+    { code: 'ro', name: 'Romana' },
+    { code: 'en', name: 'English' },
+    { code: 'it', name: 'Italiano' },
   ];
 
   const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
@@ -50,8 +51,12 @@ export const LanguageSwitcher: React.FC = () => {
         style={{ color: 'var(--text-tertiary)' }}
       >
         <Languages size={20} />
-        <span className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
-          {currentLanguage.flag} {currentLanguage.name}
+        <span
+          className="text-sm font-medium flex items-center gap-1.5"
+          style={{ color: 'var(--text-secondary)' }}
+        >
+          <FlagIcon code={currentLanguage.code} size={18} />
+          {currentLanguage.name}
         </span>
       </button>
 
@@ -79,7 +84,7 @@ export const LanguageSwitcher: React.FC = () => {
               backgroundColor: lang.code === i18n.language ? 'var(--bg-secondary)' : 'transparent',
             }}
           >
-            <span className="text-2xl">{lang.flag}</span>
+            <FlagIcon code={lang.code} size={24} />
             <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
               {lang.name}
             </span>

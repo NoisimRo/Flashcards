@@ -1,10 +1,10 @@
 {
   "header": {
-    "title": "Deck-uri globale",
-    "subtitle": "Explorează și studiază din biblioteca de deck-uri create de comunitate"
+    "title": "Colecții globale",
+    "subtitle": "Explorează și studiază din biblioteca de colecții create de comunitate"
   },
   "stats": {
-    "decksAvailable": "Deck-uri disponibile",
+    "decksAvailable": "Colecții disponibile",
     "creators": "Creatori",
     "subjects": "Discipline"
   },
@@ -20,11 +20,11 @@
     "stars": "{{count}} stele",
     "starsAndAbove": "{{count}}+ stele",
     "level": "Nivel {{level}}",
-    "showing": "Afișare {{filtered}} din {{total}} deck-uri",
+    "showing": "Afișare {{filtered}} din {{total}} colecții",
     "resetFilters": "Resetează filtrele"
   },
   "empty": {
-    "title": "Niciun deck găsit",
+    "title": "Nicio colecție găsită",
     "subtitle": "Încearcă să modifici filtrele sau caută după alte cuvinte cheie"
   },
   "deckCard": {
@@ -35,27 +35,27 @@
     "study": "Studiază",
     "copy": "Copiază în colecția mea",
     "updated": "Actualizat: {{date}}",
-    "deck": "deck",
-    "decks": "deck-uri",
+    "deck": "colecție",
+    "decks": "colecții",
     "beFirstToRate": "Fii primul care evaluează!"
   },
   "menu": {
     "leaveReview": "Lasă o recenzie",
-    "report": "Raportează deck",
+    "report": "Raportează colecție",
     "editCards": "Editează carduri",
-    "editDeck": "Editează deck",
-    "deleteDeck": "Șterge deck",
+    "editDeck": "Editează colecție",
+    "deleteDeck": "Șterge colecție",
     "deleteConfirm": "Ești sigur că vrei să ștergi \"{{title}}\"? Această acțiune nu poate fi anulată.",
     "makePrivate": "Fă privat",
     "makePublic": "Fă public"
   },
   "toast": {
-    "deckCopied": "Deck-ul \"{{title}}\" a fost copiat în colecția ta!",
+    "deckCopied": "Colecția \"{{title}}\" a fost copiată!",
     "copyNotAvailable": "Funcția de copiere nu este disponibilă momentan",
-    "loadError": "Nu s-au putut încărca deck-urile publice",
-    "generalError": "Eroare la încărcarea deck-urilor",
-    "deckDeleted": "Deck-ul \"{{title}}\" a fost șters",
-    "visibilityChanged": "Vizibilitatea deck-ului a fost actualizată"
+    "loadError": "Nu s-au putut încărca colecții publice",
+    "generalError": "Eroare la încărcarea colecțiilor",
+    "deckDeleted": "Colecția \"{{title}}\" a fost ștersă",
+    "visibilityChanged": "Vizibilitatea colecției a fost actualizată"
   },
-  "loading": "Se încarcă deck-urile globale..."
+  "loading": "Se încarcă colecțiile globale..."
 }

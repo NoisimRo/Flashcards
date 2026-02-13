@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   BookOpen,
@@ -21,21 +21,29 @@ import {
 } from 'lucide-react';
 import { getDecks, getDeck, deleteDeck, updateDeck } from '../../../api/decks';
 import type { DeckWithCards as APIDeck } from '../../../types';
-import type { Deck, DeckWithCards } from '../../../types';
+import type { Deck, DeckWithCards, Difficulty } from '../../../types';
 import { useToast } from '../../ui/Toast';
 import { getSubjectDisplayName, SUBJECTS } from '../../../constants/subjects';
 import { LanguageFlag } from '../../ui/LanguageFlag';
 import { ReviewModal } from '../../reviews/ReviewModal';
 import { FlagModal } from '../../flags/FlagModal';
 import { EditCardsModal } from '../DeckList/EditCardsModal';
+import { GenerateCardsModal } from '../DeckList/GenerateCardsModal';
 import { useAuth } from '../../../store/AuthContext';
+
+const DECKS_PER_PAGE = 12;
 
 interface GlobalDecksProps {
   onStartSession: (deck: Deck) => void;
   onImportDeck?: (deck: APIDeck) => void;
+  onEditDeck?: (deck: DeckWithCards) => void;
 }
 
-export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImportDeck }) => {
+export const GlobalDecks: React.FC<GlobalDecksProps> = ({
+  onStartSession,
+  onImportDeck,
+  onEditDeck,
+}) => {
   const { t, i18n } = useTranslation('globalDecks');
   const toast = useToast();
   const { user } = useAuth();
@@ -53,6 +61,18 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
   const [selectedDeckForReview, setSelectedDeckForReview] = useState<Deck | null>(null);
   const [editCardsModalOpen, setEditCardsModalOpen] = useState(false);
   const [editCardsModalDeck, setEditCardsModalDeck] = useState<DeckWithCards | null>(null);
+  // Edit deck modal state (teacher/admin)
+  const [editDeckModalOpen, setEditDeckModalOpen] = useState(false);
+  const [selectedDeckForEdit, setSelectedDeckForEdit] = useState<{
+    id: string;
+    title: string;
+    subject: string;
+    difficulty: Difficulty;
+    language?: string;
+  } | null>(null);
+  // Lazy loading state
+  const [visibleCount, setVisibleCount] = useState(DECKS_PER_PAGE);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const isTeacherOrAdmin = user?.role === 'teacher' || user?.role === 'admin';
 
@@ -180,7 +200,18 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
 
   const handleCopyDeck = async (deck: APIDeck) => {
     if (onImportDeck) {
-      onImportDeck(convertToDeck(deck));
+      try {
+        // Fetch full deck with all cards before copying
+        const response = await getDeck(deck.id);
+        if (response.success && response.data) {
+          onImportDeck(convertToDeck(response.data));
+        } else {
+          onImportDeck(convertToDeck(deck));
+        }
+      } catch {
+        // Fallback: copy without full cards
+        onImportDeck(convertToDeck(deck));
+      }
       toast.success(t('toast.deckCopied', { title: deck.title }));
     } else {
       toast.info(t('toast.copyNotAvailable'));
@@ -277,6 +308,39 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
     setReviewModalOpen(true);
   };
 
+  const openEditDeckModal = (deck: APIDeck) => {
+    setSelectedDeckForEdit({
+      id: deck.id,
+      title: deck.title,
+      subject: deck.subjectName || deck.subject,
+      difficulty: deck.difficulty as Difficulty,
+      language: deck.language,
+    });
+    setEditDeckModalOpen(true);
+    setActiveMenuId(null);
+  };
+
+  // Reset visible count when filters change
+  useEffect(() => {
+    setVisibleCount(DECKS_PER_PAGE);
+  }, [searchQuery, selectedLanguage, selectedSubject, selectedDifficulty, selectedRating]);
+
+  // IntersectionObserver for lazy loading
+  useEffect(() => {
+    const el = loadMoreRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount(prev => prev + DECKS_PER_PAGE);
+        }
+      },
+      { rootMargin: '200px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   const renderDeckCard = (deck: APIDeck, subject: string) => {
     const isOwner = user && deck.ownerId === user.id;
     const hasRating = deck.averageRating != null && deck.averageRating > 0;
@@ -298,6 +362,17 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
 
             {activeMenuId === deck.id && (
               <div className="absolute right-0 top-8 bg-[var(--bg-elevated)] shadow-xl rounded-xl p-2 min-w-[180px] z-10 border border-[var(--border-subtle)] animate-fade-in">
+                {isTeacherOrAdmin && (
+                  <button
+                    onClick={e => {
+                      e.stopPropagation();
+                      openEditDeckModal(deck);
+                    }}
+                    className="w-full text-left px-3 py-2 text-sm text-[var(--color-accent-text)] hover:bg-[var(--color-accent-light)] rounded-lg flex items-center gap-2 font-medium"
+                  >
+                    <Edit size={16} /> {t('menu.editDeck')}
+                  </button>
+                )}
                 {isTeacherOrAdmin && deck.totalCards > 0 && (
                   <button
                     onClick={e => {
@@ -428,13 +503,15 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
             <Play size={16} fill="currentColor" />
             <span>{t('deckCard.study')}</span>
           </button>
-          <button
-            onClick={() => handleCopyDeck(deck)}
-            className="bg-[var(--bg-tertiary)] hover:bg-[var(--bg-surface-hover)] text-[var(--text-secondary)] font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2"
-            title={t('deckCard.copy')}
-          >
-            <Copy size={16} />
-          </button>
+          {isTeacherOrAdmin && (
+            <button
+              onClick={() => handleCopyDeck(deck)}
+              className="bg-[var(--bg-tertiary)] hover:bg-[var(--bg-surface-hover)] text-[var(--text-secondary)] font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2"
+              title={t('deckCard.copy')}
+            >
+              <Copy size={16} />
+            </button>
+          )}
         </div>
 
         {/* Last Updated */}
@@ -600,7 +677,7 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
         )}
       </div>
 
-      {/* Decks Grouped by Subject */}
+      {/* Decks Grouped by Subject — with lazy loading */}
       {largeCategories.length === 0 && smallCategoryDecks.length === 0 ? (
         <div className="bg-[var(--bg-secondary)] rounded-2xl p-12 text-center">
           <BookOpen className="mx-auto mb-4 text-[var(--text-muted)]" size={48} />
@@ -610,34 +687,94 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
           <p className="text-[var(--text-tertiary)] text-sm">{t('empty.subtitle')}</p>
         </div>
       ) : (
-        <>
-          {/* Large categories (3+ decks) - each gets its own section */}
-          {largeCategories.map(([subject, subjectDecks]) => (
-            <div key={subject} className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-1 h-8 rounded-full"
-                  style={{ backgroundColor: getSubjectColor(subject) }}
-                ></div>
-                <h2 className="text-2xl font-bold text-[var(--text-primary)]">{subject}</h2>
-                <span className="text-sm text-[var(--text-tertiary)] font-medium">
-                  ({subjectDecks.length}{' '}
-                  {subjectDecks.length === 1 ? t('deckCard.deck') : t('deckCard.decks')})
-                </span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {subjectDecks.map(deck => renderDeckCard(deck, deck.subjectName || subject))}
-              </div>
-            </div>
-          ))}
+        (() => {
+          // Flatten all decks in display order for lazy-load slicing
+          const allDisplayDecks: { deck: APIDeck; subject: string; category: string }[] = [];
+          largeCategories.forEach(([subject, subjectDecks]) => {
+            subjectDecks.forEach(deck => {
+              allDisplayDecks.push({
+                deck,
+                subject: deck.subjectName || subject,
+                category: subject,
+              });
+            });
+          });
+          smallCategoryDecks.forEach(deck => {
+            allDisplayDecks.push({
+              deck,
+              subject: deck.subjectName || 'Altele',
+              category: '__small__',
+            });
+          });
 
-          {/* Small categories (1-2 decks) - merged into a shared grid */}
-          {smallCategoryDecks.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {smallCategoryDecks.map(deck => renderDeckCard(deck, deck.subjectName || 'Altele'))}
-            </div>
-          )}
-        </>
+          const visibleItems = allDisplayDecks.slice(0, visibleCount);
+          const hasMore = visibleCount < allDisplayDecks.length;
+
+          // Re-group visible items for display
+          const visibleLargeGroups: Record<string, APIDeck[]> = {};
+          const visibleSmallDecks: APIDeck[] = [];
+
+          visibleItems.forEach(item => {
+            if (item.category === '__small__') {
+              visibleSmallDecks.push(item.deck);
+            } else {
+              if (!visibleLargeGroups[item.category]) visibleLargeGroups[item.category] = [];
+              visibleLargeGroups[item.category].push(item.deck);
+            }
+          });
+
+          // Preserve original category order
+          const orderedCategories = largeCategories
+            .map(([subject]) => subject)
+            .filter(s => visibleLargeGroups[s]);
+
+          return (
+            <>
+              {orderedCategories.map(subject => {
+                const subjectDecks = visibleLargeGroups[subject];
+                return (
+                  <div key={subject} className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="w-1 h-8 rounded-full"
+                        style={{ backgroundColor: getSubjectColor(subject) }}
+                      ></div>
+                      <h2 className="text-2xl font-bold text-[var(--text-primary)]">{subject}</h2>
+                      <span className="text-sm text-[var(--text-tertiary)] font-medium">
+                        (
+                        {largeCategories.find(([s]) => s === subject)?.[1].length ||
+                          subjectDecks.length}{' '}
+                        {(largeCategories.find(([s]) => s === subject)?.[1].length ||
+                          subjectDecks.length) === 1
+                          ? t('deckCard.deck')
+                          : t('deckCard.decks')}
+                        )
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {subjectDecks.map(deck => renderDeckCard(deck, deck.subjectName || subject))}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {visibleSmallDecks.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {visibleSmallDecks.map(deck =>
+                    renderDeckCard(deck, deck.subjectName || 'Altele')
+                  )}
+                </div>
+              )}
+
+              {/* Lazy load sentinel */}
+              {hasMore && (
+                <div ref={loadMoreRef} className="flex justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-[var(--text-muted)]" />
+                </div>
+              )}
+            </>
+          );
+        })()
       )}
 
       {/* Review Modal */}
@@ -688,6 +825,44 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({ onStartSession, onImpo
           );
           setEditCardsModalDeck(updatedDeck);
         }}
+      />
+
+      {/* Edit Deck Metadata Modal (Teacher/Admin) */}
+      <GenerateCardsModal
+        isOpen={editDeckModalOpen}
+        onClose={() => {
+          setEditDeckModalOpen(false);
+          setSelectedDeckForEdit(null);
+        }}
+        mode="edit"
+        existingDeck={selectedDeckForEdit}
+        onAddDeck={() => {}}
+        onEditDeck={async updatedDeck => {
+          if (onEditDeck) {
+            await onEditDeck(updatedDeck);
+          } else {
+            try {
+              await updateDeck(updatedDeck.id, {
+                title: updatedDeck.title,
+                subject: updatedDeck.subject,
+                topic: updatedDeck.topic,
+                difficulty: updatedDeck.difficulty,
+                language: updatedDeck.language || 'ro',
+              });
+            } catch (error) {
+              console.error('Error updating deck:', error);
+            }
+          }
+          await refreshDecks();
+          setEditDeckModalOpen(false);
+          setSelectedDeckForEdit(null);
+        }}
+        decks={decks.map(d => ({
+          id: d.id,
+          title: d.title,
+          subject: d.subjectName || d.subject,
+          difficulty: d.difficulty as Difficulty,
+        }))}
       />
     </div>
   );
