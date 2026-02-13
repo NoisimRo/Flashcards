@@ -4,7 +4,7 @@
     "subtitle": "Explorează și studiază din biblioteca de colecții create de comunitate"
   },
   "stats": {
-    "decksAvailable": "Colecții disponibile",
+    "decksAvailable": "Colecții",
     "creators": "Creatori",
     "subjects": "Discipline"
   },
@@ -41,7 +41,7 @@
   },
   "menu": {
     "leaveReview": "Lasă o recenzie",
-    "report": "Raportează colecție",
+    "report": "Raportează",
     "editCards": "Editează carduri",
     "editDeck": "Editează colecție",
     "deleteDeck": "Șterge colecție",

@@ -72,7 +72,7 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({
   } | null>(null);
   // Lazy loading state
   const [visibleCount, setVisibleCount] = useState(DECKS_PER_PAGE);
-  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
   const isTeacherOrAdmin = user?.role === 'teacher' || user?.role === 'admin';
 
@@ -325,10 +325,13 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({
     setVisibleCount(DECKS_PER_PAGE);
   }, [searchQuery, selectedLanguage, selectedSubject, selectedDifficulty, selectedRating]);
 
-  // IntersectionObserver for lazy loading
-  useEffect(() => {
-    const el = loadMoreRef.current;
-    if (!el) return;
+  // Callback ref for lazy-load sentinel — creates IntersectionObserver when element mounts
+  const loadMoreRef = useCallback((node: HTMLDivElement | null) => {
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+      observerRef.current = null;
+    }
+    if (!node) return;
     const observer = new IntersectionObserver(
       entries => {
         if (entries[0].isIntersecting) {
@@ -337,8 +340,8 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({
       },
       { rootMargin: '200px' }
     );
-    observer.observe(el);
-    return () => observer.disconnect();
+    observer.observe(node);
+    observerRef.current = observer;
   }, []);
 
   const renderDeckCard = (deck: APIDeck, subject: string) => {
@@ -545,34 +548,44 @@ export const GlobalDecks: React.FC<GlobalDecksProps> = ({
         <p className="text-[var(--text-tertiary)] mt-2">{t('header.subtitle')}</p>
       </div>
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-[var(--bg-secondary)] p-4 rounded-xl">
-          <div className="flex items-center gap-3">
-            <BookOpen className="text-[var(--color-accent)]" size={24} />
+      {/* Stats Overview — always 3 columns, compact on mobile */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
+        <div className="bg-[var(--bg-secondary)] p-2 sm:p-4 rounded-xl">
+          <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
+            <BookOpen className="text-[var(--color-accent)] flex-shrink-0" size={20} />
             <div>
-              <p className="text-2xl font-bold text-[var(--text-primary)]">{decks.length}</p>
-              <p className="text-xs text-[var(--text-tertiary)]">{t('stats.decksAvailable')}</p>
+              <p className="text-lg sm:text-2xl font-bold text-[var(--text-primary)]">
+                {decks.length}
+              </p>
+              <p className="text-[10px] sm:text-xs text-[var(--text-tertiary)] leading-tight">
+                {t('stats.decksAvailable')}
+              </p>
             </div>
           </div>
         </div>
-        <div className="bg-[var(--bg-secondary)] p-4 rounded-xl">
-          <div className="flex items-center gap-3">
-            <Users className="text-blue-500" size={24} />
+        <div className="bg-[var(--bg-secondary)] p-2 sm:p-4 rounded-xl">
+          <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
+            <Users className="text-blue-500 flex-shrink-0" size={20} />
             <div>
-              <p className="text-2xl font-bold text-[var(--text-primary)]">
+              <p className="text-lg sm:text-2xl font-bold text-[var(--text-primary)]">
                 {new Set(decks.map(d => d.ownerId)).size}
               </p>
-              <p className="text-xs text-[var(--text-tertiary)]">{t('stats.creators')}</p>
+              <p className="text-[10px] sm:text-xs text-[var(--text-tertiary)] leading-tight">
+                {t('stats.creators')}
+              </p>
             </div>
           </div>
         </div>
-        <div className="bg-[var(--bg-secondary)] p-4 rounded-xl">
-          <div className="flex items-center gap-3">
-            <Filter className="text-green-500" size={24} />
+        <div className="bg-[var(--bg-secondary)] p-2 sm:p-4 rounded-xl">
+          <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
+            <Filter className="text-green-500 flex-shrink-0" size={20} />
             <div>
-              <p className="text-2xl font-bold text-[var(--text-primary)]">{subjects.length}</p>
-              <p className="text-xs text-[var(--text-tertiary)]">{t('stats.subjects')}</p>
+              <p className="text-lg sm:text-2xl font-bold text-[var(--text-primary)]">
+                {subjects.length}
+              </p>
+              <p className="text-[10px] sm:text-xs text-[var(--text-tertiary)] leading-tight">
+                {t('stats.subjects')}
+              </p>
             </div>
           </div>
         </div>
