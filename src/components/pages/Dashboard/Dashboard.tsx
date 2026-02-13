@@ -43,7 +43,6 @@ import {
   BarChart,
   Bar,
 } from 'recharts';
-import { AVATARS } from '../Settings/AvatarPicker';
 import { GuestDashboard } from './GuestDashboard';
 import { badgeSVGs } from '../Achievements/BadgeIcons';
 
@@ -287,16 +286,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold text-white shadow-lg"
                 style={{ background: 'var(--color-accent-gradient)' }}
               >
-                {user.avatar && user.avatar !== 'default'
-                  ? (() => {
-                      const av = AVATARS.find(a => a.id === user.avatar);
-                      return av ? (
-                        <span className="text-3xl">{av.emoji}</span>
-                      ) : (
-                        user.name.charAt(0).toUpperCase()
-                      );
-                    })()
-                  : user.name.charAt(0).toUpperCase()}
+                {user.avatar && user.avatar !== 'default' ? (
+                  <img src="/brain-icon-nobg.svg" alt="App" className="w-10 h-10" />
+                ) : (
+                  user.name.charAt(0).toUpperCase()
+                )}
               </div>
               <div className="absolute -bottom-1 -right-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-md flex items-center gap-1">
                 <Crown size={10} />
