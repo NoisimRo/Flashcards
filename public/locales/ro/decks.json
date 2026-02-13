@@ -1,8 +1,8 @@
 {
   "header": {
-    "title": "Deck-urile mele",
+    "title": "Colecțiile mele",
     "subtitle": "Gestionează și organizează colecțiile tale de flashcard-uri",
-    "newDeck": "Deck nou"
+    "newDeck": "Colecție nouă"
   },
   "deckCard": {
     "totalCards": "{{count}} carduri",
@@ -21,9 +21,9 @@
     "editCards": "Editează carduri",
     "exportDeck": "Exportă carduri",
     "leaveReview": "Lasă o recenzie",
-    "reportDeck": "Raportează deck",
-    "deleteDeck": "Șterge deck",
-    "deleteConfirm": "Sigur vrei să ștergi deck-ul \"{{title}}\"?"
+    "reportDeck": "Raportează colecția",
+    "deleteDeck": "Șterge colecția",
+    "deleteConfirm": "Sigur vrei să ștergi colecția \"{{title}}\"?"
   },
   "difficulty": {
     "A1": "Începător",
@@ -34,10 +34,10 @@
     "C2": "Expert"
   },
   "modal": {
-    "editDeck": "Editează deck",
+    "editDeck": "Editează colecția",
     "generateCards": "Generează carduri",
     "addCards": "Adaugă carduri",
-    "newDeck": "Deck nou",
+    "newDeck": "Colecție nouă",
     "subject": "Subiect",
     "titleLabel": "Titlu / Tematică",
     "titlePlaceholder": "ex: Verbe neregulate",
@@ -53,13 +53,13 @@
     "manual": "Manual",
     "cardTypes": "Tipuri carduri",
     "standard": "Standard",
-    "standardDesc": "Card tradițional cu întrebare și răspuns",
+    "standardDesc": "Card standard - întrebare și răspuns",
     "quiz": "Quiz",
-    "quizDesc": "Întrebare cu variante multiple de răspuns",
+    "quizDesc": "Întrebare cu variante",
     "typeAnswer": "Răspuns scris",
-    "typeAnswerDesc": "Scrie răspunsul (potrivit pentru 1-2 cuvinte)",
+    "typeAnswerDesc": "Scrie răspunsul (1-2 cuvinte)",
     "multipleAnswer": "Răspuns multiplu",
-    "multipleAnswerDesc": "Întrebare cu mai multe răspunsuri corecte",
+    "multipleAnswerDesc": "Întrebare cu răspuns corect multiplu",
     "deselectCardType": "Deselectează tipul de card nedorit",
     "fileImport": "Format suportat: CSV, TXT (Front, Back)",
     "fileSelected": "Selectat: {{name}}",
@@ -131,7 +131,7 @@
     "front": "Întrebare (Front)",
     "back": "Răspuns (Back)",
     "context": "Context / Indiciu (opțional)",
-    "contextPlaceholder": "Explicație suplimentară...",
+    "contextPlaceholder": "Hint/explicație...",
     "optionsLabel": "Opțiuni",
     "optionsSingle": "(o singură variantă corectă)",
     "optionsMultiple": "(mai multe variante corecte)",
@@ -166,7 +166,7 @@
     "csvDesc": "Compatibil cu Excel",
     "txtDesc": "Text separat cu tab",
     "includeProgress": "Include datele de progres",
-    "includeProgressDesc": "Exportă starea învățării, intervalele și factorii de dificultate",
+    "includeProgressDesc": "Exportă date, intervalele și factorii de dificultate",
     "previewTitle": "Previzualizare format",
     "previewNote": "Așa va arăta fișierul tău exportat",
     "exportBtn": "Exportă"
@@ -195,8 +195,8 @@
   "guestPrompt": {
     "createDeck": {
       "title": "Creează un cont gratuit",
-      "message": "Creează un cont gratuit pentru a păstra deck-urile tale permanent și a debloca toate funcțiile!",
-      "success": "Deck creat cu succes!"
+      "message": "Creează un cont gratuit pentru a păstra colecțiile tale permanent și a debloca toate funcțiile!",
+      "success": "Colecție creată cu succes!"
     },
     "aiGeneration": {
       "title": "Funcție premium",
