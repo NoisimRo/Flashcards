@@ -287,7 +287,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 style={{ background: 'var(--color-accent-gradient)' }}
               >
                 {user.avatar && user.avatar !== 'default' ? (
-                  <img src="/brain-icon-nobg.svg" alt="App" className="w-10 h-10" />
+                  <img src="/brain-icon-nobg.svg" alt="App" className="w-12 h-12" />
                 ) : (
                   user.name.charAt(0).toUpperCase()
                 )}
