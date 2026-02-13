@@ -107,9 +107,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const menuItems = [
     { id: 'dashboard', label: t('menu.dashboard'), icon: LayoutDashboard },
+    { id: 'study', label: t('menu.globalDecks'), icon: BookOpen },
     { id: 'decks', label: t('menu.myDecks'), icon: Layers },
     { id: 'sessions', label: t('menu.activeSessions'), icon: PlayCircle },
-    { id: 'study', label: t('menu.globalDecks'), icon: BookOpen },
     { id: 'achievements', label: t('menu.achievements'), icon: Trophy },
     ...(canModerate ? [{ id: 'moderation', label: t('menu.moderation'), icon: Shield }] : []),
     { id: 'leaderboard', label: t('menu.leaderboard'), icon: Users },

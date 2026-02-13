@@ -24,6 +24,7 @@
   },
   "guestBanner": {
     "message": "Mod vizitator — progresul nu va fi salvat.",
-    "cta": "Creează cont gratuit"
+    "cta": "Creează cont GRATUIT",
+    "login": "Autentificare"
   }
 }
