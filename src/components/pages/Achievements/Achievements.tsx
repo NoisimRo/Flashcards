@@ -6,6 +6,7 @@ import { isGuestUser } from '../../../utils/guestMode';
 import { useAuthActions } from '../../../hooks/useAuthActions';
 import achievementsData from '../../../data/seed/achievements.json';
 import { Trophy, Award, TrendingUp, Star, Layers, Loader2, Lock } from 'lucide-react';
+import { StatTileGrid } from '../../ui/StatTile';
 import { badgeSVGs } from './BadgeIcons';
 
 interface AchievementsProps {
@@ -101,89 +102,63 @@ export const Achievements: React.FC<AchievementsProps> = ({ user }) => {
         </div>
       )}
 
-      {/* Stats Summary - GlobalDecks style */}
-      {isGuest ? (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
-          <div className="bg-[var(--bg-secondary)] p-4 rounded-xl">
-            <div className="flex items-center gap-3">
-              <Award className="text-[var(--color-accent)]" size={24} />
-              <div>
-                <p className="text-2xl font-bold text-[var(--color-accent)]">
-                  {achievements.length}
-                </p>
-                <p className="text-xs text-[var(--text-tertiary)]">
-                  {t('guest.stats.badgesToUnlock')}
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-[var(--bg-secondary)] p-4 rounded-xl">
-            <div className="flex items-center gap-3">
-              <Layers className="text-blue-500" size={24} />
-              <div>
-                <p className="text-2xl font-bold text-[var(--text-primary)]">4</p>
-                <p className="text-xs text-[var(--text-tertiary)]">
-                  {t('guest.stats.tierBreakdown')}
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-[var(--bg-secondary)] p-4 rounded-xl">
-            <div className="flex items-center gap-3">
-              <Star className="text-yellow-500" size={24} />
-              <div>
-                <p className="text-2xl font-bold text-[var(--text-primary)]">
-                  {totalXPAvailable.toLocaleString(i18n.language)}
-                </p>
-                <p className="text-xs text-[var(--text-tertiary)]">
-                  {t('guest.stats.xpAvailable')}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
-          <div className="bg-[var(--bg-secondary)] p-4 rounded-xl">
-            <div className="flex items-center gap-3">
-              <Trophy className="text-[var(--color-accent)]" size={24} />
-              <div>
-                <p className="text-2xl font-bold text-[var(--text-primary)]">{unlockedCount}</p>
-                <p className="text-xs text-[var(--text-tertiary)]">
-                  {t('stats.badgesUnlocked')} &middot;{' '}
-                  {t('stats.of', { total: achievements.length })}
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-[var(--bg-secondary)] p-4 rounded-xl">
-            <div className="flex items-center gap-3">
-              <TrendingUp className="text-green-500" size={24} />
-              <div>
-                <p className="text-2xl font-bold text-[var(--text-primary)]">{user.level}</p>
-                <p className="text-xs text-[var(--text-tertiary)]">
-                  {t('stats.currentLevel')} &middot;{' '}
-                  {t('stats.xpToNextLevel', {
-                    xp: user.nextLevelXP - user.currentXP,
-                    level: user.level + 1,
-                  })}
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-[var(--bg-secondary)] p-4 rounded-xl">
-            <div className="flex items-center gap-3">
-              <Star className="text-yellow-500" size={24} />
-              <div>
-                <p className="text-2xl font-bold text-[var(--text-primary)]">
-                  {user.totalXP.toLocaleString(i18n.language)}
-                </p>
-                <p className="text-xs text-[var(--text-tertiary)]">{t('stats.xpAccumulated')}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Stats Summary */}
+      <div className="mb-10">
+        {isGuest ? (
+          <StatTileGrid
+            columns={3}
+            stats={[
+              {
+                icon: Award,
+                value: String(achievements.length),
+                label: t('guest.stats.badgesToUnlock'),
+                color: 'var(--color-accent)',
+              },
+              {
+                icon: Layers,
+                value: '4',
+                label: t('guest.stats.tierBreakdown'),
+                color: '#3b82f6',
+              },
+              {
+                icon: Star,
+                value: totalXPAvailable.toLocaleString(i18n.language),
+                label: t('guest.stats.xpAvailable'),
+                color: '#eab308',
+              },
+            ]}
+          />
+        ) : (
+          <StatTileGrid
+            columns={3}
+            stats={[
+              {
+                icon: Trophy,
+                value: String(unlockedCount),
+                label: t('stats.badgesUnlocked'),
+                sublabel: t('stats.of', { total: achievements.length }),
+                color: 'var(--color-accent)',
+              },
+              {
+                icon: TrendingUp,
+                value: String(user.level),
+                label: t('stats.currentLevel'),
+                sublabel: t('stats.xpToNextLevel', {
+                  xp: user.nextLevelXP - user.currentXP,
+                  level: user.level + 1,
+                }),
+                color: '#22c55e',
+              },
+              {
+                icon: Star,
+                value: user.totalXP.toLocaleString(i18n.language),
+                label: t('stats.xpAccumulated'),
+                color: '#eab308',
+              },
+            ]}
+          />
+        )}
+      </div>
 
       {/* Badge Grid - compact: 3 per row mobile, 6 per row desktop */}
       <div className="grid grid-cols-3 lg:grid-cols-6 gap-3">

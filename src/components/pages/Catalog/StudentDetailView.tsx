@@ -17,8 +17,10 @@ import {
   TrendingUp,
   Brain,
   Award,
+  CalendarDays,
 } from 'lucide-react';
 import { useToast } from '../../ui/Toast';
+import { StatTileGrid } from '../../ui/StatTile';
 import { getStudentDetail, generateAIReport, getStudentReports } from '../../../api/catalog';
 import type { StudentDetail, ProgressReport } from '../../../types';
 import { AVATARS } from '../Settings/AvatarPicker';
@@ -198,61 +200,59 @@ export const StudentDetailView: React.FC<Props> = ({ studentId, onBack }) => {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-[var(--text-primary)]">{user.name}</h1>
-              <div className="flex items-center gap-3 text-sm text-[var(--text-secondary)]">
-                <span>{user.email}</span>
-                <span className="px-2 py-0.5 rounded-full bg-[var(--bg-tertiary)] text-xs font-medium">
+              <p className="text-sm text-[var(--text-secondary)]">{user.email}</p>
+              <div className="flex items-center gap-4 mt-1.5 flex-wrap">
+                <span className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-tertiary)]">
+                  <Star size={13} className="text-yellow-500" />
                   Nivel {user.level}
                 </span>
-                <span>Inregistrat: {new Date(user.createdAt).toLocaleDateString('ro-RO')}</span>
+                <span className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-tertiary)]">
+                  <CalendarDays size={13} className="text-blue-500" />
+                  {new Date(user.createdAt).toLocaleDateString('ro-RO')}
+                </span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Stats Overview Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-          {[
-            {
-              icon: Star,
-              label: 'XP Total',
-              value: user.totalXP.toLocaleString('ro-RO'),
-              color: '#eab308',
-            },
-            { icon: Flame, label: 'Streak', value: `${user.streak} zile`, color: '#f97316' },
-            {
-              icon: Target,
-              label: 'Acuratete',
-              value: `${accuracy}%`,
-              color: accuracy >= 80 ? '#22c55e' : accuracy >= 60 ? '#f59e0b' : '#ef4444',
-            },
-            {
-              icon: GraduationCap,
-              label: 'Carduri invatate',
-              value: String(user.totalCardsLearned),
-              color: '#22c55e',
-            },
-            {
-              icon: BookOpen,
-              label: 'Deck-uri completate',
-              value: String(user.totalDecksCompleted),
-              color: '#3b82f6',
-            },
-            {
-              icon: Clock,
-              label: 'Timp total',
-              value: `${user.totalTimeSpent} min`,
-              color: '#8b5cf6',
-            },
-          ].map(stat => (
-            <div
-              key={stat.label}
-              className="bg-[var(--card-bg)] rounded-xl p-4 shadow-sm text-center"
-            >
-              <stat.icon size={20} className="mx-auto mb-1" style={{ color: stat.color }} />
-              <div className="text-lg font-bold text-[var(--text-primary)]">{stat.value}</div>
-              <div className="text-xs text-[var(--text-tertiary)]">{stat.label}</div>
-            </div>
-          ))}
+        <div className="mb-6">
+          <StatTileGrid
+            columns={6}
+            stats={[
+              {
+                icon: Star,
+                label: 'XP Total',
+                value: user.totalXP.toLocaleString('ro-RO'),
+                color: '#eab308',
+              },
+              { icon: Flame, label: 'Streak', value: `${user.streak} zile`, color: '#f97316' },
+              {
+                icon: Target,
+                label: 'Acuratete',
+                value: `${accuracy}%`,
+                color: accuracy >= 80 ? '#22c55e' : accuracy >= 60 ? '#f59e0b' : '#ef4444',
+              },
+              {
+                icon: GraduationCap,
+                label: 'Carduri invatate',
+                value: String(user.totalCardsLearned),
+                color: '#22c55e',
+              },
+              {
+                icon: BookOpen,
+                label: 'Deck-uri completate',
+                value: String(user.totalDecksCompleted),
+                color: '#3b82f6',
+              },
+              {
+                icon: Clock,
+                label: 'Timp total',
+                value: `${user.totalTimeSpent} min`,
+                color: '#8b5cf6',
+              },
+            ]}
+          />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">

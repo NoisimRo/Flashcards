@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { User } from '../../../types';
 import { LeaderboardEntry } from '../../../api/users';
 import { Flame, Hash, Medal, Star, Trophy, Users } from 'lucide-react';
+import { StatTileGrid } from '../../ui/StatTile';
 import { AVATARS } from '../Settings/AvatarPicker';
 
 interface LeaderboardProps {
@@ -99,67 +100,40 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
       <p className="text-[var(--text-tertiary)] mb-8">{t('header.subtitle')}</p>
 
       {/* Top Cards - User Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <div className="bg-[var(--bg-secondary)] p-4 rounded-xl">
-          <div className="flex items-center gap-3">
-            <Hash className="text-[var(--color-accent)]" size={24} />
-            <div>
-              <p className="text-2xl font-bold text-[var(--text-primary)]">{userStats.position}</p>
-              <p className="text-xs text-[var(--text-tertiary)]">
-                {isVisitor ? (
-                  <button
-                    onClick={onRegisterClick}
-                    className="text-[var(--color-accent-text)] font-bold hover:opacity-80 transition-colors"
-                  >
-                    {t('userStats.registerPrompt')}
-                  </button>
-                ) : (
-                  <>
-                    {t('userStats.yourPosition')} &middot;{' '}
-                    {t('userStats.of', {
-                      total: userStats.totalUsers.toLocaleString(i18n.language),
-                    })}
-                  </>
-                )}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-[var(--bg-secondary)] p-4 rounded-xl">
-          <div className="flex items-center gap-3">
-            <Star className="text-yellow-500" size={24} />
-            <div>
-              <p className="text-2xl font-bold text-[var(--text-primary)]">
-                {userStats.xpTotal.toLocaleString(i18n.language)}
-              </p>
-              <p className="text-xs text-[var(--text-tertiary)]">
-                {t('userStats.totalXP')} &middot;{' '}
-                <span className="text-green-500 font-bold">
-                  {t('userStats.level', { level: userStats.level })}
-                </span>
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-[var(--bg-secondary)] p-4 rounded-xl">
-          <div className="flex items-center gap-3">
-            {userStats.xpToTop100 > 0 ? (
-              <Trophy className="text-orange-500" size={24} />
-            ) : (
-              <Flame className="text-orange-500" size={24} />
-            )}
-            <div>
-              <p className="text-2xl font-bold text-[var(--text-primary)]">
-                {userStats.xpToTop100 > 0
+      <div className="mb-8">
+        <StatTileGrid
+          columns={3}
+          stats={[
+            {
+              icon: Hash,
+              value: String(userStats.position),
+              label: isVisitor ? t('userStats.registerPrompt') : t('userStats.yourPosition'),
+              sublabel: isVisitor
+                ? undefined
+                : t('userStats.of', {
+                    total: userStats.totalUsers.toLocaleString(i18n.language),
+                  }),
+              color: 'var(--color-accent)',
+            },
+            {
+              icon: Star,
+              value: userStats.xpTotal.toLocaleString(i18n.language),
+              label: t('userStats.totalXP'),
+              sublabel: t('userStats.level', { level: userStats.level }),
+              color: '#eab308',
+            },
+            {
+              icon: userStats.xpToTop100 > 0 ? Trophy : Flame,
+              value:
+                userStats.xpToTop100 > 0
                   ? userStats.xpToTop100.toLocaleString(i18n.language)
-                  : userStats.streak}
-              </p>
-              <p className="text-xs text-[var(--text-tertiary)]">
-                {userStats.xpToTop100 > 0 ? t('userStats.toTop100') : t('userStats.currentStreak')}
-              </p>
-            </div>
-          </div>
-        </div>
+                  : String(userStats.streak),
+              label:
+                userStats.xpToTop100 > 0 ? t('userStats.toTop100') : t('userStats.currentStreak'),
+              color: '#f97316',
+            },
+          ]}
+        />
       </div>
 
       {/* Leaderboard Table */}
