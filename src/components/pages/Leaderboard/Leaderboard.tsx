@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { User } from '../../../types';
 import { LeaderboardEntry } from '../../../api/users';
-import { Flame, Medal, Trophy, Users } from 'lucide-react';
+import { Flame, Hash, Medal, Star, Trophy, Users } from 'lucide-react';
 import { AVATARS } from '../Settings/AvatarPicker';
 
 interface LeaderboardProps {
@@ -99,44 +99,66 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({
       <p className="text-[var(--text-tertiary)] mb-8">{t('header.subtitle')}</p>
 
       {/* Top Cards - User Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-[var(--bg-secondary)] p-6 rounded-2xl flex flex-col items-center justify-center text-center">
-          <h3 className="text-[var(--text-tertiary)] mb-2">{t('userStats.yourPosition')}</h3>
-          <div className="text-4xl font-bold text-[var(--text-primary)]">{userStats.position}</div>
-          {isVisitor ? (
-            <button
-              onClick={onRegisterClick}
-              className="text-xs text-[var(--color-accent-text)] font-bold mt-2 hover:opacity-80 transition-colors"
-            >
-              {t('userStats.registerPrompt')}
-            </button>
-          ) : (
-            <p className="text-xs text-[var(--text-muted)] mt-1">
-              {t('userStats.of', { total: userStats.totalUsers.toLocaleString(i18n.language) })}
-            </p>
-          )}
-        </div>
-        <div className="bg-[var(--bg-secondary)] p-6 rounded-2xl flex flex-col items-center justify-center text-center">
-          <h3 className="text-[var(--text-tertiary)] mb-2">{t('userStats.totalXP')}</h3>
-          <div className="text-4xl font-bold text-[var(--text-primary)]">
-            {userStats.xpTotal.toLocaleString(i18n.language)}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div className="bg-[var(--bg-secondary)] p-4 rounded-xl">
+          <div className="flex items-center gap-3">
+            <Hash className="text-[var(--color-accent)]" size={24} />
+            <div>
+              <p className="text-2xl font-bold text-[var(--text-primary)]">{userStats.position}</p>
+              <p className="text-xs text-[var(--text-tertiary)]">
+                {isVisitor ? (
+                  <button
+                    onClick={onRegisterClick}
+                    className="text-[var(--color-accent-text)] font-bold hover:opacity-80 transition-colors"
+                  >
+                    {t('userStats.registerPrompt')}
+                  </button>
+                ) : (
+                  <>
+                    {t('userStats.yourPosition')} &middot;{' '}
+                    {t('userStats.of', {
+                      total: userStats.totalUsers.toLocaleString(i18n.language),
+                    })}
+                  </>
+                )}
+              </p>
+            </div>
           </div>
-          <p className="text-xs text-green-500 font-bold mt-1">
-            {t('userStats.level', { level: userStats.level })}
-          </p>
         </div>
-        <div className="bg-[var(--bg-secondary)] p-6 rounded-2xl flex flex-col items-center justify-center text-center">
-          <h3 className="text-[var(--text-tertiary)] mb-2">
-            {userStats.xpToTop100 > 0 ? t('userStats.toTop100') : t('userStats.currentStreak')}
-          </h3>
-          <div className="text-4xl font-bold text-[var(--text-primary)]">
-            {userStats.xpToTop100 > 0
-              ? userStats.xpToTop100.toLocaleString(i18n.language)
-              : userStats.streak}
+        <div className="bg-[var(--bg-secondary)] p-4 rounded-xl">
+          <div className="flex items-center gap-3">
+            <Star className="text-yellow-500" size={24} />
+            <div>
+              <p className="text-2xl font-bold text-[var(--text-primary)]">
+                {userStats.xpTotal.toLocaleString(i18n.language)}
+              </p>
+              <p className="text-xs text-[var(--text-tertiary)]">
+                {t('userStats.totalXP')} &middot;{' '}
+                <span className="text-green-500 font-bold">
+                  {t('userStats.level', { level: userStats.level })}
+                </span>
+              </p>
+            </div>
           </div>
-          <p className="text-xs text-[var(--text-muted)] mt-1">
-            {userStats.xpToTop100 > 0 ? t('userStats.xpNeeded') : t('userStats.consecutiveDays')}
-          </p>
+        </div>
+        <div className="bg-[var(--bg-secondary)] p-4 rounded-xl">
+          <div className="flex items-center gap-3">
+            {userStats.xpToTop100 > 0 ? (
+              <Trophy className="text-orange-500" size={24} />
+            ) : (
+              <Flame className="text-orange-500" size={24} />
+            )}
+            <div>
+              <p className="text-2xl font-bold text-[var(--text-primary)]">
+                {userStats.xpToTop100 > 0
+                  ? userStats.xpToTop100.toLocaleString(i18n.language)
+                  : userStats.streak}
+              </p>
+              <p className="text-xs text-[var(--text-tertiary)]">
+                {userStats.xpToTop100 > 0 ? t('userStats.toTop100') : t('userStats.currentStreak')}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 

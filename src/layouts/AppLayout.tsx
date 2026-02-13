@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Menu, X } from 'lucide-react';
 import { Sidebar } from '../components/layout/Sidebar';
 import { GuestBanner } from './GuestBanner';
 import { InstallAppBanner } from './InstallAppBanner';
+import { ScrollToTopButton } from '../components/ui/ScrollToTopButton';
 import { useUIStore } from '../store/uiStore';
 import { useAuth } from '../store/AuthContext';
 import { useAuthActions } from '../hooks/useAuthActions';
@@ -17,6 +18,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
   const { isAuthenticated, user: authUser } = useAuth();
   const { isMobileMenuOpen, currentView, setMobileMenuOpen, setCurrentView } = useUIStore();
   const { handleLoginClick, handleRegisterClick } = useAuthActions();
+  const mainRef = useRef<HTMLElement>(null);
 
   const user: User = isAuthenticated && authUser ? authUser : GUEST_USER;
   const isGuest = !isAuthenticated;
@@ -53,7 +55,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 h-full overflow-y-auto relative">
+      <main ref={mainRef} className="flex-1 h-full overflow-y-auto relative">
         {/* Mobile Overlay */}
         {isMobileMenuOpen && (
           <div
@@ -71,6 +73,9 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
         {/* Page Content */}
         {children}
       </main>
+
+      {/* Floating scroll-to-top button */}
+      <ScrollToTopButton scrollContainerRef={mainRef} />
     </div>
   );
 };

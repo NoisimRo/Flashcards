@@ -74,10 +74,23 @@ export const TeacherCodesPanel: React.FC = () => {
         label: newLabel || undefined,
       });
       if (response.success && response.data) {
-        toast.success('Cod generat', `Codul ${(response.data as TeacherCode).code} a fost creat`);
+        const newCode = response.data as TeacherCode;
+        toast.success('Cod generat', `Codul ${newCode.code} a fost creat`);
         setShowGenerateModal(false);
         setNewLabel('');
-        loadCodes();
+        // Optimistically add the new code to the top of the list
+        setCodes(prev => [
+          {
+            ...newCode,
+            isUsed: false,
+            revokedAt: undefined,
+            usedAt: undefined,
+            usedByName: undefined,
+          },
+          ...prev,
+        ]);
+        // Then refresh from server in the background
+        await loadCodes();
       } else {
         toast.error('Eroare', response.error?.message || 'Nu s-a putut genera codul');
       }

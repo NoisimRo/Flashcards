@@ -5,51 +5,8 @@ import { Achievement, getAchievements } from '../../../api/achievements';
 import { isGuestUser } from '../../../utils/guestMode';
 import { useAuthActions } from '../../../hooks/useAuthActions';
 import achievementsData from '../../../data/seed/achievements.json';
-import {
-  Target,
-  Star,
-  Zap,
-  Library,
-  Flame,
-  Diamond,
-  Crown,
-  Calendar,
-  Moon,
-  Sunrise,
-  Award,
-  Trophy,
-  Medal,
-  Coins,
-  Gem,
-  Sparkles,
-  Timer,
-  Brain,
-  BookCheck,
-  Loader2,
-  Lock,
-} from 'lucide-react';
-
-const iconMap: Record<string, React.ElementType> = {
-  target: Target,
-  star: Star,
-  zap: Zap,
-  library: Library,
-  flame: Flame,
-  diamond: Diamond,
-  crown: Crown,
-  calendar: Calendar,
-  moon: Moon,
-  sunrise: Sunrise,
-  award: Award,
-  trophy: Trophy,
-  medal: Medal,
-  coins: Coins,
-  gem: Gem,
-  sparkles: Sparkles,
-  timer: Timer,
-  brain: Brain,
-  'book-check': BookCheck,
-};
+import { Trophy, Award, TrendingUp, Star, Layers, Loader2, Lock } from 'lucide-react';
+import { badgeSVGs } from './BadgeIcons';
 
 interface AchievementsProps {
   user: User;
@@ -105,11 +62,6 @@ export const Achievements: React.FC<AchievementsProps> = ({ user }) => {
     fetchAchievements();
   }, [isGuest]);
 
-  // Map string icon names to components
-  const getIcon = (name: string) => {
-    return iconMap[name] || Star;
-  };
-
   const unlockedCount = achievements.filter(a => a.unlocked).length;
   const totalXPAvailable = achievements.reduce((sum, a) => sum + a.xpReward, 0);
 
@@ -149,79 +101,108 @@ export const Achievements: React.FC<AchievementsProps> = ({ user }) => {
         </div>
       )}
 
-      {/* Stats Summary */}
+      {/* Stats Summary - GlobalDecks style */}
       {isGuest ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          <div className="bg-[var(--bg-secondary)] p-6 rounded-2xl text-center">
-            <p className="text-[var(--text-tertiary)] text-sm mb-2">{t('guest.stats.available')}</p>
-            <div className="text-4xl font-bold text-[var(--color-accent)] mb-1">
-              {achievements.length}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+          <div className="bg-[var(--bg-secondary)] p-4 rounded-xl">
+            <div className="flex items-center gap-3">
+              <Award className="text-[var(--color-accent)]" size={24} />
+              <div>
+                <p className="text-2xl font-bold text-[var(--color-accent)]">
+                  {achievements.length}
+                </p>
+                <p className="text-xs text-[var(--text-tertiary)]">
+                  {t('guest.stats.badgesToUnlock')}
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-[var(--text-muted)]">{t('guest.stats.badgesToUnlock')}</p>
           </div>
-          <div className="bg-[var(--bg-secondary)] p-6 rounded-2xl text-center">
-            <p className="text-[var(--text-tertiary)] text-sm mb-2">{t('guest.stats.tiers')}</p>
-            <div className="text-4xl font-bold text-[var(--text-primary)] mb-1">4</div>
-            <p className="text-xs text-[var(--text-muted)]">{t('guest.stats.tierBreakdown')}</p>
-          </div>
-          <div className="bg-[var(--bg-secondary)] p-6 rounded-2xl text-center">
-            <p className="text-[var(--text-tertiary)] text-sm mb-2">{t('guest.stats.topReward')}</p>
-            <div className="text-4xl font-bold text-[var(--text-primary)] mb-1">
-              {totalXPAvailable.toLocaleString(i18n.language)}
+          <div className="bg-[var(--bg-secondary)] p-4 rounded-xl">
+            <div className="flex items-center gap-3">
+              <Layers className="text-blue-500" size={24} />
+              <div>
+                <p className="text-2xl font-bold text-[var(--text-primary)]">4</p>
+                <p className="text-xs text-[var(--text-tertiary)]">
+                  {t('guest.stats.tierBreakdown')}
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-[var(--text-muted)]">{t('guest.stats.xpAvailable')}</p>
+          </div>
+          <div className="bg-[var(--bg-secondary)] p-4 rounded-xl">
+            <div className="flex items-center gap-3">
+              <Star className="text-yellow-500" size={24} />
+              <div>
+                <p className="text-2xl font-bold text-[var(--text-primary)]">
+                  {totalXPAvailable.toLocaleString(i18n.language)}
+                </p>
+                <p className="text-xs text-[var(--text-tertiary)]">
+                  {t('guest.stats.xpAvailable')}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          <div className="bg-[var(--bg-secondary)] p-6 rounded-2xl text-center">
-            <p className="text-[var(--text-tertiary)] text-sm mb-2">{t('stats.badgesUnlocked')}</p>
-            <div className="text-4xl font-bold text-[var(--text-primary)] mb-1">
-              {unlockedCount}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+          <div className="bg-[var(--bg-secondary)] p-4 rounded-xl">
+            <div className="flex items-center gap-3">
+              <Trophy className="text-[var(--color-accent)]" size={24} />
+              <div>
+                <p className="text-2xl font-bold text-[var(--text-primary)]">{unlockedCount}</p>
+                <p className="text-xs text-[var(--text-tertiary)]">
+                  {t('stats.badgesUnlocked')} &middot;{' '}
+                  {t('stats.of', { total: achievements.length })}
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-[var(--text-muted)]">
-              {t('stats.of', { total: achievements.length })}
-            </p>
           </div>
-          <div className="bg-[var(--bg-secondary)] p-6 rounded-2xl text-center">
-            <p className="text-[var(--text-tertiary)] text-sm mb-2">{t('stats.currentLevel')}</p>
-            <div className="text-4xl font-bold text-[var(--text-primary)] mb-1">{user.level}</div>
-            <p className="text-xs text-[var(--text-muted)]">
-              {t('stats.xpToNextLevel', {
-                xp: user.nextLevelXP - user.currentXP,
-                level: user.level + 1,
-              })}
-            </p>
-          </div>
-          <div className="bg-[var(--bg-secondary)] p-6 rounded-2xl text-center">
-            <p className="text-[var(--text-tertiary)] text-sm mb-2">{t('stats.totalPoints')}</p>
-            <div className="text-4xl font-bold text-[var(--text-primary)] mb-1">
-              {user.totalXP.toLocaleString(i18n.language)}
+          <div className="bg-[var(--bg-secondary)] p-4 rounded-xl">
+            <div className="flex items-center gap-3">
+              <TrendingUp className="text-green-500" size={24} />
+              <div>
+                <p className="text-2xl font-bold text-[var(--text-primary)]">{user.level}</p>
+                <p className="text-xs text-[var(--text-tertiary)]">
+                  {t('stats.currentLevel')} &middot;{' '}
+                  {t('stats.xpToNextLevel', {
+                    xp: user.nextLevelXP - user.currentXP,
+                    level: user.level + 1,
+                  })}
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-[var(--text-muted)]">{t('stats.xpAccumulated')}</p>
+          </div>
+          <div className="bg-[var(--bg-secondary)] p-4 rounded-xl">
+            <div className="flex items-center gap-3">
+              <Star className="text-yellow-500" size={24} />
+              <div>
+                <p className="text-2xl font-bold text-[var(--text-primary)]">
+                  {user.totalXP.toLocaleString(i18n.language)}
+                </p>
+                <p className="text-xs text-[var(--text-tertiary)]">{t('stats.xpAccumulated')}</p>
+              </div>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Badge Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Badge Grid - compact: 3 per row mobile, 6 per row desktop */}
+      <div className="grid grid-cols-3 lg:grid-cols-6 gap-3">
         {achievements.map(badge => {
-          const Icon = getIcon(badge.icon);
+          const BadgeSVG = badgeSVGs[badge.id];
           const howToEarnKey = `items.${badge.id}.howToEarn`;
           const howToEarn = t(howToEarnKey);
-          // Only show tooltip if translation exists (not the raw key)
           const hasTooltip = howToEarn !== howToEarnKey;
 
           return (
             <div
               key={badge.id}
-              className={`relative p-6 rounded-3xl border-2 flex flex-col items-center text-center transition-transform hover:-translate-y-1
+              className={`relative p-3 rounded-2xl border flex flex-col items-center text-center transition-transform hover:-translate-y-1
                 ${
                   badge.unlocked
                     ? 'bg-[var(--card-bg)] border-transparent shadow-sm'
                     : isGuest
                       ? 'bg-[var(--card-bg)] border-[var(--border-subtle)] shadow-sm'
-                      : 'bg-[var(--bg-tertiary)] border-[var(--border-subtle)] opacity-60 grayscale'
+                      : 'bg-[var(--bg-tertiary)] border-[var(--border-subtle)] opacity-60'
                 }
               `}
               onMouseEnter={() => setHoveredBadge(badge.id)}
@@ -229,34 +210,33 @@ export const Achievements: React.FC<AchievementsProps> = ({ user }) => {
             >
               {/* Lock overlay for guest unearned badges */}
               {!badge.unlocked && isGuest && (
-                <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/10 backdrop-blur-sm flex items-center justify-center">
-                  <Lock size={16} className="text-[var(--text-muted)]" />
+                <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-black/10 backdrop-blur-sm flex items-center justify-center">
+                  <Lock size={10} className="text-[var(--text-muted)]" />
                 </div>
               )}
 
-              <div
-                className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
-                  badge.unlocked || isGuest
-                    ? badge.color
-                    : 'bg-[var(--bg-tertiary)] text-[var(--text-muted)]'
-                }`}
-              >
-                <Icon size={32} />
+              {/* Custom SVG Badge */}
+              <div className="mb-2">
+                {BadgeSVG ? (
+                  <BadgeSVG size={48} unlocked={badge.unlocked || isGuest} />
+                ) : (
+                  <div
+                    className={`w-12 h-12 rounded-full flex items-center justify-center ${badge.color}`}
+                  >
+                    <Star size={24} />
+                  </div>
+                )}
               </div>
-              <h3 className="font-bold text-[var(--text-primary)] text-lg mb-1">
+
+              <h3 className="font-bold text-[var(--text-primary)] text-xs leading-tight mb-0.5">
                 {badge.titleKey ? String(t(badge.titleKey)) : badge.title}
               </h3>
-              <p className="text-sm text-[var(--text-tertiary)] mb-2">
+              <p className="text-[10px] text-[var(--text-tertiary)] mb-1.5 leading-tight hidden sm:block">
                 {badge.descriptionKey ? String(t(badge.descriptionKey)) : badge.description}
               </p>
 
-              {/* For guests, show howToEarn inline */}
-              {isGuest && hasTooltip && (
-                <p className="text-xs text-[var(--text-muted)] italic mb-3">{howToEarn}</p>
-              )}
-
               <span
-                className={`text-xs font-bold px-3 py-1 rounded-full ${
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                   badge.unlocked
                     ? 'bg-[var(--color-accent)] text-white'
                     : isGuest
@@ -269,9 +249,9 @@ export const Achievements: React.FC<AchievementsProps> = ({ user }) => {
 
               {/* Tooltip (for non-guest users) */}
               {!isGuest && hoveredBadge === badge.id && hasTooltip && (
-                <div className="absolute -top-14 left-1/2 -translate-x-1/2 bg-[var(--bg-elevated)] text-[var(--text-primary)] border border-[var(--border-primary)] text-xs rounded-lg py-2 px-4 shadow-lg z-50 max-w-[250px] text-center whitespace-normal">
+                <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-[var(--bg-elevated)] text-[var(--text-primary)] border border-[var(--border-primary)] text-[10px] rounded-lg py-1.5 px-3 shadow-lg z-50 max-w-[200px] text-center whitespace-normal">
                   {howToEarn}
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-[6px] border-x-transparent border-t-[6px] border-t-[var(--bg-elevated)]" />
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-[5px] border-x-transparent border-t-[5px] border-t-[var(--bg-elevated)]" />
                 </div>
               )}
             </div>
