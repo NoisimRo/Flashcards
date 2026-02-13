@@ -229,9 +229,9 @@ export const MultipleAnswerCard: React.FC<MultipleAnswerCardProps> = ({
         )}
 
         {/* Content Area */}
-        <div className="p-4 sm:p-8 pb-24 flex-1 overflow-y-auto">
+        <div className="px-4 sm:px-8 pt-14 pb-24 flex-1 overflow-y-auto">
           {/* Question */}
-          <div className="mt-4 mb-6 sm:mb-8">
+          <div className="mb-6 sm:mb-8">
             <h2
               className="text-lg sm:text-xl md:text-2xl font-bold text-center"
               style={{ color: 'var(--text-primary)' }}

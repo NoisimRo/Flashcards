@@ -173,7 +173,7 @@ export const StandardCard: React.FC<StandardCardProps> = ({
             )}
 
             {/* Front Content - scrollable area with footer clearance */}
-            <div className="flex-1 overflow-y-auto p-6 sm:p-8 pb-20 flex flex-col justify-center items-center">
+            <div className="flex-1 overflow-y-auto px-6 sm:px-8 pt-14 pb-20 flex flex-col justify-center items-center">
               <div className="text-center px-2 sm:px-4">
                 <div
                   className="text-sm font-semibold mb-4 uppercase tracking-wide"
@@ -321,7 +321,7 @@ export const StandardCard: React.FC<StandardCardProps> = ({
             </div>
 
             {/* Back Content - scrollable area with footer clearance */}
-            <div className="flex-1 overflow-y-auto p-6 sm:p-8 pb-20 flex flex-col justify-center items-center">
+            <div className="flex-1 overflow-y-auto px-6 sm:px-8 pt-14 pb-20 flex flex-col justify-center items-center">
               <div className="text-center px-2 sm:px-4">
                 <div
                   className="text-sm font-semibold mb-4 uppercase tracking-wide"
