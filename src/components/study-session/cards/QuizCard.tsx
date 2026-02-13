@@ -181,10 +181,13 @@ export const QuizCard: React.FC<QuizCardProps> = ({
         )}
 
         {/* Content Area with padding for sticky footer */}
-        <div className="p-8 pb-24 flex-1 overflow-y-auto">
+        <div className="p-4 sm:p-8 pb-24 flex-1 overflow-y-auto">
           {/* Question */}
-          <div className="mt-4 mb-8">
-            <h2 className="text-2xl font-bold text-center" style={{ color: 'var(--text-primary)' }}>
+          <div className="mt-4 mb-6 sm:mb-8">
+            <h2
+              className="text-lg sm:text-xl md:text-2xl font-bold text-center"
+              style={{ color: 'var(--text-primary)' }}
+            >
               {card.front}
             </h2>
           </div>

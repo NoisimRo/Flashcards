@@ -108,7 +108,7 @@ export const StandardCard: React.FC<StandardCardProps> = ({
         >
           {/* Front Face */}
           <div
-            className="absolute inset-0 rounded-2xl p-8 flex flex-col justify-center items-center"
+            className="absolute inset-0 rounded-2xl flex flex-col"
             style={{
               backfaceVisibility: 'hidden',
               WebkitBackfaceVisibility: 'hidden',
@@ -172,16 +172,21 @@ export const StandardCard: React.FC<StandardCardProps> = ({
               />
             )}
 
-            {/* Front Content */}
-            <div className="text-center px-4">
-              <div
-                className="text-sm font-semibold mb-4 uppercase tracking-wide"
-                style={{ color: 'var(--text-tertiary)' }}
-              >
-                Întrebare
-              </div>
-              <div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                {card.front}
+            {/* Front Content - scrollable area with footer clearance */}
+            <div className="flex-1 overflow-y-auto p-6 sm:p-8 pb-20 flex flex-col justify-center items-center">
+              <div className="text-center px-2 sm:px-4">
+                <div
+                  className="text-sm font-semibold mb-4 uppercase tracking-wide"
+                  style={{ color: 'var(--text-tertiary)' }}
+                >
+                  Întrebare
+                </div>
+                <div
+                  className="text-lg sm:text-xl md:text-2xl font-bold"
+                  style={{ color: 'var(--text-primary)' }}
+                >
+                  {card.front}
+                </div>
               </div>
             </div>
 
@@ -276,7 +281,7 @@ export const StandardCard: React.FC<StandardCardProps> = ({
 
           {/* Back Face */}
           <div
-            className="absolute inset-0 rounded-2xl p-8 flex flex-col justify-center items-center"
+            className="absolute inset-0 rounded-2xl flex flex-col"
             style={{
               backfaceVisibility: 'hidden',
               WebkitBackfaceVisibility: 'hidden',
@@ -315,9 +320,9 @@ export const StandardCard: React.FC<StandardCardProps> = ({
               />
             </div>
 
-            {/* Back Content */}
-            <div className="text-center px-4">
-              <>
+            {/* Back Content - scrollable area with footer clearance */}
+            <div className="flex-1 overflow-y-auto p-6 sm:p-8 pb-20 flex flex-col justify-center items-center">
+              <div className="text-center px-2 sm:px-4">
                 <div
                   className="text-sm font-semibold mb-4 uppercase tracking-wide"
                   style={{ color: 'var(--text-tertiary)' }}
@@ -325,12 +330,12 @@ export const StandardCard: React.FC<StandardCardProps> = ({
                   Răspuns
                 </div>
                 <div
-                  className="text-2xl font-bold animate-fade-in"
+                  className="text-lg sm:text-xl md:text-2xl font-bold animate-fade-in"
                   style={{ color: 'var(--text-primary)' }}
                 >
                   {card.back}
                 </div>
-              </>
+              </div>
             </div>
 
             {/* Sticky Navigation Footer (back) */}
