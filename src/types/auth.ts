@@ -138,7 +138,8 @@ export interface AuthContextType extends AuthState {
     email: string,
     password: string,
     name: string,
-    role?: 'teacher' | 'student'
+    role?: 'teacher' | 'student',
+    teacherCode?: string
   ) => Promise<void>;
   logout: () => void;
   refreshSession: () => Promise<void>;

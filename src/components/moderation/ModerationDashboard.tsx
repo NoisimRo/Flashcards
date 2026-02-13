@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Filter, Eye, CheckCircle, XCircle, Clock, Edit, X } from 'lucide-react';
+import { Shield, Filter, Eye, CheckCircle, XCircle, Clock, Edit, X, KeyRound } from 'lucide-react';
 import { useToast } from '../ui/Toast';
+import { useAuth } from '../../store/AuthContext';
 import { getFlags, updateFlagStatus, type Flag, type FlagStatus } from '../../api/flags';
 import { getCardTags } from '../../api/cards';
 import { getDeckCards } from '../../api/studySessions';
 import { EditCardModal } from '../study-session/modals/EditCardModal';
+import { TeacherCodesPanel } from './TeacherCodesPanel';
 import type { Card, CardFlag } from '../../types/models';
 
 type FlagTypeFilter = 'all' | 'card' | 'deck';
@@ -61,6 +63,10 @@ const STATUS_CONFIG: Record<
 };
 
 export const ModerationDashboard: React.FC = () => {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
+  const [activeTab, setActiveTab] = useState<'flags' | 'codes'>('flags');
+
   const [flags, setFlags] = useState<Flag[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState<FlagTypeFilter>('all');
@@ -370,178 +376,221 @@ export const ModerationDashboard: React.FC = () => {
         <p className="text-[var(--text-secondary)]">
           Gestioneaza rapoartele de continut si modereaza platforma
         </p>
+
+        {/* Tabs - Codes tab only visible to admin */}
+        {isAdmin && (
+          <div className="flex gap-2 mt-4">
+            <button
+              onClick={() => setActiveTab('flags')}
+              className={`px-4 py-2 rounded-xl font-medium text-sm transition-colors ${
+                activeTab === 'flags'
+                  ? 'bg-[var(--color-accent)] text-white'
+                  : 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface)]'
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <Shield size={16} />
+                Rapoarte
+              </span>
+            </button>
+            <button
+              onClick={() => setActiveTab('codes')}
+              className={`px-4 py-2 rounded-xl font-medium text-sm transition-colors ${
+                activeTab === 'codes'
+                  ? 'bg-[var(--color-accent)] text-white'
+                  : 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface)]'
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <KeyRound size={16} />
+                Coduri invitatie
+              </span>
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Filters & List */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Filters */}
-            <div className="bg-[var(--card-bg)] rounded-2xl p-6 shadow-sm">
-              <div className="flex items-center gap-2 mb-4">
-                <Filter size={20} className="text-[var(--text-secondary)]" />
-                <h2 className="text-lg font-bold text-[var(--text-primary)]">Filtre</h2>
-              </div>
+        {/* Teacher Codes Tab */}
+        {activeTab === 'codes' && isAdmin ? (
+          <TeacherCodesPanel />
+        ) : (
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Filters & List */}
+              <div className="lg:col-span-2 space-y-6">
+                {/* Filters */}
+                <div className="bg-[var(--card-bg)] rounded-2xl p-6 shadow-sm">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Filter size={20} className="text-[var(--text-secondary)]" />
+                    <h2 className="text-lg font-bold text-[var(--text-primary)]">Filtre</h2>
+                  </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Type Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                    Tip continut
-                  </label>
-                  <select
-                    value={typeFilter}
-                    onChange={e => setTypeFilter(e.target.value as FlagTypeFilter)}
-                    className="w-full px-4 py-2 border border-[var(--border-primary)] rounded-xl bg-[var(--bg-surface)] text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--color-accent-ring)] focus:border-transparent"
-                  >
-                    <option value="all">Toate</option>
-                    <option value="card">Carduri</option>
-                    <option value="deck">Deck-uri</option>
-                  </select>
-                </div>
-
-                {/* Status Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                    Status
-                  </label>
-                  <select
-                    value={statusFilter}
-                    onChange={e => setStatusFilter(e.target.value as FlagStatus | 'all')}
-                    className="w-full px-4 py-2 border border-[var(--border-primary)] rounded-xl bg-[var(--bg-surface)] text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--color-accent-ring)] focus:border-transparent"
-                  >
-                    <option value="all">Toate</option>
-                    <option value="pending">In asteptare</option>
-                    <option value="under_review">In revizuire</option>
-                    <option value="resolved">Rezolvate</option>
-                    <option value="dismissed">Respinse</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* Flags List */}
-            <div className="space-y-4">
-              {isLoading ? (
-                <div className="bg-[var(--card-bg)] rounded-2xl p-8 text-center">
-                  <p className="text-[var(--text-tertiary)]">Se incarca rapoartele...</p>
-                </div>
-              ) : flags.length === 0 ? (
-                <div className="bg-[var(--card-bg)] rounded-2xl p-8 text-center">
-                  <p className="text-[var(--text-tertiary)]">Nu exista rapoarte cu aceste filtre</p>
-                </div>
-              ) : (
-                flags.map(flag => (
-                  <div
-                    key={flag.id}
-                    className={`bg-[var(--card-bg)] rounded-2xl p-6 shadow-sm cursor-pointer transition-all hover:shadow-md ${
-                      selectedFlag?.id === flag.id ? 'ring-2 ring-[var(--color-accent)]' : ''
-                    }`}
-                    onClick={() => handleSelectFlag(flag)}
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <span className="px-3 py-1 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-full text-xs font-medium">
-                          {flag.type === 'card' ? 'Card' : 'Deck'}
-                        </span>
-                        {getStatusBadge(flag.status)}
-                      </div>
-                      <p className="text-xs text-[var(--text-tertiary)]">
-                        {timeAgo(new Date(flag.createdAt))}
-                      </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Type Filter */}
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                        Tip continut
+                      </label>
+                      <select
+                        value={typeFilter}
+                        onChange={e => setTypeFilter(e.target.value as FlagTypeFilter)}
+                        className="w-full px-4 py-2 border border-[var(--border-primary)] rounded-xl bg-[var(--bg-surface)] text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--color-accent-ring)] focus:border-transparent"
+                      >
+                        <option value="all">Toate</option>
+                        <option value="card">Carduri</option>
+                        <option value="deck">Deck-uri</option>
+                      </select>
                     </div>
 
-                    <h3 className="font-bold text-[var(--text-primary)] mb-2">
-                      {flag.deckTitle || 'Fara titlu'}
-                    </h3>
+                    {/* Status Filter */}
+                    <div>
+                      <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                        Status
+                      </label>
+                      <select
+                        value={statusFilter}
+                        onChange={e => setStatusFilter(e.target.value as FlagStatus | 'all')}
+                        className="w-full px-4 py-2 border border-[var(--border-primary)] rounded-xl bg-[var(--bg-surface)] text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--color-accent-ring)] focus:border-transparent"
+                      >
+                        <option value="all">Toate</option>
+                        <option value="pending">In asteptare</option>
+                        <option value="under_review">In revizuire</option>
+                        <option value="resolved">Rezolvate</option>
+                        <option value="dismissed">Respinse</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
 
-                    {flag.type === 'card' &&
-                      'cardFront' in flag &&
-                      (flag.cardFront || flag.cardBack) && (
-                        <div className="mb-3 p-3 bg-[var(--bg-tertiary)] rounded-lg text-sm">
-                          <p className="text-[var(--text-secondary)] truncate">
-                            <span className="font-medium">Fata:</span> {flag.cardFront}
+                {/* Flags List */}
+                <div className="space-y-4">
+                  {isLoading ? (
+                    <div className="bg-[var(--card-bg)] rounded-2xl p-8 text-center">
+                      <p className="text-[var(--text-tertiary)]">Se incarca rapoartele...</p>
+                    </div>
+                  ) : flags.length === 0 ? (
+                    <div className="bg-[var(--card-bg)] rounded-2xl p-8 text-center">
+                      <p className="text-[var(--text-tertiary)]">
+                        Nu exista rapoarte cu aceste filtre
+                      </p>
+                    </div>
+                  ) : (
+                    flags.map(flag => (
+                      <div
+                        key={flag.id}
+                        className={`bg-[var(--card-bg)] rounded-2xl p-6 shadow-sm cursor-pointer transition-all hover:shadow-md ${
+                          selectedFlag?.id === flag.id ? 'ring-2 ring-[var(--color-accent)]' : ''
+                        }`}
+                        onClick={() => handleSelectFlag(flag)}
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="px-3 py-1 bg-[var(--bg-tertiary)] text-[var(--text-secondary)] rounded-full text-xs font-medium">
+                              {flag.type === 'card' ? 'Card' : 'Deck'}
+                            </span>
+                            {getStatusBadge(flag.status)}
+                          </div>
+                          <p className="text-xs text-[var(--text-tertiary)]">
+                            {timeAgo(new Date(flag.createdAt))}
                           </p>
                         </div>
-                      )}
 
-                    {'reason' in flag && flag.reason && (
-                      <p className="text-sm text-orange-600 font-medium mb-2">
-                        Motiv: {flag.reason.replace(/_/g, ' ')}
-                      </p>
-                    )}
+                        <h3 className="font-bold text-[var(--text-primary)] mb-2">
+                          {flag.deckTitle || 'Fara titlu'}
+                        </h3>
 
-                    {flag.comment && (
-                      <p className="text-sm text-[var(--text-secondary)] line-clamp-2">
-                        {flag.comment}
-                      </p>
-                    )}
+                        {flag.type === 'card' &&
+                          'cardFront' in flag &&
+                          (flag.cardFront || flag.cardBack) && (
+                            <div className="mb-3 p-3 bg-[var(--bg-tertiary)] rounded-lg text-sm">
+                              <p className="text-[var(--text-secondary)] truncate">
+                                <span className="font-medium">Fata:</span> {flag.cardFront}
+                              </p>
+                            </div>
+                          )}
 
-                    <p className="text-xs text-[var(--text-tertiary)] mt-2">
-                      Raportat de: {flag.flaggedByName || 'Anonim'}
-                    </p>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
+                        {'reason' in flag && flag.reason && (
+                          <p className="text-sm text-orange-600 font-medium mb-2">
+                            Motiv: {flag.reason.replace(/_/g, ' ')}
+                          </p>
+                        )}
 
-          {/* Details Panel — Desktop only (hidden on mobile, shown on lg+) */}
-          <div className="hidden lg:block lg:col-span-1">
-            {selectedFlag ? (
-              <div className="bg-[var(--card-bg)] rounded-2xl p-6 shadow-sm sticky top-6">
-                <h2 className="text-lg font-bold text-[var(--text-primary)] mb-4">
-                  Detalii raport
-                </h2>
-                {renderDetailsContent()}
-              </div>
-            ) : (
-              <div className="bg-[var(--card-bg)] rounded-2xl p-8 shadow-sm text-center">
-                <Shield size={48} className="text-[var(--text-muted)] mx-auto mb-3" />
-                <p className="text-[var(--text-tertiary)]">
-                  Selecteaza un raport pentru a vedea detaliile
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
+                        {flag.comment && (
+                          <p className="text-sm text-[var(--text-secondary)] line-clamp-2">
+                            {flag.comment}
+                          </p>
+                        )}
 
-        {/* Details Panel — Mobile overlay (shown on mobile when a flag is selected) */}
-        {selectedFlag && mobileDetailsOpen && (
-          <div
-            className="fixed inset-0 bg-black/50 z-[90] lg:hidden backdrop-blur-sm"
-            onClick={() => setMobileDetailsOpen(false)}
-          >
-            <div
-              className="absolute bottom-0 left-0 right-0 bg-[var(--bg-surface)] rounded-t-2xl shadow-2xl max-h-[85vh] overflow-y-auto animate-slide-up"
-              onClick={e => e.stopPropagation()}
-            >
-              {/* Drag handle */}
-              <div className="sticky top-0 bg-[var(--bg-surface)] rounded-t-2xl pt-3 pb-2 px-6 border-b border-[var(--border-subtle)] z-10">
-                <div className="w-10 h-1 bg-[var(--border-primary)] rounded-full mx-auto mb-3" />
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-bold text-[var(--text-primary)]">Detalii raport</h2>
-                  <button
-                    onClick={() => setMobileDetailsOpen(false)}
-                    className="p-2 rounded-lg hover:bg-[var(--bg-tertiary)] transition-colors"
-                  >
-                    <X size={20} className="text-[var(--text-tertiary)]" />
-                  </button>
+                        <p className="text-xs text-[var(--text-tertiary)] mt-2">
+                          Raportat de: {flag.flaggedByName || 'Anonim'}
+                        </p>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
-              <div className="p-6">{renderDetailsContent()}</div>
-            </div>
-          </div>
-        )}
 
-        {/* Unified EditCardModal */}
-        {editCard && (
-          <EditCardModal
-            card={editCard}
-            onClose={() => setEditCard(null)}
-            onSave={handleCardSaved}
-            existingTags={existingTags}
-          />
+              {/* Details Panel — Desktop only (hidden on mobile, shown on lg+) */}
+              <div className="hidden lg:block lg:col-span-1">
+                {selectedFlag ? (
+                  <div className="bg-[var(--card-bg)] rounded-2xl p-6 shadow-sm sticky top-6">
+                    <h2 className="text-lg font-bold text-[var(--text-primary)] mb-4">
+                      Detalii raport
+                    </h2>
+                    {renderDetailsContent()}
+                  </div>
+                ) : (
+                  <div className="bg-[var(--card-bg)] rounded-2xl p-8 shadow-sm text-center">
+                    <Shield size={48} className="text-[var(--text-muted)] mx-auto mb-3" />
+                    <p className="text-[var(--text-tertiary)]">
+                      Selecteaza un raport pentru a vedea detaliile
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Details Panel — Mobile overlay (shown on mobile when a flag is selected) */}
+            {selectedFlag && mobileDetailsOpen && (
+              <div
+                className="fixed inset-0 bg-black/50 z-[90] lg:hidden backdrop-blur-sm"
+                onClick={() => setMobileDetailsOpen(false)}
+              >
+                <div
+                  className="absolute bottom-0 left-0 right-0 bg-[var(--bg-surface)] rounded-t-2xl shadow-2xl max-h-[85vh] overflow-y-auto animate-slide-up"
+                  onClick={e => e.stopPropagation()}
+                >
+                  {/* Drag handle */}
+                  <div className="sticky top-0 bg-[var(--bg-surface)] rounded-t-2xl pt-3 pb-2 px-6 border-b border-[var(--border-subtle)] z-10">
+                    <div className="w-10 h-1 bg-[var(--border-primary)] rounded-full mx-auto mb-3" />
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-lg font-bold text-[var(--text-primary)]">
+                        Detalii raport
+                      </h2>
+                      <button
+                        onClick={() => setMobileDetailsOpen(false)}
+                        className="p-2 rounded-lg hover:bg-[var(--bg-tertiary)] transition-colors"
+                      >
+                        <X size={20} className="text-[var(--text-tertiary)]" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="p-6">{renderDetailsContent()}</div>
+                </div>
+              </div>
+            )}
+
+            {/* Unified EditCardModal */}
+            {editCard && (
+              <EditCardModal
+                card={editCard}
+                onClose={() => setEditCard(null)}
+                onSave={handleCardSaved}
+                existingTags={existingTags}
+              />
+            )}
+          </>
         )}
       </div>
     </div>

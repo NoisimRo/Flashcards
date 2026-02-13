@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../store/AuthContext';
-import { Mail, Lock, Eye, EyeOff, Loader2, User, GraduationCap } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Loader2, User, GraduationCap, KeyRound } from 'lucide-react';
 
 interface RegisterProps {
   onSwitchToLogin: () => void;
@@ -15,6 +15,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState<'student' | 'teacher'>('student');
+  const [teacherCode, setTeacherCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [localError, setLocalError] = useState('');
 
@@ -37,8 +38,19 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
       return;
     }
 
+    if (role === 'teacher' && !teacherCode.trim()) {
+      setLocalError('Codul de invitație este obligatoriu pentru profesori');
+      return;
+    }
+
     try {
-      await register(email, password, name, role);
+      await register(
+        email,
+        password,
+        name,
+        role,
+        role === 'teacher' ? teacherCode.trim() : undefined
+      );
     } catch (err) {
       // Error is handled by AuthContext
     }
@@ -192,13 +204,45 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
               </div>
             </div>
 
+            {/* Teacher Invitation Code */}
+            {role === 'teacher' && (
+              <div>
+                <label
+                  className="block text-sm font-bold mb-2"
+                  style={{ color: 'var(--text-secondary)' }}
+                >
+                  Cod de invitatie
+                </label>
+                <div className="relative">
+                  <KeyRound
+                    className="absolute left-4 top-1/2 -translate-y-1/2"
+                    style={{ color: 'var(--text-muted)' }}
+                    size={20}
+                  />
+                  <input
+                    type="text"
+                    value={teacherCode}
+                    onChange={e => setTeacherCode(e.target.value.toUpperCase())}
+                    className="w-full pl-12 pr-4 py-4 border-2 rounded-xl font-medium outline-none transition-colors uppercase tracking-wider"
+                    style={inputStyle}
+                    placeholder="Introdu codul primit de la admin"
+                    maxLength={20}
+                  />
+                </div>
+                <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+                  Ai nevoie de un cod de invitatie de la administrator pentru a te inregistra ca
+                  profesor.
+                </p>
+              </div>
+            )}
+
             {/* Password */}
             <div>
               <label
                 className="block text-sm font-bold mb-2"
                 style={{ color: 'var(--text-secondary)' }}
               >
-                Parolă
+                Parola
               </label>
               <div className="relative">
                 <Lock
@@ -231,7 +275,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
                 className="block text-sm font-bold mb-2"
                 style={{ color: 'var(--text-secondary)' }}
               >
-                Confirmă parola
+                Confirma parola
               </label>
               <div className="relative">
                 <Lock
@@ -245,7 +289,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
                   onChange={e => setConfirmPassword(e.target.value)}
                   className="w-full pl-12 pr-4 py-4 border-2 rounded-xl font-medium outline-none transition-colors"
                   style={inputStyle}
-                  placeholder="Repetă parola"
+                  placeholder="Repeta parola"
                 />
               </div>
             </div>
@@ -267,10 +311,10 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
               {isLoading ? (
                 <>
                   <Loader2 className="animate-spin" size={20} />
-                  Se creează contul...
+                  Se creeaza contul...
                 </>
               ) : (
-                'Creează cont'
+                'Creeaza cont'
               )}
             </button>
           </form>
@@ -298,14 +342,14 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
               className="font-bold hover:underline"
               style={{ color: 'var(--color-accent)' }}
             >
-              Autentifică-te
+              Autentifica-te
             </button>
           </p>
         </div>
 
         {/* Footer */}
         <p className="text-center text-sm mt-6" style={{ color: 'var(--text-muted)' }}>
-          Tu înveți. AI-ul face restul.
+          Tu inveti. AI-ul face restul.
         </p>
       </div>
     </div>

@@ -98,14 +98,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   const register = useCallback(
-    async (email: string, password: string, name: string, role?: 'teacher' | 'student') => {
+    async (
+      email: string,
+      password: string,
+      name: string,
+      role?: 'teacher' | 'student',
+      teacherCode?: string
+    ) => {
       setIsLoading(true);
       setError(null);
 
       try {
         // Include guest token to migrate guest data (sessions + decks) to new account
         const guestToken = localStorage.getItem('guest_token') || undefined;
-        const response = await apiRegister({ email, password, name, role, guestToken });
+        const response = await apiRegister({
+          email,
+          password,
+          name,
+          role,
+          guestToken,
+          teacherCode,
+        });
 
         if (response.success && response.data) {
           setUser(response.data.user);

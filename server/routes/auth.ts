@@ -144,7 +144,7 @@ export async function calculateStreakFromDailyProgress(
 // ============================================
 router.post('/register', async (req: Request, res: Response) => {
   try {
-    const { email, password, name, role = 'student', guestToken } = req.body;
+    const { email, password, name, role = 'student', guestToken, teacherCode } = req.body;
 
     // Validation
     if (!email || !password || !name) {
@@ -165,6 +165,36 @@ router.post('/register', async (req: Request, res: Response) => {
           message: 'Parola trebuie să aibă minim 6 caractere',
         },
       });
+    }
+
+    // Teacher registration requires an invitation code
+    if (role === 'teacher') {
+      if (!teacherCode) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'TEACHER_CODE_REQUIRED',
+            message: 'Codul de invitație este obligatoriu pentru înregistrarea ca profesor',
+          },
+        });
+      }
+
+      const codeResult = await query(
+        `SELECT id FROM teacher_codes
+         WHERE code = $1 AND is_used = false AND revoked_at IS NULL
+         AND (expires_at IS NULL OR expires_at > NOW())`,
+        [teacherCode.trim().toUpperCase()]
+      );
+
+      if (codeResult.rows.length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'INVALID_TEACHER_CODE',
+            message: 'Codul de invitație este invalid, expirat sau a fost deja folosit',
+          },
+        });
+      }
     }
 
     // Check if email exists
@@ -202,6 +232,16 @@ router.post('/register', async (req: Request, res: Response) => {
       );
 
       const user = userResult.rows[0];
+
+      // Mark teacher code as used (atomically within the transaction)
+      if (role === 'teacher' && teacherCode) {
+        await client.query(
+          `UPDATE teacher_codes
+           SET is_used = true, used_by = $1, used_at = NOW()
+           WHERE code = $2 AND is_used = false`,
+          [user.id, teacherCode.trim().toUpperCase()]
+        );
+      }
 
       // Migrate guest sessions if token provided
       let migratedSessionsCount = 0;

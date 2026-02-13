@@ -15,7 +15,8 @@ export type ViewType =
   | 'achievements'
   | 'leaderboard'
   | 'settings'
-  | 'moderation';
+  | 'moderation'
+  | 'catalog';
 
 export type AuthMode = 'login' | 'register';
 
