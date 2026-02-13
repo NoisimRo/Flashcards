@@ -32,7 +32,7 @@ function getAvatarEmoji(avatarId?: string): string | null {
 
 /** App branded brain icon (no background) used as the default avatar */
 const BrainAvatar: React.FC = () => (
-  <img src="/brain-icon-nobg.svg" alt="App" className="w-9 h-9" />
+  <img src="/brain-icon-nobg.svg" alt="App" className="w-10 h-10" />
 );
 
 const ACHIEVEMENT_EMOJI: Record<string, string> = {
