@@ -330,7 +330,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
 
         {/* Navigation */}
-        <nav className="flex-1 space-y-2">
+        <nav className="flex-1 min-h-0 overflow-y-auto space-y-2">
           {menuItems.map(item => (
             <button
               key={item.id}

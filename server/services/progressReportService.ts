@@ -52,48 +52,49 @@ export interface ProgressReport {
   motivationalNote: string;
 }
 
+function buildFallbackReport(studentData: StudentDataSnapshot): ProgressReport {
+  const accuracy = studentData.totalCorrectAnswers / Math.max(studentData.totalAnswers, 1);
+  return {
+    summary: `${studentData.name} este un elev activ care a acumulat ${studentData.totalXP} XP și a învățat ${studentData.totalCardsLearned} carduri. Nivelul actual este ${studentData.level}.`,
+    strengths: [
+      'Perseverență în studiu - menține un streak constant',
+      'Bun la sesiuni de practică regulată',
+      'Progres consistent în numărul de carduri masterizate',
+    ],
+    weaknesses: [
+      'Unele materii necesită mai multă atenție',
+      'Cardurile greșite frecvent indică lacune în anumite concepte',
+    ],
+    recommendations: [
+      'Concentrează-te pe cardurile greșite frecvent folosind modul Smart',
+      'Mărește timpul de studiu zilnic cu 5-10 minute',
+      'Revizuiește conceptele dificile înainte de a trece la materie nouă',
+    ],
+    subjectBreakdown: studentData.subjectBreakdown.map(s => ({
+      subject: s.subject,
+      performance:
+        s.correctRate >= 80
+          ? 'Foarte bun'
+          : s.correctRate >= 60
+            ? 'Satisfăcător'
+            : 'Necesită îmbunătățire',
+      notes: `Rata de corectitudine: ${Math.round(s.correctRate)}%`,
+    })),
+    overallGrade:
+      accuracy >= 0.8 ? 'bun' : accuracy >= 0.6 ? 'satisfăcător' : 'necesită îmbunătățire',
+    studyHabits: `Elevul studiază în medie ${Math.round(studentData.totalTimeSpent / Math.max(studentData.weeklyProgress.length, 1))} minute pe zi.`,
+    motivationalNote: 'Continuă să exersezi zilnic și vei vedea progrese semnificative!',
+  };
+}
+
 export async function generateProgressReport(
   studentData: StudentDataSnapshot
 ): Promise<ProgressReport> {
   const apiKey = config.geminiApiKey;
 
   if (!apiKey) {
-    console.warn('GEMINI_API_KEY not configured, returning mock report');
-    return {
-      summary: `${studentData.name} este un elev activ care a acumulat ${studentData.totalXP} XP și a învățat ${studentData.totalCardsLearned} carduri. Nivelul actual este ${studentData.level}.`,
-      strengths: [
-        'Perseverență în studiu - menține un streak constant',
-        'Bun la sesiuni de practică regulată',
-        'Progres consistent în numărul de carduri masterizate',
-      ],
-      weaknesses: [
-        'Unele materii necesită mai multă atenție',
-        'Cardurile greșite frecvent indică lacune în anumite concepte',
-      ],
-      recommendations: [
-        'Concentrează-te pe cardurile greșite frecvent folosind modul Smart',
-        'Mărește timpul de studiu zilnic cu 5-10 minute',
-        'Revizuiește conceptele dificile înainte de a trece la materie nouă',
-      ],
-      subjectBreakdown: studentData.subjectBreakdown.map(s => ({
-        subject: s.subject,
-        performance:
-          s.correctRate >= 80
-            ? 'Foarte bun'
-            : s.correctRate >= 60
-              ? 'Satisfăcător'
-              : 'Necesită îmbunătățire',
-        notes: `Rata de corectitudine: ${Math.round(s.correctRate)}%`,
-      })),
-      overallGrade:
-        studentData.totalCorrectAnswers / Math.max(studentData.totalAnswers, 1) >= 0.8
-          ? 'bun'
-          : studentData.totalCorrectAnswers / Math.max(studentData.totalAnswers, 1) >= 0.6
-            ? 'satisfăcător'
-            : 'necesită îmbunătățire',
-      studyHabits: `Elevul studiază în medie ${Math.round(studentData.totalTimeSpent / Math.max(studentData.weeklyProgress.length, 1))} minute pe zi.`,
-      motivationalNote: 'Continuă să exersezi zilnic și vei vedea progrese semnificative!',
-    };
+    console.warn('GEMINI_API_KEY not configured, returning fallback report');
+    return buildFallbackReport(studentData);
   }
 
   const ai = new GoogleGenAI({ apiKey });
@@ -194,8 +195,8 @@ export async function generateProgressReport(
 
     return JSON.parse(text) as ProgressReport;
   } catch (error) {
-    console.error('Error generating progress report with AI:', error);
-    throw error;
+    console.error('Error generating progress report with AI, falling back to local report:', error);
+    return buildFallbackReport(studentData);
   }
 }
 
