@@ -679,3 +679,70 @@ CREATE TRIGGER deck_flags_updated_at
     BEFORE UPDATE ON deck_flags
     FOR EACH ROW
     EXECUTE FUNCTION update_deck_flags_updated_at();
+
+-- ============================================
+-- TEACHER INVITATION CODES
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS teacher_codes (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    code VARCHAR(20) UNIQUE NOT NULL,
+    is_used BOOLEAN DEFAULT false,
+    created_by UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    used_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    used_at TIMESTAMP WITH TIME ZONE,
+    expires_at TIMESTAMP WITH TIME ZONE,
+    revoked_at TIMESTAMP WITH TIME ZONE,
+    revoked_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    label VARCHAR(100),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_teacher_codes_code ON teacher_codes(code);
+CREATE INDEX idx_teacher_codes_creator ON teacher_codes(created_by);
+CREATE INDEX idx_teacher_codes_available ON teacher_codes(code)
+    WHERE is_used = false AND revoked_at IS NULL;
+
+CREATE TRIGGER update_teacher_codes_updated_at
+    BEFORE UPDATE ON teacher_codes
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================
+-- TEACHER-STUDENT ASSIGNMENTS
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS teacher_student_assignments (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    teacher_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    student_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    assigned_by UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(teacher_id, student_id)
+);
+
+CREATE INDEX idx_tsa_teacher ON teacher_student_assignments(teacher_id);
+CREATE INDEX idx_tsa_student ON teacher_student_assignments(student_id);
+
+-- ============================================
+-- AI PROGRESS REPORTS CACHE
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS student_progress_reports (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    student_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    requested_by UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    report JSONB NOT NULL,
+    input_snapshot JSONB,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_progress_reports_student ON student_progress_reports(student_id);
+CREATE INDEX idx_progress_reports_created ON student_progress_reports(student_id, created_at DESC);
+
+CREATE TRIGGER update_student_progress_reports_updated_at
+    BEFORE UPDATE ON student_progress_reports
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();

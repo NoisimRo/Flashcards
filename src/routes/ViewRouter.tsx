@@ -13,6 +13,7 @@ import type { User } from '../types';
 import ActiveSessionsList from '../components/sessions/ActiveSessionsList';
 import { StudySessionContainer } from '../components/study-session/StudySessionContainer';
 import { ModerationDashboard } from '../components/moderation/ModerationDashboard';
+import { StudentCatalog } from '../components/pages/Catalog/StudentCatalog';
 // Refactored components
 import { Achievements } from '../components/pages/Achievements/Achievements';
 import { Dashboard } from '../components/pages/Dashboard/Dashboard';
@@ -181,6 +182,20 @@ export const ViewRouter: React.FC = () => {
         return <ModerationDashboard />;
       }
       // Redirect to dashboard if user doesn't have permission
+      return (
+        <Dashboard
+          user={user}
+          decks={decks}
+          onStartSession={sessionManagement.handleStartSession}
+          onChangeView={setCurrentView}
+        />
+      );
+
+    case 'catalog':
+      // Only admin and teacher can access catalog
+      if (user.role === 'admin' || user.role === 'teacher') {
+        return <StudentCatalog />;
+      }
       return (
         <Dashboard
           user={user}

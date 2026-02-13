@@ -52,6 +52,7 @@ export interface RegisterRequest {
   name: string;
   role?: 'teacher' | 'student'; // Admin created manually
   guestToken?: string;
+  teacherCode?: string; // Required when role = 'teacher'
 }
 
 export interface AuthResponse {
@@ -368,4 +369,131 @@ export interface SyncConflictResponse {
   serverVersion: number;
   serverData: any;
   resolution: 'server_wins' | 'client_wins' | 'merge' | 'manual';
+}
+
+// ============================================
+// TEACHER CODES
+// ============================================
+
+export interface TeacherCode {
+  id: string;
+  code: string;
+  isUsed: boolean;
+  label?: string;
+  createdByName?: string;
+  usedByName?: string;
+  usedAt?: string;
+  expiresAt?: string;
+  revokedAt?: string;
+  createdAt: string;
+}
+
+export interface CreateTeacherCodeRequest {
+  label?: string;
+  expiresAt?: string;
+}
+
+// ============================================
+// CATALOG
+// ============================================
+
+export interface CatalogStudent {
+  id: string;
+  name: string;
+  avatar?: string;
+  email: string;
+  level: number;
+  totalXP: number;
+  streak: number;
+  totalCardsLearned: number;
+  totalTimeSpent: number;
+  totalAnswers: number;
+  totalCorrectAnswers: number;
+  decksStudied: number;
+  frequentlyIncorrectCount: number;
+  createdAt: string;
+}
+
+export interface FrequentlyIncorrectCard {
+  id: string;
+  front: string;
+  back: string;
+  deckTitle: string;
+  subject: string;
+  timesIncorrect: number;
+  timesCorrect: number;
+  timesSeen: number;
+  status: string;
+}
+
+export interface StudentDetail {
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    avatar?: string;
+    role: string;
+    level: number;
+    currentXP: number;
+    nextLevelXP: number;
+    totalXP: number;
+    streak: number;
+    longestStreak: number;
+    totalTimeSpent: number;
+    totalCardsLearned: number;
+    totalDecksCompleted: number;
+    totalCorrectAnswers: number;
+    totalAnswers: number;
+    createdAt: string;
+  };
+  cardStats: {
+    statusCounts: { new: number; learning: number; reviewing: number; mastered: number };
+    inStudy: number;
+    mastered: number;
+  };
+  weeklyProgress: Array<{
+    date: string;
+    cardsStudied: number;
+    cardsLearned: number;
+    timeSpentMinutes: number;
+    xpEarned: number;
+  }>;
+  frequentlyIncorrectCards: FrequentlyIncorrectCard[];
+  decksStudied: Array<{ id: string; title: string; subjectId: string; subjectName: string }>;
+  subjectBreakdown: Array<{ subject: string; sessionsCompleted: number; correctRate: number }>;
+}
+
+export interface ProgressReport {
+  id: string;
+  summary: string;
+  strengths: string[];
+  weaknesses: string[];
+  recommendations: string[];
+  subjectBreakdown: Array<{ subject: string; performance: string; notes: string }>;
+  overallGrade: string;
+  studyHabits: string;
+  motivationalNote: string;
+  generatedAt: string;
+  cached: boolean;
+  requestedByName?: string;
+}
+
+export interface TeacherForAssignment {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+  studentCount: number;
+}
+
+export interface StudentAssignment {
+  id: string;
+  teacherId: string;
+  studentId: string;
+  teacherName: string;
+  studentName: string;
+  studentEmail: string;
+  studentLevel: number;
+  studentAvatar?: string;
+  createdAt: string;
 }

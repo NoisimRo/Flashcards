@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Filter, Eye, CheckCircle, XCircle, Clock, Edit, X } from 'lucide-react';
+import { Shield, Filter, Eye, CheckCircle, XCircle, Clock, Edit, X, KeyRound } from 'lucide-react';
 import { useToast } from '../ui/Toast';
+import { useAuth } from '../../store/AuthContext';
 import { getFlags, updateFlagStatus, type Flag, type FlagStatus } from '../../api/flags';
 import { getCardTags } from '../../api/cards';
 import { getDeckCards } from '../../api/studySessions';
 import { EditCardModal } from '../study-session/modals/EditCardModal';
+import { TeacherCodesPanel } from './TeacherCodesPanel';
 import type { Card, CardFlag } from '../../types/models';
 
 type FlagTypeFilter = 'all' | 'card' | 'deck';
@@ -61,6 +63,10 @@ const STATUS_CONFIG: Record<
 };
 
 export const ModerationDashboard: React.FC = () => {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
+  const [activeTab, setActiveTab] = useState<'flags' | 'codes'>('flags');
+
   const [flags, setFlags] = useState<Flag[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState<FlagTypeFilter>('all');
@@ -370,9 +376,46 @@ export const ModerationDashboard: React.FC = () => {
         <p className="text-[var(--text-secondary)]">
           Gestioneaza rapoartele de continut si modereaza platforma
         </p>
+
+        {/* Tabs - Codes tab only visible to admin */}
+        {isAdmin && (
+          <div className="flex gap-2 mt-4">
+            <button
+              onClick={() => setActiveTab('flags')}
+              className={`px-4 py-2 rounded-xl font-medium text-sm transition-colors ${
+                activeTab === 'flags'
+                  ? 'bg-[var(--color-accent)] text-white'
+                  : 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface)]'
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <Shield size={16} />
+                Rapoarte
+              </span>
+            </button>
+            <button
+              onClick={() => setActiveTab('codes')}
+              className={`px-4 py-2 rounded-xl font-medium text-sm transition-colors ${
+                activeTab === 'codes'
+                  ? 'bg-[var(--color-accent)] text-white'
+                  : 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--bg-surface)]'
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <KeyRound size={16} />
+                Coduri invitatie
+              </span>
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="max-w-7xl mx-auto">
+        {/* Teacher Codes Tab */}
+        {activeTab === 'codes' && isAdmin ? (
+          <TeacherCodesPanel />
+        ) : (
+        <>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Filters & List */}
           <div className="lg:col-span-2 space-y-6">
@@ -542,6 +585,8 @@ export const ModerationDashboard: React.FC = () => {
             onSave={handleCardSaved}
             existingTags={existingTags}
           />
+        )}
+        </>
         )}
       </div>
     </div>

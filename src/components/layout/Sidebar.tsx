@@ -14,6 +14,7 @@ import {
   Sun,
   Moon,
   Bug,
+  GraduationCap,
 } from 'lucide-react';
 import { User } from '../../types';
 import { LanguageSwitcher } from '../ui/LanguageSwitcher';
@@ -191,6 +192,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'sessions', label: t('menu.activeSessions'), icon: PlayCircle },
     { id: 'achievements', label: t('menu.achievements'), icon: Trophy },
     ...(canModerate ? [{ id: 'moderation', label: t('menu.moderation'), icon: Shield }] : []),
+    ...(canModerate
+      ? [{ id: 'catalog', label: t('menu.catalog', 'Catalog elevi'), icon: GraduationCap }]
+      : []),
     { id: 'leaderboard', label: t('menu.leaderboard'), icon: Users },
     ...(!isGuest
       ? [{ id: 'bug-report', label: t('bugReport.button', 'Raportează un Bug'), icon: Bug }]
