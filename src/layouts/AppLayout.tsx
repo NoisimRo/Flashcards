@@ -2,6 +2,7 @@ import React from 'react';
 import { Menu, X } from 'lucide-react';
 import { Sidebar } from '../components/layout/Sidebar';
 import { GuestBanner } from './GuestBanner';
+import { InstallAppBanner } from './InstallAppBanner';
 import { useUIStore } from '../store/uiStore';
 import { useAuth } from '../store/AuthContext';
 import { useAuthActions } from '../hooks/useAuthActions';
@@ -63,6 +64,9 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
 
         {/* Guest Banner */}
         {isGuest && <GuestBanner />}
+
+        {/* Install App Banner (authenticated mobile users, dashboard only) */}
+        {!isGuest && <InstallAppBanner />}
 
         {/* Page Content */}
         {children}

@@ -4,7 +4,7 @@ import { Card } from '../../../types/models';
 import {
   Check,
   X,
-  Send,
+  CornerDownLeft,
   Lightbulb,
   ChevronLeft,
   ChevronRight,
@@ -329,7 +329,7 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
             )}
 
             {/* Front Content - scrollable area with footer clearance */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-8 pb-20 flex flex-col justify-center">
+            <div className="flex-1 overflow-y-auto px-4 sm:px-8 pt-14 pb-20 flex flex-col justify-center">
               <div className="mb-6 sm:mb-8">
                 <div
                   className="text-sm font-semibold mb-3 uppercase tracking-wide text-center"
@@ -361,7 +361,7 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
                       onChange={e => !showBack && setUserAnswer(e.target.value)}
                       placeholder="Scrie răspunsul aici..."
                       readOnly={showBack}
-                      className={`w-full px-5 py-4 pr-14 rounded-xl border-2 focus:outline-none focus:ring-2 transition-all text-base ${
+                      className={`w-full px-5 py-4 pr-16 rounded-xl border-2 focus:outline-none focus:ring-2 transition-all text-base ${
                         showBack
                           ? isCorrect || cardAnswer === 'correct'
                             ? 'border-[var(--input-correct-border)]'
@@ -383,19 +383,20 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
                     <button
                       type="submit"
                       disabled={!userAnswer.trim() || showBack}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all active:scale-95"
+                      className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 px-3 py-2 rounded-lg font-semibold text-sm transition-all active:scale-95"
                       style={{
-                        color:
+                        backgroundColor:
                           !userAnswer.trim() || showBack
-                            ? 'var(--text-muted)'
+                            ? 'var(--bg-tertiary, #e5e7eb)'
                             : isPracticeMode
                               ? '#22c55e'
                               : 'var(--color-accent)',
+                        color: !userAnswer.trim() || showBack ? 'var(--text-muted)' : '#ffffff',
                         cursor: !userAnswer.trim() || showBack ? 'not-allowed' : 'pointer',
                       }}
-                      title={isPracticeMode ? 'Practică (fără XP)' : 'Trimite răspunsul'}
+                      title={isPracticeMode ? 'Practică (fără XP)' : 'Trimite răspunsul (Enter)'}
                     >
-                      <Send size={20} />
+                      <CornerDownLeft size={18} />
                     </button>
                   </div>
                 </div>
@@ -507,7 +508,7 @@ export const TypeAnswerCard: React.FC<TypeAnswerCardProps> = ({
             </div>
 
             {/* Back Content - scrollable area with footer clearance */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-8 pb-20 flex flex-col justify-center items-center">
+            <div className="flex-1 overflow-y-auto px-4 sm:px-8 pt-14 pb-20 flex flex-col justify-center items-center">
               <div className="text-center w-full px-2 sm:px-4">
                 <div
                   className="text-sm font-semibold mb-4 uppercase tracking-wide"
